@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FinTrust — Banking Reimagined</title>
+  <title>FinTrust - Banking Reimagined</title>
   <link rel="stylesheet" href="{{ asset('css/Style.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,10 +11,9 @@
 </head>
 <body>
 
-  <!-- NAVBAR -->
   <nav class="navbar" id="navbar">
     <div class="nav-container">
-      <div class="logo">
+      <a class="logo" href="{{ path('app') }}">
         <div class="logo-icon">
           <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="40" height="40" rx="10" fill="#1560BD"/>
@@ -22,37 +21,37 @@
           </svg>
         </div>
         <span class="logo-text">FinTrust</span>
-      </div>
+      </a>
       <ul class="nav-links">
         <li><a href="#features">Features</a></li>
-        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#ai-features">AI</a></li>
+        <li><a href="#dashboard-preview">Dashboard</a></li>
         <li><a href="#testimonials">Reviews</a></li>
         <li><a href="#pricing">Pricing</a></li>
       </ul>
       <div class="nav-actions">
-        <button class="btn-login" id="loginBtn">Log In</button>
-        <button class="btn-signup" id="signupBtn">Get Started</button>
+        <a class="btn-login" id="loginBtn" href="{{ path('app_login') }}">Log In</a>
+        <a class="btn-signup" id="signupBtn" href="{{ path('app_register') }}">Get Started</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>
     </div>
-    <!-- Mobile menu -->
     <div class="mobile-menu" id="mobileMenu">
       <ul>
         <li><a href="#features">Features</a></li>
-        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#ai-features">AI</a></li>
+        <li><a href="#dashboard-preview">Dashboard</a></li>
         <li><a href="#testimonials">Reviews</a></li>
         <li><a href="#pricing">Pricing</a></li>
       </ul>
       <div class="mobile-actions">
-        <button class="btn-login" id="mobileLoginBtn">Log In</button>
-        <button class="btn-signup" id="mobileSignupBtn">Get Started</button>
+        <a class="btn-login" id="mobileLoginBtn" href="{{ path('app_login') }}">Log In</a>
+        <a class="btn-signup" id="mobileSignupBtn" href="{{ path('app_register') }}">Get Started</a>
       </div>
     </div>
   </nav>
 
-  <!-- HERO -->
   <section class="hero" id="home">
     <div class="hero-bg">
       <div class="blob blob-1"></div>
@@ -60,23 +59,39 @@
       <div class="grid-overlay"></div>
     </div>
     <div class="hero-container">
-      <div class="hero-badge">
+      <div class="hero-badge hero-badge-dynamic" data-hero-badge>
         <span class="badge-dot"></span>
-        Trusted by 2 Million+ customers worldwide
+        AI Powered Banking
       </div>
       <h1 class="hero-title">
-        Banking that<br/>
-        <span class="highlight">works for you</span>,<br/>
-        not against you.
+        Smart banking<br/>
+        <span class="highlight">built to protect</span>,<br/>
+        convert, and scale.
       </h1>
       <p class="hero-subtitle">
-        FinTrust brings modern banking to your fingertips — seamless transfers, real-time insights, and zero hidden fees. Your money, your control.
+        FinTrust combines secure onboarding, AI-assisted fraud detection, and real-time financial insights in one premium banking experience.
       </p>
+      <div class="hero-chips">
+        <span class="hero-chip">Secure onboarding</span>
+        <span class="hero-chip">Real-time fraud monitoring</span>
+        <span class="hero-chip">Instant transactions</span>
+      </div>
       <div class="hero-cta">
-        <button class="btn-primary-lg" id="heroSignupBtn">Open Free Account</button>
-        <button class="btn-ghost-lg" id="heroLearnBtn">
-          <span class="play-icon">▶</span> Watch how it works
-        </button>
+        <a class="btn-primary-lg" id="heroSignupBtn" href="{{ path('app_register') }}">Open Free Account</a>
+        <a class="btn-ghost-lg" href="#dashboard-preview">Try Demo</a>
+        <a class="btn-ghost-lg" id="heroLearnBtn" href="#ai-features">
+          <span class="play-icon">></span> View Dashboard
+        </a>
+      </div>
+      <div class="hero-proof">
+        <div class="proof-item">
+          <strong>99.9%</strong>
+          <span>secure verification uptime</span>
+        </div>
+        <div class="proof-item">
+          <strong>Real-time</strong>
+          <span>risk scoring and anomaly alerts</span>
+        </div>
       </div>
       <div class="hero-stats">
         <div class="stat">
@@ -85,7 +100,7 @@
         </div>
         <div class="stat-divider"></div>
         <div class="stat">
-          <span class="stat-num">4.9★</span>
+          <span class="stat-num">4.9*</span>
           <span class="stat-label">App Store Rating</span>
         </div>
         <div class="stat-divider"></div>
@@ -100,7 +115,7 @@
         <div class="mockup-card main-card">
           <div class="card-chip"></div>
           <div class="card-brand">FinTrust</div>
-          <div class="card-number">•••• •••• •••• 4821</div>
+          <div class="card-number">.... .... .... 4821</div>
           <div class="card-footer">
             <span>JAMES CARTER</span>
             <span>08/28</span>
@@ -109,71 +124,245 @@
         <div class="mockup-card secondary-card">
           <div class="card-chip"></div>
           <div class="card-brand">FinTrust</div>
-          <div class="card-number">•••• •••• •••• 7734</div>
+          <div class="card-number">.... .... .... 7734</div>
           <div class="card-footer">
             <span>SARAH WELLS</span>
             <span>03/29</span>
           </div>
         </div>
         <div class="floating-widget widget-balance">
-          <div class="widget-icon">💰</div>
+          <div class="widget-icon">USD</div>
           <div class="widget-text">
             <span class="widget-label">Total Balance</span>
             <span class="widget-value">$24,830.00</span>
           </div>
         </div>
         <div class="floating-widget widget-sent">
-          <div class="widget-icon">✅</div>
+          <div class="widget-icon">OK</div>
           <div class="widget-text">
             <span class="widget-label">Payment Sent</span>
-            <span class="widget-value">−$120.00</span>
+            <span class="widget-value">-$120.00</span>
+          </div>
+        </div>
+        <div class="floating-widget widget-ai">
+          <div class="widget-icon">AI</div>
+          <div class="widget-text">
+            <span class="widget-label">Fraud Shield</span>
+            <span class="widget-value">Risk score: Low</span>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- FEATURES -->
+  <section class="trust-strip">
+    <div class="section-container trust-strip-container">
+      <span>Trusted KYC workflow</span>
+      <span>AI fraud scoring</span>
+      <span>Instant compliance alerts</span>
+      <span>Secure audit-ready monitoring</span>
+    </div>
+  </section>
+
   <section class="features" id="features">
     <div class="section-container">
       <div class="section-header">
         <div class="section-tag">Why FinTrust</div>
-        <h2 class="section-title">Everything you need,<br/>nothing you don't</h2>
-        <p class="section-sub">We've stripped away the complexity to give you a banking experience that's powerful yet simple.</p>
+        <h2 class="section-title">Everything you need,<br/>nothing you do not</h2>
+        <p class="section-sub">A conversion-focused banking platform with the trust signals, intelligence, and speed modern users expect.</p>
       </div>
       <div class="features-grid">
         <div class="feature-card feature-large">
-          <div class="feature-icon">🔒</div>
+          <div class="feature-icon">Secure</div>
           <h3>Bank-Grade Security</h3>
-          <p>256-bit AES encryption, biometric authentication, and real-time fraud detection keep your funds safe around the clock.</p>
+          <p>Advanced verification, protected sessions, and intelligent controls keep customer journeys smooth without compromising safety.</p>
           <div class="feature-badge">256-bit AES</div>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">⚡</div>
+          <div class="feature-icon">Fast</div>
           <h3>Instant Transfers</h3>
-          <p>Send money to anyone, anywhere in seconds. No delays, no waiting days for funds to clear.</p>
+          <p>Move funds quickly with a flow designed to reduce friction and increase confidence at every step.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">📊</div>
+          <div class="feature-icon">Data</div>
           <h3>Smart Analytics</h3>
-          <p>Understand your spending with beautiful, AI-powered breakdowns and personalized savings tips.</p>
+          <p>Turn raw banking activity into clear, useful insights for both clients and administrators.</p>
         </div>
         <div class="feature-card feature-blue">
-          <div class="feature-icon">🌍</div>
+          <div class="feature-icon">Global</div>
           <h3>Global Payments</h3>
-          <p>Pay and get paid in 50+ currencies with real exchange rates — never hidden markups.</p>
-          <div class="currency-flags">🇺🇸 🇪🇺 🇬🇧 🇯🇵 🇨🇦</div>
+          <p>Designed for modern finance teams with visibility, transparency, and dependable execution.</p>
+          <div class="currency-flags">USD EUR GBP CAD</div>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">📱</div>
+          <div class="feature-icon">Mobile</div>
           <h3>Mobile-First Design</h3>
-          <p>A flawlessly designed app for iOS and Android. Manage everything from your pocket.</p>
+          <p>A polished responsive experience that keeps onboarding, KYC, and payments accessible everywhere.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- HOW IT WORKS -->
+  <section class="smart-features" id="ai-features">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-tag">Smart Features</div>
+        <h2 class="section-title">AI-driven banking intelligence</h2>
+        <p class="section-sub">The platform stays dynamic by reacting to behavior, highlighting risk, and surfacing the next important action.</p>
+      </div>
+      <div class="smart-grid">
+        <article class="smart-card">
+          <span class="smart-kicker">Fraud</span>
+          <h3>Real-time fraud detection</h3>
+          <p>Transaction patterns, login behavior, and profile anomalies are monitored continuously.</p>
+        </article>
+        <article class="smart-card">
+          <span class="smart-kicker">Risk</span>
+          <h3>User risk scoring</h3>
+          <p>Each profile receives a dynamic score to support faster and more consistent admin decisions.</p>
+        </article>
+        <article class="smart-card">
+          <span class="smart-kicker">Monitoring</span>
+          <h3>Intelligent activity insights</h3>
+          <p>Operational signals are grouped into clear summaries instead of overwhelming raw events.</p>
+        </article>
+        <article class="smart-card smart-card-alert">
+          <span class="smart-kicker">Alerts</span>
+          <h3>Automatic compliance warnings</h3>
+          <p>Critical changes trigger immediate visual alerts so teams can act before risk spreads.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="dashboard-preview" id="dashboard-preview">
+    <div class="section-container dashboard-shell">
+      <div class="dashboard-copy">
+        <div class="section-tag">See FinTrust In Action</div>
+        <h2 class="section-title">A dashboard that turns data into decisions</h2>
+        <p class="section-sub section-sub-left">Give the jury a product they can instantly understand: clear KPI cards, KYC workflows, risk indicators, and fast admin actions.</p>
+        <div class="dashboard-points">
+          <div class="dashboard-point">
+            <strong>Admin control</strong>
+            <span>Approve KYC files, monitor users, and react from one place.</span>
+          </div>
+          <div class="dashboard-point">
+            <strong>Client visibility</strong>
+            <span>Users track their onboarding and financial activity without confusion.</span>
+          </div>
+        </div>
+        <div class="hero-cta">
+          <a class="btn-primary-lg" href="{{ path('admin_login') }}">Explore Dashboard</a>
+          <a class="btn-ghost-lg" href="{{ path('app_login') }}">View Client Space</a>
+        </div>
+      </div>
+      <div class="dashboard-visual">
+        <div class="dashboard-window dashboard-admin">
+          <div class="dashboard-window-bar">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="dashboard-window-body">
+            <div class="mini-kpis">
+              <div class="mini-kpi">
+                <strong>124</strong>
+                <span>Users</span>
+              </div>
+              <div class="mini-kpi">
+                <strong>18</strong>
+                <span>KYC pending</span>
+              </div>
+              <div class="mini-kpi danger">
+                <strong>4</strong>
+                <span>Alerts</span>
+              </div>
+            </div>
+            <div class="mini-table">
+              <div class="mini-row">
+                <span>Ines Hmani</span>
+                <span class="mini-badge approved">Approved</span>
+              </div>
+              <div class="mini-row">
+                <span>Hedi Kaouech</span>
+                <span class="mini-badge review">Review</span>
+              </div>
+              <div class="mini-row">
+                <span>Rana Ben Atig</span>
+                <span class="mini-badge risk">High risk</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-window dashboard-client">
+          <div class="dashboard-window-body">
+            <div class="client-balance">
+              <span>Available balance</span>
+              <strong>$24,830.00</strong>
+            </div>
+            <div class="client-insight">
+              <span>Behavior score</span>
+              <strong>82 / 100</strong>
+            </div>
+            <div class="client-insight">
+              <span>Fraud status</span>
+              <strong>Protected</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="security-section" id="security">
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-tag">Security Layer</div>
+        <h2 class="section-title">Built to reassure users and reviewers</h2>
+        <p class="section-sub">Security is visible in the experience, not hidden in documentation.</p>
+      </div>
+      <div class="security-grid">
+        <div class="security-card">
+          <h3>Biometric-ready access</h3>
+          <p>Designed for stronger verification flows and secure login journeys.</p>
+        </div>
+        <div class="security-card">
+          <h3>Captcha and form protection</h3>
+          <p>Critical forms reduce abuse while keeping the onboarding process smooth.</p>
+        </div>
+        <div class="security-card">
+          <h3>Fraud and anomaly controls</h3>
+          <p>Behavioral analysis helps surface unusual activity before it becomes a loss event.</p>
+        </div>
+        <div class="security-card">
+          <h3>Audit-ready monitoring</h3>
+          <p>Admin actions and user activity can be reviewed with clear operational context.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="impact-stats" id="stats">
+    <div class="section-container">
+      <div class="impact-grid">
+        <div class="impact-card">
+          <strong class="impact-number" data-target="2" data-suffix="M+">0</strong>
+          <span>Users ready for digital onboarding</span>
+        </div>
+        <div class="impact-card">
+          <strong class="impact-number" data-target="99.9" data-suffix="%">0</strong>
+          <span>Secure workflow availability</span>
+        </div>
+        <div class="impact-card">
+          <strong class="impact-number" data-target="50" data-suffix="K+">0</strong>
+          <span>Transactions monitored daily</span>
+        </div>
+        <div class="impact-card">
+          <strong class="impact-number" data-target="0" data-prefix="%">0</strong>
+          <span>Fraud loss target mindset</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="how-it-works" id="how-it-works">
     <div class="section-container">
       <div class="section-header">
@@ -185,7 +374,7 @@
           <div class="step-num">01</div>
           <div class="step-content">
             <h3>Create Your Account</h3>
-            <p>Sign up with just your email. No paperwork, no branch visits, no waiting in line.</p>
+            <p>Sign up with just your email. No paperwork, no branch visits, and no friction.</p>
           </div>
         </div>
         <div class="step-connector"></div>
@@ -193,7 +382,7 @@
           <div class="step-num">02</div>
           <div class="step-content">
             <h3>Verify Your Identity</h3>
-            <p>A quick, secure ID check powered by AI. Usually done in under 2 minutes.</p>
+            <p>A fast and secure KYC flow helps users move forward with confidence.</p>
           </div>
         </div>
         <div class="step-connector"></div>
@@ -201,7 +390,7 @@
           <div class="step-num">03</div>
           <div class="step-content">
             <h3>Fund Your Account</h3>
-            <p>Link your existing bank or deposit cash. Start using your account immediately.</p>
+            <p>Link your existing bank or deposit funds and start using the platform quickly.</p>
           </div>
         </div>
         <div class="step-connector"></div>
@@ -209,17 +398,16 @@
           <div class="step-num">04</div>
           <div class="step-content">
             <h3>Banking, Reimagined</h3>
-            <p>Send, save, invest, and manage your finances with full confidence.</p>
+            <p>Use one intelligent platform to transfer, monitor, and manage with clarity.</p>
           </div>
         </div>
       </div>
       <div class="steps-cta">
-        <button class="btn-primary-lg" id="stepsSignupBtn">Start in 5 Minutes →</button>
+        <a class="btn-primary-lg" id="stepsSignupBtn" href="{{ path('app_register') }}">Start in 5 Minutes -></a>
       </div>
     </div>
   </section>
 
-  <!-- TESTIMONIALS -->
   <section class="testimonials" id="testimonials">
     <div class="section-container">
       <div class="section-header">
@@ -228,8 +416,8 @@
       </div>
       <div class="testimonials-grid">
         <div class="testimonial-card t-featured">
-          <div class="stars">★★★★★</div>
-          <p>"FinTrust changed how I think about banking. The interface is stunning, transfers are instant, and I've never paid a hidden fee. It's the bank I always wanted."</p>
+          <div class="stars">*****</div>
+          <p>"FinTrust feels secure, clear, and genuinely modern. The dashboard makes complex banking actions feel simple."</p>
           <div class="testimonial-author">
             <div class="author-avatar av1">MR</div>
             <div>
@@ -239,8 +427,8 @@
           </div>
         </div>
         <div class="testimonial-card">
-          <div class="stars">★★★★★</div>
-          <p>"Switched from my old bank and the difference is night and day. Setup took 4 minutes. Incredible."</p>
+          <div class="stars">*****</div>
+          <p>"Secure and easy to use. The KYC flow is quick, and the product looks like a real fintech platform."</p>
           <div class="testimonial-author">
             <div class="author-avatar av2">LP</div>
             <div>
@@ -250,8 +438,8 @@
           </div>
         </div>
         <div class="testimonial-card">
-          <div class="stars">★★★★★</div>
-          <p>"The analytics feature alone is worth it. I finally understand where my money is going every month."</p>
+          <div class="stars">*****</div>
+          <p>"The risk and analytics pieces make it feel smarter than a normal banking demo."</p>
           <div class="testimonial-author">
             <div class="author-avatar av3">TK</div>
             <div>
@@ -261,8 +449,8 @@
           </div>
         </div>
         <div class="testimonial-card">
-          <div class="stars">★★★★★</div>
-          <p>"Customer support is fast, helpful, and human. Not a single bot response. Unheard of in banking."</p>
+          <div class="stars">*****</div>
+          <p>"Best fintech experience in a student project I have seen. It inspires confidence immediately."</p>
           <div class="testimonial-author">
             <div class="author-avatar av4">AN</div>
             <div>
@@ -275,7 +463,6 @@
     </div>
   </section>
 
-  <!-- PRICING -->
   <section class="pricing" id="pricing">
     <div class="section-container">
       <div class="section-header">
@@ -287,62 +474,60 @@
           <div class="plan-name">Starter</div>
           <div class="plan-price"><span>$0</span>/mo</div>
           <ul class="plan-features">
-            <li>✓ Free checking account</li>
-            <li>✓ Instant transfers (up to $500/day)</li>
-            <li>✓ Mobile app access</li>
-            <li>✓ Spending analytics</li>
-            <li class="disabled">✗ Virtual debit card</li>
-            <li class="disabled">✗ International payments</li>
+            <li>Free checking account</li>
+            <li>Instant transfers up to $500/day</li>
+            <li>Mobile app access</li>
+            <li>Spending analytics</li>
+            <li class="disabled">No virtual debit card</li>
+            <li class="disabled">No international payments</li>
           </ul>
-          <button class="btn-plan" id="starterBtn">Get Started Free</button>
+          <a class="btn-plan" id="starterBtn" href="{{ path('app_register') }}">Get Started Free</a>
         </div>
         <div class="pricing-card pricing-featured">
           <div class="plan-badge">Most Popular</div>
           <div class="plan-name">Pro</div>
           <div class="plan-price"><span>$9</span>/mo</div>
           <ul class="plan-features">
-            <li>✓ Everything in Starter</li>
-            <li>✓ Unlimited transfers</li>
-            <li>✓ Virtual & physical debit card</li>
-            <li>✓ International payments (50+ currencies)</li>
-            <li>✓ Priority support</li>
-            <li>✓ Advanced analytics</li>
+            <li>Everything in Starter</li>
+            <li>Unlimited transfers</li>
+            <li>Virtual and physical debit card</li>
+            <li>International payments</li>
+            <li>Priority support</li>
+            <li>Advanced analytics</li>
           </ul>
-          <button class="btn-plan btn-plan-featured" id="proBtn">Start Free Trial</button>
+          <a class="btn-plan btn-plan-featured" id="proBtn" href="{{ path('app_register') }}">Start Free Trial</a>
         </div>
         <div class="pricing-card">
           <div class="plan-name">Business</div>
           <div class="plan-price"><span>$29</span>/mo</div>
           <ul class="plan-features">
-            <li>✓ Everything in Pro</li>
-            <li>✓ Up to 10 team accounts</li>
-            <li>✓ Business analytics dashboard</li>
-            <li>✓ Payroll integrations</li>
-            <li>✓ Dedicated account manager</li>
-            <li>✓ Custom API access</li>
+            <li>Everything in Pro</li>
+            <li>Up to 10 team accounts</li>
+            <li>Business analytics dashboard</li>
+            <li>Payroll integrations</li>
+            <li>Dedicated account manager</li>
+            <li>Custom API access</li>
           </ul>
-          <button class="btn-plan" id="businessBtn">Contact Sales</button>
+          <a class="btn-plan" id="businessBtn" href="{{ path('app_register') }}">Contact Sales</a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CTA SECTION -->
   <section class="cta-section">
     <div class="cta-bg">
       <div class="cta-blob"></div>
     </div>
     <div class="cta-container">
-      <h2>Ready to take control<br/>of your finances?</h2>
-      <p>Join over 2 million people who trust FinTrust with their money. It's free to start.</p>
+      <h2>Ready to show a smarter<br/>banking experience?</h2>
+      <p>Combine trust, security, and intelligent automation in one polished product journey.</p>
       <div class="cta-buttons">
-        <button class="btn-primary-lg" id="ctaSignupBtn">Open Your Free Account</button>
-        <button class="btn-login cta-login" id="ctaLoginBtn">Already a member? Log In</button>
+        <a class="btn-primary-lg" id="ctaSignupBtn" href="{{ path('app_register') }}">Open Your Free Account</a>
+        <a class="btn-login cta-login" id="ctaLoginBtn" href="{{ path('admin_login') }}">Explore Admin Demo</a>
       </div>
     </div>
   </section>
 
-  <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-brand">
@@ -357,19 +542,19 @@
         </div>
         <p>Modern banking built on trust, transparency, and technology.</p>
         <div class="social-links">
-          <a href="#" aria-label="Twitter">𝕏</a>
+          <a href="#" aria-label="Twitter">X</a>
           <a href="#" aria-label="LinkedIn">in</a>
-          <a href="#" aria-label="Instagram">▣</a>
+          <a href="#" aria-label="Instagram">IG</a>
         </div>
       </div>
       <div class="footer-links">
         <div class="footer-col">
           <h4>Product</h4>
           <ul>
-            <li><a href="#">Features</a></li>
-            <li><a href="#">Pricing</a></li>
-            <li><a href="#">Security</a></li>
-            <li><a href="#">Mobile App</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#security">Security</a></li>
+            <li><a href="#dashboard-preview">Dashboard</a></li>
           </ul>
         </div>
         <div class="footer-col">
@@ -393,14 +578,13 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2026 FinTrust Inc. All rights reserved. FDIC Insured. Member FDIC.</p>
+      <p>&copy; 2026 FinTrust Inc. All rights reserved. Secure digital banking platform.</p>
     </div>
   </footer>
 
-  <!-- MODAL: LOGIN -->
   <div class="modal-overlay" id="loginModal">
     <div class="modal">
-      <button class="modal-close" id="closeLogin">✕</button>
+      <button class="modal-close" id="closeLogin">x</button>
       <div class="modal-logo">
         <svg viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="10" fill="#1560BD"/><path d="M10 28V18l10-8 10 8v10H24v-6h-8v6H10Z" fill="white"/></svg>
         <span>FinTrust</span>
@@ -413,7 +597,7 @@
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" placeholder="••••••••" class="form-input" />
+        <input type="password" placeholder="........" class="form-input" />
         <a href="#" class="form-link">Forgot password?</a>
       </div>
       <button class="btn-modal-primary">Log In</button>
@@ -421,10 +605,9 @@
     </div>
   </div>
 
-  <!-- MODAL: SIGNUP -->
   <div class="modal-overlay" id="signupModal">
     <div class="modal">
-      <button class="modal-close" id="closeSignup">✕</button>
+      <button class="modal-close" id="closeSignup">x</button>
       <div class="modal-logo">
         <svg viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="10" fill="#1560BD"/><path d="M10 28V18l10-8 10 8v10H24v-6h-8v6H10Z" fill="white"/></svg>
         <span>FinTrust</span>

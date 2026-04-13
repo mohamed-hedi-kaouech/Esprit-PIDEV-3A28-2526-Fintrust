@@ -33,12 +33,12 @@ class ProductSubscription
     private string $status;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'client', referencedColumnName: 'id')]
+    #[ORM\JoinColumn(name: 'client', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private User $clientUser;
 
     // FIX: added inversedBy: 'subscriptions' to match Product#subscriptions OneToMany
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'subscriptions')]
-    #[ORM\JoinColumn(name: 'product', referencedColumnName: 'productId')]
+    #[ORM\JoinColumn(name: 'product', referencedColumnName: 'productId', onDelete: 'CASCADE')]
     private Product $productObj;
 
     public function getSubscriptionId(): int

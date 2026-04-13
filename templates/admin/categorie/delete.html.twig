@@ -1,0 +1,76 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Confirmer la suppression{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="h3 mb-0 text-gray-800">Confirmer la suppression</h1>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-danger">
+            <h5 class="text-white mb-0">
+                <i class="fas fa-exclamation-triangle"></i>
+                Attention : Suppression définitive
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading">Êtes-vous sûr ?</h4>
+                <p>Vous êtes sur le point de supprimer définitivement la catégorie <strong>"{{ categorie.nomCategorie }}"</strong>.</p>
+                {% if categorie.items|length > 0 %}
+                    <div class="alert alert-danger">
+                        <strong>Attention :</strong> Cette catégorie contient {{ categorie.items|length }} item(s). Vous devez d'abord supprimer tous les items associés avant de pouvoir supprimer cette catégorie.
+                    </div>
+                {% else %}
+                    <p class="mb-0">Cette action ne peut pas être annulée.</p>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>ID :</strong></td>
+                            <td>{{ categorie.idCategorie }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nom :</strong></td>
+                            <td>{{ categorie.nomCategorie }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Budget prévu :</strong></td>
+                            <td>{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Seuil d'alerte :</strong></td>
+                            <td>{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nombre d'items :</strong></td>
+                            <td>{{ categorie.items|length }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                {% if categorie.items|length == 0 %}
+                    <form method="post" action="{{ path('admin_categorie_delete', {'idCategorie': categorie.idCategorie}) }}" class="d-inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ categorie.idCategorie) }}">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Oui, supprimer définitivement
+                        </button>
+                    </form>
+                {% endif %}
+                <a href="{{ path('admin_categorie_list') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -7,23 +7,54 @@ use App\Repository\Product\ProductRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
 {
+    public const CATEGORIES = [
+        'COMPTE_COURANT',
+        'COMPTE_EPARGNE',
+        'COMPTE_PREMIUM',
+        'COMPTE_JEUNE',
+        'COMPTE_ENTREPRISE',
+        'CARTE_DEBIT',
+        'CARTE_CREDIT',
+        'CARTE_PREMIUM',
+        'CARTE_VIRTUELLE',
+        'EPARGNE_CLASSIQUE',
+        'EPARGNE_LOGEMENT',
+        'DEPOT_A_TERME',
+        'PLACEMENT_INVESTISSEMENT',
+        'ASSURANCE_VIE',
+        'ASSURANCE_HABITATION',
+        'ASSURANCE_VOYAGE',
+    ];
+
     #[ORM\Id]
     #[ORM\Column(name: 'productId', type: 'integer')]
     #[ORM\GeneratedValue]
     private int $productId;
 
     #[ORM\Column(name: 'category', type: 'string')]
+    #[Assert\NotBlank(message: 'La categorie est obligatoire.')]
+    #[Assert\Choice(choices: self::CATEGORIES, message: 'La categorie selectionnee est invalide.')]
     private string $category = 'COMPTE_COURANT';
 
     #[ORM\Column(name: 'price', type: 'float')]
-    private float $price;
+    #[Assert\NotNull(message: 'Le prix est obligatoire.')]
+    #[Assert\Positive(message: 'Le prix doit etre un nombre strictement positif.')]
+    private float $price = 0.0;
 
     #[ORM\Column(name: 'description', type: 'string', length: 500)]
-    private string $description;
+    #[Assert\NotBlank(message: 'La description est obligatoire.')]
+    #[Assert\Length(
+        min: 4,
+        max: 500,
+        minMessage: 'La description doit contenir au moins {{ limit }} caracteres.',
+        maxMessage: 'La description ne doit pas depasser {{ limit }} caracteres.'
+    )]
+    private string $description = '';
 
     #[ORM\Column(name: 'createdAt', type: 'date')]
     private \DateTimeInterface $createdAt;
@@ -34,6 +65,11 @@ class Product
     public function __construct()
     {
         $this->subscriptions = new ArrayCollection();
+    }
+
+    public static function getAllowedCategories(): array
+    {
+        return self::CATEGORIES;
     }
 
     public function getProductId(): int

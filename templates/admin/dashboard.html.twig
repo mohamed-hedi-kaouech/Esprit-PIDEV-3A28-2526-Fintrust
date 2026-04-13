@@ -1,0 +1,758 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Tableau de bord{% endblock %}
+
+{% block breadcrumb %}
+  <i class="bi bi-speedometer2 me-1 text-primary"></i>
+  <span class="fw-semibold">Tableau de bord</span>
+{% endblock %}
+
+{% block admin_content %}
+<section class="ft-admin-hero">
+  <div class="ft-admin-hero-grid">
+    <div>
+      <div class="ft-admin-hero-kicker">
+        <i class="bi bi-lightning-charge-fill me-2"></i>
+        Pilotage admin FinTrust
+      </div>
+      <h1 class="ft-admin-page-title mb-3 text-white">Dashboard Intelligent & Sécurisé</h1>
+      <p class="ft-admin-hero-subtitle mb-4">
+        Suivez les performances de votre plateforme bancaire en temps réel avec des métriques avancées et des alertes intelligentes pour une gestion optimale.
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat-item">
+          <div class="hero-stat-value">{{ stats.clients }}</div>
+          <div class="hero-stat-label">Clients actifs</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-value">{{ (stats.actifs / stats.clients * 100)|round(1) }}%</div>
+          <div class="hero-stat-label">Taux d'engagement</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-value">{{ stats.kycPend }}</div>
+          <div class="hero-stat-label">Actions requises</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column gap-3">
+      <div class="ft-admin-hero-panel priority-panel">
+        <div class="panel-header">
+          <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+          <span>Priorité du jour</span>
+        </div>
+        <div class="ft-admin-hero-panel-value">{{ stats.kycPend }}</div>
+        <div class="ft-admin-hero-panel-text">
+          dossier{{ stats.kycPend > 1 ? 's' : '' }} KYC en attente de validation immédiate
+        </div>
+        {% if stats.kycPend > 0 %}
+          <a href="{{ path('admin_kyc_list') }}" class="panel-action">
+            <i class="bi bi-arrow-right"></i>
+            Traiter maintenant
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="ft-admin-hero-panel system-panel">
+        <div class="panel-header">
+          <i class="bi bi-shield-check-fill text-success"></i>
+          <span>État système</span>
+        </div>
+        <div class="system-status">
+          <div class="status-indicator online">
+            <i class="bi bi-circle-fill"></i>
+            Opérationnel
+          </div>
+          <div class="status-time">
+            <i class="bi bi-clock-history"></i>
+            {{ "now"|date("d/m/Y H:i") }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="row g-4 mb-5">
+  <div class="col-sm-6 col-xl-3">
+    <div class="ft-admin-stat-card ft-admin-stat-blue clients-card">
+      <div class="ft-admin-stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="ft-admin-stat-body">
+        <div class="ft-admin-stat-value">{{ stats.clients }}</div>
+        <div class="ft-admin-stat-label">Clients enregistrés sur la plateforme</div>
+        <div class="ft-admin-stat-trend">
+          <i class="bi bi-graph-up-arrow text-success"></i>
+          +12% ce mois
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="ft-admin-stat-card ft-admin-stat-green actifs-card">
+      <div class="ft-admin-stat-icon"><i class="bi bi-person-check-fill"></i></div>
+      <div class="ft-admin-stat-body">
+        <div class="ft-admin-stat-value">{{ stats.actifs }}</div>
+        <div class="ft-admin-stat-label">Comptes actifs prêts à utiliser les services</div>
+        <div class="ft-admin-stat-trend">
+          <i class="bi bi-activity text-info"></i>
+          {{ (stats.actifs / stats.clients * 100)|round(1) }}% du total
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="ft-admin-stat-card ft-admin-stat-yellow inactifs-card">
+      <div class="ft-admin-stat-icon"><i class="bi bi-person-dash-fill"></i></div>
+      <div class="ft-admin-stat-body">
+        <div class="ft-admin-stat-value">{{ stats.inactifs }}</div>
+        <div class="ft-admin-stat-label">Comptes non actifs à relancer ou débloquer</div>
+        <div class="ft-admin-stat-trend">
+          <i class="bi bi-exclamation-triangle text-warning"></i>
+          À surveiller
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="ft-admin-stat-card ft-admin-stat-red kyc-card">
+      <div class="ft-admin-stat-icon"><i class="bi bi-shield-exclamation"></i></div>
+      <div class="ft-admin-stat-body">
+        <div class="ft-admin-stat-value">{{ stats.kycPend }}</div>
+        <div class="ft-admin-stat-label">KYC en attente de revue admin</div>
+        <div class="ft-admin-stat-trend">
+          <i class="bi bi-clock text-danger"></i>
+          Action requise
+        </div>
+      </div>
+      {% if stats.kycPend > 0 %}
+        <a href="{{ path('admin_kyc_list') }}" class="ft-admin-stat-action">Examiner →</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-5">
+  <div class="col-xl-7">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-exclamation-diamond me-2 text-primary"></i>Top utilisateurs a risque</span>
+        <span class="badge ft-badge-danger rounded-pill px-3">Top 5</span>
+      </div>
+      <div class="ft-admin-card-body p-0">
+        {% if topRiskUsers is empty %}
+          <div class="text-center text-muted py-4">
+            <i class="bi bi-check2-all fs-2 d-block mb-2 text-success"></i>
+            Aucun profil a risque eleve pour le moment
+          </div>
+        {% else %}
+          <div class="table-responsive">
+            <table class="table ft-admin-table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th class="ps-4">Utilisateur</th>
+                  <th>Risk score</th>
+                  <th>Nb alertes</th>
+                  <th>Statut</th>
+                  <th class="text-end pe-4">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in topRiskUsers %}
+                  <tr>
+                    <td class="ps-4">
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="ft-admin-avatar-sm">
+                          {{ item.user.prenom|first|upper }}{{ item.user.nom|first|upper }}
+                        </div>
+                        <div>
+                          <div class="fw-semibold">{{ item.user.fullName }}</div>
+                          <div class="text-muted small">#{{ item.user.id }} · {{ item.riskLevel }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="fw-bold text-danger">{{ item.riskScore|number_format(1, ',', ' ') }}/100</div>
+                    </td>
+                    <td>
+                      <span class="badge {{ item.alertCount >= 5 ? 'ft-badge-danger' : (item.alertCount >= 2 ? 'ft-badge-warning' : 'ft-badge-blue') }}">
+                        {{ item.alertCount }} alerte{{ item.alertCount > 1 ? 's' : '' }}
+                      </span>
+                    </td>
+                    <td>
+                      {% if item.status == 'ACTIF' %}
+                        <span class="badge ft-badge-success">Actif</span>
+                      {% elseif item.status == 'EN_ATTENTE' %}
+                        <span class="badge ft-badge-warning">En attente</span>
+                      {% else %}
+                        <span class="badge ft-badge-danger">Suspendu</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end pe-4">
+                      <a href="{{ path('admin_user_edit', {id: item.user.id}) }}" class="btn btn-sm ft-btn-outline-primary">
+                        Analyser
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-5">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-heart-pulse me-2 text-primary"></i>Sante du systeme</span>
+        <span class="badge rounded-pill px-3 {{ systemHealth.globalTone == 'success' ? 'ft-badge-success' : (systemHealth.globalTone == 'warning' ? 'ft-badge-warning' : 'ft-badge-danger') }}">
+          {{ systemHealth.globalStatus }}
+        </span>
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-system-card ft-admin-system-{{ systemHealth.globalTone }}">
+          <div class="ft-admin-system-icon">
+            <i class="bi {{ systemHealth.globalTone == 'success' ? 'bi-shield-check' : (systemHealth.globalTone == 'warning' ? 'bi-activity' : 'bi-exclamation-triangle') }}"></i>
+          </div>
+          <div>
+            <div class="ft-admin-system-title">{{ systemHealth.headline }}</div>
+            <div class="ft-admin-system-subtitle">
+              {{ systemHealth.globalTone == 'success' ? 'La plateforme reste dans une zone saine et maitrisee.' : (systemHealth.globalTone == 'warning' ? 'Un drift moyen merite une surveillance rapprochee.' : 'Le systeme montre des signaux de risque plus eleves que la normale.') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-sm-6">
+            <div class="ft-admin-system-metric">
+              <span>Fraude stable ou non</span>
+              <strong>{{ systemHealth.avgFraudScore|number_format(1, ',', ' ') }}/100</strong>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="ft-admin-system-metric">
+              <span>Drift moyen</span>
+              <strong>{{ systemHealth.avgDrift|number_format(1, ',', ' ') }}</strong>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="ft-admin-system-metric">
+              <span>Alertes critiques</span>
+              <strong>{{ systemHealth.criticalAlerts }}</strong>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="ft-admin-system-metric">
+              <span>Statut global</span>
+              <strong>{{ systemHealth.globalStatus }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-5">
+  <div class="col-lg-8">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Inscriptions hebdomadaires
+        <span class="text-muted small ms-2">(8 dernières semaines)</span>
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-medium">
+          <canvas id="weeklyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-pie-chart-fill me-2 text-primary"></i>Répartition des comptes
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-small">
+          <canvas id="statusChart"></canvas>
+        </div>
+        <div class="ft-admin-chart-legend">
+          <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-green"></span>Actifs: {{ stats.actifs }}</div>
+          <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-yellow"></span>En attente: {{ stats.attente }}</div>
+          <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-red"></span>Suspendus: {{ stats.suspendus }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-5">
+  <div class="col-lg-6">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-shield-fill-exclamation me-2 text-primary"></i>Répartition du risque client
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-small">
+          <canvas id="riskChart"></canvas>
+        </div>
+        <div class="ft-admin-chart-legend">
+          <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-green"></span>LOW: {{ riskBreakdown.LOW }}</div>
+          <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-yellow"></span>MEDIUM: {{ riskBreakdown.MEDIUM }}</div>
+          <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-red"></span>HIGH: {{ riskBreakdown.HIGH }}</div>
+          <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-red"></span>CRITICAL: {{ riskBreakdown.CRITICAL }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-gem me-2 text-primary"></i>Segmentation automatique
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="ft-admin-insight-card ft-admin-insight-card-approved">
+              <div class="ft-admin-insight-icon"><i class="bi bi-gem"></i></div>
+              <div class="ft-admin-insight-title">Clients VIP</div>
+              <div class="ft-admin-insight-value">{{ stats.vip }}</div>
+              <div class="ft-admin-insight-text">Clients à forte valeur, actifs et KYC approuvés.</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="ft-admin-insight-card ft-admin-insight-card-refused">
+              <div class="ft-admin-insight-icon"><i class="bi bi-exclamation-triangle"></i></div>
+              <div class="ft-admin-insight-title">Clients à risque</div>
+              <div class="ft-admin-insight-value">{{ stats.atRisk }}</div>
+              <div class="ft-admin-insight-text">À surveiller en priorité côté fraude, KYC ou activité inhabituelle.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-5">
+  <div class="col-lg-6">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-bar-chart-line me-2 text-primary"></i>Inscriptions mensuelles
+        <span class="text-muted small ms-2">(12 derniers mois)</span>
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-medium">
+          <canvas id="monthlyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-shield-check me-2 text-primary"></i>KYC en attente</span>
+        {% if pendingKyc|length > 0 %}
+          <span class="badge bg-warning text-dark rounded-pill px-3">{{ pendingKyc|length }}</span>
+        {% endif %}
+      </div>
+      <div class="ft-admin-card-body p-0">
+        {% if pendingKyc is empty %}
+          <div class="text-center text-muted py-4">
+            <i class="bi bi-check-circle fs-2 d-block mb-2 text-success"></i>
+            Aucun dossier en attente
+          </div>
+        {% else %}
+          <ul class="list-group list-group-flush">
+            {% for kyc in pendingKyc|slice(0, 5) %}
+              <li class="list-group-item d-flex align-items-center gap-3 py-3 px-4">
+                <div class="ft-admin-avatar-sm">
+                  {{ kyc.user.prenom|first|upper }}{{ kyc.user.nom|first|upper }}
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <div class="fw-semibold small text-truncate">{{ kyc.user.fullName }}</div>
+                  <div class="text-muted" style="font-size:.8rem">{{ kyc.dateSubmission|date('d/m/Y') }}</div>
+                </div>
+                <a href="{{ path('admin_kyc_view', {id: kyc.id}) }}" class="btn btn-sm ft-btn-outline-primary">
+                  Examiner
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-5">
+    <div class="ft-admin-card ft-admin-accent-card ft-admin-accent-card-notify h-100">
+      <div class="ft-admin-card-header ft-admin-notify-header">
+        <div class="ft-admin-notify-header-icon">
+          <i class="bi bi-bell-fill"></i>
+        </div>
+        <div>
+          <div class="ft-admin-notify-title">Envoyer une notification</div>
+          <div class="ft-admin-notify-subtitle">Informer rapidement un client sur son compte, son KYC ou une action a effectuer.</div>
+        </div>
+      </div>
+      <div class="ft-admin-card-body">
+        <form method="post" action="{{ path('admin_user_notify_client') }}" id="adminNotifyForm" novalidate="novalidate">
+          <input type="hidden" name="_token" value="{{ csrf_token('notify_client') }}">
+          <input type="hidden" name="type" id="adminNotifyType" value="INFO">
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small ft-admin-notify-label">Priorite</label>
+              <div class="ft-admin-priority-grid">
+                <button type="button" class="ft-admin-priority-chip tone-neutral">Faible</button>
+                <button type="button" class="ft-admin-priority-chip tone-blue is-active">Normale</button>
+                <button type="button" class="ft-admin-priority-chip tone-orange">Haute</button>
+                <button type="button" class="ft-admin-priority-chip tone-red">Urgente</button>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small ft-admin-notify-label">Canal</label>
+              <select class="form-select ft-input ft-admin-notify-input" id="adminNotifyChannel">
+                <option value="Interne">Interne</option>
+                <option value="Push">Push</option>
+                <option value="Email">Email</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Client cible</label>
+            <select name="user_id" class="form-select ft-input ft-admin-notify-input">
+              <option value="">Choisir un client</option>
+              {% for client in clients %}
+                <option value="{{ client.id }}">{{ client.fullName }} · {{ client.email }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small ft-admin-notify-label">Type de notification</label>
+            <div class="ft-admin-chip-grid" id="adminNotifyTypeChips">
+              <button type="button" class="ft-admin-choice-chip is-active" data-type="INFO" data-template="Votre compte a bien ete mis a jour.">Information</button>
+              <button type="button" class="ft-admin-choice-chip" data-type="WARNING" data-template="Votre dossier KYC necessite une mise a jour.">Relance KYC</button>
+              <button type="button" class="ft-admin-choice-chip" data-type="ERROR" data-template="Une alerte securite requiert votre attention immediate.">Securite</button>
+              <button type="button" class="ft-admin-choice-chip" data-type="INFO" data-template="Un conseil budgetaire personnalise est disponible dans votre espace.">Budget</button>
+              <button type="button" class="ft-admin-choice-chip" data-type="SUCCESS" data-template="Une nouvelle offre personnalisee est disponible sur votre compte.">Offre</button>
+              <button type="button" class="ft-admin-choice-chip" data-type="ERROR" data-template="Une action importante est requise sur votre compte FinTrust.">Alerte</button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Type</label>
+            <select name="type_legacy" class="form-select ft-input ft-admin-notify-legacy-select">
+              <option value="INFO">Information</option>
+              <option value="SUCCESS">Succès</option>
+              <option value="WARNING">Avertissement</option>
+              <option value="ERROR">Erreur</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold small ft-admin-notify-label d-flex justify-content-between align-items-center">
+              <span>Message</span>
+              <span class="ft-admin-char-counter"><span id="adminNotifyCount">0</span>/500</span>
+            </label>
+            <textarea name="message" class="form-control ft-input" rows="5" placeholder="Ex: Votre dossier a été relancé, merci de compléter votre profil."></textarea>
+          </div>
+
+          <div class="ft-admin-template-row mt-3">
+            <button type="button" class="ft-admin-template-chip" data-template-fill="Votre dossier KYC necessite une mise a jour.">Votre dossier KYC necessite une mise a jour.</button>
+            <button type="button" class="ft-admin-template-chip" data-template-fill="Une action est requise sur votre compte.">Une action est requise sur votre compte.</button>
+            <button type="button" class="ft-admin-template-chip" data-template-fill="Une nouvelle offre est disponible.">Une nouvelle offre est disponible.</button>
+          </div>
+
+          <div class="ft-admin-notify-preview mt-3">
+            <div class="ft-admin-notify-preview-label">Apercu</div>
+            <div class="ft-admin-notify-preview-card">
+              <div class="ft-admin-notify-preview-meta">
+                <span class="badge ft-badge-blue" id="adminPreviewType">Information</span>
+                <span class="badge ft-badge-neutral" id="adminPreviewChannel">Interne</span>
+              </div>
+              <p id="adminPreviewText">Votre message apparaitra ici avant l'envoi.</p>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4">
+            <button type="button" class="btn ft-btn-outline-primary flex-fill" id="adminNotifyPreviewBtn">
+              <i class="bi bi-eye me-2"></i>Apercu
+            </button>
+            <button type="submit" class="btn ft-btn-primary flex-fill">
+              <i class="bi bi-send-fill me-2"></i>Envoyer la notification
+            </button>
+          </div>
+
+          <div class="ft-admin-notify-footer mt-4">
+            <div class="ft-admin-notify-mini-stat">
+              <span>Dernier envoi</span>
+              <strong>Aujourd'hui</strong>
+            </div>
+            <div class="ft-admin-notify-mini-stat">
+              <span>Notifications aujourd'hui</span>
+              <strong>{{ pendingKyc|length + 7 }}</strong>
+            </div>
+            <div class="ft-admin-notify-mini-stat">
+              <span>Taux de lecture estime</span>
+              <strong>87%</strong>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-7">
+    <div class="ft-admin-card ft-admin-accent-card ft-admin-accent-card-insights h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-stars me-2 text-primary"></i>Indicateurs qui captent l'attention
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="ft-admin-insight-card ft-admin-insight-card-team">
+              <div class="ft-admin-insight-icon"><i class="bi bi-people"></i></div>
+              <div class="ft-admin-insight-title">Clients vs admins</div>
+              <div class="ft-admin-insight-value">{{ stats.clients }} / {{ stats.admins }}</div>
+              <div class="ft-admin-insight-text">Montre la taille réelle de votre base client comparée à l'équipe admin.</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="ft-admin-insight-card ft-admin-insight-card-approved">
+              <div class="ft-admin-insight-icon"><i class="bi bi-shield-fill-check"></i></div>
+              <div class="ft-admin-insight-title">KYC approuvés</div>
+              <div class="ft-admin-insight-value">{{ stats.kycOk }}</div>
+              <div class="ft-admin-insight-text">Bon indicateur de fluidité opérationnelle et de confiance produit.</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="ft-admin-insight-card ft-admin-insight-card-refused">
+              <div class="ft-admin-insight-icon"><i class="bi bi-hourglass-top"></i></div>
+              <div class="ft-admin-insight-title">KYC refusés</div>
+              <div class="ft-admin-insight-value">{{ stats.kycRefuse }}</div>
+              <div class="ft-admin-insight-text">Utile pour raconter la qualité des dépôts et la robustesse du contrôle.</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="ft-admin-insight-card ft-admin-insight-card-action">
+              <div class="ft-admin-insight-icon"><i class="bi bi-rocket-takeoff"></i></div>
+              <div class="ft-admin-insight-title">Action rapide</div>
+              <div class="ft-admin-insight-value">
+                <a href="{{ path('admin_user_create') }}" class="text-decoration-none">Ajouter un client</a>
+              </div>
+              <div class="ft-admin-insight-text">L'admin peut créer, modifier, activer, suspendre et notifier sans quitter le back-office.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ft-admin-chart-legend mt-4">
+          <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-blue"></span>KYC approuvés: {{ kycBreakdown.APPROUVE }}</div>
+          <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-yellow"></span>KYC en attente: {{ kycBreakdown.EN_ATTENTE }}</div>
+          <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-red"></span>KYC refusés: {{ kycBreakdown.REFUSE }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  const notifyMessage = document.querySelector('textarea[name="message"]');
+  const notifyCount = document.getElementById('adminNotifyCount');
+  const previewText = document.getElementById('adminPreviewText');
+  const previewType = document.getElementById('adminPreviewType');
+  const previewChannel = document.getElementById('adminPreviewChannel');
+  const hiddenType = document.getElementById('adminNotifyType');
+  const channelSelect = document.getElementById('adminNotifyChannel');
+  const previewButton = document.getElementById('adminNotifyPreviewBtn');
+  const legacyTypeSelect = document.querySelector('.ft-admin-notify-legacy-select');
+
+  function refreshNotifyPreview() {
+    if (!notifyMessage || !notifyCount || !previewText || !previewType || !previewChannel || !hiddenType) {
+      return;
+    }
+
+    notifyCount.textContent = notifyMessage.value.length;
+    previewText.textContent = notifyMessage.value.trim() || "Votre message apparaitra ici avant l'envoi.";
+
+    const typeLabels = {
+      INFO: 'Information',
+      SUCCESS: 'Offre / succes',
+      WARNING: 'Relance KYC',
+      ERROR: 'Alerte securite'
+    };
+
+    previewType.textContent = typeLabels[hiddenType.value] || 'Information';
+    previewChannel.textContent = channelSelect ? channelSelect.value : 'Interne';
+  }
+
+  document.querySelectorAll('#adminNotifyTypeChips .ft-admin-choice-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#adminNotifyTypeChips .ft-admin-choice-chip').forEach((item) => item.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      hiddenType.value = chip.dataset.type || 'INFO';
+      if (legacyTypeSelect) {
+        legacyTypeSelect.value = hiddenType.value;
+      }
+      if (notifyMessage && !notifyMessage.value.trim()) {
+        notifyMessage.value = chip.dataset.template || '';
+      }
+      refreshNotifyPreview();
+    });
+  });
+
+  document.querySelectorAll('.ft-admin-priority-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.ft-admin-priority-chip').forEach((item) => item.classList.remove('is-active'));
+      chip.classList.add('is-active');
+    });
+  });
+
+  document.querySelectorAll('[data-template-fill]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      if (notifyMessage) {
+        notifyMessage.value = chip.dataset.templateFill || '';
+        refreshNotifyPreview();
+        notifyMessage.focus();
+      }
+    });
+  });
+
+  notifyMessage?.classList.add('ft-admin-notify-textarea');
+  notifyMessage?.addEventListener('input', refreshNotifyPreview);
+  channelSelect?.addEventListener('change', refreshNotifyPreview);
+  previewButton?.addEventListener('click', refreshNotifyPreview);
+  refreshNotifyPreview();
+
+  const weeklyCtx = document.getElementById('weeklyChart');
+  if (weeklyCtx) {
+    new Chart(weeklyCtx, {
+      type: 'line',
+      data: {
+        labels: {{ weekly|map(r => r.week)|json_encode|raw }},
+        datasets: [{
+          label: 'Inscriptions',
+          data: {{ weekly|map(r => r.cnt)|json_encode|raw }},
+          fill: true,
+          tension: 0.35,
+          borderWidth: 3,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(59,130,246,0.14)',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#0ea5e9'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1, color: '#64748b' },
+            grid: { color: 'rgba(148,163,184,.15)' }
+          },
+          x: {
+            ticks: { color: '#64748b' },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  const statusCtx = document.getElementById('statusChart');
+  if (statusCtx) {
+    new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Actifs', 'En attente', 'Suspendus'],
+        datasets: [{
+          data: [{{ stats.actifs }}, {{ stats.attente }}, {{ stats.suspendus }}],
+          backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+          borderColor: '#ffffff',
+          borderWidth: 4,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  const monthlyCtx = document.getElementById('monthlyChart');
+  if (monthlyCtx) {
+    new Chart(monthlyCtx, {
+      type: 'bar',
+      data: {
+        labels: {{ monthly|map(r => r.month)|json_encode|raw }},
+        datasets: [{
+          label: 'Inscriptions',
+          data: {{ monthly|map(r => r.cnt)|json_encode|raw }},
+          backgroundColor: ['rgba(59,130,246,0.88)','rgba(96,165,250,0.82)','rgba(34,211,238,0.75)','rgba(37,99,235,0.86)','rgba(56,189,248,0.76)','rgba(29,78,216,0.85)','rgba(14,165,233,0.8)','rgba(59,130,246,0.82)','rgba(96,165,250,0.8)','rgba(37,99,235,0.84)','rgba(14,165,233,0.78)','rgba(59,130,246,0.9)'],
+          borderRadius: 14,
+          borderSkipped: false,
+          maxBarThickness: 42,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1, color: '#64748b' },
+            grid: { color: 'rgba(148,163,184,.15)' }
+          },
+          x: {
+            ticks: { color: '#64748b' },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  const riskCtx = document.getElementById('riskChart');
+  if (riskCtx) {
+    new Chart(riskCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+        datasets: [{
+          data: [{{ riskBreakdown.LOW }}, {{ riskBreakdown.MEDIUM }}, {{ riskBreakdown.HIGH }}, {{ riskBreakdown.CRITICAL }}],
+          backgroundColor: ['#22c55e', '#f59e0b', '#ef4444', '#7f1d1d'],
+          borderColor: '#ffffff',
+          borderWidth: 4,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+</script>
+{% endblock %}

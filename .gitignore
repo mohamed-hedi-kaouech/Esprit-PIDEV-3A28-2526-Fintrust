@@ -11,8 +11,12 @@
 /phpunit.xml
 .phpunit.result.cache
 ###< phpunit/phpunit ###
+<<<<<<< HEAD
 
 var/
+=======
+/var/
+>>>>>>> origin/dev
 /migrations/
 ###> symfony/phpunit-bridge ###
 .phpunit.result.cache
@@ -20,5 +24,6 @@ var/
 ###< symfony/phpunit-bridge ###
 
 ###> symfony/asset-mapper ###
-
+/var/cache/
+/var/log/
 ###< symfony/asset-mapper ###

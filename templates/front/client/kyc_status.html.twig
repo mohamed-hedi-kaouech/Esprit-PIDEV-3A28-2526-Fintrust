@@ -1,0 +1,73 @@
+{# Statut KYC — FrontOffice | Hérite de front/front.html.twig #}
+{% extends 'front/front.html.twig' %}
+{% block title %}Statut KYC{% endblock %}
+
+{% block body %}
+<div class="container py-5" style="max-width:640px">
+
+  <h1 class="ft-page-title mb-4">Statut de votre dossier KYC</h1>
+
+  {% if not kyc %}
+    {# Aucun dossier soumis #}
+    <div class="ft-kyc-status-card ft-kyc-none text-center">
+      <div class="ft-kyc-icon"><i class="bi bi-file-earmark-x"></i></div>
+      <h2 class="h4 fw-bold mb-2">Aucun dossier soumis</h2>
+      <p class="text-muted mb-4">Vous n'avez pas encore déposé de dossier KYC.</p>
+      <a href="{{ path('front_kyc_submit') }}" class="btn ft-btn-primary">
+        <i class="bi bi-upload me-2"></i>Déposer mon dossier
+      </a>
+    </div>
+
+  {% elseif kyc.statut == 'EN_ATTENTE' %}
+    {# En attente #}
+    <div class="ft-kyc-status-card ft-kyc-pending text-center">
+      <div class="ft-kyc-icon text-warning"><i class="bi bi-hourglass-split"></i></div>
+      <h2 class="h4 fw-bold mb-2">Dossier en cours d'examen</h2>
+      <p class="text-muted mb-1">
+        Soumis le <strong>{{ kyc.dateSubmission|date('d/m/Y à H:i') }}</strong>
+      </p>
+      <p class="text-muted mb-4">Notre équipe examine votre dossier. Vous serez notifié dès qu'une décision sera prise.</p>
+      <div class="ft-kyc-progress">
+        <div class="ft-kyc-progress-bar ft-kyc-progress-pending"></div>
+      </div>
+      <p class="text-muted small mt-2">Délai habituel : 24 à 48 heures ouvrées</p>
+    </div>
+
+  {% elseif kyc.statut == 'APPROUVE' %}
+    {# Approuvé #}
+    <div class="ft-kyc-status-card ft-kyc-approved text-center">
+      <div class="ft-kyc-icon text-success"><i class="bi bi-patch-check-fill"></i></div>
+      <h2 class="h4 fw-bold mb-2">Dossier approuvé ✔</h2>
+      <p class="text-muted mb-4">
+        Votre identité a été vérifiée avec succès. Vous avez accès à toutes les fonctionnalités FinTrust.
+      </p>
+      {% if kyc.commentaireAdmin %}
+        <div class="alert alert-success text-start">
+          <i class="bi bi-chat-quote me-2"></i>{{ kyc.commentaireAdmin }}
+        </div>
+      {% endif %}
+      <a href="{{ path('front_dashboard') }}" class="btn ft-btn-primary">
+        <i class="bi bi-grid me-2"></i>Accéder au tableau de bord
+      </a>
+    </div>
+
+  {% elseif kyc.statut == 'REFUSE' %}
+    {# Refusé #}
+    <div class="ft-kyc-status-card ft-kyc-refused text-center">
+      <div class="ft-kyc-icon text-danger"><i class="bi bi-x-circle-fill"></i></div>
+      <h2 class="h4 fw-bold mb-2">Dossier refusé</h2>
+      {% if kyc.commentaireAdmin %}
+        <div class="alert alert-danger text-start mb-3">
+          <strong><i class="bi bi-exclamation-triangle me-2"></i>Motif :</strong>
+          {{ kyc.commentaireAdmin }}
+        </div>
+      {% endif %}
+      <p class="text-muted mb-4">Vous pouvez soumettre un nouveau dossier avec des documents corrects.</p>
+      <a href="{{ path('front_kyc_submit') }}" class="btn ft-btn-primary">
+        <i class="bi bi-arrow-repeat me-2"></i>Soumettre un nouveau dossier
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

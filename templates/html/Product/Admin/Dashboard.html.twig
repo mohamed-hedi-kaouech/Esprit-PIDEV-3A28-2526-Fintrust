@@ -1,0 +1,249 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Dashboard analytique produits{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/Product/Dashboard.css') }}">
+{% endblock %}
+
+{% block admin_content %}
+<section class="ft-product-analytics">
+    <div class="ft-product-hero">
+        <div class="ft-product-hero-copy">
+            <span class="ft-product-kicker">
+                <i class="bi bi-stars"></i>
+                Vision analytique premium
+            </span>
+            <h1 class="ft-product-title">Dashboard Analytique</h1>
+            <p class="ft-product-subtitle">
+                Suivez vos produits bancaires, mesurez la dynamique des abonnements et visualisez
+                les revenus avec une lecture claire, premium et orientee decision.
+            </p>
+
+            <div class="ft-product-hero-actions">
+                <button type="button" class="ft-product-btn ft-product-btn-dark" onclick="history.back()">
+                    <i class="bi bi-arrow-left"></i>
+                    Retour
+                </button>
+                <button type="button" class="ft-product-btn ft-product-btn-primary" id="btnRefresh" onclick="loadDashboard()">
+                    <i class="bi bi-arrow-repeat"></i>
+                    Actualiser
+                </button>
+                <button type="button" class="ft-product-btn ft-product-btn-ghost" onclick="sendEmailReport()">
+                    <i class="bi bi-send-check"></i>
+                    Envoyer rapport PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="ft-product-hero-panel">
+            <span class="ft-product-hero-panel-label">Apercu executif</span>
+            <strong id="lblTotalRevenueHero">0.00 DT</strong>
+            <span>Revenu estime sur les abonnements actifs</span>
+
+            <div class="ft-product-hero-mini-grid">
+                <div class="ft-product-hero-mini-card">
+                    <span>Produits</span>
+                    <strong id="lblHeroProducts">0</strong>
+                </div>
+                <div class="ft-product-hero-mini-card">
+                    <span>Abonnements</span>
+                    <strong id="lblHeroSubs">0</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="ft-product-section">
+        <div class="ft-product-section-head">
+            <div>
+                <span class="ft-product-section-kicker">
+                    <i class="bi bi-box-seam"></i>
+                    Produits bancaires
+                </span>
+                <h2>Portefeuille produits</h2>
+            </div>
+            <span class="ft-product-chip">Catalogue + positionnement prix</span>
+        </div>
+
+        <div class="ft-product-kpi-grid" id="kpiProducts">
+            <article class="ft-product-kpi-card">
+                <span class="ft-product-kpi-icon ft-product-kpi-icon-blue"><i class="bi bi-grid-1x2-fill"></i></span>
+                <div class="ft-product-kpi-label">Produits total</div>
+                <div class="ft-product-kpi-value" id="lblTotalProducts">0</div>
+                <p class="ft-product-kpi-sub" id="lblProductsGrowth">dans le catalogue</p>
+            </article>
+
+            <article class="ft-product-kpi-card">
+                <span class="ft-product-kpi-icon ft-product-kpi-icon-amber"><i class="bi bi-cash-stack"></i></span>
+                <div class="ft-product-kpi-label">Prix moyen</div>
+                <div class="ft-product-kpi-value ft-product-kpi-value-amber" id="lblAvgPrice">0.00</div>
+                <p class="ft-product-kpi-sub">DT / produit</p>
+            </article>
+
+            <article class="ft-product-kpi-card">
+                <span class="ft-product-kpi-icon ft-product-kpi-icon-violet"><i class="bi bi-trophy-fill"></i></span>
+                <div class="ft-product-kpi-label">Categorie top</div>
+                <div class="ft-product-kpi-value ft-product-kpi-value-md" id="lblTopCategory">-</div>
+                <p class="ft-product-kpi-sub ft-product-kpi-sub-accent" id="lblTopCategoryCount">0 produit</p>
+            </article>
+
+            <article class="ft-product-kpi-card">
+                <span class="ft-product-kpi-icon ft-product-kpi-icon-green"><i class="bi bi-arrows-expand"></i></span>
+                <div class="ft-product-kpi-label">Fourchette prix</div>
+                <div class="ft-product-kpi-value ft-product-kpi-value-md ft-product-kpi-value-green" id="lblPriceRange">0 -> 0</div>
+                <p class="ft-product-kpi-sub">minimum -> maximum DT</p>
+            </article>
+
+            <article class="ft-product-kpi-card">
+                <span class="ft-product-kpi-icon ft-product-kpi-icon-slate"><i class="bi bi-clock-history"></i></span>
+                <div class="ft-product-kpi-label">Dernier produit</div>
+                <div class="ft-product-kpi-value ft-product-kpi-value-md ft-product-word-break" id="lblNewestProduct">-</div>
+                <p class="ft-product-kpi-sub" id="lblNewestDate">-</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="ft-product-section">
+        <div class="ft-product-section-head">
+            <div>
+                <span class="ft-product-section-kicker ft-product-section-kicker-amber">
+                    <i class="bi bi-journal-check"></i>
+                    Abonnements
+                </span>
+                <h2>Performance des souscriptions</h2>
+            </div>
+            <span class="ft-product-chip ft-product-chip-success">Suivi temps reel</span>
+        </div>
+
+        <div class="ft-product-kpi-grid">
+            <article class="ft-product-kpi-card">
+                <span class="ft-product-kpi-icon ft-product-kpi-icon-blue"><i class="bi bi-collection-fill"></i></span>
+                <div class="ft-product-kpi-label">Total abonnements</div>
+                <div class="ft-product-kpi-value" id="lblTotalSubs">0</div>
+                <p class="ft-product-kpi-sub">tous statuts</p>
+            </article>
+
+            <article class="ft-product-kpi-card ft-product-kpi-card-success">
+                <span class="ft-product-kpi-icon ft-product-kpi-icon-green"><i class="bi bi-check-circle-fill"></i></span>
+                <div class="ft-product-kpi-label">Actifs</div>
+                <div class="ft-product-kpi-value ft-product-kpi-value-green" id="lblActiveSubs">0</div>
+                <p class="ft-product-kpi-sub ft-product-kpi-sub-success" id="lblActiveRate">0.0% du total</p>
+            </article>
+
+            <article class="ft-product-kpi-card ft-product-kpi-card-warning">
+                <span class="ft-product-kpi-icon ft-product-kpi-icon-amber"><i class="bi bi-pause-circle-fill"></i></span>
+                <div class="ft-product-kpi-label">Suspendus</div>
+                <div class="ft-product-kpi-value ft-product-kpi-value-amber" id="lblSuspendedSubs">0</div>
+                <p class="ft-product-kpi-sub ft-product-kpi-sub-warning" id="lblSuspendedRate">0.0% du total</p>
+            </article>
+
+            <article class="ft-product-kpi-card ft-product-kpi-card-danger">
+                <span class="ft-product-kpi-icon ft-product-kpi-icon-red"><i class="bi bi-x-circle-fill"></i></span>
+                <div class="ft-product-kpi-label">Fermes</div>
+                <div class="ft-product-kpi-value ft-product-kpi-value-red" id="lblClosedSubs">0</div>
+                <p class="ft-product-kpi-sub ft-product-kpi-sub-danger" id="lblClosedRate">0.0% du total</p>
+            </article>
+
+            <article class="ft-product-kpi-card ft-product-kpi-card-highlight">
+                <span class="ft-product-kpi-icon ft-product-kpi-icon-blue"><i class="bi bi-graph-up-arrow"></i></span>
+                <div class="ft-product-kpi-label">Revenu total estime</div>
+                <div class="ft-product-kpi-value ft-product-kpi-value-blue" id="lblTotalRevenue">0.00 DT</div>
+                <p class="ft-product-kpi-sub">DT sur les abonnements actifs</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="ft-product-chart-grid">
+        <article class="ft-product-chart-card ft-product-chart-card-compact">
+            <div class="ft-product-chart-head">
+                <div>
+                    <span class="ft-product-chart-kicker">Repartition</span>
+                    <h3>Abonnements par statut</h3>
+                </div>
+                <span class="ft-product-chart-badge">Doughnut</span>
+            </div>
+            <p class="ft-product-chart-sub">Distribution ACTIVE / SUSPENDED / CLOSED / DRAFT.</p>
+            <div class="ft-product-chart-wrap ft-product-chart-wrap-small">
+                <canvas id="chartSubsByStatus"></canvas>
+            </div>
+        </article>
+
+        <article class="ft-product-chart-card">
+            <div class="ft-product-chart-head">
+                <div>
+                    <span class="ft-product-chart-kicker">Catalogue</span>
+                    <h3>Produits par categorie</h3>
+                </div>
+                <span class="ft-product-chart-badge">Barres</span>
+            </div>
+            <p class="ft-product-chart-sub">Nombre de produits par categorie bancaire.</p>
+            <div class="ft-product-chart-wrap">
+                <canvas id="chartProductsByCategory"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <section class="ft-product-chart-grid">
+        <article class="ft-product-chart-card ft-product-chart-card-compact">
+            <div class="ft-product-chart-head">
+                <div>
+                    <span class="ft-product-chart-kicker">Typologie</span>
+                    <h3>Abonnements par type</h3>
+                </div>
+                <span class="ft-product-chart-badge">Comparatif</span>
+            </div>
+            <p class="ft-product-chart-sub">Vue MONTHLY / ANNUAL / TRANSACTION / ONE_TIME.</p>
+            <div class="ft-product-chart-wrap ft-product-chart-wrap-small">
+                <canvas id="chartSubsByType"></canvas>
+            </div>
+        </article>
+
+        <article class="ft-product-chart-card">
+            <div class="ft-product-chart-head">
+                <div>
+                    <span class="ft-product-chart-kicker">Tendance</span>
+                    <h3>Abonnements dans le temps</h3>
+                </div>
+                <span class="ft-product-chart-badge">Line</span>
+            </div>
+            <p class="ft-product-chart-sub">Evolution mensuelle des nouvelles souscriptions.</p>
+            <div class="ft-product-chart-wrap">
+                <canvas id="chartSubsOverTime"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <section class="ft-product-chart-grid">
+        <article class="ft-product-chart-card ft-product-chart-card-wide">
+            <div class="ft-product-chart-head">
+                <div>
+                    <span class="ft-product-chart-kicker">Revenu x volume</span>
+                    <h3>Revenu par categorie et nombre d'abonnements</h3>
+                </div>
+                <span class="ft-product-chart-badge ft-product-chart-badge-accent">Mix analytique</span>
+            </div>
+            <p class="ft-product-chart-sub">
+                Chiffre d'affaires estime par categorie, avec mise en perspective du nombre d'abonnements actifs.
+            </p>
+            <div class="ft-product-chart-wrap ft-product-chart-wrap-large">
+                <canvas id="chartRevenueByCategory"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <div class="ft-product-footer-meta">
+        <span id="lblLastRefresh">Derniere actualisation : -</span>
+        <span>FinTrust Admin Analytics</span>
+    </div>
+
+    <div id="toast" class="ft-product-toast"></div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="{{ asset('js/Product/Dashboard.js') }}" defer></script>
+{% endblock %}

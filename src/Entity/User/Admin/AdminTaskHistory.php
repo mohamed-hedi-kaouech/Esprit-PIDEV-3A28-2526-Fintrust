@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User\Admin;
 
+use App\Entity\User\User;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -38,11 +39,11 @@ class AdminTaskHistory
     private \DateTimeInterface $createdAt;
 
     // FIX: added inversedBy: 'history' to match AdminTask#history OneToMany
-    #[ORM\ManyToOne(targetEntity: AdminTask::class, inversedBy: 'history')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\Admin\AdminTask::class, inversedBy: 'history')]
     #[ORM\JoinColumn(name: 'task_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private AdminTask $task;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'actor_admin_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private User $actorAdmin;
 

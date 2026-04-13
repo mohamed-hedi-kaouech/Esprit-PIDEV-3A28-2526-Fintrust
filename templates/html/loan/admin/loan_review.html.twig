@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {# templates/admin/loan_review.html.twig #}
 {% extends 'html/Loan/base.html.twig' %}
 
@@ -20,6 +21,25 @@
         </nav>
     </aside>
 
+=======
+{% extends 'admin/back.html.twig' %}
+{% block title %}Dashboard Produits & Subscriptions{% endblock %}
+
+{% block admin_content %}
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Inter', sans-serif; }
+        </style>
+    </head>
+<div class="min-h-screen bg-slate-50">
+>>>>>>> origin/dev
     {# Main Content #}
     <main class="ml-64 p-8">
         {# Breadcrumb #}
@@ -65,18 +85,30 @@
             <div class="bg-white rounded-xl shadow-sm p-6">
                 <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                     <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+<<<<<<< HEAD
                         {{ loan.user ? loan.user.email|first|upper : '?' }}
+=======
+{#                        {{ loan.user ? loan.user.email|first|upper : '?' }}#}
+>>>>>>> origin/dev
                     </div>
                     Client Information
                 </h2>
                 <div class="space-y-3">
                     <div>
                         <p class="text-xs text-slate-500 uppercase font-semibold">Email</p>
+<<<<<<< HEAD
                         <p class="text-slate-800 font-medium">{{ loan.user ? loan.user.email : 'Unknown' }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-slate-500 uppercase font-semibold">User ID</p>
                         <p class="text-slate-800 font-medium">#{{ loan.user ? loan.user.id : 'N/A' }}</p>
+=======
+{#                        <p class="text-slate-800 font-medium">{{ loan.user ? loan.user.email : 'Unknown' }}</p>#}
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-semibold">User ID</p>
+{#                        <p class="text-slate-800 font-medium">#{{ loan.user ? loan.user.id : 'N/A' }}</p>#}
+>>>>>>> origin/dev
                     </div>
                 </div>
             </div>

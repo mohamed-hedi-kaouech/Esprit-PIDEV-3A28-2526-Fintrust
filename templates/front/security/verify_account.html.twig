@@ -1,0 +1,132 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}Verification e-mail{% endblock %}
+
+{% block body %}
+<div class="ft-auth-page ft-verify-page">
+  <div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100 py-5">
+      <div class="col-12 col-lg-10">
+        <div class="ft-verify-shell">
+          <div class="ft-verify-side">
+            <div class="ft-verify-kicker">
+              <i class="bi bi-shield-lock"></i>
+              Confirmation d inscription
+            </div>
+            <h1 class="ft-auth-title mb-3">Verifiez votre adresse e-mail</h1>
+            <p class="ft-verify-copy mb-4">
+              Saisissez le code a 6 chiffres envoye a votre adresse e-mail pour activer votre acces FinTrust.
+              Le code reste valide pendant 10 minutes.
+            </p>
+
+            <div class="ft-verify-points">
+              <div class="ft-verify-point">
+                <i class="bi bi-envelope-check"></i>
+                <div>
+                  <strong>Code unique</strong>
+                  <span>Un nouveau code est genere pour chaque renvoi.</span>
+                </div>
+              </div>
+              <div class="ft-verify-point">
+                <i class="bi bi-clock-history"></i>
+                <div>
+                  <strong>Expiration courte</strong>
+                  <span>Le code expire automatiquement apres 10 minutes.</span>
+                </div>
+              </div>
+              <div class="ft-verify-point">
+                <i class="bi bi-bank"></i>
+                <div>
+                  <strong>Acces protege</strong>
+                  <span>La connexion reste bloquee tant que l e-mail n est pas verifie.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ft-auth-card ft-verify-card">
+            <div class="ft-auth-header text-center mb-4">
+              <div class="ft-auth-logo mb-3">
+                <svg viewBox="0 0 40 40" fill="none" width="48" height="48">
+                  <rect width="40" height="40" rx="10" fill="#1560BD"/>
+                  <path d="M10 28V18l10-8 10 8v10H24v-6h-8v6H10Z" fill="white"/>
+                </svg>
+              </div>
+              <h2 class="ft-auth-title ft-verify-title">Entrer mon code</h2>
+              <p class="text-muted mb-0">Utilisez le code recu par e-mail pour finaliser votre inscription.</p>
+            </div>
+
+            {{ form_start(verifyForm, {attr: {novalidate: 'novalidate'}}) }}
+              {{ form_errors(verifyForm) }}
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="{{ verifyForm.email.vars.id }}">
+                  <i class="bi bi-envelope me-1 text-primary"></i>{{ form_label(verifyForm.email) }}
+                </label>
+                {{ form_widget(verifyForm.email, {attr: {class: 'form-control ft-input', placeholder: 'exemple@fintrust.tn'}}) }}
+                {% if verifyForm.email.vars.errors|length > 0 %}
+                  <div class="text-danger small mt-1">{{ form_errors(verifyForm.email) }}</div>
+                {% endif %}
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label fw-semibold" for="{{ verifyForm.code.vars.id }}">
+                  <i class="bi bi-key me-1 text-primary"></i>{{ form_label(verifyForm.code) }}
+                </label>
+                {{ form_widget(verifyForm.code, {attr: {class: 'form-control ft-input ft-verify-code-input', placeholder: '123456'}}) }}
+                <div class="form-text">Le code contient exactement 6 chiffres.</div>
+                {% if verifyForm.code.vars.errors|length > 0 %}
+                  <div class="text-danger small mt-1">{{ form_errors(verifyForm.code) }}</div>
+                {% endif %}
+              </div>
+
+              <button type="submit" class="btn ft-btn-primary w-100 py-2 fw-semibold mt-3">
+                <i class="bi bi-patch-check me-2"></i>Verifier mon compte
+              </button>
+            {{ form_end(verifyForm) }}
+
+            <form method="post" action="{{ path('app_verify_account_resend') }}" class="mt-3" id="resend-verification-form">
+              <input type="hidden" name="_token" value="{{ csrf_token('resend_verification_code') }}">
+              <input type="hidden" name="email" id="resend-verification-email" value="{{ prefilledEmail ?: verifyForm.email.vars.value }}">
+              <button type="submit" class="btn ft-btn-outline-primary w-100">
+                <i class="bi bi-arrow-repeat me-2"></i>Renvoyer un nouveau code
+              </button>
+            </form>
+
+            <div class="text-center mt-4">
+              <span class="text-muted small">Deja verifie ?</span>
+              <a href="{{ path('app_login') }}" class="ms-1 fw-semibold text-primary text-decoration-none">
+                Se connecter
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    (function () {
+      const emailInput = document.getElementById('{{ verifyForm.email.vars.id }}');
+      const resendEmailInput = document.getElementById('resend-verification-email');
+      const resendForm = document.getElementById('resend-verification-form');
+
+      if (!emailInput || !resendEmailInput || !resendForm) {
+        return;
+      }
+
+      const syncEmail = () => {
+        resendEmailInput.value = emailInput.value.trim();
+      };
+
+      emailInput.addEventListener('input', syncEmail);
+      emailInput.addEventListener('change', syncEmail);
+      resendForm.addEventListener('submit', syncEmail);
+      syncEmail();
+    })();
+  </script>
+{% endblock %}

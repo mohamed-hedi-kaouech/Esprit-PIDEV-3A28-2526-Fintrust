@@ -1,0 +1,67 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Items de la categorie{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid mt-4">
+    <section class="ft-category-list-hero mb-4">
+        <div class="ft-category-list-hero-copy">
+            <span class="ft-category-list-kicker">
+                <i class="fa-solid fa-list-check"></i>
+                Navigation categorie
+            </span>
+            <h1 class="ft-category-list-title">Items de {{ categorie.nomCategorie }}</h1>
+            <p class="ft-category-list-subtitle">
+                Visualisez tous les items rattaches a cette categorie pour suivre les depenses en detail.
+            </p>
+        </div>
+
+        <div class="ft-category-list-actions">
+            <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
+                <i class="fa-solid fa-plus me-2"></i>Ajouter un item
+            </a>
+            <a href="{{ path('admin_categorie_show', {'idCategorie': categorie.idCategorie}) }}" class="btn ft-btn-outline-primary">
+                <i class="fa-solid fa-arrow-left me-2"></i>Retour categorie
+            </a>
+        </div>
+    </section>
+
+    <section class="ft-category-table-card">
+        <div class="ft-category-chart-head">
+            <div>
+                <span class="ft-category-chart-kicker">Items associes</span>
+                <h2>{{ items|length }} element(s)</h2>
+            </div>
+        </div>
+
+        {% if items|length > 0 %}
+            <div class="table-responsive">
+                <table class="table ft-admin-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Libelle</th>
+                            <th>Montant</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>{{ item.libelle }}</td>
+                                <td>{{ item.montant|number_format(2, ',', ' ') }} TND</td>
+                                <td>
+                                    <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" class="btn ft-btn-outline-primary btn-sm">
+                                        <i class="fa-solid fa-eye me-2"></i>Voir
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-4 text-muted">Aucun item associe a cette categorie pour le moment.</div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

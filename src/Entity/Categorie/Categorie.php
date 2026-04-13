@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Categorie;
 
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'categorie')]
@@ -16,12 +17,31 @@ class Categorie
     private int $idCategorie;
 
     #[ORM\Column(name: 'nomCategorie', type: 'string', length: 255)]
+    #[Assert\NotBlank(message: 'Le nom est obligatoire')]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: 'Le nom doit contenir au moins {{ limit }} caracteres',
+        maxMessage: 'Le nom ne peut pas depasser {{ limit }} caracteres'
+    )]
+    #[Assert\Regex(
+        pattern: '/^[A-Za-zÀ-ÿ\s]+$/u',
+        message: 'Le libelle doit contenir uniquement des lettres'
+    )]
     private string $nomCategorie;
 
     #[ORM\Column(name: 'budgetPrevu', type: 'float')]
+    #[Assert\NotBlank(message: 'Le budget est obligatoire')]
+    #[Assert\Positive(message: 'Le budget doit etre un nombre positif')]
     private float $budgetPrevu;
 
     #[ORM\Column(name: 'seuilAlerte', type: 'float')]
+    #[Assert\NotBlank(message: 'Le seuil est obligatoire')]
+    #[Assert\Positive(message: 'Le seuil doit etre un nombre positif')]
+    #[Assert\LessThan(
+        propertyPath: 'budgetPrevu',
+        message: 'Le seuil doit etre inferieur au budget'
+    )]
     private float $seuilAlerte;
 
     #[ORM\OneToMany(targetEntity: Alerte::class, mappedBy: 'categorie')]
@@ -49,6 +69,7 @@ class Categorie
     public function setNomCategorie(string $nomCategorie): static
     {
         $this->nomCategorie = $nomCategorie;
+
         return $this;
     }
 
@@ -60,6 +81,7 @@ class Categorie
     public function setBudgetPrevu(float $budgetPrevu): static
     {
         $this->budgetPrevu = $budgetPrevu;
+
         return $this;
     }
 
@@ -71,6 +93,7 @@ class Categorie
     public function setSeuilAlerte(float $seuilAlerte): static
     {
         $this->seuilAlerte = $seuilAlerte;
+
         return $this;
     }
 
@@ -84,12 +107,14 @@ class Categorie
         if (!$this->alertes->contains($alerte)) {
             $this->alertes->add($alerte);
         }
+
         return $this;
     }
 
     public function removeAlerte(Alerte $alerte): static
     {
         $this->alertes->removeElement($alerte);
+
         return $this;
     }
 
@@ -103,12 +128,14 @@ class Categorie
         if (!$this->items->contains($item)) {
             $this->items->add($item);
         }
+
         return $this;
     }
 
     public function removeItem(Item $item): static
     {
         $this->items->removeElement($item);
+
         return $this;
     }
 }

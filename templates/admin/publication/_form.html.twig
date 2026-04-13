@@ -1,0 +1,529 @@
+<div class="publication-editor-shell">
+    <div class="publication-editor-glow publication-editor-glow--left"></div>
+    <div class="publication-editor-glow publication-editor-glow--right"></div>
+
+    <div class="publication-editor-header">
+        <a href="{{ path('admin_publications_index') }}" class="publication-editor-back">
+            <span class="publication-editor-back__icon">&larr;</span>
+            <span>Retour aux publications</span>
+        </a>
+
+        <div class="publication-editor-hero">
+            <div class="publication-editor-hero__icon">
+                <span>&#9998;</span>
+            </div>
+
+            <div class="publication-editor-hero__content">
+                <span class="publication-editor-hero__chip">
+                    {{ publication.id ? 'Edition premium' : 'Nouvelle publication' }}
+                </span>
+                <h1 class="publication-editor-title">
+                    {% if publication.id %}
+                        Modifier une publication
+                    {% else %}
+                        Creer une nouvelle publication
+                    {% endif %}
+                </h1>
+                <p class="publication-editor-subtitle">
+                    Affinez votre contenu financier, structurez sa classification et gardez une presentation
+                    claire, professionnelle et coherente avec l univers premium FinTrust.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {{ form_start(form, {'attr': {'class': 'publication-editor-form', 'novalidate': 'novalidate'}}) }}
+
+    <div class="publication-editor-card">
+        <div class="publication-editor-grid">
+            <section class="publication-editor-panel publication-editor-panel--main">
+                <div class="publication-editor-panel__header">
+                    <span class="publication-editor-panel__icon">&#128221;</span>
+                    <div>
+                        <h2>Informations principales</h2>
+                        <p>Travaillez le titre et le contenu avec un confort d edition plus premium.</p>
+                    </div>
+                </div>
+
+                <div class="publication-editor-field">
+                    {{ form_label(form.titre, 'Titre de la publication', {'label_attr': {'class': 'publication-editor-label'}}) }}
+                    <div class="publication-editor-input-wrap">
+                        <span class="publication-editor-input-icon">&#10022;</span>
+                        {{ form_widget(form.titre, {'attr': {'class': 'publication-editor-input', 'placeholder': 'Ex. Tendances d investissement 2026'}}) }}
+                    </div>
+                    {{ form_errors(form.titre) }}
+                    <small class="publication-editor-help">Choisissez un titre clair, credible et oriente valeur pour vos lecteurs.</small>
+                </div>
+
+                <div class="publication-editor-field">
+                    {{ form_label(form.contenu, 'Contenu detaille', {'label_attr': {'class': 'publication-editor-label'}}) }}
+                    <div class="publication-editor-textarea-wrap">
+                        {{ form_widget(form.contenu, {'attr': {'class': 'publication-editor-textarea', 'rows': '14', 'placeholder': 'Developpez ici l analyse, les conseils et les informations utiles pour vos clients FinTrust...'}}) }}
+                    </div>
+                    {{ form_errors(form.contenu) }}
+                    <small class="publication-editor-help">Structurez vos idees avec un ton clair et une information de confiance.</small>
+                </div>
+            </section>
+
+            <aside class="publication-editor-panel publication-editor-panel--side">
+                <div class="publication-editor-panel__header">
+                    <span class="publication-editor-panel__icon">&#127991;</span>
+                    <div>
+                        <h2>Classification</h2>
+                        <p>Classez la publication dans le bon univers metier et choisissez sa visibilite.</p>
+                    </div>
+                </div>
+
+                <div class="publication-editor-field">
+                    {{ form_label(form.categorie, 'Categorie / Theme', {'label_attr': {'class': 'publication-editor-label'}}) }}
+                    <div class="publication-editor-select-wrap">
+                        {{ form_widget(form.categorie, {'attr': {'class': 'publication-editor-select'}}) }}
+                    </div>
+                    {{ form_errors(form.categorie) }}
+                    <small class="publication-editor-help">Finance, assurance, tech, fintech, epargne, investissement, credit, cybersecurite, conformite ou reglementation.</small>
+                </div>
+
+                <div class="publication-editor-field">
+                    {{ form_label(form.statut, 'Statut editorial', {'label_attr': {'class': 'publication-editor-label'}}) }}
+                    <div class="publication-editor-select-wrap">
+                        {{ form_widget(form.statut, {'attr': {'class': 'publication-editor-select'}}) }}
+                    </div>
+                    {{ form_errors(form.statut) }}
+                    <small class="publication-editor-help">Brouillon garde la publication invisible. Publie la rend visible pour les clients.</small>
+                </div>
+
+                <div class="publication-editor-preview">
+                    <span class="publication-editor-preview__eyebrow">Apercu rapide</span>
+                    <div class="publication-editor-preview__metric">
+                        <span class="publication-editor-preview__label">Categorie</span>
+                        <strong>{{ publication.categorie ?: 'A definir' }}</strong>
+                    </div>
+                    <div class="publication-editor-preview__metric">
+                        <span class="publication-editor-preview__label">Statut</span>
+                        <strong>{{ publication.statut ?: 'Brouillon' }}</strong>
+                    </div>
+                    <div class="publication-editor-preview__metric">
+                        <span class="publication-editor-preview__label">Mode</span>
+                        <strong>{{ publication.id ? 'Mise a jour' : 'Creation' }}</strong>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <div class="publication-editor-actions">
+            <button type="submit" class="publication-editor-btn publication-editor-btn--primary">
+                <span>&#10003;</span>
+                <span>
+                    {% if publication.id %}
+                        Mettre a jour la publication
+                    {% else %}
+                        Creer la publication
+                    {% endif %}
+                </span>
+            </button>
+            <a href="{{ path('admin_publications_index') }}" class="publication-editor-btn publication-editor-btn--ghost">
+                <span>&#10005;</span>
+                <span>Annuler</span>
+            </a>
+        </div>
+    </div>
+
+    {{ form_end(form) }}
+</div>
+
+<style>
+.publication-editor-shell {
+    position: relative;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 2.75rem;
+}
+
+.publication-editor-glow {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(70px);
+    pointer-events: none;
+    opacity: 0.55;
+}
+
+.publication-editor-glow--left {
+    top: 6rem;
+    left: -6rem;
+    width: 220px;
+    height: 220px;
+    background: rgba(96, 165, 250, 0.28);
+}
+
+.publication-editor-glow--right {
+    top: 2rem;
+    right: -4rem;
+    width: 260px;
+    height: 260px;
+    background: rgba(167, 139, 250, 0.18);
+}
+
+.publication-editor-header {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1.65rem;
+}
+
+.publication-editor-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.8rem 1.1rem;
+    border-radius: 999px;
+    text-decoration: none;
+    color: #1d4ed8;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(191, 219, 254, 0.8);
+    box-shadow: 0 14px 28px rgba(30, 64, 175, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.publication-editor-back:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 18px 36px rgba(37, 99, 235, 0.14);
+}
+
+.publication-editor-back__icon {
+    width: 1.9rem;
+    height: 1.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(219, 234, 254, 0.95);
+}
+
+.publication-editor-hero {
+    display: grid;
+    grid-template-columns: 86px minmax(0, 1fr);
+    gap: 1.2rem;
+    align-items: center;
+    margin-top: 1.2rem;
+    padding: 1.55rem 1.7rem;
+    border-radius: 30px;
+    background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.18), transparent 30%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.88) 55%, rgba(237, 233, 254, 0.74));
+    border: 1px solid rgba(191, 219, 254, 0.78);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.07);
+}
+
+.publication-editor-hero__icon {
+    width: 86px;
+    height: 86px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 26px;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: #fff;
+    font-size: 2rem;
+    box-shadow: 0 18px 38px rgba(37, 99, 235, 0.2);
+}
+
+.publication-editor-hero__chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.55rem 0.95rem;
+    border-radius: 999px;
+    background: rgba(219, 234, 254, 0.84);
+    color: #1d4ed8;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.7rem;
+}
+
+.publication-editor-title {
+    margin: 0;
+    font-size: clamp(2rem, 3.8vw, 3.15rem);
+    line-height: 1.04;
+    color: #0f172a;
+}
+
+.publication-editor-subtitle {
+    max-width: 760px;
+    margin: 0.8rem 0 0;
+    color: #54657d;
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+.publication-editor-form {
+    position: relative;
+    z-index: 1;
+}
+
+.publication-editor-card {
+    padding: 1.6rem;
+    border-radius: 34px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(226, 232, 240, 0.86);
+    box-shadow: 0 24px 64px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(14px);
+}
+
+.publication-editor-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.8fr);
+    gap: 1.4rem;
+}
+
+.publication-editor-panel {
+    padding: 1.4rem;
+    border-radius: 26px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.publication-editor-panel__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.95rem;
+    margin-bottom: 1.3rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.publication-editor-panel__icon {
+    width: 2.9rem;
+    height: 2.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(59, 130, 246, 0.88));
+    color: #fff;
+    font-size: 1.15rem;
+    box-shadow: 0 14px 28px rgba(59, 130, 246, 0.18);
+}
+
+.publication-editor-panel__header h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.15rem;
+}
+
+.publication-editor-panel__header p {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+    line-height: 1.65;
+}
+
+.publication-editor-field + .publication-editor-field {
+    margin-top: 1.25rem;
+}
+
+.publication-editor-label {
+    display: block;
+    margin-bottom: 0.55rem;
+    color: #1e293b;
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+}
+
+.publication-editor-input-wrap,
+.publication-editor-select-wrap,
+.publication-editor-textarea-wrap {
+    position: relative;
+}
+
+.publication-editor-input-icon {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+    color: #60a5fa;
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+
+.publication-editor-input,
+.publication-editor-select,
+.publication-editor-textarea {
+    width: 100%;
+    font: inherit;
+    color: #0f172a;
+    background: rgba(248, 250, 252, 0.92);
+    border: 1px solid rgba(191, 219, 254, 0.9);
+    border-radius: 18px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, background 0.3s ease;
+}
+
+.publication-editor-input,
+.publication-editor-select {
+    min-height: 58px;
+    padding: 0.95rem 1rem;
+}
+
+.publication-editor-input {
+    padding-left: 2.75rem;
+}
+
+.publication-editor-textarea {
+    min-height: 320px;
+    padding: 1rem 1rem 1.1rem;
+    resize: vertical;
+}
+
+.publication-editor-input::placeholder,
+.publication-editor-textarea::placeholder {
+    color: #94a3b8;
+}
+
+.publication-editor-input:focus,
+.publication-editor-select:focus,
+.publication-editor-textarea:focus {
+    outline: none;
+    border-color: #60a5fa;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), 0 18px 30px rgba(37, 99, 235, 0.08);
+    transform: translateY(-1px);
+}
+
+.publication-editor-help {
+    display: block;
+    margin-top: 0.55rem;
+    color: #64748b;
+    font-size: 0.82rem;
+    line-height: 1.65;
+}
+
+.publication-editor-preview {
+    margin-top: 1.45rem;
+    padding: 1.15rem;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(219, 234, 254, 0.8), rgba(224, 231, 255, 0.72));
+    border: 1px solid rgba(191, 219, 254, 0.95);
+}
+
+.publication-editor-preview__eyebrow {
+    display: inline-flex;
+    margin-bottom: 0.8rem;
+    color: #1d4ed8;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.publication-editor-preview__metric + .publication-editor-preview__metric {
+    margin-top: 0.8rem;
+}
+
+.publication-editor-preview__label {
+    display: block;
+    color: #64748b;
+    font-size: 0.8rem;
+    margin-bottom: 0.18rem;
+}
+
+.publication-editor-preview__metric strong {
+    color: #0f172a;
+    font-size: 1rem;
+}
+
+.publication-editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.45rem;
+    padding-top: 1.35rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.publication-editor-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    min-height: 54px;
+    padding: 0.95rem 1.45rem;
+    border-radius: 18px;
+    text-decoration: none;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
+}
+
+.publication-editor-btn--primary {
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    box-shadow: 0 18px 36px rgba(37, 99, 235, 0.22);
+}
+
+.publication-editor-btn--primary:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 22px 42px rgba(37, 99, 235, 0.28);
+}
+
+.publication-editor-btn--ghost {
+    color: #1e3a8a;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(147, 197, 253, 0.9);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.05);
+}
+
+.publication-editor-btn--ghost:hover {
+    transform: translateY(-2px);
+    background: rgba(239, 246, 255, 0.96);
+}
+
+.form-error,
+ul li {
+    color: #dc2626;
+}
+
+ul {
+    margin: 0.55rem 0 0;
+    padding-left: 1.2rem;
+}
+
+ul li {
+    font-size: 0.86rem;
+    line-height: 1.55;
+}
+
+@media (max-width: 960px) {
+    .publication-editor-hero,
+    .publication-editor-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .publication-editor-hero__icon {
+        width: 74px;
+        height: 74px;
+    }
+}
+
+@media (max-width: 640px) {
+    .publication-editor-shell {
+        padding: 1rem 0.75rem 2rem;
+    }
+
+    .publication-editor-card,
+    .publication-editor-panel,
+    .publication-editor-hero {
+        border-radius: 24px;
+    }
+
+    .publication-editor-actions {
+        flex-direction: column;
+    }
+
+    .publication-editor-btn {
+        width: 100%;
+    }
+}
+</style>

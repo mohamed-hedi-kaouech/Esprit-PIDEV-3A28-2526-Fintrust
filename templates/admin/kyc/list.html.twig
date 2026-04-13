@@ -1,0 +1,259 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Dossiers KYC{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Dossiers KYC</span>
+{% endblock %}
+
+{% block admin_content %}
+{% set totalKnown = overview.pending + overview.approved + overview.refused %}
+{% set approvalRate = totalKnown > 0 ? ((overview.approved / totalKnown) * 100)|round : 0 %}
+{% set rejectionRate = totalKnown > 0 ? ((overview.refused / totalKnown) * 100)|round : 0 %}
+{% set complianceRate = totalKnown > 0 ? (((overview.approved + overview.pending) / totalKnown) * 100)|round : 100 %}
+
+<section class="ft-admin-hero ft-admin-hero-kyc mb-4">
+  <div class="ft-admin-hero-grid">
+    <div>
+      <span class="ft-admin-hero-kicker">
+        <i class="bi bi-shield-check me-2"></i>Module conformite KYC
+      </span>
+      <h1 class="ft-admin-page-title mb-3">Dossiers KYC en attente</h1>
+      <p class="ft-admin-hero-subtitle mb-0">
+        Surveillez et validez les verifications d'identite en attente depuis une vue claire, fiable et orientee action.
+      </p>
+    </div>
+
+    <div class="ft-admin-hero-panel">
+      <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
+        <span class="ft-admin-status-chip ft-admin-status-success">
+          <i class="bi bi-check2-circle"></i>
+          {{ overview.pending > 0 ? overview.pending ~ ' dossier(s) urgent(s)' : 'Aucun dossier urgent' }}
+        </span>
+        <span class="ft-admin-status-chip ft-admin-status-info">
+          <i class="bi bi-arrow-repeat"></i>
+          Systeme a jour
+        </span>
+      </div>
+      <div class="ft-admin-meta justify-content-lg-end">
+        <span><i class="bi bi-clock-history"></i> Derniere mise a jour aujourd'hui</span>
+        <span><i class="bi bi-calendar3"></i> Dernier depot : {{ overview.latestSubmission ?? 'Aucun depot' }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="row g-3 mb-4">
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-stat-card ft-admin-stat-blue h-100">
+      <span class="ft-admin-stat-icon"><i class="bi bi-hourglass-split"></i></span>
+      <div class="ft-admin-stat-value">{{ overview.pending }}</div>
+      <div class="ft-admin-stat-label">En attente</div>
+      <p class="ft-admin-stat-note mb-0">Dossiers qui necessitent une validation admin.</p>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-stat-card ft-admin-stat-green h-100">
+      <span class="ft-admin-stat-icon"><i class="bi bi-patch-check"></i></span>
+      <div class="ft-admin-stat-value">{{ overview.approvedToday }}</div>
+      <div class="ft-admin-stat-label">Approuves aujourd'hui</div>
+      <p class="ft-admin-stat-note mb-0">Validation fluide et conforme sur la journee.</p>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-stat-card ft-admin-stat-red h-100">
+      <span class="ft-admin-stat-icon"><i class="bi bi-x-octagon"></i></span>
+      <div class="ft-admin-stat-value">{{ overview.refused }}</div>
+      <div class="ft-admin-stat-label">Refuses</div>
+      <p class="ft-admin-stat-note mb-0">Dossiers rejetes ou a reprendre par le client.</p>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-stat-card ft-admin-stat-gold h-100">
+      <span class="ft-admin-stat-icon"><i class="bi bi-stopwatch"></i></span>
+      <div class="ft-admin-stat-value">{{ overview.avgProcessingMinutes }}</div>
+      <div class="ft-admin-stat-label">Temps moyen</div>
+      <p class="ft-admin-stat-note mb-0">Minutes de traitement observees sur les derniers dossiers.</p>
+    </article>
+  </div>
+</section>
+
+{% if pendingKyc is empty %}
+  <section class="ft-admin-card ft-admin-kyc-empty mb-4">
+    <div class="ft-admin-card-body">
+      <div class="ft-admin-kyc-empty-inner">
+        <div class="ft-admin-empty-icon-wrap">
+          <span class="ft-admin-empty-icon">
+            <i class="bi bi-check2"></i>
+          </span>
+        </div>
+        <h2 class="ft-admin-empty-title">Tout est a jour</h2>
+        <p class="ft-admin-empty-text">
+          Aucun dossier KYC ne necessite une validation pour le moment.
+        </p>
+        <p class="ft-admin-empty-subtext">
+          Les nouveaux depots apparaitront automatiquement ici des leur soumission. Vous pouvez en attendant suivre l'activite recente ou consulter les validations deja traitees.
+        </p>
+
+        <div class="ft-admin-empty-actions">
+          <a href="{{ path('admin_kyc_list') }}" class="btn ft-btn-primary">
+            <i class="bi bi-arrow-repeat me-2"></i>Actualiser
+          </a>
+          <a href="#kyc-activity" class="btn ft-btn-outline-primary">
+            <i class="bi bi-clock-history me-2"></i>Voir l'historique
+          </a>
+          <a href="{{ path('admin_user_list', { kycStatus: 'APPROUVE' }) }}" class="btn ft-btn-outline-primary">
+            <i class="bi bi-folder2-open me-2"></i>Consulter les dossiers approuves
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+{% else %}
+  <section class="ft-admin-card mb-4">
+    <div class="ft-admin-card-header d-flex flex-wrap gap-3 justify-content-between align-items-center">
+      <div>
+        <h2 class="h5 fw-bold mb-1">File de validation KYC</h2>
+        <p class="text-muted small mb-0">Priorisez les dossiers les plus anciens pour garder un flux admin rapide.</p>
+      </div>
+      <span class="ft-admin-status-chip ft-admin-status-warning">
+        <i class="bi bi-hourglass-top"></i>
+        {{ pendingKyc|length }} dossier(s) a examiner
+      </span>
+    </div>
+    <div class="ft-admin-card-body p-0">
+      <div class="table-responsive">
+        <table class="table ft-admin-table mb-0">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Email</th>
+              <th>CIN</th>
+              <th>Date de naissance</th>
+              <th>Soumis le</th>
+              <th class="text-center">Fichiers</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for kyc in pendingKyc %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="ft-admin-avatar-sm">
+                      {{ kyc.user.prenom|first|upper }}{{ kyc.user.nom|first|upper }}
+                    </div>
+                    <div>
+                      <span class="fw-semibold d-block">{{ kyc.user.fullName }}</span>
+                      <span class="text-muted small">Statut : {{ kyc.user.status }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-muted small">{{ kyc.user.email }}</td>
+                <td><code>{{ kyc.cin }}</code></td>
+                <td class="text-muted small">{{ kyc.dateNaissance|date('d/m/Y') }}</td>
+                <td class="text-muted small">{{ kyc.dateSubmission|date('d/m/Y H:i') }}</td>
+                <td class="text-center">
+                  <span class="badge ft-badge-blue">{{ kyc.files|length }}</span>
+                </td>
+                <td class="text-center">
+                  <a href="{{ path('admin_kyc_view', {id: kyc.id}) }}" class="btn btn-sm ft-btn-primary">
+                    <i class="bi bi-eye me-1"></i>Examiner
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<section class="row g-4 align-items-stretch">
+  <div class="col-12 col-xl-7" id="kyc-activity">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <h2 class="h5 fw-bold mb-1">Activite recente KYC</h2>
+        <p class="text-muted small mb-0">Gardez un oeil sur les derniers depots et les profils touches par le flux de verification.</p>
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-activity-list">
+          {% for kyc in recentActivity %}
+            <div class="ft-admin-activity-item">
+              <div class="ft-admin-activity-dot {{ kyc.statut == 'APPROUVE' ? 'is-success' : (kyc.statut == 'REFUSE' ? 'is-danger' : 'is-info') }}"></div>
+              <div>
+                <strong>{{ kyc.user.fullName }}</strong>
+                <div class="text-muted small">
+                  Dossier {{ kyc.statut|lower|replace({'_': ' '}) }} le {{ kyc.dateSubmission|date('d/m/Y H:i') }}
+                </div>
+                <div class="text-muted small">
+                  CIN {{ kyc.cin }} · {{ kyc.files|length }} justificatif(s)
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="text-muted small">Aucune activite KYC recente pour le moment.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <h2 class="h5 fw-bold mb-1">Indicateurs KYC</h2>
+        <p class="text-muted small mb-0">Une vue compacte pour mesurer la qualite de traitement et la conformite globale.</p>
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-insight-list">
+          <div class="ft-admin-insight-item">
+            <strong>Taux d'approbation</strong>
+            <span>{{ approvalRate }}%</span>
+          </div>
+          <div class="ft-admin-progress">
+            <span style="width: {{ approvalRate }}%;"></span>
+          </div>
+
+          <div class="ft-admin-insight-item">
+            <strong>Taux de rejet</strong>
+            <span>{{ rejectionRate }}%</span>
+          </div>
+          <div class="ft-admin-progress ft-admin-progress-danger">
+            <span style="width: {{ rejectionRate }}%;"></span>
+          </div>
+
+          <div class="ft-admin-insight-item">
+            <strong>Conformite globale</strong>
+            <span>{{ complianceRate }}%</span>
+          </div>
+          <div class="ft-admin-progress ft-admin-progress-success">
+            <span style="width: {{ complianceRate }}%;"></span>
+          </div>
+
+          <div class="ft-admin-kyc-mini-grid">
+            <div class="ft-admin-kyc-mini-card">
+              <span class="ft-admin-kyc-mini-label">Approuves</span>
+              <strong>{{ overview.approved }}</strong>
+            </div>
+            <div class="ft-admin-kyc-mini-card">
+              <span class="ft-admin-kyc-mini-label">En attente</span>
+              <strong>{{ overview.pending }}</strong>
+            </div>
+            <div class="ft-admin-kyc-mini-card">
+              <span class="ft-admin-kyc-mini-label">Refuses</span>
+              <strong>{{ overview.refused }}</strong>
+            </div>
+            <div class="ft-admin-kyc-mini-card">
+              <span class="ft-admin-kyc-mini-label">Delai moyen</span>
+              <strong>{{ overview.avgProcessingMinutes }} min</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}

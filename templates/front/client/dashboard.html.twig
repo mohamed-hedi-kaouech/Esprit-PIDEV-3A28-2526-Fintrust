@@ -1,0 +1,965 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Tableau de bord{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+
+    <section class="ft-dash-hero mb-4">
+      <div class="ft-dash-hero-copy">
+        <div class="ft-dash-hero-kicker">
+          <i class="bi bi-stars"></i>
+          Espace client intelligent
+        </div>
+        <h1 class="ft-dash-hero-title">
+          Bonjour, <span>{{ user.prenom }}</span>
+        </h1>
+        <p class="ft-dash-hero-subtitle">
+          {{ "now"|date("l d F Y") }} ·
+          {% if user.kycStatus == 'APPROUVE' %}
+            <strong class="text-success-emphasis"><i class="bi bi-patch-check-fill me-1"></i>Compte verifie</strong>
+          {% else %}
+            <strong class="text-warning-emphasis"><i class="bi bi-exclamation-triangle me-1"></i>KYC en attente</strong>
+          {% endif %}
+        </p>
+        <div class="ft-hero-badge-row">
+          <span class="ft-royal-badge ft-royal-badge-{{ user.engagementBadgeTone }}">
+            <i class="bi {{ user.engagementBadge == 'ROI FINTRUST' ? 'bi-stars' : (user.engagementBadge == 'ELITE' ? 'bi-gem' : (user.engagementBadge == 'ACTIF+' ? 'bi-lightning-charge-fill' : 'bi-award')) }}"></i>
+            {{ user.engagementBadge }}
+          </span>
+          <span class="ft-hero-badge-note">
+            {% if user.engagementBadge == 'ROI FINTRUST' %}
+              Client premium a forte activite et forte valeur.
+            {% elseif user.engagementBadge == 'ELITE' %}
+              Tres bon niveau d'activite et usage regulier des services.
+            {% elseif user.engagementBadge == 'ACTIF+' %}
+              Client engage avec une activite bancaire soutenue.
+            {% else %}
+              Badge evolutif qui monte avec votre activite FinTrust.
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="ft-dash-hero-side">
+        <div class="ft-theme-switcher">
+          <form method="post" action="{{ path('front_theme_switch', {mode: 'light'}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('switch_theme') }}">
+            <button type="submit" class="ft-theme-pill {{ user.themeMode == 'light' ? 'active' : '' }}">
+              <i class="bi bi-sun-fill"></i> Clair
+            </button>
+          </form>
+          <form method="post" action="{{ path('front_theme_switch', {mode: 'dark'}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('switch_theme') }}">
+            <button type="submit" class="ft-theme-pill {{ user.themeMode == 'dark' ? 'active' : '' }}">
+              <i class="bi bi-moon-stars-fill"></i> Sombre
+            </button>
+          </form>
+        </div>
+
+        <a href="{{ path('front_profile') }}" class="btn ft-btn-outline-primary btn-sm ft-dash-profile-btn">
+          <i class="bi bi-person-gear me-1"></i>Profile
+        </a>
+      </div>
+    </section>
+
+    {% if not user.kycApproved %}
+      <div class="ft-kyc-banner mb-4">
+        <div class="ft-kyc-banner-icon"><i class="bi bi-shield-exclamation"></i></div>
+        <div class="flex-grow-1">
+          <div class="fw-semibold">Verification d'identite requise</div>
+          <div class="small mt-1">
+            {% if user.kycStatus == 'EN_ATTENTE' %}
+              Votre dossier KYC est <strong>en cours d'examen</strong> par notre equipe. Vous serez notifie des validation.
+            {% elseif user.kycStatus == 'REFUSE' %}
+              Votre dossier a ete <strong>refuse</strong>. Soumettez un nouveau dossier avec des documents corrects.
+            {% else %}
+              Deposez vos documents pour debloquer l'acces complet a la plateforme.
+            {% endif %}
+          </div>
+        </div>
+        <a href="{{ user.kycStatus == 'EN_ATTENTE' ? path('front_kyc_status') : path('front_kyc_submit') }}" class="btn ft-btn-primary btn-sm text-nowrap">
+          {% if user.kycStatus == 'EN_ATTENTE' %}
+            <i class="bi bi-clock me-1"></i>Voir le statut
+          {% else %}
+            <i class="bi bi-upload me-1"></i>Deposer mon KYC
+          {% endif %}
+        </a>
+      </div>
+    {% endif %}
+
+    {% if user.riskLevel in ['HIGH', 'CRITICAL'] %}
+      <div class="ft-kyc-banner mb-4 {{ user.riskLevel == 'CRITICAL' ? 'ft-risk-banner-critical' : 'ft-risk-banner-high' }}">
+        <div class="ft-kyc-banner-icon"><i class="bi bi-radar"></i></div>
+        <div class="flex-grow-1">
+          <div class="fw-semibold">Surveillance renforcée du compte</div>
+          <div class="small mt-1">
+            Risk level: <strong>{{ user.riskLevel }}</strong> · Fraud score: <strong>{{ user.fraudScore|number_format(1, ',', ' ') }}/100</strong>.
+            {% if user.riskLevel == 'CRITICAL' %}
+              Certaines actions sensibles sont temporairement restreintes pour protéger votre compte.
+            {% else %}
+              Une vigilance supplémentaire est activée sur vos opérations sensibles.
+            {% endif %}
+          </div>
+        </div>
+        <a href="{{ path('front_notifications') }}" class="btn ft-btn-primary btn-sm text-nowrap">
+          <i class="bi bi-bell me-1"></i>Voir les alertes
+        </a>
+      </div>
+    {% endif %}
+
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="ft-dash-card ft-dash-card-accent ft-dash-card-status">
+          <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-person-check-fill"></i></div>
+          <div class="ft-dash-card-label">Statut compte</div>
+          <div class="ft-dash-card-value">
+            {% if user.status == 'ACTIF' %}<span class="badge ft-badge-success">Actif</span>
+            {% elseif user.status == 'EN_ATTENTE' %}<span class="badge ft-badge-warning">En attente</span>
+            {% else %}<span class="badge ft-badge-danger">Suspendu</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="ft-dash-card ft-dash-card-accent ft-dash-card-kyc">
+          <div class="ft-dash-card-icon ft-dash-icon-green"><i class="bi bi-shield-check-fill"></i></div>
+          <div class="ft-dash-card-label">Statut KYC</div>
+          <div class="ft-dash-card-value">
+            {% if user.kycStatus == 'APPROUVE' %}<span class="badge ft-badge-success">Approuve</span>
+            {% elseif user.kycStatus == 'EN_ATTENTE' %}<span class="badge ft-badge-warning">En attente</span>
+            {% elseif user.kycStatus == 'REFUSE' %}<span class="badge ft-badge-danger">Refuse</span>
+            {% else %}<span class="badge ft-badge-neutral">Non soumis</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="ft-dash-card ft-dash-card-accent ft-dash-card-member">
+          <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-calendar-check-fill"></i></div>
+          <div class="ft-dash-card-label">Membre depuis</div>
+          <div class="ft-dash-card-value fw-semibold small">{{ user.createdAt|date('d/m/Y') }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="ft-dash-card ft-dash-card-accent ft-dash-card-role">
+          <div class="ft-dash-card-icon ft-dash-icon-orange"><i class="bi bi-award-fill"></i></div>
+          <div class="ft-dash-card-label">Role</div>
+          <div class="ft-dash-card-value"><span class="badge ft-badge-blue">{{ user.role }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-6 col-xl-3">
+        <div class="ft-dash-card ft-dash-card-soft">
+          <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-translate"></i></div>
+          <div class="ft-dash-card-label">Langue</div>
+          <div class="ft-dash-card-value">{{ user.preferredLanguage|upper }}</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="ft-dash-card ft-dash-card-soft">
+          <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-circle-half"></i></div>
+          <div class="ft-dash-card-label">Theme</div>
+          <div class="ft-dash-card-value">{{ user.themeMode == 'dark' ? 'Sombre' : 'Clair' }}</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="ft-dash-card ft-dash-card-soft">
+          <div class="ft-dash-card-icon ft-dash-icon-green"><i class="bi bi-arrow-left-right"></i></div>
+          <div class="ft-dash-card-label">Frequence transactions</div>
+          <div class="ft-dash-card-value">{{ user.transactionFrequency|number_format(2, ',', ' ') }}/jour</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="ft-dash-card ft-dash-card-soft">
+          <div class="ft-dash-card-icon ft-dash-icon-orange"><i class="bi bi-activity"></i></div>
+          <div class="ft-dash-card-label">Score de risque</div>
+          <div class="ft-dash-card-value">{{ user.riskScore|number_format(1, ',', ' ') }}/100 · {{ user.riskLevel }}</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="ft-dash-card ft-dash-card-soft">
+          <div class="ft-dash-card-icon ft-dash-icon-red"><i class="bi bi-shield-fill-exclamation"></i></div>
+          <div class="ft-dash-card-label">Fraud score</div>
+          <div class="ft-dash-card-value">{{ user.fraudScore|number_format(1, ',', ' ') }}/100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ft-app-card mb-4 ft-insight-panel">
+      <div class="ft-app-card-header">
+        <i class="bi bi-cpu me-2 text-primary"></i>Profil intelligent FinTrust
+      </div>
+      <div class="ft-app-card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="ft-action-card h-100">
+              <div class="ft-action-icon"><i class="bi bi-cash-coin"></i></div>
+              <div>
+                <div class="ft-module-title">Montant moyen</div>
+                <div class="ft-module-desc">{{ user.averageTransactionAmount|number_format(2, ',', ' ') }} TND</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-action-card h-100">
+              <div class="ft-action-icon"><i class="bi bi-diagram-3"></i></div>
+              <div>
+                <div class="ft-module-title">Segment automatique</div>
+                <div class="ft-module-desc">{{ user.clientSegment == 'A_RISQUE' ? 'A risque' : user.clientSegment }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-action-card h-100">
+              <div class="ft-action-icon"><i class="bi bi-clock-history"></i></div>
+              <div>
+                <div class="ft-module-title">Score evolutif</div>
+                <div class="ft-module-desc">Mis a jour {{ user.behaviorUpdatedAt ? user.behaviorUpdatedAt|date('d/m/Y H:i') : 'automatiquement' }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-action-card h-100">
+              <div class="ft-action-icon"><i class="bi bi-patch-check"></i></div>
+              <div>
+                <div class="ft-module-title">Badge de prestige</div>
+                <div class="ft-module-desc">
+                  <span class="ft-royal-badge ft-royal-badge-{{ user.engagementBadgeTone }}">
+                    <i class="bi {{ user.engagementBadge == 'ROI FINTRUST' ? 'bi-stars' : (user.engagementBadge == 'ELITE' ? 'bi-gem' : (user.engagementBadge == 'ACTIF+' ? 'bi-lightning-charge-fill' : 'bi-award')) }}"></i>
+                    {{ user.engagementBadge }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-12 col-xl-8">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><i class="bi bi-wallet2 me-2 text-primary"></i>Resume financier</span>
+            <span class="badge ft-badge-blue">Vue globale</span>
+          </div>
+          <div class="ft-app-card-body">
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <div class="ft-finance-metric">
+                  <span class="ft-finance-label">Capacite mensuelle</span>
+                  <strong>{{ (user.averageTransactionAmount * 4)|number_format(2, ',', ' ') }} TND</strong>
+                  <small>Projection basee sur votre activite moyenne</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="ft-finance-metric ft-finance-metric-soft">
+                  <span class="ft-finance-label">Epargne disponible</span>
+                  <strong>{{ (user.averageTransactionAmount * 1.8)|number_format(2, ',', ' ') }} TND</strong>
+                  <small>Reserve recommandee sur 30 jours</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="ft-finance-metric ft-finance-metric-accent">
+                  <span class="ft-finance-label">Niveau de confort</span>
+                  <strong>{{ user.clientSegment == 'VIP' ? 'Premium' : (user.clientSegment == 'A_RISQUE' ? 'Sous surveillance' : 'Stable') }}</strong>
+                  <small>Ajuste selon votre profil intelligent</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="ft-mini-chart">
+              <div class="ft-mini-chart-header">
+                <span>Evolution des flux</span>
+                <span class="text-muted small">7 derniers jours</span>
+              </div>
+              <div class="ft-bars">
+                <div class="ft-bar-wrap"><span class="ft-bar" style="height: 48%"></span><small>L</small></div>
+                <div class="ft-bar-wrap"><span class="ft-bar" style="height: 72%"></span><small>M</small></div>
+                <div class="ft-bar-wrap"><span class="ft-bar" style="height: 58%"></span><small>M</small></div>
+                <div class="ft-bar-wrap"><span class="ft-bar" style="height: 84%"></span><small>J</small></div>
+                <div class="ft-bar-wrap"><span class="ft-bar" style="height: 66%"></span><small>V</small></div>
+                <div class="ft-bar-wrap"><span class="ft-bar" style="height: 92%"></span><small>S</small></div>
+                <div class="ft-bar-wrap"><span class="ft-bar" style="height: 56%"></span><small>D</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-shield-lock me-2 text-primary"></i>Alertes de securite</span>
+            <span class="badge {{ user.riskLevel in ['HIGH', 'CRITICAL'] ? 'ft-badge-danger' : 'ft-badge-success' }}">
+              {{ user.riskLevel }}
+            </span>
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-security-alert {{ user.riskLevel == 'CRITICAL' ? 'danger' : (user.riskLevel == 'HIGH' ? 'warning' : 'safe') }}">
+              <div class="ft-security-icon"><i class="bi bi-radar"></i></div>
+              <div>
+                <strong>Score de fraude: {{ user.fraudScore|number_format(1, ',', ' ') }}/100</strong>
+                <p class="mb-0">
+                  {% if user.riskLevel == 'CRITICAL' %}
+                    Un renforcement temporaire protege vos operations sensibles.
+                  {% elseif user.riskLevel == 'HIGH' %}
+                    Une verification supplementaire peut etre demandee sur certaines actions.
+                  {% else %}
+                    Aucun signal critique detecte. Votre compte reste dans une zone saine.
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+
+            <div class="ft-simple-list mt-3">
+              <div class="ft-simple-item">
+                <i class="bi bi-fingerprint"></i>
+                <span>Authentification securisee activee</span>
+              </div>
+              <div class="ft-simple-item">
+                <i class="bi bi-bell"></i>
+                <span>Notifications intelligentes en temps reel</span>
+              </div>
+              <div class="ft-simple-item">
+                <i class="bi bi-clock-history"></i>
+                <span>Derniere analyse comportementale:
+                  {{ user.behaviorUpdatedAt ? user.behaviorUpdatedAt|date('d/m H:i') : 'a l instant' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-12 col-lg-7">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><i class="bi bi-activity me-2 text-primary"></i>Activite recente</span>
+            <a href="{{ path('front_notifications') }}" class="ft-inline-link">Voir tout</a>
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-timeline">
+              <div class="ft-timeline-item">
+                <div class="ft-timeline-dot success"></div>
+                <div>
+                  <strong>Verification KYC {{ user.kycApproved ? 'confirmee' : 'en cours' }}</strong>
+                  <p class="mb-0">Votre dossier identite suit son cycle de validation intelligent.</p>
+                </div>
+                <span>{{ user.createdAt|date('d/m') }}</span>
+              </div>
+              <div class="ft-timeline-item">
+                <div class="ft-timeline-dot info"></div>
+                <div>
+                  <strong>Profil mis a jour</strong>
+                  <p class="mb-0">Langue {{ user.preferredLanguage|upper }} et theme {{ user.themeMode == 'dark' ? 'sombre' : 'clair' }} synchronises.</p>
+                </div>
+                <span>Aujourd'hui</span>
+              </div>
+              <div class="ft-timeline-item">
+                <div class="ft-timeline-dot warning"></div>
+                <div>
+                  <strong>Analyse de risque recalculée</strong>
+                  <p class="mb-0">Score actuel {{ user.riskScore|number_format(1, ',', ' ') }}/100 avec segment {{ user.clientSegment == 'A_RISQUE' ? 'a risque' : user.clientSegment|lower }}.</p>
+                </div>
+                <span>{{ user.behaviorUpdatedAt ? user.behaviorUpdatedAt|date('H:i') : 'Maintenant' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-5">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-lightbulb me-2 text-primary"></i>Recommandations personnalisees
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-reco-card">
+              <span class="badge ft-badge-success">Conseil intelligent</span>
+              <h3>Optimisez votre coussin de securite</h3>
+              <p>FinTrust recommande de conserver l'equivalent de 3 semaines de depenses pour lisser vos operations sensibles.</p>
+              <div class="ft-progress-row">
+                <div class="ft-progress-track">
+                  <span style="width: 68%"></span>
+                </div>
+                <small>68% de l'objectif ideal</small>
+              </div>
+            </div>
+
+            <div class="ft-reco-list mt-3">
+              <div class="ft-reco-item">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span>Activez un produit d'epargne automatique pour valoriser votre profil {{ user.clientSegment|lower }}.</span>
+              </div>
+              <div class="ft-reco-item">
+                <i class="bi bi-stars"></i>
+                <span>Votre compte est compatible avec des experiences premium plus personnalisees.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-12 col-xl-4">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-piggy-bank me-2 text-primary"></i>Objectifs d'epargne
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-goal-card">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Fonds de securite</strong>
+                <span class="badge ft-badge-blue">Prioritaire</span>
+              </div>
+              <div class="ft-progress-track mb-2">
+                <span style="width: 54%"></span>
+              </div>
+              <div class="d-flex justify-content-between text-muted small">
+                <span>540 TND</span>
+                <span>Objectif 1 000 TND</span>
+              </div>
+            </div>
+
+            <div class="ft-goal-card">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Projet personnel</strong>
+                <span class="badge ft-badge-success">En bonne voie</span>
+              </div>
+              <div class="ft-progress-track mb-2 ft-progress-soft">
+                <span style="width: 77%"></span>
+              </div>
+              <div class="d-flex justify-content-between text-muted small">
+                <span>1 540 TND</span>
+                <span>Objectif 2 000 TND</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-pie-chart me-2 text-primary"></i>Statistiques de depenses
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-spend-ring">
+              <div class="ft-spend-ring-inner">
+                <strong>72%</strong>
+                <span>budget maitrise</span>
+              </div>
+            </div>
+
+            <div class="ft-category-list mt-3">
+              <div class="ft-category-item">
+                <span><i class="bi bi-house-door"></i>Habitation</span>
+                <strong>38%</strong>
+              </div>
+              <div class="ft-category-item">
+                <span><i class="bi bi-bag"></i>Achats</span>
+                <strong>24%</strong>
+              </div>
+              <div class="ft-category-item">
+                <span><i class="bi bi-car-front"></i>Transport</span>
+                <strong>18%</strong>
+              </div>
+              <div class="ft-category-item">
+                <span><i class="bi bi-heart-pulse"></i>Sante</span>
+                <strong>12%</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-grid me-2 text-primary"></i>Raccourcis rapides
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-shortcuts-grid">
+              <a href="{{ path('front_profile') }}" class="ft-shortcut-tile">
+                <i class="bi bi-person-circle"></i>
+                <span>Profil</span>
+              </a>
+              <a href="{{ path('front_notifications') }}" class="ft-shortcut-tile">
+                <i class="bi bi-bell"></i>
+                <span>Alertes</span>
+              </a>
+              <a href="{{ user.kycStatus in ['EN_ATTENTE', 'APPROUVE'] ? path('front_kyc_status') : path('front_kyc_submit') }}" class="ft-shortcut-tile">
+                <i class="bi bi-shield-check"></i>
+                <span>KYC</span>
+              </a>
+              <a href="{{ path('front_module', {slug: 'publications'}) }}" class="ft-shortcut-tile">
+                <i class="bi bi-journal-richtext"></i>
+                <span>Insights</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-12 col-xl-5">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-diagram-2 me-2 text-primary"></i>Etat des produits bancaires
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-product-status">
+              <div class="ft-product-line">
+                <div>
+                  <strong>Wallet intelligent</strong>
+                  <small>{{ user.kycApproved ? 'Disponible immediatement' : 'Debloque apres validation KYC' }}</small>
+                </div>
+                <span class="badge {{ user.kycApproved ? 'ft-badge-success' : 'ft-badge-warning' }}">
+                  {{ user.kycApproved ? 'Actif' : 'En attente' }}
+                </span>
+              </div>
+              <div class="ft-product-line">
+                <div>
+                  <strong>Budget coach</strong>
+                  <small>Analyse vos habitudes et categories de depenses</small>
+                </div>
+                <span class="badge ft-badge-blue">Pret</span>
+              </div>
+              <div class="ft-product-line">
+                <div>
+                  <strong>Offres premium</strong>
+                  <small>Parcours adapte a votre segment client</small>
+                </div>
+                <span class="badge {{ user.clientSegment == 'VIP' ? 'ft-badge-success' : 'ft-badge-neutral' }}">
+                  {{ user.clientSegment == 'VIP' ? 'Eligible' : 'A evaluer' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-7">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-broadcast-pin me-2 text-primary"></i>Notifications intelligentes</span>
+            <span class="badge ft-badge-warning">Nouveau</span>
+          </div>
+          <div class="ft-app-card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="ft-smart-note note-blue">
+                  <strong>Suggestion budgetaire</strong>
+                  <p>Vos flux sont stables. Programmez un virement recurrent pour automatiser votre epargne.</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="ft-smart-note note-green">
+                  <strong>Confiance compte</strong>
+                  <p>{{ user.kycApproved ? 'Votre identite est validee, vos parcours sont fluidifies.' : 'Finalisez votre verification pour acceder a tous les services.' }}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="ft-smart-note note-orange">
+                  <strong>Focus securite</strong>
+                  <p>Le moteur FinTrust continue de recalculer votre score evolutif en arriere-plan.</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="ft-smart-note note-pink">
+                  <strong>Experience conseillee</strong>
+                  <p>Explorez vos publications et recommandations pour anticiper vos besoins financiers.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ft-app-card mb-4 ft-premium-card">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-clock-history me-2 text-primary"></i>Historique simplifie</span>
+        <span class="text-muted small">Resume clair de vos derniers evenements</span>
+      </div>
+      <div class="ft-app-card-body">
+        <div class="ft-history-grid">
+          <div class="ft-history-card">
+            <span class="ft-history-icon blue"><i class="bi bi-person-vcard"></i></span>
+            <div>
+              <strong>Compte ouvert</strong>
+              <p>{{ user.createdAt|date('d/m/Y') }}</p>
+            </div>
+          </div>
+          <div class="ft-history-card">
+            <span class="ft-history-icon green"><i class="bi bi-shield-check"></i></span>
+            <div>
+              <strong>KYC</strong>
+              <p>{{ user.kycStatus ?: 'Non soumis' }}</p>
+            </div>
+          </div>
+          <div class="ft-history-card">
+            <span class="ft-history-icon purple"><i class="bi bi-cpu"></i></span>
+            <div>
+              <strong>Segment actuel</strong>
+              <p>{{ user.clientSegment == 'A_RISQUE' ? 'A risque' : user.clientSegment }}</p>
+            </div>
+          </div>
+          <div class="ft-history-card">
+            <span class="ft-history-icon orange"><i class="bi bi-graph-up"></i></span>
+            <div>
+              <strong>Analyse recente</strong>
+              <p>{{ user.behaviorUpdatedAt ? user.behaviorUpdatedAt|date('d/m/Y H:i') : 'En preparation' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ft-app-card mb-4 ft-premium-card ft-assistant-preview-card">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-robot me-2 text-primary"></i>Assistant FinTrust AI</span>
+        <span class="badge ft-badge-blue">Specialise services FinTrust</span>
+      </div>
+      <div class="ft-app-card-body">
+        <div class="row g-3 align-items-center">
+          <div class="col-lg-7">
+            <div class="ft-assistant-preview-copy">
+              <h3>Une aide contextuelle, claire et rassurante</h3>
+              <p>
+                Bonjour {{ user.prenom }}, je peux vous aider pour votre profil, votre KYC, votre wallet,
+                vos produits bancaires, vos demandes de pret, votre budget, vos notifications et la securite du compte.
+              </p>
+              <div class="ft-assistant-chip-row">
+                <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Mon KYC">Mon KYC</button>
+                <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Mon profil">Mon profil</button>
+                <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Mon wallet">Mon wallet</button>
+                <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Conseils budget">Conseils budget</button>
+                <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Produits recommandes">Produits recommandes</button>
+                <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Securite">Securite</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="ft-assistant-preview-panel">
+              <div class="ft-assistant-mini-message bot">
+                <div class="ft-assistant-mini-avatar"><i class="bi bi-stars"></i></div>
+                <div>
+                  <strong>Assistant FinTrust AI</strong>
+                  <p>Je suis limite a l'assistance FinTrust et aux conseils bancaires generaux lies a la plateforme.</p>
+                </div>
+              </div>
+              <button type="button" class="btn ft-btn-primary w-100" data-ft-assistant-open>
+                <i class="bi bi-chat-dots me-2"></i>Ouvrir l'assistant
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="ft-section-title mb-3">Mes services</h2>
+    <div class="row g-3 mb-4">
+
+      <div class="col-sm-6 col-lg-4">
+        <a href="{{ path('front_profile') }}" class="ft-module-card text-decoration-none">
+          <div class="ft-module-icon ft-module-blue"><i class="bi bi-person-lines-fill"></i></div>
+          <div class="ft-module-body">
+            <div class="ft-module-title">Profile</div>
+            <div class="ft-module-desc">Gerer mes informations personnelles</div>
+          </div>
+          <i class="bi bi-chevron-right text-muted ms-auto"></i>
+        </a>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <a href="{{ user.kycStatus in ['EN_ATTENTE', 'APPROUVE'] ? path('front_kyc_status') : path('front_kyc_submit') }}" class="ft-module-card text-decoration-none">
+          <div class="ft-module-icon ft-module-green"><i class="bi bi-shield-check"></i></div>
+          <div class="ft-module-body">
+            <div class="ft-module-title">KYC</div>
+            <div class="ft-module-desc">Verification d'identite</div>
+          </div>
+          <i class="bi bi-chevron-right text-muted ms-auto"></i>
+        </a>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <a href="{{ user.kycApproved ? path('front_wallet_dashboard') : path('front_kyc_status') }}" class="ft-module-card text-decoration-none {{ not user.kycApproved ? 'ft-module-locked' }}">
+          <div class="ft-module-icon ft-module-teal"><i class="bi bi-wallet2"></i></div>
+          <div class="ft-module-body">
+            <div class="ft-module-title">Wallet</div>
+            <div class="ft-module-desc">Solde et transactions</div>
+          </div>
+          {% if not user.kycApproved %}
+            <i class="bi bi-lock-fill text-muted ms-auto"></i>
+          {% else %}
+            <i class="bi bi-chevron-right text-muted ms-auto"></i>
+          {% endif %}
+        </a>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <a href="{{ user.kycApproved ? path('front_module', {slug: 'loan'}) : path('front_kyc_status') }}" class="ft-module-card text-decoration-none {{ not user.kycApproved ? 'ft-module-locked' }}">
+          <div class="ft-module-icon ft-module-indigo"><i class="bi bi-bank"></i></div>
+          <div class="ft-module-body">
+            <div class="ft-module-title">Loan</div>
+            <div class="ft-module-desc">Demandes de pret</div>
+          </div>
+          {% if not user.kycApproved %}
+            <i class="bi bi-lock-fill text-muted ms-auto"></i>
+          {% else %}
+            <i class="bi bi-chevron-right text-muted ms-auto"></i>
+          {% endif %}
+        </a>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <a href="{{ user.kycApproved ? path('front_module', {slug: 'product'}) : path('front_kyc_status') }}" class="ft-module-card text-decoration-none {{ not user.kycApproved ? 'ft-module-locked' }}">
+          <div class="ft-module-icon ft-module-orange"><i class="bi bi-box-seam"></i></div>
+          <div class="ft-module-body">
+            <div class="ft-module-title">Product</div>
+            <div class="ft-module-desc">Nos offres bancaires</div>
+          </div>
+          {% if not user.kycApproved %}
+            <i class="bi bi-lock-fill text-muted ms-auto"></i>
+          {% else %}
+            <i class="bi bi-chevron-right text-muted ms-auto"></i>
+          {% endif %}
+        </a>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <a href="{{ path('front_module', {slug: 'publications'}) }}" class="ft-module-card text-decoration-none">
+          <div class="ft-module-icon ft-module-pink"><i class="bi bi-newspaper"></i></div>
+          <div class="ft-module-body">
+            <div class="ft-module-title">Publications</div>
+            <div class="ft-module-desc">Actualites et articles</div>
+          </div>
+          <i class="bi bi-chevron-right text-muted ms-auto"></i>
+        </a>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <a href="{{ user.kycApproved ? path('front_module', {slug: 'budget'}) : path('front_kyc_status') }}" class="ft-module-card text-decoration-none {{ not user.kycApproved ? 'ft-module-locked' }}">
+          <div class="ft-module-icon ft-module-yellow"><i class="bi bi-calculator"></i></div>
+          <div class="ft-module-body">
+            <div class="ft-module-title">Budget</div>
+            <div class="ft-module-desc">Gestion de budget</div>
+          </div>
+          {% if not user.kycApproved %}
+            <i class="bi bi-lock-fill text-muted ms-auto"></i>
+          {% else %}
+            <i class="bi bi-chevron-right text-muted ms-auto"></i>
+          {% endif %}
+        </a>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <a href="{{ path('front_notifications') }}" class="ft-module-card text-decoration-none">
+          <div class="ft-module-icon ft-module-red"><i class="bi bi-bell-fill"></i></div>
+          <div class="ft-module-body">
+            <div class="ft-module-title">Notifications</div>
+            <div class="ft-module-desc">Mes alertes et messages</div>
+          </div>
+          <i class="bi bi-chevron-right text-muted ms-auto"></i>
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<button type="button" class="ft-assistant-fab" aria-label="Ouvrir Assistant FinTrust AI" data-ft-assistant-open>
+  <i class="bi bi-chat-dots-fill"></i>
+  <span>Assistant AI</span>
+</button>
+
+<aside class="ft-assistant-drawer" data-ft-assistant-drawer aria-hidden="true">
+  <div class="ft-assistant-shell">
+    <div class="ft-assistant-header">
+      <div class="ft-assistant-title-wrap">
+        <div class="ft-assistant-avatar"><i class="bi bi-stars"></i></div>
+        <div>
+          <h3>Assistant FinTrust AI</h3>
+          <p>Specialise en services FinTrust</p>
+        </div>
+      </div>
+      <button type="button" class="ft-assistant-close" aria-label="Fermer" data-ft-assistant-close>
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="ft-assistant-status">
+      <span class="badge ft-badge-success">Perimetre controle</span>
+      <span>Profil, KYC, wallet, produits, pret, budget, notifications, securite</span>
+    </div>
+
+    <div class="ft-assistant-messages" data-ft-assistant-messages>
+      <article class="ft-assistant-message bot">
+        <div class="ft-assistant-bubble">
+          Bonjour {{ user.prenom }}, je suis l'assistant FinTrust. Je peux vous aider concernant votre compte,
+          votre KYC, votre wallet et vos services bancaires.
+        </div>
+      </article>
+    </div>
+
+    <div class="ft-assistant-suggestions">
+      <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Mon KYC">Mon KYC</button>
+      <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Mon profil">Mon profil</button>
+      <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Mon wallet">Mon wallet</button>
+      <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Conseils budget">Conseils budget</button>
+      <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Produits recommandes">Produits recommandes</button>
+      <button type="button" class="ft-assistant-chip" data-ft-assistant-question="Securite">Securite</button>
+    </div>
+
+    <form class="ft-assistant-form" data-ft-assistant-form>
+      <input
+        type="text"
+        class="ft-assistant-input"
+        data-ft-assistant-input
+        placeholder="Posez une question sur FinTrust..."
+        autocomplete="off"
+      >
+      <button type="submit" class="ft-assistant-send">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </form>
+  </div>
+</aside>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    (function () {
+      const drawer = document.querySelector('[data-ft-assistant-drawer]');
+      const openButtons = document.querySelectorAll('[data-ft-assistant-open]');
+      const closeButton = document.querySelector('[data-ft-assistant-close]');
+      const form = document.querySelector('[data-ft-assistant-form]');
+      const input = document.querySelector('[data-ft-assistant-input]');
+      const messages = document.querySelector('[data-ft-assistant-messages]');
+      const chips = document.querySelectorAll('[data-ft-assistant-question]');
+
+      if (!drawer || !form || !input || !messages) {
+        return;
+      }
+
+      const responses = [
+        {
+          match: ['kyc', 'identite', 'verification'],
+          answer: "Vous pouvez suivre votre statut KYC dans la section KYC. Si votre dossier est en attente, FinTrust vous notifiera apres verification. Si votre KYC est refuse, vous pouvez soumettre un nouveau dossier avec des justificatifs conformes."
+        },
+        {
+          match: ['profil', 'profile', 'compte', 'informations'],
+          answer: "Pour gerer votre profil, ouvrez la section Profile depuis la barre superieure. Vous pouvez y modifier vos informations personnelles, votre langue et votre theme d'affichage."
+        },
+        {
+          match: ['wallet', 'solde', 'transaction', 'transfert'],
+          answer: "Le module Wallet permet de consulter vos soldes et vos transactions. S'il est verrouille, cela signifie generalement que votre verification KYC doit etre finalisee avant l'acces complet."
+        },
+        {
+          match: ['budget', 'epargne', 'depense', 'economiser'],
+          answer: "Pour mieux gerer votre budget sur FinTrust, suivez vos depenses par categorie, fixez un objectif d'epargne et privilegiez des virements recurrents pour automatiser votre reserve de securite."
+        },
+        {
+          match: ['produit', 'produits', 'recommande', 'offre'],
+          answer: "Je peux vous orienter vers les produits FinTrust selon votre besoin. Si vous cherchez la gestion quotidienne, regardez les services de compte et wallet. Pour la planification, explorez les produits lies au budget et a l'epargne."
+        },
+        {
+          match: ['pret', 'loan', 'credit'],
+          answer: "La section Loan permet de preparer et suivre vos demandes de pret. L'acceptation d'un pret depend toujours de l'etude de votre dossier, de votre profil et des conditions en vigueur sur la plateforme."
+        },
+        {
+          match: ['notification', 'notifications', 'alerte', 'alertes'],
+          answer: "Vos notifications sont visibles dans la section Notifications. Elles centralisent les alertes de securite, l'avancement du KYC et les informations utiles liees a vos services FinTrust."
+        },
+        {
+          match: ['securite', 'risque', 'fraude', 'fraud', 'score'],
+          answer: "Pour renforcer la securite de votre compte FinTrust, gardez votre profil a jour, surveillez vos alertes, verifiez votre KYC et consultez regulierement votre score de risque ainsi que vos notifications importantes."
+        }
+      ];
+
+      const fallback = "Je suis specialise uniquement dans l'assistance FinTrust et les services bancaires de la plateforme. Je peux vous aider sur le profil, le KYC, le wallet, les produits, les prets, le budget, les notifications et la securite du compte.";
+
+      function toggleDrawer(open) {
+        drawer.classList.toggle('is-open', open);
+        drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (open) {
+          setTimeout(() => input.focus(), 120);
+        }
+      }
+
+      function addMessage(role, content) {
+        const article = document.createElement('article');
+        article.className = 'ft-assistant-message ' + role;
+
+        const bubble = document.createElement('div');
+        bubble.className = 'ft-assistant-bubble';
+        bubble.textContent = content;
+
+        article.appendChild(bubble);
+        messages.appendChild(article);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function getResponse(question) {
+        const normalized = question.toLowerCase();
+        const entry = responses.find((item) => item.match.some((token) => normalized.includes(token)));
+        return entry ? entry.answer : fallback;
+      }
+
+      function handleQuestion(question) {
+        const cleanQuestion = question.trim();
+        if (!cleanQuestion) {
+          return;
+        }
+
+        toggleDrawer(true);
+        addMessage('user', cleanQuestion);
+
+        window.setTimeout(() => {
+          addMessage('bot', getResponse(cleanQuestion));
+        }, 220);
+      }
+
+      openButtons.forEach((button) => {
+        button.addEventListener('click', () => toggleDrawer(true));
+      });
+
+      if (closeButton) {
+        closeButton.addEventListener('click', () => toggleDrawer(false));
+      }
+
+      drawer.addEventListener('click', (event) => {
+        if (event.target === drawer) {
+          toggleDrawer(false);
+        }
+      });
+
+      chips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+          handleQuestion(chip.dataset.ftAssistantQuestion || chip.textContent || '');
+        });
+      });
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        handleQuestion(input.value);
+        input.value = '';
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          toggleDrawer(false);
+        }
+      });
+    })();
+  </script>
+{% endblock %}

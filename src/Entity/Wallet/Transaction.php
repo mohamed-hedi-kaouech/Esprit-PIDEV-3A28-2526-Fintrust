@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Wallet;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -29,7 +29,7 @@ class Transaction
     private int $idWallet;
 
     // FIX: added ManyToOne relation with inversedBy: 'transactions' to match Wallet#transactions OneToMany
-    #[ORM\ManyToOne(targetEntity: Wallet::class, inversedBy: 'transactions')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Wallet\Wallet::class, inversedBy: 'transactions')]
     #[ORM\JoinColumn(name: 'id_wallet', referencedColumnName: 'id_wallet')]
     private Wallet $wallet;
 

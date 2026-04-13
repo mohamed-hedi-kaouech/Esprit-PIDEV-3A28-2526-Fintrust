@@ -1,0 +1,192 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Creer une Categorie{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid mt-4">
+    <section class="ft-category-form-hero mb-4">
+        <div class="ft-category-form-hero-copy">
+            <span class="ft-category-form-kicker">
+                <i class="fa-solid fa-folder-plus"></i>
+                Nouvelle configuration
+            </span>
+            <h1 class="ft-category-form-title">Creer une Nouvelle Categorie</h1>
+            <p class="ft-category-form-subtitle">
+                Creez une categorie pour mieux organiser vos depenses et structurer votre pilotage budgetaire
+                avec une vue claire, moderne et intelligente.
+            </p>
+        </div>
+    </section>
+
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-xl-8">
+            <section class="ft-category-form-card">
+                {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+
+                <div class="row g-4">
+                    <div class="col-12 col-lg-6">
+                        <div class="ft-category-form-field">
+                            {{ form_label(form.nomCategorie, 'Nom de la categorie', { label_attr: { class: 'ft-category-form-label' } }) }}
+                            <div class="ft-category-form-input-wrap">
+                                <span class="ft-category-form-input-icon">
+                                    <i class="fa-solid fa-folder-open"></i>
+                                </span>
+                                {{ form_widget(form.nomCategorie, {
+                                    attr: {
+                                        class: 'form-control ft-category-form-input',
+                                        placeholder: 'Ex: Alimentation, Transport'
+                                    }
+                                }) }}
+                            </div>
+                            <div class="ft-category-form-help">Ex: Alimentation, Transport</div>
+                            {{ form_errors(form.nomCategorie) }}
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6">
+                        <div class="ft-category-form-field">
+                            {{ form_label(form.budgetPrevu, 'Budget prevu', { label_attr: { class: 'ft-category-form-label' } }) }}
+                            <div class="ft-category-form-input-wrap">
+                                <span class="ft-category-form-input-icon">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </span>
+                                {{ form_widget(form.budgetPrevu, {
+                                    attr: {
+                                        class: 'form-control ft-category-form-input',
+                                        placeholder: 'Entrez le budget prevu',
+                                        'data-preview-budget': 'true'
+                                    }
+                                }) }}
+                            </div>
+                            <div class="ft-category-form-help">Montant maximum prevu pour cette categorie.</div>
+                            <div class="ft-category-form-tip">
+                                <i class="fa-solid fa-lightbulb"></i>
+                                Exemple : Budget recommande 300 EUR
+                            </div>
+                            {{ form_errors(form.budgetPrevu) }}
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="ft-category-form-field">
+                            {{ form_label(form.seuilAlerte, 'Seuil d alerte', { label_attr: { class: 'ft-category-form-label' } }) }}
+                            <div class="ft-category-form-input-wrap">
+                                <span class="ft-category-form-input-icon">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </span>
+                                {{ form_widget(form.seuilAlerte, {
+                                    attr: {
+                                        class: 'form-control ft-category-form-input',
+                                        placeholder: 'Entrez le seuil d alerte',
+                                        'data-preview-seuil': 'true'
+                                    }
+                                }) }}
+                            </div>
+                            <div class="ft-category-form-help">Vous serez alerte lorsque ce seuil est atteint.</div>
+                            {{ form_errors(form.seuilAlerte) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ft-category-form-actions">
+                    <button type="submit" class="btn ft-btn-primary ft-category-form-submit">
+                        <i class="fa-solid fa-check me-2"></i>Creer la categorie
+                    </button>
+                    <a href="{{ path('admin_categorie_list') }}" class="btn ft-btn-outline-primary ft-category-form-cancel">
+                        <i class="fa-solid fa-xmark me-2"></i>Annuler
+                    </a>
+                </div>
+
+                {{ form_end(form) }}
+            </section>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <aside class="ft-category-form-preview-card">
+                <span class="ft-category-chart-kicker">Mini preview</span>
+                <h2>Resume categorie</h2>
+                <p class="ft-category-form-preview-text">
+                    Un apercu instantane pour verifier l'equilibre entre votre budget et le seuil de vigilance.
+                </p>
+
+                <div class="ft-category-form-preview-grid">
+                    <div class="ft-category-form-preview-item">
+                        <span>Budget</span>
+                        <strong id="categoryPreviewBudget">0 EUR</strong>
+                    </div>
+                    <div class="ft-category-form-preview-item">
+                        <span>Seuil</span>
+                        <strong id="categoryPreviewSeuil">0 EUR</strong>
+                    </div>
+                </div>
+
+                <div class="ft-category-form-preview-status" id="categoryPreviewStatus">
+                    <span class="ft-badge-success">Normal</span>
+                </div>
+
+                <div class="ft-category-form-preview-note">
+                    <i class="fa-solid fa-sparkles"></i>
+                    Une bonne categorie commence par un budget clair et un seuil d alerte realiste.
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        const budgetInput = document.querySelector('[data-preview-budget="true"]');
+        const seuilInput = document.querySelector('[data-preview-seuil="true"]');
+        const budgetPreview = document.getElementById('categoryPreviewBudget');
+        const seuilPreview = document.getElementById('categoryPreviewSeuil');
+        const statusPreview = document.getElementById('categoryPreviewStatus');
+
+        const formatAmount = (value) => {
+            const numeric = Number.parseFloat(value);
+            if (Number.isNaN(numeric) || numeric <= 0) {
+                return '0 EUR';
+            }
+
+            return new Intl.NumberFormat('fr-FR', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }).format(numeric) + ' EUR';
+        };
+
+        const updatePreview = () => {
+            const budget = Number.parseFloat(budgetInput?.value || '0');
+            const seuil = Number.parseFloat(seuilInput?.value || '0');
+
+            if (budgetPreview) {
+                budgetPreview.textContent = formatAmount(budgetInput?.value || '0');
+            }
+
+            if (seuilPreview) {
+                seuilPreview.textContent = formatAmount(seuilInput?.value || '0');
+            }
+
+            if (!statusPreview) {
+                return;
+            }
+
+            let badgeClass = 'ft-badge-success';
+            let badgeLabel = 'Normal';
+
+            if (budget > 0 && seuil >= budget) {
+                badgeClass = 'ft-badge-danger';
+                badgeLabel = 'Risque';
+            } else if (budget > 0 && seuil >= (budget * 0.75)) {
+                badgeClass = 'ft-badge-warning';
+                badgeLabel = 'Attention';
+            }
+
+            statusPreview.innerHTML = '<span class="' + badgeClass + '">' + badgeLabel + '</span>';
+        };
+
+        budgetInput?.addEventListener('input', updatePreview);
+        seuilInput?.addEventListener('input', updatePreview);
+        updatePreview();
+    </script>
+{% endblock %}

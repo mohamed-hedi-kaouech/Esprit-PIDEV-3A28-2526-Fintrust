@@ -1,0 +1,588 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Utilisateurs{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Utilisateurs</span>
+{% endblock %}
+
+{% macro sort_link(label, col, filters) %}
+  {% set newDir = (filters.sort == col and filters.dir == 'ASC') ? 'DESC' : 'ASC' %}
+  <a href="{{ path('admin_user_list', filters|merge({sort: col, dir: newDir, page: 1})) }}"
+     class="text-white text-decoration-none d-flex align-items-center gap-1 ft-sort-link {{ filters.sort == col ? 'is-active' }}">
+    {{ label }}
+    {% if filters.sort == col %}
+      <i class="bi bi-arrow-{{ filters.dir == 'ASC' ? 'up' : 'down' }}-short"></i>
+    {% else %}
+      <i class="bi bi-arrow-down-up opacity-50" style="font-size:.7rem"></i>
+    {% endif %}
+  </a>
+{% endmacro %}
+
+{% block admin_content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="ft-admin-page-title mb-1">Gestion des utilisateurs</h1>
+    <p class="text-muted mb-0 small">{{ total }} utilisateur(s) trouves</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ path('admin_user_create') }}" class="btn btn-sm ft-btn-primary">
+      <i class="bi bi-person-plus-fill me-1"></i>Ajouter un client
+    </a>
+    <a href="{{ path('admin_user_export_csv', app.request.query.all) }}" class="btn btn-sm ft-btn-outline-primary">
+      <i class="bi bi-filetype-csv me-1"></i>Export CSV
+    </a>
+    <a href="{{ path('admin_user_export_pdf', app.request.query.all) }}" class="btn btn-sm ft-btn-outline-primary" target="_blank">
+      <i class="bi bi-printer me-1"></i>Export PDF
+    </a>
+  </div>
+</div>
+
+<section class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue">
+      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="ft-admin-kpi-mini-label">Total utilisateurs</div>
+      <div class="ft-admin-kpi-mini-value">{{ userStats.total }}</div>
+      <div class="ft-admin-kpi-mini-text">Vue immediate de la population filtree.</div>
+    </article>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-green">
+      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-person-check-fill"></i></div>
+      <div class="ft-admin-kpi-mini-label">Actifs</div>
+      <div class="ft-admin-kpi-mini-value">{{ userStats.active }}</div>
+      <div class="ft-admin-kpi-mini-text">{{ userStats.activationRate|number_format(1, ',', ' ') }}% des comptes filtres.</div>
+    </article>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-amber">
+      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-hourglass-split"></i></div>
+      <div class="ft-admin-kpi-mini-label">KYC en attente</div>
+      <div class="ft-admin-kpi-mini-value">{{ userStats.kycBreakdown.pending }}</div>
+      <div class="ft-admin-kpi-mini-text">Dossiers a traiter en priorite.</div>
+    </article>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-red">
+      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-person-fill-lock"></i></div>
+      <div class="ft-admin-kpi-mini-label">Suspendus</div>
+      <div class="ft-admin-kpi-mini-value">{{ userStats.statusBreakdown.suspended }}</div>
+      <div class="ft-admin-kpi-mini-text">Comptes necessitant un suivi admin.</div>
+    </article>
+  </div>
+</section>
+
+<div class="ft-admin-card mb-4">
+  <div class="ft-admin-card-body">
+    <form method="get" action="{{ path('admin_user_list') }}" id="filterForm" class="ft-admin-filters-form">
+      <div class="row g-3 g-xl-2 align-items-end">
+        <div class="col-xl-4">
+          <label class="form-label small fw-semibold text-muted">Recherche</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="search" value="{{ filters.search }}"
+                   class="form-control ft-input border-start-0"
+                   data-auto-submit="true"
+                   placeholder="Nom, prenom, email..." />
+          </div>
+          <div class="form-text ft-filter-help">Recherche instantanee.</div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+          <label class="form-label small fw-semibold text-muted">Role</label>
+          <select name="role" class="form-select ft-input" data-auto-submit="true">
+            <option value="">Tous</option>
+            <option value="CLIENT" {{ filters.role == 'CLIENT' ? 'selected' }}>Client</option>
+            <option value="ADMIN" {{ filters.role == 'ADMIN' ? 'selected' }}>Admin</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+          <label class="form-label small fw-semibold text-muted">Statut</label>
+          <select name="status" class="form-select ft-input" data-auto-submit="true">
+            <option value="">Tous</option>
+            <option value="ACTIF" {{ filters.status == 'ACTIF' ? 'selected' }}>Actif</option>
+            <option value="EN_ATTENTE" {{ filters.status == 'EN_ATTENTE' ? 'selected' }}>En attente</option>
+            <option value="SUSPENDU" {{ filters.status == 'SUSPENDU' ? 'selected' }}>Suspendu</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+          <label class="form-label small fw-semibold text-muted">KYC</label>
+          <select name="kycStatus" class="form-select ft-input" data-auto-submit="true">
+            <option value="">Tous</option>
+            <option value="NULL" {{ filters.kycStatus == 'NULL' ? 'selected' }}>Non soumis</option>
+            <option value="EN_ATTENTE" {{ filters.kycStatus == 'EN_ATTENTE' ? 'selected' }}>En attente</option>
+            <option value="APPROUVE" {{ filters.kycStatus == 'APPROUVE' ? 'selected' }}>Approuve</option>
+            <option value="REFUSE" {{ filters.kycStatus == 'REFUSE' ? 'selected' }}>Refuse</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+          <label class="form-label small fw-semibold text-muted">Tri</label>
+          <select name="sort" class="form-select ft-input" data-auto-submit="true">
+            <option value="createdAt" {{ filters.sort == 'createdAt' ? 'selected' }}>Date d'inscription</option>
+            <option value="role" {{ filters.sort == 'role' ? 'selected' }}>Role</option>
+            <option value="alphabet" {{ filters.sort == 'alphabet' ? 'selected' }}>Alphabet</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+          <label class="form-label small fw-semibold text-muted">Ordre</label>
+          <select name="dir" class="form-select ft-input" data-auto-submit="true">
+            <option value="ASC" {{ filters.dir == 'ASC' ? 'selected' }}>Ascendant</option>
+            <option value="DESC" {{ filters.dir == 'DESC' ? 'selected' }}>Descendant</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-xl-1">
+          <button type="submit" class="btn ft-btn-primary w-100 ft-filter-btn">
+            <i class="bi bi-funnel me-1"></i>Filtrer
+          </button>
+        </div>
+        <div class="col-sm-6 col-xl-1">
+          <a href="{{ path('admin_user_list') }}" class="btn btn-outline-secondary w-100 ft-filter-reset" title="Reinitialiser">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="ft-admin-card">
+  <div class="ft-admin-card-body p-0">
+    <div class="table-responsive">
+      <table class="table ft-admin-table mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>{{ _self.sort_link('Nom', 'nom', filters) }}</th>
+            <th>{{ _self.sort_link('Prenom', 'prenom', filters) }}</th>
+            <th>{{ _self.sort_link('Email', 'email', filters) }}</th>
+            <th>Telephone</th>
+            <th>{{ _self.sort_link('Role', 'role', filters) }}</th>
+            <th>{{ _self.sort_link('Statut', 'status', filters) }}</th>
+            <th>{{ _self.sort_link('KYC', 'kycStatus', filters) }}</th>
+            <th>Risque</th>
+            <th>{{ _self.sort_link('Inscrit le', 'createdAt', filters) }}</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            {% set riskTone = user.riskLevel in ['HIGH', 'CRITICAL'] ? 'danger' : (user.riskLevel == 'MEDIUM' ? 'warning' : 'success') %}
+            <tr>
+              <td>
+                <div class="ft-admin-user-cell" data-bs-toggle="tooltip" title="{{ user.fullName }} · {{ user.email }}">
+                  <div class="ft-admin-avatar-pill">{{ user.prenom|first|upper }}{{ user.nom|first|upper }}</div>
+                  <div>
+                    <div class="fw-semibold text-dark">{{ user.nom }}</div>
+                    <div class="ft-admin-user-subline">{{ user.clientSegment }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ user.prenom }}</td>
+              <td class="text-muted small">{{ user.email }}</td>
+              <td class="text-muted small">{{ user.numTel ?? '-' }}</td>
+              <td>
+                <span class="badge {{ user.role == 'ADMIN' ? 'ft-badge-blue' : 'ft-badge-neutral' }}">{{ user.role }}</span>
+              </td>
+              <td>
+                {% if user.status == 'ACTIF' %}
+                  <span class="badge ft-badge-success">Actif</span>
+                {% elseif user.status == 'EN_ATTENTE' %}
+                  <span class="badge ft-badge-warning">En attente</span>
+                {% else %}
+                  <span class="badge ft-badge-danger">Suspendu</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if user.kycStatus == 'APPROUVE' %}
+                  <span class="badge ft-badge-success"><i class="bi bi-check me-1"></i>Approuve</span>
+                {% elseif user.kycStatus == 'EN_ATTENTE' %}
+                  <span class="badge ft-badge-warning ft-badge-pulse"><i class="bi bi-hourglass me-1"></i>En attente</span>
+                {% elseif user.kycStatus == 'REFUSE' %}
+                  <span class="badge ft-badge-danger"><i class="bi bi-x me-1"></i>Refuse</span>
+                {% else %}
+                  <span class="badge ft-badge-neutral">-</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="ft-risk-pill ft-risk-pill-{{ riskTone }}" data-bs-toggle="tooltip" title="Niveau {{ user.riskLevel }} · fraude {{ user.fraudScore|number_format(1, ',', ' ') }}/100">
+                  <strong>{{ user.riskScore|number_format(0, ',', ' ') }}/100</strong>
+                  <span>{{ user.riskLevel }}</span>
+                </div>
+              </td>
+              <td class="text-muted small">{{ user.createdAt|date('d/m/Y') }}</td>
+              <td>
+                <div class="d-flex gap-1 justify-content-center flex-wrap">
+                  <a href="{{ path('admin_user_edit', {id: user.id}) }}"
+                     class="btn btn-sm ft-btn-icon ft-btn-icon-yellow"
+                     data-bs-toggle="tooltip"
+                     title="Modifier">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <a href="{{ path('admin_user_edit', {id: user.id}) }}#notifyForm"
+                     class="btn btn-sm ft-btn-icon ft-btn-icon-blue"
+                     data-bs-toggle="tooltip"
+                     title="Notifier">
+                    <i class="bi bi-bell"></i>
+                  </a>
+                  {% if user.status != 'ACTIF' %}
+                    <form method="post" action="{{ path('admin_user_activate', {id: user.id}) }}" class="d-inline">
+                      <input type="hidden" name="_token" value="{{ csrf_token('activate_' ~ user.id) }}" />
+                      <button type="submit" class="btn btn-sm ft-btn-icon ft-btn-icon-green" data-bs-toggle="tooltip" title="Activer">
+                        <i class="bi bi-check-lg"></i>
+                      </button>
+                    </form>
+                  {% else %}
+                    <form method="post" action="{{ path('admin_user_suspend', {id: user.id}) }}" class="d-inline">
+                      <input type="hidden" name="_token" value="{{ csrf_token('suspend_' ~ user.id) }}" />
+                      <button type="submit" class="btn btn-sm ft-btn-icon ft-btn-icon-orange" data-bs-toggle="tooltip" title="Suspendre">
+                        <i class="bi bi-pause-fill"></i>
+                      </button>
+                    </form>
+                  {% endif %}
+                  <button type="button"
+                          class="btn btn-sm ft-btn-icon ft-btn-icon-red"
+                          title="Supprimer"
+                          data-bs-toggle="modal"
+                          data-bs-target="#deleteUserModal"
+                          data-delete-action="{{ path('admin_user_delete', {id: user.id}) }}"
+                          data-delete-token="{{ csrf_token('delete_user_' ~ user.id) }}"
+                          data-delete-name="{{ user.fullName }}">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="10" class="text-center text-muted py-5">
+                <i class="bi bi-search fs-2 d-block mb-2"></i>
+                Aucun utilisateur trouve avec ces criteres.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<section class="ft-user-stats-section mt-4">
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <h2 class="ft-section-title mb-1">Statistiques utilisateurs</h2>
+      <p class="text-muted mb-0 small">Les indicateurs suivent automatiquement les utilisateurs correspondant aux filtres actuels.</p>
+    </div>
+    <span class="badge ft-badge-blue rounded-pill px-3 py-2">Base analysee: {{ userStats.total }}</span>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="ft-admin-insight-card ft-admin-user-kpi">
+        <div class="ft-admin-insight-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="ft-admin-insight-title">Total utilisateurs</div>
+        <div class="ft-admin-insight-value">{{ userStats.total }}</div>
+        <div class="ft-admin-insight-text">Population actuelle correspondant a la recherche et aux filtres.</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="ft-admin-insight-card ft-admin-user-kpi ft-admin-insight-card-approved">
+        <div class="ft-admin-insight-icon"><i class="bi bi-person-check-fill"></i></div>
+        <div class="ft-admin-insight-title">Comptes actifs</div>
+        <div class="ft-admin-insight-value">{{ userStats.active }}</div>
+        <div class="ft-admin-insight-text">Taux d'activation: {{ userStats.activationRate|number_format(1, ',', ' ') }}%</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="ft-admin-insight-card ft-admin-user-kpi ft-admin-insight-card-team">
+        <div class="ft-admin-insight-icon"><i class="bi bi-shield-lock-fill"></i></div>
+        <div class="ft-admin-insight-title">Administrateurs</div>
+        <div class="ft-admin-insight-value">{{ userStats.admins }}</div>
+        <div class="ft-admin-insight-text">Equipe de pilotage visible sur ce segment de donnees.</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="ft-admin-insight-card ft-admin-user-kpi ft-admin-insight-card-action">
+        <div class="ft-admin-insight-icon"><i class="bi bi-patch-check-fill"></i></div>
+        <div class="ft-admin-insight-title">KYC approuves</div>
+        <div class="ft-admin-insight-value">{{ userStats.kycApproved }}</div>
+        <div class="ft-admin-insight-text">Taux d'approbation: {{ userStats.approvalRate|number_format(1, ',', ' ') }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-xl-8">
+      <div class="ft-admin-card h-100">
+        <div class="ft-admin-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Evolution des utilisateurs</span>
+          <span class="text-muted small">6 derniers mois</span>
+        </div>
+        <div class="ft-admin-card-body">
+          <div class="ft-chart-container ft-chart-container-medium">
+            <canvas id="usersEvolutionChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-4">
+      <div class="ft-admin-card h-100">
+        <div class="ft-admin-card-header">
+          <i class="bi bi-pie-chart-fill me-2 text-primary"></i>Repartition visuelle
+        </div>
+        <div class="ft-admin-card-body">
+          <div class="ft-chart-container ft-chart-container-small">
+            <canvas id="usersRoleChart"></canvas>
+          </div>
+          <div class="ft-admin-chart-legend">
+            <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-blue"></span>Clients: {{ userStats.roleBreakdown.clients }}</div>
+            <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-green"></span>Admins: {{ userStats.roleBreakdown.admins }}</div>
+          </div>
+
+          <div class="ft-chart-container ft-chart-container-small mt-4">
+            <canvas id="usersKycChart"></canvas>
+          </div>
+          <div class="ft-admin-chart-legend">
+            <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-green"></span>Approuves: {{ userStats.kycBreakdown.approved }}</div>
+            <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-yellow"></span>En attente: {{ userStats.kycBreakdown.pending }}</div>
+            <div class="ft-admin-legend-item"><span class="ft-admin-dot ft-admin-dot-red"></span>Refuses: {{ userStats.kycBreakdown.refused }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-2">
+    <div class="col-xl-5">
+      <div class="ft-admin-card h-100">
+        <div class="ft-admin-card-header">
+          <i class="bi bi-rocket-takeoff me-2 text-primary"></i>Croissance
+        </div>
+        <div class="ft-admin-card-body">
+          <div class="ft-admin-system-card {{ userStats.growthRate > 0 ? 'ft-admin-system-success' : (userStats.growthRate < 0 ? 'ft-admin-system-danger' : 'ft-admin-system-warning') }}">
+            <div class="ft-admin-system-icon">
+              <i class="bi {{ userStats.growthRate > 0 ? 'bi-graph-up-arrow' : (userStats.growthRate < 0 ? 'bi-graph-down-arrow' : 'bi-dash-circle') }}"></i>
+            </div>
+            <div>
+              <div class="ft-admin-system-title">+{{ userStats.newThisMonth }} nouveaux utilisateurs ce mois</div>
+              <div class="ft-admin-system-subtitle">Taux de croissance: {{ userStats.growthRate >= 0 ? '+' : '' }}{{ userStats.growthRate|number_format(1, ',', ' ') }}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-7">
+      <div class="ft-admin-card h-100">
+        <div class="ft-admin-card-header">
+          <i class="bi bi-stars me-2 text-primary"></i>Insights utilisateurs
+        </div>
+        <div class="ft-admin-card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="ft-admin-system-metric">
+                <span>Derniere inscription</span>
+                <strong>{{ userStats.latestSignup ?? 'N/A' }}</strong>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="ft-admin-system-metric">
+                <span>Taux d'activation</span>
+                <strong>{{ userStats.activationRate|number_format(1, ',', ' ') }}%</strong>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="ft-admin-system-metric">
+                <span>Progression base client</span>
+                <strong>{{ userStats.roleBreakdown.clients }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if pages > 1 %}
+  <nav class="mt-4" aria-label="Pagination">
+    <ul class="pagination ft-pagination justify-content-center">
+      <li class="page-item {{ page <= 1 ? 'disabled' }}">
+        <a class="page-link" href="{{ path('admin_user_list', filters|merge({page: page - 1})) }}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+      {% for p in 1..pages %}
+        <li class="page-item {{ p == page ? 'active' }}">
+          <a class="page-link" href="{{ path('admin_user_list', filters|merge({page: p})) }}">{{ p }}</a>
+        </li>
+      {% endfor %}
+      <li class="page-item {{ page >= pages ? 'disabled' }}">
+        <a class="page-link" href="{{ path('admin_user_list', filters|merge({page: page + 1})) }}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+    </ul>
+  </nav>
+{% endif %}
+
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content ft-admin-modal">
+      <div class="modal-header border-0 pb-0">
+        <div class="ft-admin-modal-icon danger"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-2">Supprimer cet utilisateur ?</h5>
+        <p class="text-muted mb-0" id="deleteUserModalText">Cette action est irreversible.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <form method="post" id="deleteUserModalForm">
+          <input type="hidden" name="_token" id="deleteUserModalToken" />
+          <button type="submit" class="btn btn-danger">Supprimer definitivement</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    const filterForm = document.getElementById('filterForm');
+    if (filterForm) {
+      let timer = null;
+      filterForm.querySelectorAll('[data-auto-submit="true"]').forEach((element) => {
+        const eventName = element.tagName === 'SELECT' ? 'change' : 'input';
+        element.addEventListener(eventName, () => {
+          window.clearTimeout(timer);
+          timer = window.setTimeout(() => filterForm.submit(), element.tagName === 'SELECT' ? 0 : 280);
+        });
+      });
+    }
+
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
+      new bootstrap.Tooltip(element);
+    });
+
+    const deleteUserModal = document.getElementById('deleteUserModal');
+    if (deleteUserModal) {
+      deleteUserModal.addEventListener('show.bs.modal', (event) => {
+        const trigger = event.relatedTarget;
+        if (!trigger) {
+          return;
+        }
+
+        deleteUserModal.querySelector('#deleteUserModalForm').action = trigger.getAttribute('data-delete-action');
+        deleteUserModal.querySelector('#deleteUserModalToken').value = trigger.getAttribute('data-delete-token');
+        deleteUserModal.querySelector('#deleteUserModalText').textContent =
+          `Vous allez supprimer definitivement ${trigger.getAttribute('data-delete-name')}. Cette action est irreversible.`;
+      });
+    }
+
+    const usersEvolutionCtx = document.getElementById('usersEvolutionChart');
+    if (usersEvolutionCtx) {
+      new Chart(usersEvolutionCtx, {
+        type: 'line',
+        data: {
+          labels: {{ userStats.monthlyLabels|json_encode|raw }},
+          datasets: [
+            {
+              label: 'Total utilisateurs',
+              data: {{ userStats.monthlyTotal|json_encode|raw }},
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37,99,235,0.12)',
+              fill: true,
+              tension: 0.32,
+              borderWidth: 3
+            },
+            {
+              label: 'Comptes actifs',
+              data: {{ userStats.monthlyActive|json_encode|raw }},
+              borderColor: '#22c55e',
+              backgroundColor: 'rgba(34,197,94,0.08)',
+              fill: false,
+              tension: 0.28,
+              borderWidth: 3
+            },
+            {
+              label: 'KYC approuves',
+              data: {{ userStats.monthlyKycApproved|json_encode|raw }},
+              borderColor: '#f59e0b',
+              backgroundColor: 'rgba(245,158,11,0.08)',
+              fill: false,
+              tension: 0.28,
+              borderWidth: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1, color: '#64748b' },
+              grid: { color: 'rgba(148,163,184,.15)' }
+            },
+            x: {
+              ticks: { color: '#64748b' },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    const usersRoleCtx = document.getElementById('usersRoleChart');
+    if (usersRoleCtx) {
+      new Chart(usersRoleCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Clients', 'Admins'],
+          datasets: [{
+            data: [{{ userStats.roleBreakdown.clients }}, {{ userStats.roleBreakdown.admins }}],
+            backgroundColor: ['#2563eb', '#22c55e'],
+            borderColor: '#ffffff',
+            borderWidth: 4,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    const usersKycCtx = document.getElementById('usersKycChart');
+    if (usersKycCtx) {
+      new Chart(usersKycCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Approuves', 'En attente', 'Refuses'],
+          datasets: [{
+            data: [{{ userStats.kycBreakdown.approved }}, {{ userStats.kycBreakdown.pending }}, {{ userStats.kycBreakdown.refused }}],
+            backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+            borderColor: '#ffffff',
+            borderWidth: 4,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+  </script>
+{% endblock %}

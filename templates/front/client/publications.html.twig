@@ -1,0 +1,615 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}Publications{% endblock %}
+
+{% block body %}
+<div class="ft-publications-page">
+  <div class="ft-publications-glow ft-publications-glow--one"></div>
+  <div class="ft-publications-glow ft-publications-glow--two"></div>
+
+  <div class="container-fluid px-4 py-4" style="max-width:1240px">
+    <section class="ft-publications-hero">
+      <div class="ft-publications-hero__content">
+        <div class="ft-publications-hero__eyebrow">
+          <span class="ft-publications-hero__eyebrow-icon">✦</span>
+          <span>Flux editorial premium</span>
+        </div>
+
+        <div class="ft-publications-hero__icon">
+          <i class="bi bi-newspaper"></i>
+        </div>
+
+        <h1 class="ft-publications-hero__title">Publications FinTrust</h1>
+        <p class="ft-publications-hero__subtitle">
+          Explorez les actualites, analyses et conseils financiers dans une experience plus
+          immersive, moderne et digne d'une plateforme fintech haut de gamme.
+        </p>
+
+        <div class="ft-publications-hero__chips">
+          <span class="ft-publications-chip">Analyses expertes</span>
+          <span class="ft-publications-chip">Veille financiere</span>
+          <span class="ft-publications-chip">Contenu premium</span>
+        </div>
+      </div>
+
+      <div class="ft-publications-hero__aside">
+        <a href="{{ path('front_dashboard') }}" class="btn ft-publications-dashboard-btn">
+          <i class="bi bi-grid me-2"></i>Retour au dashboard
+        </a>
+
+        <div class="ft-publications-kpi-card">
+          <span class="ft-publications-kpi-card__label">Publications visibles</span>
+          <strong class="ft-publications-kpi-card__value">{{ publications|length }}</strong>
+          <span class="ft-publications-kpi-card__meta">
+            {{ selectedCategory ? selectedCategory : 'Toutes les categories' }}
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="ft-publications-filter-card">
+      <form method="get" action="" class="row gx-3 gy-3 align-items-end" novalidate="novalidate">
+        <div class="col-lg-5">
+          <label class="form-label small fw-semibold ft-publications-filter-label">
+            <i class="bi bi-search me-2"></i>Recherche
+          </label>
+          <div class="ft-publications-input-wrap">
+            <input type="text" name="keyword" value="{{ searchTerm }}" class="form-control ft-publications-input" placeholder="Rechercher un titre, une analyse ou une astuce">
+          </div>
+        </div>
+
+        <div class="col-lg-3">
+          <label class="form-label small fw-semibold ft-publications-filter-label">
+            <i class="bi bi-bullseye me-2"></i>Categorie
+          </label>
+          <div class="ft-publications-input-wrap">
+            <select name="category" class="form-select ft-publications-input">
+              <option value="">Toutes les categories</option>
+              {% for category in categories %}
+                <option value="{{ category }}" {{ selectedCategory == category ? 'selected' : '' }}>{{ category }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="col-lg-3">
+          <label class="form-label small fw-semibold ft-publications-filter-label">
+            <i class="bi bi-sliders2 me-2"></i>Trier par
+          </label>
+          <div class="ft-publications-input-wrap">
+            <select name="sort" class="form-select ft-publications-input">
+              <option value="recentes" {{ sortBy == 'recentes' ? 'selected' : '' }}>Recentes</option>
+              <option value="trending" {{ sortBy == 'trending' ? 'selected' : '' }}>Tendance</option>
+              <option value="mieux_notees" {{ sortBy == 'mieux_notees' ? 'selected' : '' }}>Mieux notees</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="col-lg-1 d-grid">
+          <button type="submit" class="btn ft-publications-submit-btn">OK</button>
+        </div>
+      </form>
+    </section>
+
+    {% if publications|length > 0 %}
+      <div class="ft-publications-grid">
+        {% for publication in publications %}
+          <article class="ft-publication-card">
+            <div class="ft-publication-card__cover">
+              <div class="ft-publication-card__cover-gradient"></div>
+              <div class="ft-publication-card__cover-badge">{{ publication.categorie ?: 'Actualite' }}</div>
+              <div class="ft-publication-card__cover-status">{{ publication.statut }}</div>
+            </div>
+
+            <div class="ft-publication-card__body">
+              <div class="ft-publication-card__meta">
+                <span class="ft-publication-card__date">
+                  <i class="bi bi-calendar3 me-2"></i>
+                  {{ publication.datePublication ? publication.datePublication|date('d/m/Y') : 'Date indisponible' }}
+                </span>
+              </div>
+
+              <h2 class="ft-publication-card__title">{{ publication.titre }}</h2>
+
+              <p class="ft-publication-card__excerpt">
+                {{ publication.contenu|striptags|slice(0, 170) ~ (publication.contenu|length > 170 ? '...' : '') }}
+              </p>
+
+              <div class="ft-publication-card__footer">
+                <div class="ft-publication-card__rating">
+                  <span class="ft-publication-card__stars">★★★★★</span>
+                  <span class="ft-publication-card__reviews">{{ publication.feedbacks|length }} avis</span>
+                </div>
+
+                <a href="{{ path('front_publications_view', {id: publication.id}) }}" class="btn ft-publication-card__cta">
+                  Voir plus
+                </a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="ft-publications-empty-state">
+        <div class="ft-publications-empty-state__icon">
+          <i class="bi bi-journal-text"></i>
+        </div>
+        <h3 class="ft-publications-empty-state__title">Aucune publication ne correspond a vos criteres</h3>
+        <p class="ft-publications-empty-state__text">
+          Essayez une autre recherche ou revenez a toutes les categories pour retrouver
+          les analyses et contenus disponibles.
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.ft-publications-page {
+  position: relative;
+  min-height: calc(100vh - 72px);
+  background:
+    linear-gradient(180deg, rgba(241, 247, 255, 0.95) 0%, rgba(255, 255, 255, 0.92) 45%, rgba(245, 243, 255, 0.9) 100%);
+  overflow: hidden;
+}
+
+.ft-publications-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.ft-publications-glow--one {
+  width: 320px;
+  height: 320px;
+  top: 70px;
+  left: 8%;
+  background: rgba(96, 165, 250, 0.22);
+}
+
+.ft-publications-glow--two {
+  width: 360px;
+  height: 360px;
+  top: 220px;
+  right: 8%;
+  background: rgba(167, 139, 250, 0.18);
+}
+
+.ft-publications-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+  padding: 2rem;
+  border-radius: 30px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.48)),
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.18), transparent 34%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.ft-publications-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(191, 219, 254, 0.8);
+  color: #1d4ed8;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.ft-publications-hero__eyebrow-icon {
+  color: #3b82f6;
+}
+
+.ft-publications-hero__icon {
+  width: 4.4rem;
+  height: 4.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.2rem;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: #fff;
+  font-size: 1.55rem;
+  box-shadow: 0 18px 36px rgba(37, 99, 235, 0.22);
+}
+
+.ft-publications-hero__title {
+  margin: 1.1rem 0 0.5rem;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ft-publications-hero__subtitle {
+  max-width: 720px;
+  margin: 0;
+  color: #5b6b85;
+  font-size: 1.03rem;
+  line-height: 1.8;
+}
+
+.ft-publications-hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.25rem;
+}
+
+.ft-publications-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(219, 234, 254, 0.95);
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.ft-publications-hero__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.ft-publications-dashboard-btn {
+  align-self: flex-end;
+  padding: 0.9rem 1.15rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(147, 197, 253, 0.75);
+  color: #1d4ed8;
+  font-weight: 700;
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.ft-publications-dashboard-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 18px 34px rgba(37, 99, 235, 0.12);
+}
+
+.ft-publications-kpi-card {
+  padding: 1.3rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(191, 219, 254, 0.8);
+  box-shadow: 0 20px 42px rgba(15, 23, 42, 0.07);
+}
+
+.ft-publications-kpi-card__label {
+  display: block;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ft-publications-kpi-card__value {
+  display: block;
+  margin-top: 0.55rem;
+  color: #0f172a;
+  font-size: 2.9rem;
+  line-height: 1;
+}
+
+.ft-publications-kpi-card__meta {
+  display: block;
+  margin-top: 0.6rem;
+  color: #475569;
+  font-size: 0.92rem;
+}
+
+.ft-publications-filter-card {
+  margin-bottom: 1.85rem;
+  padding: 1.35rem;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow: 0 22px 46px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(18px);
+}
+
+.ft-publications-filter-label {
+  color: #334155;
+}
+
+.ft-publications-input-wrap {
+  position: relative;
+}
+
+.ft-publications-input {
+  min-height: 54px;
+  border-radius: 18px;
+  border: 1px solid rgba(203, 213, 225, 0.92);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.ft-publications-input:focus {
+  border-color: rgba(59, 130, 246, 0.92);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), 0 16px 32px rgba(37, 99, 235, 0.08);
+  transform: translateY(-1px);
+}
+
+.ft-publications-submit-btn {
+  min-height: 54px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: #fff;
+  font-weight: 800;
+  border: none;
+  box-shadow: 0 18px 30px rgba(37, 99, 235, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ft-publications-submit-btn:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 22px 36px rgba(37, 99, 235, 0.28);
+}
+
+.ft-publications-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.ft-publication-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 440px;
+  border-radius: 30px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  box-shadow: 0 26px 65px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
+  transition: transform 0.32s ease, box-shadow 0.32s ease, border-color 0.32s ease;
+  animation: publicationCardFade 0.45s ease both;
+}
+
+.ft-publication-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 34px 78px rgba(15, 23, 42, 0.14);
+  border-color: rgba(147, 197, 253, 0.85);
+}
+
+.ft-publication-card__cover {
+  position: relative;
+  min-height: 220px;
+  background:
+    linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(59, 130, 246, 0.88) 58%, rgba(129, 140, 248, 0.82));
+  overflow: hidden;
+}
+
+.ft-publication-card__cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(191, 219, 254, 0.16), transparent 30%);
+  transition: transform 0.45s ease;
+}
+
+.ft-publication-card:hover .ft-publication-card__cover::before {
+  transform: scale(1.06);
+}
+
+.ft-publication-card__cover-gradient {
+  position: absolute;
+  inset: auto 0 0;
+  height: 90px;
+  background: linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.3));
+}
+
+.ft-publication-card__cover-badge,
+.ft-publication-card__cover-status {
+  position: absolute;
+  top: 18px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  backdrop-filter: blur(12px);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ft-publication-card__cover-badge {
+  left: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+.ft-publication-card__cover-status {
+  right: 18px;
+  background: rgba(15, 23, 42, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.ft-publication-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.7rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(248, 250, 252, 0.95));
+}
+
+.ft-publication-card__meta {
+  margin-bottom: 0.65rem;
+}
+
+.ft-publication-card__date {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.ft-publication-card__title {
+  margin: 0 0 0.7rem;
+  color: #0f172a;
+  font-size: 1.45rem;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.ft-publication-card__excerpt {
+  color: #5b6b85;
+  line-height: 1.75;
+  margin: 0 0 1.25rem;
+}
+
+.ft-publication-card__footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ft-publication-card__rating {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.ft-publication-card__stars {
+  color: #f59e0b;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.18);
+}
+
+.ft-publication-card__reviews {
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.ft-publication-card__cta {
+  padding: 0.78rem 1.15rem;
+  border-radius: 16px;
+  border: 1px solid rgba(37, 99, 235, 0.44);
+  color: #1d4ed8;
+  background: rgba(255, 255, 255, 0.88);
+  font-weight: 800;
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.08);
+  transition: all 0.3s ease;
+}
+
+.ft-publication-card__cta:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  border-color: transparent;
+  box-shadow: 0 18px 30px rgba(37, 99, 235, 0.2);
+}
+
+.ft-publications-empty-state {
+  padding: 3rem 2rem;
+  text-align: center;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.ft-publications-empty-state__icon {
+  width: 5rem;
+  height: 5rem;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: #fff;
+  font-size: 1.7rem;
+  box-shadow: 0 18px 38px rgba(37, 99, 235, 0.22);
+}
+
+.ft-publications-empty-state__title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.7rem;
+}
+
+.ft-publications-empty-state__text {
+  max-width: 620px;
+  margin: 0.85rem auto 0;
+  color: #64748b;
+  line-height: 1.8;
+}
+
+@keyframes publicationCardFade {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1100px) {
+  .ft-publications-hero,
+  .ft-publications-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ft-publications-hero__aside {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .ft-publications-hero,
+  .ft-publications-filter-card {
+    padding: 1.25rem;
+    border-radius: 24px;
+  }
+
+  .ft-publications-hero__aside {
+    flex-direction: column;
+  }
+
+  .ft-publications-dashboard-btn {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .ft-publication-card {
+    min-height: auto;
+  }
+}
+</style>
+{% endblock %}

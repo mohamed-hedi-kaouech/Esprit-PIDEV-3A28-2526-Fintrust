@@ -25,7 +25,11 @@ class AdminLoanController extends AbstractController
     // Dashboard
     // -------------------------------------------------------------------------
 
+<<<<<<< HEAD
     #[Route('/dashboard', name: 'admin_dashboard')]
+=======
+    #[Route('/dashboard', name: 'admin_loan_dashboard')]
+>>>>>>> origin/dev
     public function dashboard(LoanRepository $loanRepo, Request $request): Response
     {
         $status = $request->query->get('status', 'all');

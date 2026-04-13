@@ -1,0 +1,301 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Wallet #{{ wallet.idWallet }}{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_wallet_index') }}" class="text-muted small text-decoration-none">Pilotage Wallet</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Wallet #{{ wallet.idWallet }}</span>
+{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="ft-admin-page-title mb-1">
+      <i class="bi bi-wallet2 me-2 text-primary"></i>Detail du wallet #{{ wallet.idWallet }}
+    </h1>
+    <p class="text-muted mb-0">Vue detaillee du wallet, de ses indicateurs et de ses actions d administration.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{{ path('admin_wallet_index') }}" class="btn ft-btn-outline-primary">
+      <i class="bi bi-arrow-left me-2"></i>Retour
+    </a>
+    <a href="{{ path('admin_cheque_index', {wallet: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-journal-check me-2"></i>Voir les cheques
+    </a>
+    <a href="{{ path('admin_wallet_edit', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-pencil-square me-2"></i>Modifier
+    </a>
+  </div>
+</div>
+
+<section class="row g-4">
+  <div class="col-12 col-xl-8">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-info-circle me-2 text-primary"></i>Informations du wallet
+      </div>
+      <div class="ft-admin-card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">ID wallet</dt>
+          <dd class="col-sm-8 fw-semibold">{{ wallet.idWallet }}</dd>
+
+          <dt class="col-sm-4 text-muted">ID client lie</dt>
+          <dd class="col-sm-8">
+            {% if wallet.idUser %}
+              <span class="badge ft-badge-blue">Client #{{ wallet.idUser }}</span>
+            {% else %}
+              <span class="badge ft-badge-neutral">Aucun client lie</span>
+            {% endif %}
+          </dd>
+
+          <dt class="col-sm-4 text-muted">Nom proprietaire</dt>
+          <dd class="col-sm-8">{{ wallet.nomProprietaire }}</dd>
+
+          <dt class="col-sm-4 text-muted">Email</dt>
+          <dd class="col-sm-8">{{ wallet.email ?: '-' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Telephone</dt>
+          <dd class="col-sm-8">{{ wallet.telephone ?: '-' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Solde</dt>
+          <dd class="col-sm-8 fw-semibold">{{ wallet.solde }} {{ wallet.devise }}</dd>
+
+          <dt class="col-sm-4 text-muted">Devise</dt>
+          <dd class="col-sm-8">{{ wallet.devise }}</dd>
+
+          <dt class="col-sm-4 text-muted">Code acces</dt>
+          <dd class="col-sm-8">{{ wallet.codeAcces ?: '-' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Statut</dt>
+          <dd class="col-sm-8">
+            <span class="badge {{ wallet.statut == 'actif' ? 'ft-badge-success' : (wallet.statut == 'bloque' ? 'ft-badge-danger' : 'ft-badge-warning') }}">
+              {{ wallet.statut|upper }}
+            </span>
+          </dd>
+
+          <dt class="col-sm-4 text-muted">Est actif</dt>
+          <dd class="col-sm-8">
+            <span class="badge {{ wallet.estActif ? 'ft-badge-success' : 'ft-badge-neutral' }}">
+              {{ wallet.estActif ? 'Oui' : 'Non' }}
+            </span>
+          </dd>
+
+          <dt class="col-sm-4 text-muted">Est bloque</dt>
+          <dd class="col-sm-8">
+            <span class="badge {{ wallet.estBloque ? 'ft-badge-danger' : 'ft-badge-success' }}">
+              {{ wallet.estBloque ? 'Oui' : 'Non' }}
+            </span>
+          </dd>
+
+          <dt class="col-sm-4 text-muted">Tentatives echouees</dt>
+          <dd class="col-sm-8">{{ wallet.tentativesEchouees ?? 0 }}</dd>
+
+          <dt class="col-sm-4 text-muted">Date creation</dt>
+          <dd class="col-sm-8">{{ wallet.dateCreation ? wallet.dateCreation|date('d/m/Y H:i') : '-' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Derniere tentative</dt>
+          <dd class="col-sm-8">{{ wallet.dateDerniereTentative ? wallet.dateDerniereTentative|date('d/m/Y H:i') : '-' }}</dd>
+        </dl>
+      </div>
+    </article>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <article class="ft-admin-card mb-4">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-bar-chart-line me-2 text-primary"></i>Statistiques rapides
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-insight-list">
+          <div class="ft-admin-insight-item">
+            <strong>Transactions</strong>
+            <span>{{ wallet.transactions|length }} transaction(s) liee(s) a ce wallet.</span>
+          </div>
+          <div class="ft-admin-insight-item">
+            <strong>Cheques</strong>
+            <span>{{ wallet.cheques|length }} cheque(s) associe(s) a ce wallet.</span>
+          </div>
+          <div class="ft-admin-insight-item">
+            <strong>Plafond decouvert</strong>
+            <span>{{ wallet.plafondDecouvert ?: '0.00' }} {{ wallet.devise }}</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="ft-admin-card">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-lightning-charge me-2 text-primary"></i>Actions rapides
+      </div>
+      <div class="ft-admin-card-body d-grid gap-2">
+        {% if wallet.estBloque %}
+          <form method="post" action="{{ path('admin_wallet_unblock', {id: wallet.idWallet}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('wallet_unblock_' ~ wallet.idWallet) }}">
+            <button type="submit" class="btn btn-success w-100">
+              <i class="bi bi-unlock me-2"></i>Debloquer le wallet
+            </button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ path('admin_wallet_block', {id: wallet.idWallet}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('wallet_block_' ~ wallet.idWallet) }}">
+            <button type="submit" class="btn btn-danger w-100">
+              <i class="bi bi-lock me-2"></i>Bloquer le wallet
+            </button>
+          </form>
+        {% endif %}
+
+        <a href="{{ path('admin_wallet_edit', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+          <i class="bi bi-pencil-square me-2"></i>Modifier les informations
+        </a>
+
+        <a href="{{ path('admin_cheque_index', {wallet: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+          <i class="bi bi-journal-check me-2"></i>Gerer les cheques lies
+        </a>
+
+        <form method="post" action="{{ path('admin_wallet_delete', {id: wallet.idWallet}) }}" onsubmit="return confirm('Supprimer ce wallet ?');">
+          <input type="hidden" name="_token" value="{{ csrf_token('wallet_delete_' ~ wallet.idWallet) }}">
+          <button type="submit" class="btn btn-outline-dark w-100">
+            <i class="bi bi-trash me-2"></i>Supprimer le wallet
+          </button>
+        </form>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="ft-admin-card mt-4">
+  <div class="ft-admin-card-header d-flex flex-wrap gap-3 justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-journal-bookmark me-2 text-primary"></i>Derniers cheques lies au wallet
+    </div>
+    <a href="{{ path('admin_cheque_index', {wallet: wallet.idWallet}) }}" class="btn btn-sm ft-btn-outline-primary">
+      Voir tout
+    </a>
+  </div>
+  <div class="ft-admin-card-body p-0">
+    <div class="table-responsive">
+      <table class="table ft-admin-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID cheque</th>
+            <th>Numero</th>
+            <th>Beneficiaire</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th>Date emission</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cheque in latestCheques %}
+            {% set chequeStatus = cheque.statut|lower %}
+            <tr>
+              <td>
+                <a href="{{ path('admin_cheque_show', {id: cheque.idCheque}) }}" class="text-decoration-none fw-bold">
+                  #{{ cheque.idCheque }}
+                </a>
+              </td>
+              <td>{{ cheque.numeroCheque }}</td>
+              <td>{{ cheque.beneficiaire ?: '-' }}</td>
+              <td class="fw-semibold">{{ cheque.montant }}</td>
+              <td>
+                <span class="badge {{ chequeStatus == 'accepte' ? 'ft-badge-success' : (chequeStatus == 'refuse' ? 'ft-badge-danger' : 'ft-badge-warning') }}">
+                  {{ cheque.statut|upper }}
+                </span>
+              </td>
+              <td>{{ cheque.dateEmission|date('d/m/Y H:i') }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">Aucun cheque associe a ce wallet.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="row g-3 mt-1">
+  <div class="col-12 col-md-4">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-green h-100">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-arrow-down-circle"></i></span>
+      <div class="ft-admin-kpi-mini-label">Depots</div>
+      <div class="ft-admin-kpi-mini-value">{{ transactionStats.depotCount }}</div>
+      <div class="ft-admin-kpi-mini-text">
+        Montant cumule : {{ transactionStats.depotAmount|number_format(2, '.', ' ') }} {{ wallet.devise }}
+      </div>
+    </article>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-amber h-100">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-arrow-up-circle"></i></span>
+      <div class="ft-admin-kpi-mini-label">Retraits</div>
+      <div class="ft-admin-kpi-mini-value">{{ transactionStats.retraitCount }}</div>
+      <div class="ft-admin-kpi-mini-text">
+        Montant cumule : {{ transactionStats.retraitAmount|number_format(2, '.', ' ') }} {{ wallet.devise }}
+      </div>
+    </article>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue h-100">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-arrow-left-right"></i></span>
+      <div class="ft-admin-kpi-mini-label">Transferts</div>
+      <div class="ft-admin-kpi-mini-value">{{ transactionStats.transfertCount }}</div>
+      <div class="ft-admin-kpi-mini-text">
+        Montant cumule : {{ transactionStats.transfertAmount|number_format(2, '.', ' ') }} {{ wallet.devise }}
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="ft-admin-card mt-4">
+  <div class="ft-admin-card-header d-flex flex-wrap gap-3 justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-clock-history me-2 text-primary"></i>10 dernieres transactions
+    </div>
+    <span class="ft-admin-status-chip ft-admin-status-info">
+      <i class="bi bi-arrow-down-up"></i>Plus recent au plus ancien
+    </span>
+  </div>
+  <div class="ft-admin-card-body p-0">
+    <div class="table-responsive">
+      <table class="table ft-admin-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID transaction</th>
+            <th>Type</th>
+            <th>Montant</th>
+            <th>Description</th>
+            <th>Date transaction</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for transaction in latestTransactions %}
+            <tr>
+              <td class="fw-bold">#{{ transaction.idTransaction }}</td>
+              <td>
+                {% set type = transaction.type|lower %}
+                {% set typeClass = type == 'depot' ? 'ft-badge-success' : (type == 'retrait' ? 'ft-badge-warning' : (type == 'transfert' ? 'ft-badge-blue' : 'ft-badge-neutral')) %}
+                <span class="badge {{ typeClass }}">{{ transaction.type|upper }}</span>
+              </td>
+              <td class="fw-semibold">{{ transaction.montant }}</td>
+              <td>{{ transaction.description ?: '-' }}</td>
+              <td>{{ transaction.dateTransaction ? transaction.dateTransaction|date('d/m/Y H:i') : '-' }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">
+                Aucune transaction trouvee pour ce wallet.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

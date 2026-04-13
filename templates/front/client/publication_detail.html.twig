@@ -1,0 +1,229 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}{{ publication.titre }}{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4" style="max-width:1080px">
+    <div class="mb-4">
+      <a href="{{ path('front_module', {slug: 'publications'}) }}" class="btn btn-sm ft-btn-outline-primary">
+        <i class="bi bi-arrow-left me-2"></i>Retour aux publications
+      </a>
+    </div>
+
+    <div class="ft-app-card mb-4 overflow-hidden">
+      <div class="position-relative publication-hero">
+        <div class="publication-hero-mask"></div>
+        <div class="publication-hero-content">
+          <span class="badge ft-badge-small">{{ publication.categorie ?: 'Actualité' }}</span>
+          <h1 class="ft-page-title mt-3 mb-3">{{ publication.titre }}</h1>
+          <p class="text-muted mb-2">Publié le {{ publication.datePublication ? publication.datePublication|date('d/m/Y') : 'Date non définie' }}</p>
+          <div class="d-flex flex-wrap gap-3 align-items-center mt-3">
+            <span class="text-warning fw-semibold fs-6">{{ averageRating is not null ? averageRating ~ ' / 5' : 'Pas encore noté' }}</span>
+            <span class="text-white small">
+              {% for i in 1..5 %}
+                <i class="bi {{ averageRating >= i ? 'bi-star-fill' : 'bi-star' }}"></i>
+              {% endfor %}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ft-app-card-body row g-4 pt-5">
+        <div class="col-lg-8">
+          <div class="publication-copy mb-4">
+            <p class="lead text-secondary">{{ publication.contenu|raw }}</p>
+          </div>
+
+          <div class="d-flex flex-wrap gap-3 mb-4">
+            <form method="post" action="{{ path('front_publications_react', {id: publication.id, reaction: 'like'}) }}" novalidate="novalidate">
+              <input type="hidden" name="_token" value="{{ csrf_token('publication_react_' ~ publication.id) }}" />
+              <button type="submit" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-hand-thumbs-up me-1"></i>Like ({{ likes }})
+              </button>
+            </form>
+            <form method="post" action="{{ path('front_publications_react', {id: publication.id, reaction: 'dislike'}) }}" novalidate="novalidate">
+              <input type="hidden" name="_token" value="{{ csrf_token('publication_react_' ~ publication.id) }}" />
+              <button type="submit" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-hand-thumbs-down me-1"></i>Dislike ({{ dislikes }})
+              </button>
+            </form>
+          </div>
+
+          <div class="mb-4">
+            <h2 class="ft-section-title">Commentaires</h2>
+            {% if comments is empty %}
+              <p class="text-muted">Soyez le premier à laisser un avis sur cette publication.</p>
+            {% endif %}
+            {% for feedback in comments %}
+              <div class="comment-card mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <span class="fw-semibold">{{ feedback.user.prenom }} {{ feedback.user.nom|first ~ '.' }}</span>
+                    <span class="text-muted small ms-2">{{ feedback.dateFeedback ? feedback.dateFeedback|date('d/m/Y H:i') : '...' }}</span>
+                  </div>
+                  <span class="badge ft-badge-neutral">Avis</span>
+                </div>
+                <p class="mb-2">{{ feedback.commentaire }}</p>
+                {% if feedback.typeReaction is not empty and feedback.typeReaction starts with('RATING_') %}
+                  <div class="small text-warning">
+                    {% set stars = feedback.typeReaction|split('_')[1]|default(0) %}
+                    {% for i in 1..5 %}
+                      <i class="bi {{ i <= stars ? 'bi-star-fill' : 'bi-star' }}"></i>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="ft-app-card h-100">
+            <div class="ft-app-card-header">
+              <i class="bi bi-chat-left-text me-2 text-primary"></i>Laisser un avis
+            </div>
+            <div class="ft-app-card-body">
+              {{ form_start(commentForm, {attr: {novalidate: 'novalidate'}}) }}
+                <div class="mb-3">
+                  {{ form_label(commentForm.commentaire, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                  {{ form_widget(commentForm.commentaire, {attr: {class: 'form-control ft-input', rows: 4, placeholder: 'Votre commentaire'}}) }}
+                  {% if commentForm.commentaire.vars.errors|length > 0 %}
+                    <div class="text-danger small mt-1">{{ form_errors(commentForm.commentaire) }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label fw-semibold small d-block mb-2">Votre note</label>
+                  <div class="ft-rating-picker" role="radiogroup" aria-label="Votre note">
+                    {% for choice in commentForm.rating %}
+                      <div class="ft-rating-picker__option">
+                        {{ form_widget(choice, {attr: {class: 'ft-rating-picker__input'}}) }}
+                        <label for="{{ choice.vars.id }}" class="ft-rating-picker__label">
+                          <span class="ft-rating-picker__icons" aria-hidden="true">
+                            {% for i in 1..5 %}
+                              <i class="bi {{ i <= choice.vars.value ? 'bi-star-fill' : 'bi-star' }}"></i>
+                            {% endfor %}
+                          </span>
+                          <span class="ft-rating-picker__text">{{ choice.vars.label }}</span>
+                        </label>
+                      </div>
+                    {% endfor %}
+                  </div>
+                  {% if commentForm.rating.vars.errors|length > 0 %}
+                    <div class="text-danger small mt-1">{{ form_errors(commentForm.rating) }}</div>
+                  {% endif %}
+                </div>
+
+                <button type="submit" class="btn ft-btn-primary w-100">
+                  <i class="bi bi-send-fill me-2"></i>Envoyer mon avis
+                </button>
+              {{ form_end(commentForm) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.publication-hero {
+  min-height: 320px;
+  background: radial-gradient(circle at top left, rgba(191,219,254,0.38), transparent 32%),
+              radial-gradient(circle at right center, rgba(147,197,253,0.28), transparent 28%),
+              linear-gradient(135deg, rgba(29,78,216,0.94) 0%, rgba(59,130,246,0.9) 48%, rgba(125,211,252,0.78) 100%),
+              url('{{ asset('images/hero-publication.jpg') }}') center/cover no-repeat;
+  position: relative;
+  border-radius: 24px 24px 0 0;
+}
+.publication-hero-mask {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15,23,42,0.14), rgba(30,64,175,0.28));
+}
+.publication-hero-content {
+  position: relative;
+  color: white;
+  padding: 2.75rem 2.5rem 3rem;
+  text-shadow: 0 8px 22px rgba(15, 23, 42, 0.16);
+}
+.publication-copy p {
+  color: #334155;
+  line-height: 1.8;
+}
+.comment-card {
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f8fbff, #f8fafc);
+  padding: 1.35rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.06);
+}
+.ft-badge-small {
+  background: rgba(255,255,255,0.88);
+  color: #1e3a8a;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+.ft-app-card-header {
+  font-weight: 700;
+}
+.ft-rating-picker {
+  display: grid;
+  gap: 0.75rem;
+}
+.ft-rating-picker__option {
+  position: relative;
+}
+.ft-rating-picker__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.ft-rating-picker__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  border: 1px solid #dbeafe;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.06);
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+.ft-rating-picker__label:hover {
+  transform: translateY(-1px);
+  border-color: #93c5fd;
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.12);
+}
+.ft-rating-picker__icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  color: #f59e0b;
+  font-size: 1rem;
+}
+.ft-rating-picker__text {
+  color: #1e3a8a;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+.ft-rating-picker__input:checked + .ft-rating-picker__label {
+  border-color: #60a5fa;
+  background: linear-gradient(180deg, #eff6ff, #dbeafe);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.10), 0 16px 32px rgba(37, 99, 235, 0.14);
+}
+.ft-rating-picker__input:focus + .ft-rating-picker__label {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.10), 0 16px 32px rgba(37, 99, 235, 0.14);
+}
+</style>
+{% endblock %}

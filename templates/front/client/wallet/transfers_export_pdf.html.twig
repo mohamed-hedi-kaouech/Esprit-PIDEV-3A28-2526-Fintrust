@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Export transferts wallet</title>
+  <style>
+    body { font-family: Arial, sans-serif; color: #1f2937; margin: 24px; }
+    h1 { color: #1d4ed8; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #dbe3ef; padding: 8px; text-align: left; }
+    th { background: #eff6ff; }
+    .toolbar { margin-bottom: 16px; }
+    @media print { .toolbar { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="toolbar"><button onclick="window.print()">Imprimer / PDF</button></div>
+  <h1>Historique des transferts wallet #{{ wallet.idWallet }}</h1>
+  <p>Genere le {{ "now"|date("d/m/Y H:i") }}</p>
+  <table>
+    <thead>
+      <tr><th>Reference</th><th>Sens</th><th>Statut</th><th>Montant</th><th>Contrepartie</th><th>Libelle</th><th>Date</th></tr>
+    </thead>
+    <tbody>
+      {% for transfer in transfers %}
+        <tr>
+          <td>{{ transfer.reference }}</td>
+          <td>{{ transfer.direction == 'received' ? 'Recu' : 'Envoye' }}</td>
+          <td>{{ transfer.status }}</td>
+          <td>{{ transfer.amount|number_format(2, ',', ' ') }} {{ wallet.devise }}</td>
+          <td>{{ transfer.counterparty }}</td>
+          <td>{{ transfer.label ?: '-' }}</td>
+          <td>{{ transfer.date|date('d/m/Y H:i') }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7">Aucun transfert.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

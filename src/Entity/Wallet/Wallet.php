@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Wallet;
 
+use App\Entity\User\User;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -63,11 +64,11 @@ class Wallet
     private User|null $user = null;
 
     // FIX: added OneToMany for transactions (was referenced in error but missing from entity)
-    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'wallet')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\Wallet\Transaction::class, mappedBy: 'wallet')]
     private Collection $transactions;
 
     // FIX: added OneToMany for cheques (was referenced in error but missing from entity)
-    #[ORM\OneToMany(targetEntity: Cheque::class, mappedBy: 'wallet')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\Wallet\Cheque::class, mappedBy: 'wallet')]
     private Collection $cheques;
 
     public function __construct()

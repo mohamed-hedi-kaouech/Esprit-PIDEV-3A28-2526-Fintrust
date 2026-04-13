@@ -1,0 +1,299 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Categories{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid mt-4">
+    {% set totalCategories = categories|length %}
+    {% set totalBudget = 0 %}
+    {% set totalDepenses = 0 %}
+    {% set totalAlertes = 0 %}
+
+    {% for categorie in categories %}
+        {% set totalBudget = totalBudget + categorie.budgetPrevu %}
+        {% set totalAlertes = totalAlertes + categorie.alertes|filter(a => a.active)|length %}
+        {% for item in categorie.items %}
+            {% set totalDepenses = totalDepenses + item.montant %}
+        {% endfor %}
+    {% endfor %}
+
+    <section class="ft-category-list-hero mb-4">
+        <div class="ft-category-list-hero-copy">
+            <span class="ft-category-list-kicker">
+                <i class="fa-solid fa-folder-open"></i>
+                Gestion active
+            </span>
+            <h1 class="ft-category-list-title">Categories</h1>
+            <p class="ft-category-list-subtitle">
+                Organisez vos finances par categories pour un suivi intelligent, plus lisible et plus
+                reactif sur l'ensemble du portefeuille budgetaire.
+            </p>
+        </div>
+
+        <div class="ft-category-list-actions">
+            <a href="{{ path('admin_categorie_stats') }}" class="btn ft-btn-outline-primary">
+                <i class="fa-solid fa-chart-pie me-2"></i>Statistiques
+            </a>
+            <a href="{{ path('admin_categorie_create') }}" class="btn ft-btn-primary">
+                <i class="fa-solid fa-plus me-2"></i>Nouvelle Categorie
+            </a>
+        </div>
+    </section>
+
+    <section class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-category-kpi-card ft-category-kpi-blue">
+                <span class="ft-category-kpi-icon"><i class="fa-solid fa-folder-tree"></i></span>
+                <div class="ft-category-kpi-value">{{ totalCategories }}</div>
+                <div class="ft-category-kpi-label">Nombre de categories</div>
+                <p class="ft-category-kpi-text">Base active pour structurer les postes de depense.</p>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-category-kpi-card ft-category-kpi-cyan">
+                <span class="ft-category-kpi-icon"><i class="fa-solid fa-wallet"></i></span>
+                <div class="ft-category-kpi-value">{{ totalBudget|number_format(0, ',', ' ') }}</div>
+                <div class="ft-category-kpi-label">Budget total</div>
+                <p class="ft-category-kpi-text">Montant alloue a l'ensemble des categories surveillees.</p>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-category-kpi-card ft-category-kpi-green">
+                <span class="ft-category-kpi-icon"><i class="fa-solid fa-chart-column"></i></span>
+                <div class="ft-category-kpi-value">{{ totalDepenses|number_format(0, ',', ' ') }}</div>
+                <div class="ft-category-kpi-label">Depenses totales</div>
+                <p class="ft-category-kpi-text">Montant deja engage sur les categories existantes.</p>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-category-kpi-card ft-category-kpi-amber">
+                <span class="ft-category-kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                <div class="ft-category-kpi-value">{{ totalAlertes }}</div>
+                <div class="ft-category-kpi-label">Categories en alerte</div>
+                <p class="ft-category-kpi-text">Focus immediat sur les categories a surveiller de pres.</p>
+            </article>
+        </div>
+    </section>
+
+    <form method="get" class="ft-category-list-toolbar mb-4">
+        <div class="ft-category-list-toolbar-top">
+            <div class="ft-category-list-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input
+                    type="search"
+                    name="search"
+                    value="{{ search|default('') }}"
+                    class="form-control"
+                    placeholder="Rechercher une categorie..."
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="ft-category-list-selects">
+                <select name="budget_range" class="form-select ft-category-select">
+                    <option value="all" {{ (budget_range|default('all')) == 'all' ? 'selected' }}>Budget : tous</option>
+                    <option value="0-500" {{ (budget_range|default('all')) == '0-500' ? 'selected' }}>Budget < 500</option>
+                    <option value="500-1000" {{ (budget_range|default('all')) == '500-1000' ? 'selected' }}>500 a 1000</option>
+                    <option value="1000+" {{ (budget_range|default('all')) == '1000+' ? 'selected' }}>1000 et +</option>
+                </select>
+
+                <select name="items_range" class="form-select ft-category-select">
+                    <option value="all" {{ (items_range|default('all')) == 'all' ? 'selected' }}>Items : tous</option>
+                    <option value="0" {{ (items_range|default('all')) == '0' ? 'selected' }}>0 item</option>
+                    <option value="1-5" {{ (items_range|default('all')) == '1-5' ? 'selected' }}>1 a 5 items</option>
+                    <option value="6+" {{ (items_range|default('all')) == '6+' ? 'selected' }}>6 items et +</option>
+                </select>
+
+                <select name="sort" class="form-select ft-category-select">
+                    <option value="nom" {{ (sort|default('nom')) == 'nom' ? 'selected' }}>Tri : nom</option>
+                    <option value="budget" {{ (sort|default('nom')) == 'budget' ? 'selected' }}>Budget</option>
+                    <option value="depenses" {{ (sort|default('nom')) == 'depenses' ? 'selected' }}>Depenses</option>
+                    <option value="creation" {{ (sort|default('nom')) == 'creation' ? 'selected' }}>Date creation</option>
+                    <option value="usage" {{ (sort|default('nom')) == 'usage' ? 'selected' }}>Taux d utilisation</option>
+                    <option value="items" {{ (sort|default('nom')) == 'items' ? 'selected' }}>Nombre d items</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="ft-category-list-toolbar-bottom">
+            <div class="ft-category-list-filter">
+                <button type="submit" name="status" value="all" class="ft-category-filter-chip {{ (status|default('all')) == 'all' ? 'is-active' }}">
+                    Toutes
+                </button>
+                <button type="submit" name="status" value="ok" class="ft-category-filter-chip {{ (status|default('all')) == 'ok' ? 'is-active' }}">
+                    OK
+                </button>
+                <button type="submit" name="status" value="danger" class="ft-category-filter-chip {{ (status|default('all')) == 'danger' ? 'is-active' }}">
+                    Depassement
+                </button>
+                <button type="submit" name="status" value="warning" class="ft-category-filter-chip {{ (status|default('all')) == 'warning' ? 'is-active' }}">
+                    Alerte proche
+                </button>
+            </div>
+
+            <div class="ft-category-list-toolbar-meta">
+                <span class="ft-category-results-count">{{ categories|length }} resultat(s)</span>
+                {% if (search|default('')) is not empty or (status|default('all')) != 'all' or (budget_range|default('all')) != 'all' or (items_range|default('all')) != 'all' or (sort|default('nom')) != 'nom' %}
+                    <a href="{{ path('admin_categorie_list') }}" class="btn ft-btn-outline-primary btn-sm">
+                        <i class="fa-solid fa-rotate-left me-2"></i>Reset
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    <section class="ft-category-quick-chips mb-4">
+        <a href="{{ path('admin_categorie_list', { status: 'danger' }) }}" class="ft-category-quick-chip">
+            <i class="fa-solid fa-fire"></i>Categories en depassement
+        </a>
+        <a href="{{ path('admin_categorie_list', { budget_range: '1000+' }) }}" class="ft-category-quick-chip">
+            <i class="fa-solid fa-sack-dollar"></i>Budget 1000 et +
+        </a>
+        <a href="{{ path('admin_categorie_list', { items_range: '6+' }) }}" class="ft-category-quick-chip">
+            <i class="fa-solid fa-layer-group"></i>6 items et +
+        </a>
+        <a href="{{ path('admin_categorie_list', { sort: 'usage' }) }}" class="ft-category-quick-chip">
+            <i class="fa-solid fa-arrow-trend-up"></i>Taux d utilisation eleve
+        </a>
+    </section>
+
+    {% if categories is empty %}
+        <section class="ft-category-list-empty-card">
+            <div class="ft-category-list-empty-icon">
+                <i class="fa-solid fa-folder-plus"></i>
+            </div>
+            <h2>Aucune categorie creee</h2>
+            <p class="ft-category-list-empty-text">
+                Commencez par creer des categories pour structurer vos depenses et activer un suivi budgetaire
+                plus intelligent.
+            </p>
+            <a href="{{ path('admin_categorie_create') }}" class="btn ft-btn-primary">
+                <i class="fa-solid fa-plus me-2"></i>Creer ma premiere categorie
+            </a>
+            <div class="ft-category-list-empty-hint">
+                <i class="fa-solid fa-lightbulb"></i>
+                Vous pouvez creer une categorie "Alimentation" pour mieux suivre vos depenses.
+            </div>
+        </section>
+    {% else %}
+        {% set concentrationCount = 0 %}
+        {% for categorie in categories %}
+            {% set depenseCategorie = 0 %}
+            {% for item in categorie.items %}
+                {% set depenseCategorie = depenseCategorie + item.montant %}
+            {% endfor %}
+            {% if depenseCategorie > 0 %}
+                {% set concentrationCount = concentrationCount + 1 %}
+            {% endif %}
+        {% endfor %}
+
+        <section class="ft-category-list-insight mb-4">
+            <div class="ft-category-list-insight-icon">
+                <i class="fa-solid fa-brain"></i>
+            </div>
+            <div>
+                <strong>Insight IA</strong>
+                <p>Vos depenses sont principalement concentrees sur {{ concentrationCount > 2 ? 2 : concentrationCount }} categorie(s) actives.</p>
+            </div>
+        </section>
+
+        <section class="row g-4" id="categoryCards">
+            {% for categorie in categories %}
+                {% set depenseCategorie = 0 %}
+                {% for item in categorie.items %}
+                    {% set depenseCategorie = depenseCategorie + item.montant %}
+                {% endfor %}
+                {% set usage = categorie.budgetPrevu > 0 ? (depenseCategorie / categorie.budgetPrevu) * 100 : 0 %}
+                {% set progressWidth = usage > 100 ? 100 : usage %}
+                {% set status = usage > 90 ? 'danger' : (usage > 75 ? 'warning' : 'ok') %}
+                {% set activeAlertes = categorie.alertes|filter(a => a.active)|length %}
+                {% set categoryName = categorie.nomCategorie|lower %}
+
+                <div class="col-12 col-md-6 col-xl-4 ft-category-card-item">
+                    <article class="ft-category-card">
+                        <div class="ft-category-card-head">
+                            <div class="ft-category-card-identity">
+                                <span class="ft-category-card-icon">
+                                    {% if 'alim' in categoryName or 'rest' in categoryName or 'nour' in categoryName %}
+                                        <i class="fa-solid fa-utensils"></i>
+                                    {% elseif 'trans' in categoryName or 'voit' in categoryName or 'car' in categoryName %}
+                                        <i class="fa-solid fa-car-side"></i>
+                                    {% elseif 'mais' in categoryName or 'log' in categoryName or 'house' in categoryName %}
+                                        <i class="fa-solid fa-house"></i>
+                                    {% elseif 'sant' in categoryName %}
+                                        <i class="fa-solid fa-heart-pulse"></i>
+                                    {% elseif 'lois' in categoryName or 'divert' in categoryName %}
+                                        <i class="fa-solid fa-gamepad"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-folder"></i>
+                                    {% endif %}
+                                </span>
+                                <div>
+                                    <h3>{{ categorie.nomCategorie }}</h3>
+                                    <span>{{ categorie.items|length }} item(s) suivis</span>
+                                </div>
+                            </div>
+
+                            {% if status == 'danger' %}
+                                <span class="ft-badge-danger">Depassement</span>
+                            {% elseif status == 'warning' %}
+                                <span class="ft-badge-warning">Attention</span>
+                            {% else %}
+                                <span class="ft-badge-success">OK</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="ft-category-card-metrics">
+                            <div>
+                                <span>Budget</span>
+                                <strong>{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} TND</strong>
+                            </div>
+                            <div>
+                                <span>Depenses actuelles</span>
+                                <strong>{{ depenseCategorie|number_format(2, ',', ' ') }} TND</strong>
+                            </div>
+                        </div>
+
+                        <div class="ft-category-card-progress">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Budget utilise</span>
+                                <strong>{{ usage|round(1) }}%</strong>
+                            </div>
+                            <div class="ft-admin-progress {% if status == 'danger' %}ft-admin-progress-danger{% elseif status == 'ok' %}ft-admin-progress-success{% endif %}">
+                                <span style="width: {{ progressWidth }}%"></span>
+                            </div>
+                        </div>
+
+                        <div class="ft-category-card-foot">
+                            <div class="ft-category-card-mini">
+                                <span>Seuil d'alerte</span>
+                                <strong>{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} TND</strong>
+                            </div>
+                            <div class="ft-category-card-mini">
+                                <span>Alertes actives</span>
+                                <strong>{{ activeAlertes }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="ft-category-card-actions">
+                            <a href="{{ path('admin_categorie_items', {'idCategorie': categorie.idCategorie}) }}" class="btn ft-btn-outline-primary btn-sm">
+                                <i class="fa-solid fa-list me-2"></i>Voir les items
+                            </a>
+                            <a href="{{ path('admin_categorie_edit', {'idCategorie': categorie.idCategorie}) }}" class="btn ft-btn-outline-primary btn-sm">
+                                <i class="fa-solid fa-pen-to-square me-2"></i>Modifier
+                            </a>
+                            <a href="{{ path('admin_categorie_delete', {'idCategorie': categorie.idCategorie}) }}" class="btn btn-outline-danger btn-sm">
+                                <i class="fa-solid fa-trash me-2"></i>Supprimer
+                            </a>
+                        </div>
+                    </article>
+                </div>
+            {% endfor %}
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

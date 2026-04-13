@@ -1,0 +1,220 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Alertes budgetaires{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid mt-4">
+    {% set totalAlertes = alertes|length %}
+    {% set activeAlertes = 0 %}
+    {% set unreadAlertes = 0 %}
+    {% set categoriesSurveillees = [] %}
+
+    {% for alerte in alertes %}
+        {% if alerte.active %}
+            {% set activeAlertes = activeAlertes + 1 %}
+        {% endif %}
+        {% if not alerte.read %}
+            {% set unreadAlertes = unreadAlertes + 1 %}
+        {% endif %}
+        {% if alerte.categorie and alerte.categorie.idCategorie not in categoriesSurveillees %}
+            {% set categoriesSurveillees = categoriesSurveillees|merge([alerte.categorie.idCategorie]) %}
+        {% endif %}
+    {% endfor %}
+
+    {% set inactiveAlertes = totalAlertes - activeAlertes %}
+    {% set readAlertes = totalAlertes - unreadAlertes %}
+
+    <section class="ft-budget-alert-hero mb-4">
+        <div class="ft-budget-alert-hero-copy">
+            <span class="ft-budget-alert-kicker">
+                <i class="fa-solid fa-bell"></i>
+                Monitoring actif
+            </span>
+            <h1 class="ft-budget-alert-title">Alertes budgetaires</h1>
+            <p class="ft-budget-alert-subtitle">
+                Surveillez les seuils sensibles, reperez les categories a risque et gardez une vision claire
+                des depassements avant qu'ils n'impactent l'equilibre financier.
+            </p>
+        </div>
+
+        <div class="ft-budget-alert-hero-side">
+            <div class="ft-budget-alert-hero-panel">
+                <span class="ft-budget-alert-hero-label">Monitoring</span>
+                <strong>{{ totalAlertes > 0 ? 'Surveillance renforcee' : 'Tout est stable' }}</strong>
+                <span>{{ totalAlertes > 0 ? totalAlertes ~ ' alerte(s) detectee(s)' : 'Aucune tension budgetaire signalee' }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <article class="ft-budget-alert-stat ft-budget-alert-stat-blue">
+                <span class="ft-budget-alert-stat-icon">
+                    <i class="fa-solid fa-signal"></i>
+                </span>
+                <div class="ft-budget-alert-stat-value">{{ totalAlertes }}</div>
+                <div class="ft-budget-alert-stat-label">Seuils actifs</div>
+                <p class="ft-budget-alert-stat-text">Vue rapide sur l'ensemble des alertes budgetaires suivies.</p>
+            </article>
+        </div>
+        <div class="col-12 col-md-4">
+            <article class="ft-budget-alert-stat ft-budget-alert-stat-green">
+                <span class="ft-budget-alert-stat-icon">
+                    <i class="fa-solid fa-layer-group"></i>
+                </span>
+                <div class="ft-budget-alert-stat-value">{{ categoriesSurveillees|length }}</div>
+                <div class="ft-budget-alert-stat-label">Categories surveillees</div>
+                <p class="ft-budget-alert-stat-text">Suivi concentre sur les postes de depense les plus sensibles.</p>
+            </article>
+        </div>
+        <div class="col-12 col-md-4">
+            <article class="ft-budget-alert-stat ft-budget-alert-stat-amber">
+                <span class="ft-budget-alert-stat-icon">
+                    <i class="fa-regular fa-clock"></i>
+                </span>
+                <div class="ft-budget-alert-stat-value">{{ totalAlertes > 0 ? alertes|first.createdAt|date('d/m') : 'Auj.' }}</div>
+                <div class="ft-budget-alert-stat-label">Derniere analyse</div>
+                <p class="ft-budget-alert-stat-text">Dernier point de controle visible depuis le centre d'administration.</p>
+            </article>
+        </div>
+    </section>
+
+    {% if alertes is empty %}
+        <section class="ft-budget-alert-empty-card">
+            <div class="ft-budget-alert-empty-visual">
+                <div class="ft-budget-alert-empty-orb ft-budget-alert-empty-orb-one"></div>
+                <div class="ft-budget-alert-empty-orb ft-budget-alert-empty-orb-two"></div>
+                <div class="ft-budget-alert-empty-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="ft-budget-alert-empty-copy">
+                <span class="ft-budget-alert-empty-badge">Alerte maitrisee</span>
+                <h2>Tout est sous controle !</h2>
+                <p class="ft-budget-alert-empty-text">
+                    Aucune alerte detectee pour le moment. Vos finances sont parfaitement maitrisees et
+                    les seuils surveilles restent dans une zone saine.
+                </p>
+                <p class="ft-budget-alert-empty-subtext">
+                    Profitez-en pour affiner vos seuils d'alerte, consulter les categories suivies et renforcer
+                    encore la qualite du monitoring budgetaire.
+                </p>
+
+                <div class="ft-budget-alert-empty-actions">
+                    <a href="{{ path('admin_categorie_list') }}" class="btn ft-btn-primary">
+                        <i class="fa-solid fa-sliders me-2"></i>Configurer mes seuils
+                    </a>
+                    <a href="{{ path('admin_categorie_stats') }}" class="btn ft-btn-outline-primary">
+                        <i class="fa-solid fa-chart-pie me-2"></i>Voir mes categories
+                    </a>
+                </div>
+            </div>
+        </section>
+    {% else %}
+        <section class="ft-budget-alert-table-card">
+            <div class="ft-budget-alert-table-head">
+                <div>
+                    <span class="ft-budget-alert-table-kicker">Centre de vigilance</span>
+                    <h2>Alertes detectees</h2>
+                    <p>Consultez les seuils atteints, les categories impactees et l'etat de suivi de chaque alerte.</p>
+                </div>
+                <div class="ft-budget-alert-table-summary">
+                    <span class="ft-badge-warning">{{ activeAlertes }} actives</span>
+                    <span class="ft-badge-neutral">{{ inactiveAlertes }} inactives</span>
+                    <span class="ft-badge-info">{{ unreadAlertes }} non lues</span>
+                    <span class="ft-badge-success">{{ readAlertes }} lues</span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table ft-admin-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Categorie</th>
+                            <th>Message</th>
+                            <th>Seuil</th>
+                            <th>Creee le</th>
+                            <th>Statut</th>
+                            <th>Lecture</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alerte in alertes %}
+                            <tr class="{{ alerte.read ? 'ft-alert-row-read' : 'ft-alert-row-unread' }}">
+                                <td>#{{ alerte.idAlerte }}</td>
+                                <td>
+                                    <div class="ft-budget-alert-category">
+                                        <span class="ft-budget-alert-category-icon">
+                                            <i class="fa-solid fa-wallet"></i>
+                                        </span>
+                                        <div>
+                                            <strong>{{ alerte.categorie ? alerte.categorie.nomCategorie : 'Categorie indisponible' }}</strong>
+                                            <span>Seuil surveille automatiquement</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="ft-budget-alert-message">{{ alerte.message }}</td>
+                                <td>
+                                    <span class="ft-budget-alert-amount">{{ alerte.seuil|number_format(2, ',', ' ') }} TND</span>
+                                </td>
+                                <td>{{ alerte.createdAt|date('d/m/Y H:i') }}</td>
+                                <td>
+                                    {% if alerte.active %}
+                                        <span class="ft-admin-status-chip ft-admin-status-warning">
+                                            <i class="fa-solid fa-bolt"></i>Active
+                                        </span>
+                                    {% else %}
+                                        <span class="ft-admin-status-chip ft-admin-status-info">
+                                            <i class="fa-solid fa-check"></i>Inactif
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if alerte.read %}
+                                        <span class="ft-admin-status-chip ft-admin-status-success">
+                                            <i class="fa-solid fa-envelope-open"></i>Lue
+                                        </span>
+                                    {% else %}
+                                        <span class="ft-admin-status-chip ft-admin-status-info">
+                                            <i class="fa-solid fa-envelope"></i>Non lue
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="ft-alert-actions">
+                                        {% if alerte.read %}
+                                            <form method="post" action="{{ path('admin_alerte_mark_unread', {'idAlerte': alerte.idAlerte}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('mark_unread' ~ alerte.idAlerte) }}">
+                                                <button type="submit" class="btn ft-btn-outline-primary ft-alert-action-btn">
+                                                    <i class="fa-solid fa-envelope me-2"></i>Marquer non lue
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form method="post" action="{{ path('admin_alerte_mark_read', {'idAlerte': alerte.idAlerte}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('mark_read' ~ alerte.idAlerte) }}">
+                                                <button type="submit" class="btn ft-btn-primary ft-alert-action-btn">
+                                                    <i class="fa-solid fa-envelope-open me-2"></i>Marquer lue
+                                                </button>
+                                            </form>
+                                        {% endif %}
+
+                                        <form method="post" action="{{ path('admin_alerte_delete', {'idAlerte': alerte.idAlerte}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ alerte.idAlerte) }}">
+                                            <button type="submit" class="btn ft-alert-delete-btn">
+                                                <i class="fa-solid fa-trash me-2"></i>Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

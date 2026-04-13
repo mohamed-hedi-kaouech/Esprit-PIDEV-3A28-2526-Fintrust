@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User\Admin;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -24,7 +24,7 @@ class Author
     #[ORM\Column(type: 'string', length: 255)]
     private string $email;
 
-    #[ORM\OneToMany(targetEntity: Book::class, mappedBy: 'author')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\User\Admin\Book::class, mappedBy: 'author')]
     private Collection $books;
 
     public function __construct()

@@ -1,0 +1,1279 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Gestion des Publications{% endblock %}
+
+{% block admin_content %}
+<div class="admin-publications-container">
+    <!-- En-tête avec bouton d'ajout -->
+    <div class="publications-header">
+        <div class="header-info">
+            <h1 class="page-title">
+                <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5h16a2.5 2.5 0 0 0 2.5-2.5V6.5H1.5v10.5a2.5 2.5 0 0 0 2.5 2.5z"/>
+                    <path d="M1.5 6.5h21M9 11h6M9 15h6"/>
+                </svg>
+                Publications Bancaires
+            </h1>
+            <p class="header-subtitle">Gérez vos publications, offres et contenu financier</p>
+        </div>
+        <div class="publication-actions">
+            <a href="{{ path('admin_publications_create') }}" class="btn btn-primary btn-lg">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Nouvelle Publication
+            </a>
+            <div class="export-buttons">
+                <a href="{{ path('admin_publications_export_csv', {search: search, category: current_category, sort: sort_by}) }}" class="btn btn-secondary btn-lg">Export CSV</a>
+                <a href="{{ path('admin_publications_export_pdf', {search: search, category: current_category, sort: sort_by}) }}" class="btn btn-secondary btn-lg">Export PDF</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques élégantes -->
+    <div class="stats-grid">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-icon">📰</div>
+            <div class="stat-content">
+                <h3 class="stat-value">{{ stats.total_publications }}</h3>
+                <p class="stat-label">Publications totales</p>
+            </div>
+        </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+                <h3 class="stat-value">{{ stats.published_publications }}</h3>
+                <p class="stat-label">Publications publiées</p>
+            </div>
+        </div>
+        <div class="stat-card stat-card-info">
+            <div class="stat-icon">💬</div>
+            <div class="stat-content">
+                <h3 class="stat-value">{{ stats.total_comments }}</h3>
+                <p class="stat-label">Commentaires totaux</p>
+            </div>
+        </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-content">
+                <h3 class="stat-value">{{ stats.total_feedbacks }}</h3>
+                <p class="stat-label">Interactions totales</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres et recherche -->
+    <div class="filters-section">
+        <form method="GET" class="filters-form">
+            <div class="filter-group">
+                <label for="search" class="filter-label">🔍 Rechercher</label>
+                <input 
+                    type="text" 
+                    id="search" 
+                    name="search" 
+                    value="{{ search }}" 
+                    placeholder="Titre ou extrait..."
+                    class="filter-input"
+                >
+            </div>
+
+            <div class="filter-group">
+                <label for="category" class="filter-label">📂 Catégorie</label>
+                <select id="category" name="category" class="filter-select">
+                    <option value="">Toutes les catégories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>
+                            {{ cat starts with 'Actualit' ? 'Actualit&eacute;' : (cat == 'CYBERSECURITE' ? 'Cybers&eacute;curit&eacute;' : (cat == 'TECH' ? 'Tech' : (cat == 'assurance' ? 'Assurance' : cat))) }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="sort" class="filter-label">📊 Tri</label>
+                <select id="sort" name="sort" class="filter-select">
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Plus récentes</option>
+                    <option value="views" {% if sort_by == 'views' %}selected{% endif %}>Plus consultées</option>
+                    <option value="comments" {% if sort_by == 'comments' %}selected{% endif %}>Plus commentées</option>
+                    <option value="likes" {% if sort_by == 'likes' %}selected{% endif %}>Tendance</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-secondary">Filtrer</button>
+        </form>
+    </div>
+
+    <!-- Tableau des publications -->
+    <div class="publications-table-wrapper">
+        {% if publications|length > 0 %}
+            <table class="publications-table">
+                <thead>
+                    <tr>
+                        <th>Titre</th>
+                        <th>Catégorie</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                        <th class="text-center">Vues</th>
+                        <th class="text-center">Likes</th>
+                        <th class="text-center">Dislikes</th>
+                        <th class="text-center">Commentaires</th>
+                        <th class="text-center">Note</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pub in publications %}
+                        <tr class="publication-row">
+                            <td class="title-cell">
+                                <strong>{{ pub.titre|slice(0, 30) }}{{ pub.titre|length > 30 ? '...' : '' }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge badge-category">
+                                    {{ pub.categorie ? (pub.categorie starts with 'Actualit' ? 'Actualit&eacute;' : (pub.categorie == 'CYBERSECURITE' ? 'Cybers&eacute;curit&eacute;' : (pub.categorie == 'TECH' ? 'Tech' : (pub.categorie == 'assurance' ? 'Assurance' : pub.categorie)))) : 'Non d&eacute;finie' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ pub.statut == 'PUBLIE' ? 'published' : 'draft' }}">
+                                    {% if pub.statut == 'PUBLIE' %}Publie
+                                    {% elseif pub.statut == 'BROUILLON' %}Brouillon
+                                    {% else %}{{ pub.statut }}{% endif %}
+                                </span>
+                            </td>
+                            <td class="text-muted">{{ pub.datePublication ? pub.datePublication|date('d/m/Y') : '—' }}</td>
+                            <td class="text-center">
+                                <span class="stat-badge">—</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="stat-badge stat-badge-success">—</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="stat-badge stat-badge-danger">—</span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ path('admin_publications_comments', {id: pub.id}) }}" class="stat-badge stat-badge-info stat-badge-link" title="Voir les commentaires">
+                                    Commentaires {{ pub.feedbacks|filter(feedback => feedback.commentaire is not empty)|length }}
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <small class="text-muted">Aucune note</small>
+                            </td>
+                            <td class="text-right">
+                                <div class="action-buttons">
+                                    <a href="{{ path('admin_publications_comments', {id: pub.id}) }}" class="btn-icon btn-info" title="Commentaires">
+                                        💬
+                                    </a>
+                                    <a href="{{ path('admin_publications_edit', {id: pub.id}) }}" class="btn-icon btn-warning" title="Modifier">
+                                        ✏️
+                                    </a>
+                                    <form method="POST" action="{{ path('admin_publications_delete', {id: pub.id}) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ pub.id) }}">
+                                        <button type="submit" class="btn-icon btn-danger" title="Supprimer">🗑️</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3>Aucune publication trouvée</h3>
+                <p>Créez votre première publication pour commencer</p>
+                <a href="{{ path('admin_publications_create') }}" class="btn btn-primary">Créer une publication</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+        <div class="pagination">
+            {% if current_page > 1 %}
+                <a href="{{ path('admin_publications_index', {page: 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">« Première</a>
+                <a href="{{ path('admin_publications_index', {page: current_page - 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">‹ Précédente</a>
+            {% endif %}
+
+            {% for page in range(1, total_pages) %}
+                <a 
+                    href="{{ path('admin_publications_index', {page: page, search: search, category: current_category, sort: sort_by}) }}" 
+                    class="page-link {% if page == current_page %}active{% endif %}"
+                >
+                    {{ page }}
+                </a>
+            {% endfor %}
+
+            {% if current_page < total_pages %}
+                <a href="{{ path('admin_publications_index', {page: current_page + 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">Suivante ›</a>
+                <a href="{{ path('admin_publications_index', {page: total_pages, search: search, category: current_category, sort: sort_by}) }}" class="page-link">Dernière »</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div class="publication-analytics publication-analytics--advanced">
+        <div class="analytics-header">
+            <div>
+                <h2>Statistiques avancees</h2>
+                <p class="analytics-subtitle">
+                    Deux analyses plus pratiques : repartition editoriale par categorie et lecture claire du feedback.
+                </p>
+            </div>
+            <span class="analytics-chip">Publication + Feedback</span>
+        </div>
+
+        <div class="analytics-summary-grid">
+            <div class="analytics-summary-card">
+                <span class="analytics-summary-card__label">Commentaires</span>
+                <strong class="analytics-summary-card__value">{{ feedback_insights.totals.comments }}</strong>
+            </div>
+            <div class="analytics-summary-card analytics-summary-card--success">
+                <span class="analytics-summary-card__label">Likes</span>
+                <strong class="analytics-summary-card__value">{{ feedback_insights.totals.likes }}</strong>
+            </div>
+            <div class="analytics-summary-card analytics-summary-card--danger">
+                <span class="analytics-summary-card__label">Dislikes</span>
+                <strong class="analytics-summary-card__value">{{ feedback_insights.totals.dislikes }}</strong>
+            </div>
+            <div class="analytics-summary-card analytics-summary-card--accent">
+                <span class="analytics-summary-card__label">Signals</span>
+                <strong class="analytics-summary-card__value">{{ feedback_insights.total_signals }}</strong>
+            </div>
+        </div>
+
+        <div class="advanced-analytics-grid">
+            <section class="advanced-panel">
+                <div class="advanced-panel__head">
+                    <div>
+                        <h3>Chart des publications par categorie</h3>
+                        <p>Mesurez le poids editorial et l'engagement de chaque categorie.</p>
+                    </div>
+                    <span class="advanced-panel__badge">{{ category_performance|length }} categories</span>
+                </div>
+
+                <div class="category-performance-list">
+                    {% for item in category_performance %}
+                        <article class="category-performance-item">
+                            <div class="category-performance-item__top">
+                                <div>
+                                    <h4>{{ item.category starts with 'Actualit' ? 'Actualit&eacute;' : (item.category in ['CYBERSECURITE', 'Cybersecurite', 'Cybers?curit?'] ? 'Cybers&eacute;curit&eacute;' : item.category) }}</h4>
+                                    <p>{{ item.publications }} publication{{ item.publications > 1 ? 's' : '' }} � {{ item.engagement }} signal{{ item.engagement > 1 ? 's' : '' }}</p>
+                                </div>
+                                <div class="category-performance-item__metrics">
+                                    <span>&#128077; {{ item.likes }} likes</span>
+                                    <span>&#128172; {{ item.comments }} commentaires</span>
+                                    <span>&#128078; {{ item.dislikes }} dislikes</span>
+                                </div>
+                            </div>
+
+                            <div class="performance-bar-group">
+                                <div class="performance-bar-row">
+                                    <span class="performance-bar-row__label">Part des publications</span>
+                                    <span class="performance-bar-row__value">{{ item.publication_ratio }}%</span>
+                                </div>
+                                <div class="performance-bar-track">
+                                    <div class="performance-bar-track__fill" style="width: {{ item.publication_ratio }}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="performance-bar-group">
+                                <div class="performance-bar-row">
+                                    <span class="performance-bar-row__label">Intensite feedback</span>
+                                    <span class="performance-bar-row__value">{{ item.engagement_ratio }}%</span>
+                                </div>
+                                <div class="performance-bar-track performance-bar-track--engagement">
+                                    <div class="performance-bar-track__fill performance-bar-track__fill--engagement" style="width: {{ item.engagement_ratio }}%"></div>
+                                </div>
+                            </div>
+                        </article>
+                    {% else %}
+                        <div class="advanced-empty-state">
+                            <h4>Aucune categorie exploitable</h4>
+                            <p>Les statistiques par categorie apparaitront ici des que les publications seront mieux structurees.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="advanced-panel">
+                <div class="advanced-panel__head">
+                    <div>
+                        <h3>Chart hebdomadaire des publications</h3>
+                        <p>Visualisez les jours ou vos publications sont le plus souvent mises en ligne.</p>
+                    </div>
+                    <span class="advanced-panel__badge">Lundi a Dimanche</span>
+                </div>
+
+                <div class="weekly-publication-chart">
+                    {% for item in weekly_publication_stats %}
+                        <div class="weekly-publication-chart__row">
+                            <div class="weekly-publication-chart__label-wrap">
+                                <span class="weekly-publication-chart__label">{{ item.label }}</span>
+                                <span class="weekly-publication-chart__count">{{ item.count }} publication{{ item.count > 1 ? 's' : '' }}</span>
+                            </div>
+                            <div class="weekly-publication-chart__track">
+                                <div class="weekly-publication-chart__fill" style="width: {{ item.ratio }}%"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="feedback-ratio-stack feedback-ratio-stack--compact">
+                    <div class="feedback-ratio-card feedback-ratio-card--success">
+                        <div class="feedback-ratio-card__top">
+                            <span class="feedback-ratio-card__label">Ratio positif</span>
+                            <strong class="feedback-ratio-card__value">{{ feedback_insights.positive_rate }}%</strong>
+                        </div>
+                        <div class="feedback-ratio-card__track">
+                            <div class="feedback-ratio-card__fill" style="width: {{ feedback_insights.positive_rate }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="feedback-ratio-card feedback-ratio-card--neutral">
+                        <div class="feedback-ratio-card__top">
+                            <span class="feedback-ratio-card__label">Part commentaires</span>
+                            <strong class="feedback-ratio-card__value">{{ feedback_insights.comment_rate }}%</strong>
+                        </div>
+                        <div class="feedback-ratio-card__track">
+                            <div class="feedback-ratio-card__fill" style="width: {{ feedback_insights.comment_rate }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="feedback-ratio-card feedback-ratio-card--danger">
+                        <div class="feedback-ratio-card__top">
+                            <span class="feedback-ratio-card__label">Ratio negatif</span>
+                            <strong class="feedback-ratio-card__value">{{ feedback_insights.negative_rate }}%</strong>
+                        </div>
+                        <div class="feedback-ratio-card__track">
+                            <div class="feedback-ratio-card__fill" style="width: {{ feedback_insights.negative_rate }}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feedback-category-table">
+                    <div class="feedback-category-table__head">
+                        <span>Categorie</span>
+                        <span>Signals</span>
+                    </div>
+                    {% for item in feedback_insights.top_feedback_categories %}
+                        <div class="feedback-category-table__row">
+                            <div>
+                                <strong>{{ item.category starts with 'Actualit' ? 'Actualit&eacute;' : (item.category in ['CYBERSECURITE', 'Cybersecurite', 'Cybers?curit?'] ? 'Cybers&eacute;curit&eacute;' : item.category) }}</strong>
+                                <small>&#128172; {{ item.comments }} commentaires &nbsp; &#128077; {{ item.likes }} likes &nbsp; &#128078; {{ item.dislikes }} dislikes</small>
+                            </div>
+                            <span class="feedback-category-table__total">{{ item.total }}</span>
+                        </div>
+                    {% else %}
+                        <div class="advanced-empty-state">
+                            <h4>Aucun feedback exploitable</h4>
+                            <p>Les signaux d'engagement apparaitront ici des que les utilisateurs commenceront a interagir.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+            </section>
+        </div></div>
+</div>
+
+<style>
+.admin-publications-container {
+    padding: 2rem;
+}
+
+.publications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.header-subtitle {
+    color: #64748b;
+    margin: 0.5rem 0 0;
+}
+
+.icon-lg { width: 2rem; height: 2rem; }
+.icon { width: 1.25rem; height: 1.25rem; }
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    padding: 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+}
+
+.stat-card-primary { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+.stat-card-success { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
+.stat-card-info { background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%); }
+.stat-card-warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+
+.stat-icon {
+    font-size: 2.5rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.filters-section {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 2rem;
+}
+
+.filters-form {
+    display: grid;
+    grid-template-columns: 1fr minmax(200px, 1fr) minmax(200px, 1fr) auto;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 0.5rem;
+}
+
+.filter-input,
+.filter-select {
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.875rem;
+}
+
+.publications-table-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.publications-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.publications-table thead {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.publications-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #475569;
+}
+
+.publications-table tbody tr {
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.2s;
+}
+
+.publications-table tbody tr:hover {
+    background: #f1f5f9;
+}
+
+.title-cell {
+    font-weight: 500;
+}
+
+.pie-chart-card {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.pie-chart {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: inset 0 0 0 16px #f8fafc, 0 20px 40px rgba(15, 23, 42, 0.08);
+}
+
+.pie-center {
+    position: absolute;
+    inset: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #ffffff;
+    text-align: center;
+    box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.9);
+}
+
+.pie-center span {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.pie-center small {
+    display: block;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+.pie-legend {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.pie-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    color: #334155;
+}
+
+.legend-color {
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.publication-analytics--advanced {
+    background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.14), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98));
+}
+
+.analytics-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.analytics-subtitle {
+    margin: 0.45rem 0 0;
+    color: #64748b;
+    line-height: 1.65;
+}
+
+.analytics-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.65rem 0.95rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1d4ed8;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.analytics-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.analytics-summary-card {
+    padding: 1.1rem 1.2rem;
+    border-radius: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+}
+
+.analytics-summary-card--success {
+    background: linear-gradient(180deg, #f0fdf4, #dcfce7);
+}
+
+.analytics-summary-card--danger {
+    background: linear-gradient(180deg, #fff1f2, #ffe4e6);
+}
+
+.analytics-summary-card--accent {
+    background: linear-gradient(180deg, #eff6ff, #dbeafe);
+}
+
+.analytics-summary-card__label {
+    display: block;
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-bottom: 0.45rem;
+}
+
+.analytics-summary-card__value {
+    color: #0f172a;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.advanced-analytics-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.95fr;
+    gap: 1.25rem;
+}
+
+.advanced-panel {
+    padding: 1.35rem;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.92));
+    border: 1px solid #e2e8f0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.advanced-panel__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.advanced-panel__head h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.15rem;
+}
+
+.advanced-panel__head p {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.advanced-panel__badge {
+    padding: 0.5rem 0.8rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #dbeafe 0%, #c7d2fe 100%);
+    color: #3730a3;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.category-performance-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.category-performance-item {
+    padding: 1rem;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid #e5edf8;
+}
+
+.category-performance-item__top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+}
+
+.category-performance-item__top h4 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1rem;
+}
+
+.category-performance-item__top p {
+    margin: 0.25rem 0 0;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.category-performance-item__metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    justify-content: flex-end;
+}
+
+.category-performance-item__metrics span {
+    padding: 0.3rem 0.55rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.performance-bar-group + .performance-bar-group {
+    margin-top: 0.75rem;
+}
+
+.performance-bar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+}
+
+.performance-bar-row__label,
+.performance-bar-row__value {
+    font-size: 0.82rem;
+    color: #475569;
+    font-weight: 600;
+}
+
+.performance-bar-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    overflow: hidden;
+}
+
+.performance-bar-track__fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+}
+
+.performance-bar-track--engagement {
+    background: #dcfce7;
+}
+
+.performance-bar-track__fill--engagement {
+    background: linear-gradient(90deg, #16a34a, #4ade80);
+}
+
+.weekly-publication-chart {
+    display: grid;
+    gap: 0.85rem;
+    margin-bottom: 1.1rem;
+}
+
+.weekly-publication-chart__row {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.weekly-publication-chart__label-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.weekly-publication-chart__label {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.weekly-publication-chart__count {
+    color: #64748b;
+    font-size: 0.82rem;
+}
+
+.weekly-publication-chart__track {
+    width: 100%;
+    height: 12px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #dbeafe, #e0f2fe);
+    overflow: hidden;
+}
+
+.weekly-publication-chart__fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.24);
+}
+
+.feedback-ratio-stack--compact {
+    margin-top: 1.25rem;
+}
+.feedback-ratio-stack {
+    display: grid;
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.feedback-ratio-card {
+    padding: 1rem;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid #e5edf8;
+}
+
+.feedback-ratio-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.55rem;
+}
+
+.feedback-ratio-card__label {
+    color: #475569;
+    font-weight: 700;
+}
+
+.feedback-ratio-card__value {
+    color: #0f172a;
+    font-size: 1.45rem;
+}
+
+.feedback-ratio-card__track {
+    height: 10px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.feedback-ratio-card__fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+}
+
+.feedback-ratio-card--success .feedback-ratio-card__fill {
+    background: linear-gradient(90deg, #16a34a, #4ade80);
+}
+
+.feedback-ratio-card--danger .feedback-ratio-card__fill {
+    background: linear-gradient(90deg, #dc2626, #fb7185);
+}
+
+.feedback-ratio-card--neutral .feedback-ratio-card__fill {
+    background: linear-gradient(90deg, #3b82f6, #a78bfa);
+}
+
+.feedback-category-table {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+}
+
+.feedback-category-table__head,
+.feedback-category-table__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 88px;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.95rem 1rem;
+}
+
+.feedback-category-table__head {
+    background: #eff6ff;
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.feedback-category-table__row + .feedback-category-table__row {
+    border-top: 1px solid #eef2f7;
+}
+
+.feedback-category-table__row strong {
+    display: block;
+    color: #0f172a;
+}
+
+.feedback-category-table__row small {
+    display: block;
+    color: #64748b;
+    margin-top: 0.2rem;
+    line-height: 1.5;
+}
+
+.feedback-category-table__total {
+    text-align: center;
+    padding: 0.45rem 0.6rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1d4ed8;
+    font-weight: 800;
+}
+
+.advanced-empty-state {
+    padding: 1.35rem;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px dashed #cbd5e1;
+    text-align: center;
+}
+
+.advanced-empty-state h4 {
+    margin: 0;
+    color: #0f172a;
+}
+
+.advanced-empty-state p {
+    margin: 0.5rem 0 0;
+    color: #64748b;
+}
+@media (max-width: 900px) {
+    .pie-chart-card {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .pie-chart {
+        width: 180px;
+        height: 180px;
+    }
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-category {
+    background: linear-gradient(135deg, #dbeafe 0%, #c7d2fe 100%);
+    color: #000;
+}
+
+.badge-published { background: #dcfce7; color: #15803d; }
+.badge-draft { background: #fef3c7; color: #92400e; }
+.badge-archived { background: #f3f4f6; color: #6b7280; }
+
+.stat-badge {
+    background: #f1f5f9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.stat-badge-success { color: #16a34a; }
+.stat-badge-danger { color: #dc2626; }
+.stat-badge-info { color: #0284c7; }
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 6px;
+    font-size: 1.25rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    transform: scale(1.1);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.page-link {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #0f172a;
+    transition: all 0.2s;
+}
+
+.page-link:hover {
+    background: #e2e8f0;
+}
+
+.page-link.active {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-muted { color: #94a3b8; }
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+}
+
+    .publication-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-start;
+        margin-top: 1rem;
+    }
+
+    .export-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .publication-analytics {
+        margin-top: 2.5rem;
+        padding: 1.5rem;
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .publication-analytics h2 {
+        margin-bottom: 1rem;
+        color: #0f172a;
+        font-size: 1.5rem;
+    }
+
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .analytics-grid-3 {
+        grid-template-columns: repeat(2, minmax(240px, 1fr));
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+
+    .stat-card-icon {
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: #e2e8f0;
+        font-size: 1.25rem;
+    }
+
+    .stat-card-title {
+        margin: 0 0 0.25rem;
+        font-weight: 700;
+        color: #334155;
+    }
+
+    .stat-card-number {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .chart-card {
+        background: #f8fafc;
+        padding: 1.25rem;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .chart-card h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.05rem;
+        color: #0f172a;
+    }
+
+    .trend-chart {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .trend-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .trend-label {
+        font-size: 0.85rem;
+        color: #475569;
+    }
+
+    .trend-bar-wrapper {
+        width: 100%;
+        background: #e2e8f0;
+        border-radius: 9999px;
+        height: 10px;
+        overflow: hidden;
+    }
+
+    .trend-bar {
+        height: 100%;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border-radius: 9999px;
+    }
+
+    .trend-value {
+        font-size: 0.85rem;
+        color: #334155;
+        white-space: nowrap;
+    }
+
+    .category-breakdown table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .category-breakdown th,
+    .category-breakdown td {
+        padding: 0.75rem 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 0.9rem;
+        text-align: left;
+    }
+
+    .category-breakdown thead th {
+        background: #f1f5f9;
+        color: #334155;
+    }
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 1024px) {
+    .analytics-summary-grid,
+    .advanced-analytics-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+@media (max-width: 768px) {
+    .publications-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .filters-form {
+        grid-template-columns: 1fr;
+    }
+
+    .publications-table {
+        font-size: 0.75rem;
+    }
+
+    .action-buttons {
+        font-size: 0.75rem;
+    }
+}
+</style>
+
+<script>
+  const debounce = (fn, delay = 400) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  };
+
+  const searchInput = document.getElementById('search');
+  const categorySelect = document.getElementById('category');
+  const sortSelect = document.getElementById('sort');
+  const filterForm = document.querySelector('.filters-form');
+
+  if (searchInput && categorySelect && sortSelect && filterForm) {
+    searchInput.addEventListener('input', debounce(() => filterForm.submit()));
+    categorySelect.addEventListener('change', () => filterForm.submit());
+    sortSelect.addEventListener('change', () => filterForm.submit());
+  }
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+

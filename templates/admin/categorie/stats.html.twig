@@ -1,0 +1,452 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Statistiques des Categories{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid mt-4">
+    {% set totalBudgets = 0 %}
+    {% set totalDepenses = 0 %}
+    {% set totalAlertes = 0 %}
+    {% set categoriesActives = stats|length %}
+    {% set warningCount = 0 %}
+    {% set dangerCount = 0 %}
+    {% set okCount = 0 %}
+    {% set maxUsage = 0 %}
+    {% set topCategorie = null %}
+    {% set donutLabels = [] %}
+    {% set donutValues = [] %}
+    {% set barBudgets = [] %}
+    {% set barDepenses = [] %}
+    {% set lineValues = [] %}
+    {% set usageLabels = [] %}
+
+    {% for stat in stats %}
+        {% set totalBudgets = totalBudgets + stat.categorie.budgetPrevu %}
+        {% set totalDepenses = totalDepenses + stat.totalAmount %}
+        {% set totalAlertes = totalAlertes + stat.alertesCount %}
+        {% set usage = stat.budgetUsage > 100 ? 100 : stat.budgetUsage %}
+        {% set usageLabels = usageLabels|merge([stat.categorie.nomCategorie]) %}
+        {% set donutLabels = donutLabels|merge([stat.categorie.nomCategorie]) %}
+        {% set donutValues = donutValues|merge([stat.totalAmount]) %}
+        {% set barBudgets = barBudgets|merge([stat.categorie.budgetPrevu]) %}
+        {% set barDepenses = barDepenses|merge([stat.totalAmount]) %}
+        {% set lineValues = lineValues|merge([usage|round(1)]) %}
+
+        {% if stat.budgetUsage > maxUsage %}
+            {% set maxUsage = stat.budgetUsage %}
+            {% set topCategorie = stat %}
+        {% endif %}
+
+        {% if stat.budgetUsage > 90 %}
+            {% set dangerCount = dangerCount + 1 %}
+        {% elseif stat.budgetUsage > 75 %}
+            {% set warningCount = warningCount + 1 %}
+        {% else %}
+            {% set okCount = okCount + 1 %}
+        {% endif %}
+    {% endfor %}
+
+    {% set globalUsage = totalBudgets > 0 ? (totalDepenses / totalBudgets) * 100 : 0 %}
+    {% set insightText = topCategorie
+        ? 'La categorie ' ~ topCategorie.categorie.nomCategorie ~ ' concentre la pression la plus forte avec ' ~ topCategorie.budgetUsage|round(1) ~ '% du budget utilise.'
+        : 'Commencez par ajouter des categories et des budgets pour activer les analyses intelligentes.' %}
+
+    <section class="ft-category-stats-hero mb-4">
+        <div class="ft-category-stats-hero-copy">
+            <span class="ft-category-stats-kicker">
+                <i class="fa-solid fa-chart-pie"></i>
+                Analyse intelligente active
+            </span>
+            <h1 class="ft-category-stats-title">Statistiques des Categories</h1>
+            <p class="ft-category-stats-subtitle">
+                Centralisez vos budgets, vos depenses et vos alertes dans une vue analytique claire,
+                moderne et orientee pilotage.
+            </p>
+
+            <div class="ft-category-stats-meta-row">
+                <span class="ft-admin-meta">
+                    <i class="fa-regular fa-calendar"></i>
+                    Derniere mise a jour : aujourd hui
+                </span>
+                <span class="ft-admin-meta">
+                    <i class="fa-solid fa-brain"></i>
+                    Monitoring budgetaire premium
+                </span>
+            </div>
+        </div>
+
+        <div class="ft-category-stats-hero-side">
+            <div class="ft-category-stats-filter-card">
+                <div class="ft-category-stats-filter-label">Vue rapide</div>
+                <div class="ft-category-stats-filter-chip-row">
+                    <span class="ft-category-stats-filter-chip is-active">Mois</span>
+                    <span class="ft-category-stats-filter-chip">Semaine</span>
+                    <span class="ft-category-stats-filter-chip">Global</span>
+                </div>
+                <div class="ft-category-stats-filter-date">
+                    <i class="fa-regular fa-clock"></i>
+                    {{ "now"|date("d/m/Y") }}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if stats is empty %}
+        <section class="ft-category-stats-empty-card">
+            <div class="ft-category-stats-empty-icon">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <h2>Aucune donnee disponible pour le moment</h2>
+            <p class="ft-category-stats-empty-text">
+                Commencez par ajouter des categories et budgets pour visualiser vos statistiques et activer
+                le centre d'analyse budgetaire.
+            </p>
+            <a href="{{ path('admin_categorie_create') }}" class="btn ft-btn-primary">
+                <i class="fa-solid fa-folder-plus me-2"></i>Creer une categorie
+            </a>
+        </section>
+    {% else %}
+        <section class="row g-3 mb-4">
+            <div class="col-12 col-md-6 col-xl-3">
+                <article class="ft-category-kpi-card ft-category-kpi-blue">
+                    <span class="ft-category-kpi-icon"><i class="fa-solid fa-wallet"></i></span>
+                    <div class="ft-category-kpi-value">{{ totalBudgets|number_format(0, ',', ' ') }}</div>
+                    <div class="ft-category-kpi-label">Total budgets</div>
+                    <p class="ft-category-kpi-text">Capacite budgetaire allouee a l'ensemble des categories.</p>
+                </article>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <article class="ft-category-kpi-card ft-category-kpi-cyan">
+                    <span class="ft-category-kpi-icon"><i class="fa-solid fa-chart-column"></i></span>
+                    <div class="ft-category-kpi-value">{{ totalDepenses|number_format(0, ',', ' ') }}</div>
+                    <div class="ft-category-kpi-label">Total depenses</div>
+                    <p class="ft-category-kpi-text">Montant global deja consomme sur les enveloppes surveillees.</p>
+                </article>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <article class="ft-category-kpi-card ft-category-kpi-amber">
+                    <span class="ft-category-kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                    <div class="ft-category-kpi-value">{{ totalAlertes }}</div>
+                    <div class="ft-category-kpi-label">Alertes declenchees</div>
+                    <p class="ft-category-kpi-text">Nombre d'alertes actives remontees par le monitoring budgetaire.</p>
+                </article>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <article class="ft-category-kpi-card ft-category-kpi-green">
+                    <span class="ft-category-kpi-icon"><i class="fa-solid fa-folder-tree"></i></span>
+                    <div class="ft-category-kpi-value">{{ categoriesActives }}</div>
+                    <div class="ft-category-kpi-label">Categories actives</div>
+                    <p class="ft-category-kpi-text">Nombre de categories suivies dans l'analyse courante.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="row g-4 mb-4">
+            <div class="col-12 col-xl-4">
+                <article class="ft-category-chart-card">
+                    <div class="ft-category-chart-head">
+                        <div>
+                            <span class="ft-category-chart-kicker">Repartition</span>
+                            <h2>Depenses par categorie</h2>
+                        </div>
+                    </div>
+                    <div class="ft-chart-container-small">
+                        <canvas id="categoryDonutChart"></canvas>
+                    </div>
+                </article>
+            </div>
+
+            <div class="col-12 col-xl-8">
+                <article class="ft-category-chart-card">
+                    <div class="ft-category-chart-head">
+                        <div>
+                            <span class="ft-category-chart-kicker">Comparatif</span>
+                            <h2>Budget vs depenses</h2>
+                        </div>
+                    </div>
+                    <div class="ft-chart-container">
+                        <canvas id="categoryBudgetChart"></canvas>
+                    </div>
+                </article>
+            </div>
+
+            <div class="col-12">
+                <article class="ft-category-chart-card">
+                    <div class="ft-category-chart-head">
+                        <div>
+                            <span class="ft-category-chart-kicker">Tendance</span>
+                            <h2>Evolution du taux d utilisation</h2>
+                        </div>
+                    </div>
+                    <div class="ft-chart-container-medium">
+                        <canvas id="categoryUsageChart"></canvas>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="row g-4 mb-4">
+            <div class="col-12 col-xl-8">
+                <article class="ft-category-table-card">
+                    <div class="ft-category-chart-head">
+                        <div>
+                            <span class="ft-category-chart-kicker">Vue analytique</span>
+                            <h2>Performance par categorie</h2>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table ft-admin-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Categorie</th>
+                                    <th>Budget</th>
+                                    <th>Depenses</th>
+                                    <th>% utilise</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in stats %}
+                                    {% set usage = stat.budgetUsage %}
+                                    <tr>
+                                        <td>
+                                            <div class="ft-category-table-name">
+                                                <span class="ft-category-table-icon">
+                                                    <i class="fa-solid fa-folder-open"></i>
+                                                </span>
+                                                <div>
+                                                    <strong>{{ stat.categorie.nomCategorie }}</strong>
+                                                    <span>{{ stat.itemCount }} item(s) suivis</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ stat.categorie.budgetPrevu|number_format(2, ',', ' ') }} TND</td>
+                                        <td>{{ stat.totalAmount|number_format(2, ',', ' ') }} TND</td>
+                                        <td>
+                                            <div class="ft-category-progress-wrap">
+                                                <div class="ft-admin-progress {% if usage > 90 %}ft-admin-progress-danger{% elseif usage <= 75 %}ft-admin-progress-success{% endif %}">
+                                                    <span style="width: {{ usage > 100 ? 100 : usage }}%"></span>
+                                                </div>
+                                                <strong>{{ usage|round(1) }}%</strong>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if usage > 90 %}
+                                                <span class="ft-badge-danger">Depassement</span>
+                                            {% elseif usage > 75 %}
+                                                <span class="ft-badge-warning">Attention</span>
+                                            {% else %}
+                                                <span class="ft-badge-success">OK</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </div>
+
+            <div class="col-12 col-xl-4">
+                <div class="ft-category-side-stack">
+                    <article class="ft-category-insight-card">
+                        <div class="ft-category-insight-header">
+                            <span class="ft-category-insight-icon"><i class="fa-solid fa-brain"></i></span>
+                            <div>
+                                <span class="ft-category-chart-kicker">Insight IA</span>
+                                <h3>Lecture intelligente</h3>
+                            </div>
+                        </div>
+                        <p>{{ insightText }}</p>
+                        <div class="ft-category-insight-footer">
+                            <span class="ft-badge-blue">{{ globalUsage|round(1) }}% d'utilisation globale</span>
+                        </div>
+                    </article>
+
+                    <article class="ft-category-insight-card">
+                        <div class="ft-category-insight-header">
+                            <span class="ft-category-insight-icon is-amber"><i class="fa-solid fa-shield-halved"></i></span>
+                            <div>
+                                <span class="ft-category-chart-kicker">Synthese</span>
+                                <h3>Etat du portefeuille</h3>
+                            </div>
+                        </div>
+                        <ul class="ft-category-summary-list">
+                            <li><strong>{{ okCount }}</strong><span>categorie(s) en zone saine</span></li>
+                            <li><strong>{{ warningCount }}</strong><span>categorie(s) a surveiller</span></li>
+                            <li><strong>{{ dangerCount }}</strong><span>categorie(s) en depassement critique</span></li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% if stats is not empty %}
+        {% set chartLabels = [] %}
+        {% set chartDonutValues = [] %}
+        {% set chartBudgetValues = [] %}
+        {% set chartDepenseValues = [] %}
+        {% set chartUsageValues = [] %}
+
+        {% for stat in stats %}
+            {% set chartLabels = chartLabels|merge([stat.categorie.nomCategorie]) %}
+            {% set chartDonutValues = chartDonutValues|merge([stat.totalAmount]) %}
+            {% set chartBudgetValues = chartBudgetValues|merge([stat.categorie.budgetPrevu]) %}
+            {% set chartDepenseValues = chartDepenseValues|merge([stat.totalAmount]) %}
+            {% set chartUsageValues = chartUsageValues|merge([(stat.budgetUsage > 100 ? 100 : stat.budgetUsage)|round(1)]) %}
+        {% endfor %}
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script>
+            const categoryLabels = {{ chartLabels|json_encode|raw }};
+            const donutValues = {{ chartDonutValues|json_encode|raw }};
+            const budgetValues = {{ chartBudgetValues|json_encode|raw }};
+            const depenseValues = {{ chartDepenseValues|json_encode|raw }};
+            const usageValues = {{ chartUsageValues|json_encode|raw }};
+
+            const palette = ['#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa', '#22c55e', '#f59e0b', '#ef4444', '#7c3aed'];
+
+            const sharedGrid = {
+                color: 'rgba(148, 163, 184, 0.18)',
+                drawBorder: false
+            };
+
+            const sharedTicks = {
+                color: '#64748b',
+                font: {
+                    family: 'Inter',
+                    size: 12,
+                    weight: '600'
+                }
+            };
+
+            const donutCtx = document.getElementById('categoryDonutChart');
+            if (donutCtx) {
+                new Chart(donutCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: categoryLabels,
+                        datasets: [{
+                            data: donutValues,
+                            backgroundColor: palette,
+                            borderWidth: 0,
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        cutout: '68%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 10,
+                                    color: '#475569',
+                                    font: {
+                                        family: 'Inter',
+                                        weight: '700'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const budgetCtx = document.getElementById('categoryBudgetChart');
+            if (budgetCtx) {
+                new Chart(budgetCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: categoryLabels,
+                        datasets: [
+                            {
+                                label: 'Budget',
+                                data: budgetValues,
+                                borderRadius: 12,
+                                backgroundColor: '#bfdbfe',
+                                borderSkipped: false
+                            },
+                            {
+                                label: 'Depenses',
+                                data: depenseValues,
+                                borderRadius: 12,
+                                backgroundColor: '#2563eb',
+                                borderSkipped: false
+                            }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#475569',
+                                    font: { family: 'Inter', weight: '700' }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: sharedTicks },
+                            y: { grid: sharedGrid, ticks: sharedTicks }
+                        }
+                    }
+                });
+            }
+
+            const usageCtx = document.getElementById('categoryUsageChart');
+            if (usageCtx) {
+                new Chart(usageCtx, {
+                    type: 'line',
+                    data: {
+                        labels: categoryLabels,
+                        datasets: [{
+                            label: 'Taux d utilisation',
+                            data: usageValues,
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 3,
+                            borderColor: '#1d4ed8',
+                            backgroundColor: 'rgba(59, 130, 246, 0.14)',
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#1d4ed8',
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#475569',
+                                    font: { family: 'Inter', weight: '700' }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: sharedTicks },
+                            y: {
+                                min: 0,
+                                suggestedMax: 100,
+                                grid: sharedGrid,
+                                ticks: {
+                                    ...sharedTicks,
+                                    callback: (value) => value + '%'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        </script>
+    {% endif %}
+{% endblock %}

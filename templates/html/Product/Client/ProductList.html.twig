@@ -1,0 +1,281 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Nos Produits{% endblock %}
+
+{% block body %}
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Fraunces:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ asset('css/Product/StyleProduct.css') }}">
+
+  {% set searchTerm = app.request.query.get('search') %}
+  {% set filterCat = app.request.query.get('category') %}
+  {% set sortValue = app.request.query.get('sort') %}
+  {% set categories = [] %}
+  {% for product in products %}
+    {% if product.category not in categories %}
+      {% set categories = categories|merge([product.category]) %}
+    {% endif %}
+  {% endfor %}
+
+  <div class="pl-page">
+    <div class="pl-bg-glow pl-bg-glow--one"></div>
+    <div class="pl-bg-glow pl-bg-glow--two"></div>
+
+    <section class="pl-hero">
+      <div class="pl-hero__content">
+        <span class="pl-hero__eyebrow">
+          <span class="pl-hero__eyebrow-icon"><i class="bi bi-stars"></i></span>
+          Catalogue premium FinTrust
+        </span>
+        <h1 class="pl-title">Nos Produits</h1>
+        <p class="pl-subtitle">
+          Explorez les offres bancaires et fintech FinTrust dans une interface plus premium,
+          plus lisible et mieux pensee pour la conversion.
+        </p>
+
+        <div class="pl-hero-metrics">
+          <div class="pl-hero-metric">
+            <span class="pl-hero-metric__label">Catalogue actif</span>
+            <strong class="pl-hero-metric__value">{{ products|length }}</strong>
+          </div>
+          <div class="pl-hero-metric">
+            <span class="pl-hero-metric__label">Categorie(s)</span>
+            <strong class="pl-hero-metric__value">{{ categories|length }}</strong>
+          </div>
+          <div class="pl-hero-metric">
+            <span class="pl-hero-metric__label">Experience</span>
+            <strong class="pl-hero-metric__value">Premium</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="pl-hero__side">
+        <div class="pl-count">{{ products|length }} produit{{ products|length != 1 ? 's' : '' }}</div>
+        <div class="pl-hero-note">
+          <span class="pl-hero-note__title">Selection client</span>
+          <p>Des offres lisibles, des categories claires et une souscription plus fluide.</p>
+        </div>
+      </div>
+    </section>
+
+    <form method="GET" action="{{ path('Client_product_list') }}" class="pl-filter-card">
+      <div class="pl-filter-card__grid">
+        <div class="pl-search-field">
+          <label class="pl-filter-label" for="product-search">Recherche</label>
+          <div class="pl-search-field__control">
+            <span class="pl-search-field__icon"><i class="bi bi-search"></i></span>
+            <input
+              id="product-search"
+              class="pl-input"
+              type="text"
+              name="search"
+              placeholder="Rechercher un produit, une offre ou une categorie..."
+              value="{{ searchTerm }}"
+            />
+          </div>
+        </div>
+
+        <div class="pl-select-field">
+          <label class="pl-filter-label" for="product-category">Categorie</label>
+          <div class="pl-select-wrap">
+            <select id="product-category" name="category" class="pl-select">
+              <option value="">Toutes</option>
+              {% for cat in categories|sort %}
+                <option value="{{ cat }}" {% if filterCat == cat %}selected{% endif %}>
+                  {{ cat|replace({'_': ' '})|title }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="pl-select-field">
+          <label class="pl-filter-label" for="product-sort">Trier</label>
+          <div class="pl-select-wrap">
+            <select id="product-sort" name="sort" class="pl-select">
+              <option value="">Par defaut</option>
+              <option value="price_asc" {% if sortValue == 'price_asc' %}selected{% endif %}>Prix croissant</option>
+              <option value="price_desc" {% if sortValue == 'price_desc' %}selected{% endif %}>Prix decroissant</option>
+              <option value="date_desc" {% if sortValue == 'date_desc' %}selected{% endif %}>Plus recent</option>
+              <option value="date_asc" {% if sortValue == 'date_asc' %}selected{% endif %}>Plus ancien</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pl-filter-actions">
+          <button type="submit" class="pl-btn pl-btn-primary">
+            <i class="bi bi-arrow-up-right-circle me-2"></i>Rechercher
+          </button>
+          <a href="{{ path('Client_product_list') }}" class="pl-btn pl-btn-ghost">
+            <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
+          </a>
+        </div>
+      </div>
+
+      {% if searchTerm or filterCat or sortValue %}
+        <div class="pl-active-bar">
+          <span class="pl-active-bar__title"><i class="bi bi-funnel-fill me-2"></i>Filtres actifs</span>
+          <div class="pl-active-chips">
+            {% if searchTerm %}
+              <span class="pl-active-chip">Recherche : "{{ searchTerm }}"</span>
+            {% endif %}
+            {% if filterCat %}
+              <span class="pl-active-chip">Categorie : {{ filterCat|replace({'_': ' '})|title }}</span>
+            {% endif %}
+            {% if sortValue %}
+              <span class="pl-active-chip">Tri : {{ sortValue|replace({'_': ' '})|title }}</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </form>
+
+    <div class="pl-results-bar">
+      <div class="pl-results-bar__left">
+        <span class="pl-results-bar__count">{{ products|length }}</span>
+        <span class="pl-results-bar__label">resultat{{ products|length != 1 ? 's' : '' }} disponible{{ products|length != 1 ? 's' : '' }}</span>
+      </div>
+      <div class="pl-results-bar__right">
+        <span class="pl-results-pill"><i class="bi bi-shield-check me-2"></i>Offres FinTrust verifiees</span>
+      </div>
+    </div>
+
+    {% set tones = ['tone-blue', 'tone-green', 'tone-amber', 'tone-purple', 'tone-coral'] %}
+
+    <div class="pl-grid">
+      {% if products is empty %}
+        <div class="pl-empty">
+          <div class="pl-empty__icon"><i class="bi bi-box-seam"></i></div>
+          <h3 class="pl-empty__title">Aucun produit trouve</h3>
+          <p class="pl-empty__text">
+            Ajustez votre recherche ou vos filtres pour retrouver une offre adaptee a votre besoin.
+          </p>
+          <a href="{{ path('Client_product_list') }}" class="pl-btn pl-btn-primary">Afficher tout le catalogue</a>
+        </div>
+      {% else %}
+        {% for product in products %}
+          {% set tone = tones[loop.index0 % 5] %}
+
+          <form
+            id="buy-form-{{ product.productId }}"
+            method="POST"
+            action="{{ path('Client_product_Buy') }}"
+            style="display:none"
+          >
+            <input type="hidden" name="Productid" value="{{ product.productId }}">
+            <input type="hidden" name="type" id="buy-type-{{ product.productId }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('BuyProduct_') }}">
+          </form>
+
+          <article class="pl-card {{ tone }}">
+            <div class="pl-card__cover">
+              <div class="pl-card__cover-gloss"></div>
+              <div class="pl-card__meta">
+                <div class="pl-card__icon">
+                  {{ product.category|slice(0, 2)|upper }}
+                </div>
+                <div class="pl-card__meta-right">
+                  <span class="pl-card__badge">{{ product.category|replace({'_': ' '})|title }}</span>
+                  <span class="pl-card__date">{{ product.createdAt|date('d/m/Y') }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pl-card__body">
+              <h2 class="pl-card__title">{{ product.category|replace({'_': ' '})|title }}</h2>
+              <p class="pl-card__description" title="{{ product.description }}">
+                {{ product.description }}
+              </p>
+
+              <div class="pl-card__highlights">
+                <span class="pl-card__highlight"><i class="bi bi-gem"></i>Offre premium</span>
+                <span class="pl-card__highlight"><i class="bi bi-clock-history"></i>Disponible immediatement</span>
+              </div>
+            </div>
+
+            <div class="pl-card__footer">
+              <div class="pl-card__price-block">
+                <span class="pl-card__price-label">Tarif</span>
+                <div class="pl-card__price">
+                  {{ product.price|number_format(2, ',', ' ') }}
+                  <span class="pl-card__currency">DT</span>
+                </div>
+              </div>
+
+              <button
+                class="pl-buy-btn"
+                type="button"
+                onclick="selectType({{ product.productId }})"
+              >
+                Acheter
+                <i class="bi bi-arrow-right-short"></i>
+              </button>
+            </div>
+          </article>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+
+  {% set flashSuccesses = app.flashes('success') %}
+  {% set flashErrors = app.flashes('error') %}
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{{ asset('js/Product/ScriptProduct.js') }}" defer></script>
+
+  <script>
+    {% if flashSuccesses is not empty %}
+    window.addEventListener('load', function () {
+      Swal.fire({
+        icon: 'success',
+        title: '{{ flashSuccesses|first|e('js') }}',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        background: '#ffffff',
+        color: '#0f172a',
+        iconColor: '#22c97a'
+      });
+    });
+    {% endif %}
+
+    {% if flashErrors is not empty %}
+    window.addEventListener('load', function () {
+      Swal.fire({
+        icon: 'error',
+        title: '{{ flashErrors|first|e('js') }}',
+        showConfirmButton: true,
+        background: '#ffffff',
+        color: '#0f172a'
+      });
+    });
+    {% endif %}
+
+    function selectType(productId) {
+      Swal.fire({
+        title: "Type d'abonnement",
+        text: "Choisissez le type d'abonnement pour ce produit :",
+        input: 'select',
+        inputOptions: {
+          'MONTHLY': 'Mensuel',
+          'ANNUALLY': 'Annuel',
+          'TRANSACTION': 'Par transaction',
+          'ONE_TIME': 'Paiement unique'
+        },
+        inputPlaceholder: 'Selectionner un type',
+        showCancelButton: true,
+        confirmButtonText: 'Confirmer',
+        cancelButtonText: 'Annuler',
+        background: '#ffffff',
+        color: '#0f172a',
+        confirmButtonColor: '#2563eb',
+        inputValidator: (value) => {
+          if (!value) return 'Veuillez selectionner un type.';
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          document.getElementById('buy-type-' + productId).value = result.value;
+          document.getElementById('buy-form-' + productId).submit();
+        }
+      });
+    }
+  </script>
+{% endblock %}

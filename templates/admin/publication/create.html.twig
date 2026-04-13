@@ -1,0 +1,7 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}{% if publication.id %}Modifier une Publication{% else %}Créer une Publication{% endif %}{% endblock %}
+
+{% block admin_content %}
+    {% include 'admin/publication/_form.html.twig' %}
+{% endblock %}

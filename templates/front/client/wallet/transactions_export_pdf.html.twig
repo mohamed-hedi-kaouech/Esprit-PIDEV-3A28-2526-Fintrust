@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Export transactions wallet</title>
+  <style>
+    body { font-family: Arial, sans-serif; color: #1f2937; margin: 24px; }
+    h1 { color: #1d4ed8; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #dbe3ef; padding: 8px; text-align: left; }
+    th { background: #eff6ff; }
+    .toolbar { margin-bottom: 16px; }
+    @media print { .toolbar { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="toolbar"><button onclick="window.print()">Imprimer / PDF</button></div>
+  <h1>Transactions wallet #{{ wallet.idWallet }}</h1>
+  <p>Genere le {{ "now"|date("d/m/Y H:i") }}</p>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Type</th><th>Montant</th><th>Description</th><th>Date</th></tr>
+    </thead>
+    <tbody>
+      {% for transaction in transactions %}
+        <tr>
+          <td>{{ transaction.idTransaction }}</td>
+          <td>{{ transaction.type|title }}</td>
+          <td>{{ transaction.montant|number_format(2, ',', ' ') }} {{ wallet.devise }}</td>
+          <td>{{ transaction.description ?: '-' }}</td>
+          <td>{{ transaction.dateTransaction|date('d/m/Y H:i') }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5">Aucune transaction.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
