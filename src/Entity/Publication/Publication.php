@@ -181,5 +181,32 @@ class Publication
 
         return $this;
     }
+
+    public function getCommentCount(): int
+    {
+        return $this->feedbacks->filter(
+            static fn(\App\Entity\User\Feedback $feedback) => $feedback->getCommentaire() !== null
+                && trim($feedback->getCommentaire()) !== ''
+        )->count();
+    }
+
+    public function getLikeCount(): int
+    {
+        return $this->feedbacks->filter(
+            static fn(\App\Entity\User\Feedback $feedback) => strtoupper((string) $feedback->getTypeReaction()) === 'LIKE'
+        )->count();
+    }
+
+    public function getDislikeCount(): int
+    {
+        return $this->feedbacks->filter(
+            static fn(\App\Entity\User\Feedback $feedback) => strtoupper((string) $feedback->getTypeReaction()) === 'DISLIKE'
+        )->count();
+    }
+
+    public function getEngagementScore(): int
+    {
+        return ($this->getCommentCount() * 3) + ($this->getLikeCount() * 2) - $this->getDislikeCount();
+    }
 }
 
