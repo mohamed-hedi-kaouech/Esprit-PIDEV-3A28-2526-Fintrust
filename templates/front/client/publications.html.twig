@@ -122,6 +122,20 @@
                 {{ publication.contenu|striptags|slice(0, 112) ~ (publication.contenu|length > 112 ? '...' : '') }}
               </p>
 
+              <div class="ft-publication-card__analysis">
+                <textarea class="ft-publication-card__analysis-source" hidden>{{ publication.contenu|striptags|trim }}</textarea>
+                <div class="ft-publication-card__analysis-header">
+                  <div>
+                    <div class="ft-publication-card__analysis-title">Analyse intelligente</div>
+                    <small class="ft-publication-card__analysis-subtitle">Resume court, points cles utiles et explication simple</small>
+                  </div>
+                  <div class="ft-publication-card__analysis-actions">
+                    <button type="button" class="btn ft-publication-card__analysis-btn">Analyser</button>
+                  </div>
+                </div>
+                <div class="ft-publication-card__analysis-result" hidden></div>
+              </div>
+
               {% set engagementScore = (publication.commentCount * 3) + (publication.likeCount * 2) - publication.dislikeCount %}
               <div class="ft-publication-card__engagement-row">
                 <div class="ft-publication-card__engagement">
@@ -606,6 +620,108 @@
   margin: 0 0 0.9rem;
 }
 
+.ft-publication-card__analysis {
+  margin: 0 0 1rem;
+  padding: 0.9rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(239,246,255,0.92));
+  border: 1px solid rgba(191, 219, 254, 0.85);
+}
+
+.ft-publication-card__analysis-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.ft-publication-card__analysis-title {
+  color: #0f172a;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.ft-publication-card__analysis-subtitle {
+  color: #64748b;
+}
+
+.ft-publication-card__analysis-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ft-publication-card__analysis-btn {
+  min-height: 38px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #1d4ed8 0%, #38bdf8 100%);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.6rem 0.95rem;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.16);
+}
+
+.ft-publication-card__analysis-btn[disabled] {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.ft-publication-card__analysis-result {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ft-publication-analysis-block {
+  padding: 0.85rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(219, 234, 254, 0.95);
+}
+
+.ft-publication-analysis-block strong {
+  display: block;
+  margin-bottom: 0.28rem;
+  color: #0f172a;
+  font-size: 0.8rem;
+}
+
+.ft-publication-analysis-block p,
+.ft-publication-analysis-block li {
+  margin: 0;
+  color: #475569;
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.ft-publication-analysis-block ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.ft-publication-analysis-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(219, 234, 254, 0.84);
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.ft-publication-analysis-error {
+  color: #b91c1c;
+  background: rgba(254, 226, 226, 0.86);
+  border-color: rgba(252, 165, 165, 0.85);
+}
+
 .ft-publication-card__engagement-row {
   display: flex;
   align-items: center;
@@ -811,11 +927,117 @@
     align-items: stretch;
   }
 
+  .ft-publication-card__analysis-header {
+    flex-direction: column;
+  }
+
+  .ft-publication-card__analysis-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .ft-publication-card__analysis-btn {
+    width: 100%;
+  }
+
   .ft-publication-card__engagement-chip {
     justify-content: center;
   }
 }
 </style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const cards = document.querySelectorAll('.ft-publication-card');
+
+  cards.forEach((card) => {
+    const button = card.querySelector('.ft-publication-card__analysis-btn');
+    const resultBox = card.querySelector('.ft-publication-card__analysis-result');
+    const sourceField = card.querySelector('.ft-publication-card__analysis-source');
+
+    if (!button || !resultBox || !sourceField) {
+      return;
+    }
+
+    button.addEventListener('click', async () => {
+      const content = sourceField.value.trim();
+      if (!content) {
+        resultBox.hidden = false;
+        resultBox.innerHTML = '<div class="ft-publication-analysis-block ft-publication-analysis-error"><strong>Analyse indisponible</strong><p>Le contenu de cette publication est vide.</p></div>';
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = 'Analyse...';
+      resultBox.hidden = false;
+      resultBox.innerHTML = '<div class="ft-publication-analysis-block"><p>Analyse en cours...</p></div>';
+
+      try {
+        const response = await fetch('{{ path('api_publication_analyze') }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({
+            content: content
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Analyse indisponible.');
+        }
+
+        const keyPoints = Array.isArray(data.key_points) ? data.key_points : [];
+        const keyPointsHtml = keyPoints.length
+          ? `<ul>${keyPoints.map((point) => `<li>${escapeHtml(point)}</li>`).join('')}</ul>`
+          : '<p>Aucun point cle disponible.</p>';
+
+        resultBox.innerHTML = `
+          <div class="ft-publication-analysis-meta">
+            <i class="bi bi-clock-history"></i>
+            ${escapeHtml(data.reading_time || '--')}
+          </div>
+          <div class="ft-publication-analysis-block">
+            <strong>Resume</strong>
+            <p>${escapeHtml(data.summary || '')}</p>
+          </div>
+          <div class="ft-publication-analysis-block">
+            <strong>Points cles</strong>
+            ${keyPointsHtml}
+          </div>
+          <div class="ft-publication-analysis-block">
+            <strong>Version simplifiee</strong>
+            <p>${escapeHtml(data.simplified || '')}</p>
+          </div>
+        `;
+      } catch (error) {
+        resultBox.innerHTML = `
+          <div class="ft-publication-analysis-block ft-publication-analysis-error">
+            <strong>Analyse indisponible</strong>
+            <p>${escapeHtml(error.message || 'Une erreur est survenue.')}</p>
+          </div>
+        `;
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Analyser';
+      }
+    });
+  });
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+});
+</script>
 {% endblock %}
 
 
