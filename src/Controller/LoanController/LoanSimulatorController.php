@@ -2,7 +2,7 @@
 
 namespace App\Controller\LoanController;
 
-use App\Entity\Loan\Loan;
+use App\Entity\loan\Loan;
 use App\Form\Loan\LoanSimulatorType;
 use App\Service\Loan\LoanService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

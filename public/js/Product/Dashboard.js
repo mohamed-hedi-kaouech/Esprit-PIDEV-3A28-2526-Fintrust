@@ -405,7 +405,7 @@ async function sendEmailReport() {
     showToast('Envoi du rapport en cours...', 1800);
 
     try {
-        const response = await fetch('/admin/dashboard/send-report', {
+        const response = await fetch('/send-report', {
             method: 'POST',
         });
         const data = await response.json();

@@ -14,6 +14,8 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ClientProductController extends AbstractController
 {
+
+
     #[Route('/Product/ClientList', name: 'Client_product_list')]
     public function list(Request $request, ProductRepository $repo): Response
     {
@@ -86,6 +88,60 @@ final class ClientProductController extends AbstractController
 
         $em->persist($subscription);
         $em->flush();
+
+        $url = "http://localhost:5680/webhook/775c96dd-935c-455d-a9d4-5cb84ff1ea8a";
+
+        $data = [
+            "ProductCategorie" => $product->getCategory(),
+            "ProductType" => $type,
+            "Price" => $product->getPrice()
+        ];
+
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json"
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            echo "❌ Error: " . curl_error($ch);
+        } else {
+            echo "✅ Response: " . $response;
+        }
+
+        $url = "http://localhost:5680/webhook/generate-bankfintrust-invoice";
+        $invoiceNumber = 'INV-' . date('Ymd') . '-' . rand(100, 999);
+        $data = [
+            "invoiceNumber" => $invoiceNumber,
+            "subscriptionId" => 1,
+            "customerName" => $user->getNom() . ' ' . $user->getPrenom(),
+            "customerEmail" => $user->getEmail(),
+            "productDescription" => $product->getDescription(),
+            "productCategory" => $product->getCategory(),
+            "price" => $product->getPrice(),
+            "TVA" => 19
+        ];
+
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json"
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+
+        $response = curl_exec($ch);
+        if (curl_errno($ch)) {
+            echo "❌ Error: " . curl_error($ch);
+        } else {
+            echo "✅ Response: " . $response;
+        }
 
         $this->addFlash('success', 'Abonnement souscrit avec succès ('.$type.').');
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Loan;
+namespace App\Entity\loan;
 
 use Doctrine\ORM\Mapping as ORM;
 

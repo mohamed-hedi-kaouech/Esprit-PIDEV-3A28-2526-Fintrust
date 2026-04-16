@@ -60,6 +60,7 @@ final class ProductController extends AbstractController
         return $this->redirectToRoute('product_list');
     }
 
+
     #[Route('/EditProduct', name: 'EditProduct', methods: ['GET', 'POST'])]
     public function EditProduct(
         Request $request,

@@ -25,27 +25,6 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    private function validateProductData($category, $price, $description): array
-    {
-        $errors = [];
-
-        // Category validation
-        if (!$category) {
-            $errors[] = 'La catégorie est obligatoire';
-        }
-
-        // Price validation
-        if (!is_numeric($price) || $price < 0) {
-            $errors[] = 'Le prix doit être un nombre positif';
-        }
-
-        // Description validation
-        if (strlen(trim($description)) < 4) {
-            $errors[] = 'La description doit contenir au moins 4 caractères';
-        }
-
-        return $errors;
-    }
     /**
      * Find products by category.
      *
