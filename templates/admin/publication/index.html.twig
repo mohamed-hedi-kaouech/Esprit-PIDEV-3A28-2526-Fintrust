@@ -1,10 +1,10 @@
-{% extends 'admin/back.html.twig' %}
+﻿{% extends 'admin/back.html.twig' %}
 
 {% block title %}Gestion des Publications{% endblock %}
 
 {% block admin_content %}
 <div class="admin-publications-container">
-    <!-- En-tête avec bouton d'ajout -->
+    <!-- En-tete avec bouton d'ajout -->
     <div class="publications-header">
         <div class="header-info">
             <h1 class="page-title">
@@ -14,7 +14,7 @@
                 </svg>
                 Publications Bancaires
             </h1>
-            <p class="header-subtitle">Gérez vos publications, offres et contenu financier</p>
+            <p class="header-subtitle">G&eacute;rez vos publications, offres et contenus financiers dans une interface plus claire, plus fluide et plus premium.</p>
         </div>
         <div class="publication-actions">
             <a href="{{ path('admin_publications_create') }}" class="btn btn-primary btn-lg">
@@ -30,31 +30,31 @@
         </div>
     </div>
 
-    <!-- Statistiques élégantes -->
+    <!-- Statistiques elegantes -->
     <div class="stats-grid">
         <div class="stat-card stat-card-primary">
-            <div class="stat-icon">📰</div>
+            <div class="stat-icon">&#128240;</div>
             <div class="stat-content">
                 <h3 class="stat-value">{{ stats.total_publications }}</h3>
                 <p class="stat-label">Publications totales</p>
             </div>
         </div>
         <div class="stat-card stat-card-success">
-            <div class="stat-icon">✅</div>
+            <div class="stat-icon">&#9989;</div>
             <div class="stat-content">
                 <h3 class="stat-value">{{ stats.published_publications }}</h3>
-                <p class="stat-label">Publications publiées</p>
+                <p class="stat-label">Publications publi&eacute;es</p>
             </div>
         </div>
         <div class="stat-card stat-card-info">
-            <div class="stat-icon">💬</div>
+            <div class="stat-icon">&#128172;</div>
             <div class="stat-content">
                 <h3 class="stat-value">{{ stats.total_comments }}</h3>
                 <p class="stat-label">Commentaires totaux</p>
             </div>
         </div>
         <div class="stat-card stat-card-warning">
-            <div class="stat-icon">⭐</div>
+            <div class="stat-icon">&#11088;</div>
             <div class="stat-content">
                 <h3 class="stat-value">{{ stats.total_feedbacks }}</h3>
                 <p class="stat-label">Interactions totales</p>
@@ -66,7 +66,7 @@
     <div class="filters-section">
         <form method="GET" class="filters-form">
             <div class="filter-group">
-                <label for="search" class="filter-label">🔍 Rechercher</label>
+                <label for="search" class="filter-label">&#128269; Rechercher</label>
                 <input 
                     type="text" 
                     id="search" 
@@ -78,9 +78,9 @@
             </div>
 
             <div class="filter-group">
-                <label for="category" class="filter-label">📂 Catégorie</label>
+                <label for="category" class="filter-label">&#128194; Cat&eacute;gorie</label>
                 <select id="category" name="category" class="filter-select">
-                    <option value="">Toutes les catégories</option>
+                    <option value="">Toutes les cat&eacute;gories</option>
                     {% for cat in categories %}
                         <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>
                             {{ cat starts with 'Actualit' ? 'Actualit&eacute;' : (cat == 'CYBERSECURITE' ? 'Cybers&eacute;curit&eacute;' : (cat == 'TECH' ? 'Tech' : (cat == 'assurance' ? 'Assurance' : cat))) }}
@@ -90,11 +90,11 @@
             </div>
 
             <div class="filter-group">
-                <label for="sort" class="filter-label">📊 Tri</label>
+                <label for="sort" class="filter-label">&#128202; Tri</label>
                 <select id="sort" name="sort" class="filter-select">
-                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Plus récentes</option>
-                    <option value="views" {% if sort_by == 'views' %}selected{% endif %}>Plus consultées</option>
-                    <option value="comments" {% if sort_by == 'comments' %}selected{% endif %}>Plus commentées</option>
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Plus r&eacute;centes</option>
+                    <option value="views" {% if sort_by == 'views' %}selected{% endif %}>Plus consult&eacute;es</option>
+                    <option value="comments" {% if sort_by == 'comments' %}selected{% endif %}>Plus comment&eacute;es</option>
                     <option value="likes" {% if sort_by == 'likes' %}selected{% endif %}>Tendance</option>
                 </select>
             </div>
@@ -104,93 +104,124 @@
     </div>
 
     <!-- Tableau des publications -->
-    <div class="publications-table-wrapper">
-        {% if publications|length > 0 %}
-            <table class="publications-table">
-                <thead>
-                    <tr>
-                        <th>Titre</th>
-                        <th>Catégorie</th>
-                        <th>Statut</th>
-                        <th>Date</th>
-                        <th class="text-center">Vues</th>
-                        <th class="text-center">Likes</th>
-                        <th class="text-center">Dislikes</th>
-                        <th class="text-center">Commentaires</th>
-                        <th class="text-center">Note</th>
-                        <th class="text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for pub in publications %}
-                        <tr class="publication-row">
-                            <td class="title-cell">
-                                <strong>{{ pub.titre|slice(0, 30) }}{{ pub.titre|length > 30 ? '...' : '' }}</strong>
-                            </td>
-                            <td>
-                                <span class="badge badge-category">
-                                    {{ pub.categorie ? (pub.categorie starts with 'Actualit' ? 'Actualit&eacute;' : (pub.categorie == 'CYBERSECURITE' ? 'Cybers&eacute;curit&eacute;' : (pub.categorie == 'TECH' ? 'Tech' : (pub.categorie == 'assurance' ? 'Assurance' : pub.categorie)))) : 'Non d&eacute;finie' }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge badge-{{ pub.statut == 'PUBLIE' ? 'published' : 'draft' }}">
-                                    {% if pub.statut == 'PUBLIE' %}Publie
-                                    {% elseif pub.statut == 'BROUILLON' %}Brouillon
-                                    {% else %}{{ pub.statut }}{% endif %}
-                                </span>
-                            </td>
-                            <td class="text-muted">{{ pub.datePublication ? pub.datePublication|date('d/m/Y') : '—' }}</td>
-                            <td class="text-center">
-                                <span class="stat-badge">—</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="stat-badge stat-badge-success">—</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="stat-badge stat-badge-danger">—</span>
-                            </td>
-                            <td class="text-center">
-                                <a href="{{ path('admin_publications_comments', {id: pub.id}) }}" class="stat-badge stat-badge-info stat-badge-link" title="Voir les commentaires">
-                                    Commentaires {{ pub.feedbacks|filter(feedback => feedback.commentaire is not empty)|length }}
-                                </a>
-                            </td>
-                            <td class="text-center">
-                                <small class="text-muted">Aucune note</small>
-                            </td>
-                            <td class="text-right">
-                                <div class="action-buttons">
-                                    <a href="{{ path('admin_publications_comments', {id: pub.id}) }}" class="btn-icon btn-info" title="Commentaires">
-                                        💬
-                                    </a>
-                                    <a href="{{ path('admin_publications_edit', {id: pub.id}) }}" class="btn-icon btn-warning" title="Modifier">
-                                        ✏️
-                                    </a>
-                                    <form method="POST" action="{{ path('admin_publications_delete', {id: pub.id}) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ pub.id) }}">
-                                        <button type="submit" class="btn-icon btn-danger" title="Supprimer">🗑️</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <div class="empty-state">
-                <div class="empty-icon">📭</div>
-                <h3>Aucune publication trouvée</h3>
-                <p>Créez votre première publication pour commencer</p>
-                <a href="{{ path('admin_publications_create') }}" class="btn btn-primary">Créer une publication</a>
+    <div class="publications-table-shell">
+        <div class="publications-table-shell__head">
+            <div>
+                <h2 class="publications-table-shell__title">Liste des publications</h2>
+                <p class="publications-table-shell__subtitle">Une lecture plus claire des contenus, des statuts et des actions admin.</p>
             </div>
-        {% endif %}
-    </div>
+            <span class="publications-table-shell__badge">{{ total }} publication{{ total > 1 ? 's' : '' }}</span>
+        </div>
 
+        <div class="publications-table-wrapper">
+            {% if publications|length > 0 %}
+                <table class="publications-table publications-table--premium">
+                    <thead>
+                        <tr>
+                            <th>Publication</th>
+                            <th>Cat&eacute;gorie</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                            <th class="text-center">Likes</th>
+                            <th class="text-center">Dislikes</th>
+                            <th class="text-center">Commentaires</th>
+                            <th class="text-center">Note</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pub in publications %}
+                            <tr class="publication-row">
+                                <td class="title-cell">
+                                    <div class="publication-primary-cell">
+                                        <strong class="publication-primary-cell__title">{{ pub.titre|slice(0, 42) }}{{ pub.titre|length > 42 ? '...' : '' }}</strong>
+                                        <span class="publication-primary-cell__meta">#{{ pub.id }} &bull; {{ pub.contenu|striptags|slice(0, 72) }}{{ pub.contenu|length > 72 ? '...' : '' }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-category badge-category--soft">
+                                        {{ pub.categorie ? (pub.categorie starts with 'Actualit' ? 'Actualit&eacute;' : (pub.categorie == 'CYBERSECURITE' ? 'Cybers&eacute;curit&eacute;' : (pub.categorie == 'TECH' ? 'Tech' : (pub.categorie == 'assurance' ? 'Assurance' : pub.categorie)))) : 'Non d&eacute;finie' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ pub.statut == 'PUBLIE' ? 'published' : 'draft' }} badge-status">
+                                        {% if pub.statut == 'PUBLIE' %}Publi&eacute;{% elseif pub.statut == 'BROUILLON' %}Brouillon{% else %}{{ pub.statut }}{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="date-pill">
+                                        <strong>{{ pub.datePublication ? pub.datePublication|date('d/m') : '--/--' }}</strong>
+                                        <span>{{ pub.datePublication ? pub.datePublication|date('Y') : '----' }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="metric-pill metric-pill--success" title="Likes">
+                                        <i class="bi bi-hand-thumbs-up"></i>
+                                        <strong>{{ pub.likeCount }}</strong>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="metric-pill metric-pill--danger" title="Dislikes">
+                                        <i class="bi bi-hand-thumbs-down"></i>
+                                        <strong>{{ pub.dislikeCount }}</strong>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ path('admin_publications_comments', {id: pub.id}) }}" class="stat-badge stat-badge-info stat-badge-link" title="Voir les commentaires">
+                                        <i class="bi bi-chat-left-text"></i>
+                                        <span>{{ pub.commentCount }} avis</span>
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    {% if pub.averageRating is not null %}
+                                        <span class="rating-pill">
+                                            <i class="bi bi-star-fill"></i>
+                                            <strong>{{ pub.averageRating }}</strong>
+                                            <small>/5</small>
+                                        </span>
+                                    {% else %}
+                                        <span class="rating-placeholder">Aucune note</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">
+                                    <div class="action-buttons">
+                                        <a href="{{ path('admin_publications_comments', {id: pub.id}) }}" class="btn-icon btn-info" title="Commentaires">
+                                            <span class="btn-icon__glyph"><i class="bi bi-chat-left-text"></i></span>
+                                            <span class="btn-icon__text">Avis</span>
+                                        </a>
+                                        <a href="{{ path('admin_publications_edit', {id: pub.id}) }}" class="btn-icon btn-warning" title="Modifier">
+                                            <span class="btn-icon__glyph"><i class="bi bi-pencil-square"></i></span>
+                                            <span class="btn-icon__text">Modifier</span>
+                                        </a>
+                                        <form method="POST" action="{{ path('admin_publications_delete', {id: pub.id}) }}" style="display:inline-flex;" onsubmit="return confirm('Confirmer la suppression?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ pub.id) }}">
+                                            <button type="submit" class="btn-icon btn-danger" title="Supprimer">
+                                                <span class="btn-icon__glyph"><i class="bi bi-trash3"></i></span>
+                                                <span class="btn-icon__text">Supprimer</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">&#128236;</div>
+                    <h3>Aucune publication trouv&eacute;e</h3>
+                    <p>Cr&eacute;ez votre premi&egrave;re publication pour commencer.</p>
+                    <a href="{{ path('admin_publications_create') }}" class="btn btn-primary">Cr&eacute;er une publication</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
     <!-- Pagination -->
     {% if total_pages > 1 %}
         <div class="pagination">
             {% if current_page > 1 %}
-                <a href="{{ path('admin_publications_index', {page: 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">« Première</a>
-                <a href="{{ path('admin_publications_index', {page: current_page - 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">‹ Précédente</a>
+                <a href="{{ path('admin_publications_index', {page: 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">&laquo; Premi&egrave;re</a>
+                <a href="{{ path('admin_publications_index', {page: current_page - 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">&lsaquo; Pr&eacute;c&eacute;dente</a>
             {% endif %}
 
             {% for page in range(1, total_pages) %}
@@ -203,8 +234,8 @@
             {% endfor %}
 
             {% if current_page < total_pages %}
-                <a href="{{ path('admin_publications_index', {page: current_page + 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">Suivante ›</a>
-                <a href="{{ path('admin_publications_index', {page: total_pages, search: search, category: current_category, sort: sort_by}) }}" class="page-link">Dernière »</a>
+                <a href="{{ path('admin_publications_index', {page: current_page + 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">Suivante &rsaquo;</a>
+                <a href="{{ path('admin_publications_index', {page: total_pages, search: search, category: current_category, sort: sort_by}) }}" class="page-link">Derni&egrave;re &raquo;</a>
             {% endif %}
         </div>
     {% endif %}
@@ -255,7 +286,7 @@
                             <div class="category-performance-item__top">
                                 <div>
                                     <h4>{{ item.category starts with 'Actualit' ? 'Actualit&eacute;' : (item.category in ['CYBERSECURITE', 'Cybersecurite', 'Cybers?curit?'] ? 'Cybers&eacute;curit&eacute;' : item.category) }}</h4>
-                                    <p>{{ item.publications }} publication{{ item.publications > 1 ? 's' : '' }} � {{ item.engagement }} signal{{ item.engagement > 1 ? 's' : '' }}</p>
+                                    <p>{{ item.publications }} publication{{ item.publications > 1 ? 's' : '' }} &bull; {{ item.engagement }} signal{{ item.engagement > 1 ? 's' : '' }}</p>
                                 </div>
                                 <div class="category-performance-item__metrics">
                                     <span>&#128077; {{ item.likes }} likes</span>
@@ -411,12 +442,26 @@
 }
 
 .stat-card {
-    padding: 1.5rem;
-    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    padding: 1.45rem;
+    border-radius: 24px;
     display: flex;
     gap: 1rem;
     align-items: center;
-    border: 1px solid #e2e8f0;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    box-shadow: 0 22px 44px rgba(15, 23, 42, 0.06);
+}
+
+.stat-card::after {
+    content: "";
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    top: -44px;
+    right: -32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
 }
 
 .stat-card-primary { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
@@ -425,26 +470,42 @@
 .stat-card-warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
 
 .stat-icon {
-    font-size: 2.5rem;
+    position: relative;
+    z-index: 1;
+    width: 4rem;
+    height: 4rem;
+    display: grid;
+    place-items: center;
+    border-radius: 20px;
+    font-size: 1.8rem;
+    background: rgba(255, 255, 255, 0.58);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .stat-value {
+    position: relative;
+    z-index: 1;
     font-size: 1.75rem;
     font-weight: 700;
     margin: 0;
 }
 
 .stat-label {
+    position: relative;
+    z-index: 1;
     font-size: 0.875rem;
     color: #64748b;
     margin: 0;
 }
 
 .filters-section {
-    background: #fff;
+    background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.1), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
     padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    border-radius: 26px;
+    border: 1px solid rgba(219, 234, 254, 0.95);
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.06);
     margin-bottom: 2rem;
 }
 
@@ -469,10 +530,21 @@
 
 .filter-input,
 .filter-select {
-    padding: 0.625rem 0.875rem;
+    min-height: 52px;
+    padding: 0.85rem 1rem;
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
+    border-radius: 16px;
     font-size: 0.875rem;
+    background: rgba(255, 255, 255, 0.92);
+    transition: border-color 0.24s ease, box-shadow 0.24s ease, transform 0.24s ease;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    outline: none;
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
 }
 
 .publications-table-wrapper {
@@ -511,6 +583,256 @@
 
 .title-cell {
     font-weight: 500;
+}
+
+.publications-table-shell {
+    position: relative;
+    margin-bottom: 1.9rem;
+    padding: 1.2rem;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.12), transparent 26%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+    border: 1px solid rgba(219, 234, 254, 0.95);
+    box-shadow: 0 26px 60px rgba(15, 23, 42, 0.07);
+}
+
+.publications-table-shell__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.publications-table-shell__title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.3rem;
+    letter-spacing: -0.02em;
+}
+
+.publications-table-shell__subtitle {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+    line-height: 1.65;
+}
+
+.publications-table-shell__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 0.95rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #dbeafe, #c7d2fe);
+    color: #1d4ed8;
+    font-weight: 800;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.publications-table--premium th {
+    padding: 1rem 0.9rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.publications-table--premium td {
+    padding: 0.95rem 0.9rem;
+    vertical-align: middle;
+}
+
+.publications-table-wrapper {
+    border-radius: 22px;
+    overflow: auto;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(219, 234, 254, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.publications-table--premium thead {
+    background: linear-gradient(180deg, #f8fbff, #eef5ff);
+}
+
+.publication-primary-cell {
+    display: grid;
+    gap: 0.28rem;
+}
+
+.publication-primary-cell__title {
+    display: block;
+    color: #0f172a;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.publication-primary-cell__meta {
+    display: block;
+    color: #64748b;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+.publication-row {
+    transition: transform 0.24s ease, background 0.24s ease, box-shadow 0.24s ease;
+}
+
+.publication-row:hover {
+    background: linear-gradient(90deg, rgba(239, 246, 255, 0.64), rgba(248, 250, 252, 0.92));
+    box-shadow: inset 4px 0 0 #60a5fa;
+}
+
+.date-pill {
+    width: 86px;
+    padding: 0.68rem 0.72rem;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    border: 1px solid #dbe5f0;
+    text-align: center;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.date-pill strong {
+    display: block;
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.date-pill span {
+    display: block;
+    margin-top: 0.2rem;
+    color: #64748b;
+    font-size: 0.78rem;
+}
+
+.stat-badge-muted {
+    color: #475569;
+}
+
+.badge-category--soft {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.badge-status {
+    min-width: 92px;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.metric-pill {
+    min-width: 70px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+    padding: 0.55rem 0.72rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.metric-pill i {
+    font-size: 0.82rem;
+}
+
+.metric-pill strong {
+    font-size: 0.86rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.metric-pill--neutral {
+    color: #475569;
+}
+
+.metric-pill--success {
+    color: #16a34a;
+}
+
+.metric-pill--danger {
+    color: #dc2626;
+}
+
+.rating-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #fff7ed, #ffedd5);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    color: #b45309;
+    box-shadow: 0 10px 24px rgba(245, 158, 11, 0.10);
+}
+
+.rating-pill i {
+    color: #f59e0b;
+    font-size: 0.82rem;
+}
+
+.rating-pill strong {
+    font-size: 0.86rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.rating-pill small {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #c2410c;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: nowrap;
+}
+
+.btn-icon {
+    min-height: 2.85rem;
+    min-width: 2.85rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    box-shadow: 0 14px 24px rgba(15, 23, 42, 0.08);
+    position: relative;
+}
+
+.btn-icon__glyph {
+    line-height: 1;
+    font-size: 1rem;
+}
+
+.btn-icon__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.rating-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: 0.83rem;
+    font-weight: 700;
 }
 
 .pie-chart-card {
@@ -974,11 +1296,18 @@
 .badge-archived { background: #f3f4f6; color: #6b7280; }
 
 .stat-badge {
-    background: #f1f5f9;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid #dbeafe;
+    white-space: nowrap;
 }
 
 .stat-badge-success { color: #16a34a; }
@@ -987,24 +1316,29 @@
 
 .action-buttons {
     display: flex;
-    gap: 0.5rem;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: nowrap;
 }
 
 .btn-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 6px;
-    font-size: 1.25rem;
-    border: none;
+    min-width: 2.85rem;
+    min-height: 2.85rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 16px;
+    font-size: 1rem;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+    box-shadow: 0 14px 24px rgba(15, 23, 42, 0.08);
 }
 
 .btn-icon:hover {
-    transform: scale(1.1);
+    transform: translateY(-2px);
 }
 
 .empty-state {
@@ -1243,7 +1577,22 @@
     }
 
     .action-buttons {
-        font-size: 0.75rem;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        min-width: 2.6rem;
+        min-height: 2.6rem;
+        padding: 0.55rem;
+    }
+
+    .metric-pill,
+    .stat-badge,
+    .rating-placeholder {
+        min-width: auto;
+        padding-inline: 0.65rem;
     }
 }
 </style>
@@ -1269,6 +1618,9 @@
   }
 </script>
 {% endblock %}
+
+
+
 
 
 

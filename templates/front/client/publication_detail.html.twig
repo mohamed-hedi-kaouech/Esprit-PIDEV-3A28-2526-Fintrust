@@ -4,73 +4,177 @@
 
 {% block body %}
 <div class="ft-app-page">
-  <div class="container-fluid px-4 py-4" style="max-width:1080px">
+  <div class="container-fluid px-4 py-4" style="max-width:1180px">
     <div class="mb-4">
       <a href="{{ path('front_module', {slug: 'publications'}) }}" class="btn btn-sm ft-btn-outline-primary">
         <i class="bi bi-arrow-left me-2"></i>Retour aux publications
       </a>
     </div>
 
-    <div class="ft-app-card mb-4 overflow-hidden">
+    <div class="ft-publication-shell ft-app-card mb-4 overflow-hidden">
       <div class="position-relative publication-hero">
         <div class="publication-hero-mask"></div>
+        <div class="publication-hero-orb publication-hero-orb--one"></div>
+        <div class="publication-hero-orb publication-hero-orb--two"></div>
+        <div class="publication-hero-grid"></div>
         <div class="publication-hero-content">
-          <span class="badge ft-badge-small">{{ publication.categorie ?: 'Actualité' }}</span>
-          <h1 class="ft-page-title mt-3 mb-3">{{ publication.titre }}</h1>
-          <p class="text-muted mb-2">Publié le {{ publication.datePublication ? publication.datePublication|date('d/m/Y') : 'Date non définie' }}</p>
-          <div class="d-flex flex-wrap gap-3 align-items-center mt-3">
-            <span class="text-warning fw-semibold fs-6">{{ averageRating is not null ? averageRating ~ ' / 5' : 'Pas encore noté' }}</span>
-            <span class="text-white small">
-              {% for i in 1..5 %}
-                <i class="bi {{ averageRating >= i ? 'bi-star-fill' : 'bi-star' }}"></i>
-              {% endfor %}
-            </span>
+          <div class="publication-hero-layout">
+            <div class="publication-hero-main">
+              <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                <span class="badge ft-badge-small">{{ publication.categorie ?: 'Actualite' }}</span>
+                <span class="publication-kicker"><i class="bi bi-lightning-charge-fill"></i>Experience premium</span>
+              </div>
+              <h1 class="ft-page-title publication-hero-title">{{ publication.titre }}</h1>
+              <p class="publication-hero-meta">
+                <span><i class="bi bi-calendar3 me-2"></i>Publie le {{ publication.datePublication ? publication.datePublication|date('d/m/Y') : 'Date non definie' }}</span>
+                <span><i class="bi bi-chat-quote me-2"></i>{{ comments|length }} avis lecteur{{ comments|length > 1 ? 's' : '' }}</span>
+              </p>
+              <div class="publication-hero-summary">
+                <div class="publication-hero-summary__item">
+                  <span class="publication-hero-summary__label">Interactions</span>
+                  <strong>{{ likes + dislikes }}</strong>
+                </div>
+                <div class="publication-hero-summary__item">
+                  <span class="publication-hero-summary__label">Positifs</span>
+                  <strong>{{ likes }} like{{ likes > 1 ? 's' : '' }}</strong>
+                </div>
+                <div class="publication-hero-summary__item">
+                  <span class="publication-hero-summary__label">Avis</span>
+                  <strong>{{ averageRating is not null ? averageRating ~ '/5' : 'Pas encore note' }}</strong>
+                </div>
+              </div>
+            </div>
+            <div class="publication-score-panel">
+              <div class="publication-score-panel__ring">
+                <div class="publication-score-panel__inner">
+                  <span class="publication-score-panel__value">{{ averageRating is not null ? averageRating : '--' }}</span>
+                  <span class="publication-score-panel__scale">/5</span>
+                </div>
+              </div>
+              <div class="publication-score-panel__legend">
+                <div class="publication-score-panel__title">Satisfaction client</div>
+                <div class="publication-score-panel__stars">
+                  {% set safeAverage = averageRating is not null ? averageRating : 0 %}
+                  {% for i in 1..5 %}
+                    <i class="bi {{ safeAverage >= i ? 'bi-star-fill' : 'bi-star' }}"></i>
+                  {% endfor %}
+                </div>
+                <div class="publication-score-panel__text">{{ averageRating is not null ? 'Moyenne des retours collectes' : 'En attente des premiers avis' }}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="ft-app-card-body row g-4 pt-5">
+      <div class="ft-app-card-body row g-4 pt-4">
         <div class="col-lg-8">
-          <div class="publication-copy mb-4">
-            <p class="lead text-secondary">{{ publication.contenu|raw }}</p>
+          <div class="publication-content-card mb-4">
+            <div class="section-heading mb-3">
+              <span class="section-heading__eyebrow">Lecture</span>
+              <h2 class="section-heading__title">Contenu de la publication</h2>
+            </div>
+            <div class="publication-copy">
+              <p class="lead mb-0">{{ publication.contenu|raw }}</p>
+            </div>
           </div>
 
-          <div class="d-flex flex-wrap gap-3 mb-4">
+          <div class="reaction-panel mb-4">
+            <div class="section-heading mb-3">
+              <span class="section-heading__eyebrow">Interaction</span>
+              <h2 class="section-heading__title">Exprimez votre ressenti</h2>
+            </div>
+            <div class="d-flex flex-wrap gap-3">
             <form method="post" action="{{ path('front_publications_react', {id: publication.id, reaction: 'like'}) }}" novalidate="novalidate">
               <input type="hidden" name="_token" value="{{ csrf_token('publication_react_' ~ publication.id) }}" />
-              <button type="submit" class="btn btn-outline-success btn-sm">
-                <i class="bi bi-hand-thumbs-up me-1"></i>Like ({{ likes }})
+              <button type="submit" class="reaction-tile reaction-tile--like">
+                <span class="reaction-tile__icon"><i class="bi bi-hand-thumbs-up-fill"></i></span>
+                <span class="reaction-tile__content">
+                  <span class="reaction-tile__label">Like</span>
+                  <strong class="reaction-tile__value">{{ likes }}</strong>
+                </span>
               </button>
             </form>
             <form method="post" action="{{ path('front_publications_react', {id: publication.id, reaction: 'dislike'}) }}" novalidate="novalidate">
               <input type="hidden" name="_token" value="{{ csrf_token('publication_react_' ~ publication.id) }}" />
-              <button type="submit" class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-hand-thumbs-down me-1"></i>Dislike ({{ dislikes }})
+              <button type="submit" class="reaction-tile reaction-tile--dislike">
+                <span class="reaction-tile__icon"><i class="bi bi-hand-thumbs-down-fill"></i></span>
+                <span class="reaction-tile__content">
+                  <span class="reaction-tile__label">Dislike</span>
+                  <strong class="reaction-tile__value">{{ dislikes }}</strong>
+                </span>
               </button>
             </form>
+            </div>
           </div>
 
           <div class="mb-4">
-            <h2 class="ft-section-title">Commentaires</h2>
+            <div class="section-heading section-heading--row mb-3">
+              <div>
+                <span class="section-heading__eyebrow">Communaute</span>
+                <h2 class="section-heading__title">Commentaires clients</h2>
+              </div>
+              <span class="comments-count-chip">{{ comments|length }} entree{{ comments|length > 1 ? 's' : '' }}</span>
+            </div>
             {% if comments is empty %}
-              <p class="text-muted">Soyez le premier à laisser un avis sur cette publication.</p>
+              <div class="comments-empty-state">
+                <i class="bi bi-chat-square-heart"></i>
+                <p class="mb-0">Soyez le premier a laisser un avis sur cette publication.</p>
+              </div>
             {% endif %}
             {% for feedback in comments %}
               <div class="comment-card mb-3">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <div>
-                    <span class="fw-semibold">{{ feedback.user.prenom }} {{ feedback.user.nom|first ~ '.' }}</span>
-                    <span class="text-muted small ms-2">{{ feedback.dateFeedback ? feedback.dateFeedback|date('d/m/Y H:i') : '...' }}</span>
+                <div class="comment-card__header">
+                  <div class="comment-card__identity">
+                    <span class="comment-card__avatar">{{ feedback.user.prenom|first|upper }}{{ feedback.user.nom|first|upper }}</span>
+                    <div>
+                      <div class="comment-card__author">{{ feedback.user.prenom }} {{ feedback.user.nom|first ~ '.' }}</div>
+                      <div class="comment-card__meta">{{ feedback.dateFeedback ? feedback.dateFeedback|date('d/m/Y H:i') : '...' }}</div>
+                    </div>
                   </div>
-                  <span class="badge ft-badge-neutral">Avis</span>
+                  <span class="badge ft-badge-neutral">Avis client</span>
                 </div>
-                <p class="mb-2">{{ feedback.commentaire }}</p>
+                <p class="comment-card__body mb-2">{{ feedback.commentaire }}</p>
                 {% if feedback.typeReaction is not empty and feedback.typeReaction starts with('RATING_') %}
-                  <div class="small text-warning">
+                  <div class="comment-card__stars">
                     {% set stars = feedback.typeReaction|split('_')[1]|default(0) %}
                     {% for i in 1..5 %}
                       <i class="bi {{ i <= stars ? 'bi-star-fill' : 'bi-star' }}"></i>
                     {% endfor %}
+                  </div>
+                {% endif %}
+                {% if app.user and feedback.user.id == app.user.id %}
+                  <div class="comment-owner-actions">
+                    <details class="comment-edit-panel">
+                      <summary>Modifier mon commentaire</summary>
+                      <form method="post" action="{{ path('front_publications_comment_edit', {id: publication.id, feedbackId: feedback.idFeedback}) }}" class="comment-edit-form">
+                        <input type="hidden" name="_token" value="{{ csrf_token('edit_comment_' ~ feedback.idFeedback) }}">
+                        <textarea name="commentaire" rows="4" class="form-control ft-input">{{ feedback.commentaire }}</textarea>
+                        <select name="rating" class="form-select ft-input">
+                          {% set selectedStars = feedback.typeReaction is not empty and feedback.typeReaction starts with('RATING_') ? feedback.typeReaction|split('_')[1]|default(0) : 0 %}
+                          {% for value in [5, 4, 3, 2, 1] %}
+                            <option value="{{ value }}" {% if selectedStars == value %}selected{% endif %}>{{ value }} etoile{{ value > 1 ? 's' : '' }}</option>
+                          {% endfor %}
+                        </select>
+                        <div class="comment-owner-actions__row">
+                          <button type="submit" class="comment-owner-actions__button">Enregistrer</button>
+                        </div>
+                      </form>
+                    </details>
+                    <form method="post" action="{{ path('front_publications_comment_delete', {id: publication.id, feedbackId: feedback.idFeedback}) }}" onsubmit="return confirm('Supprimer votre commentaire ?');">
+                      <input type="hidden" name="_token" value="{{ csrf_token('delete_comment_' ~ feedback.idFeedback) }}">
+                      <button type="submit" class="comment-owner-actions__button comment-owner-actions__button--danger">Supprimer</button>
+                    </form>
+                  </div>
+                {% endif %}
+                {% if feedback.adminResponse is not empty %}
+                  <div class="admin-reply-card mt-3">
+                    <div class="admin-reply-card__header">
+                      <span class="admin-reply-card__title"><i class="bi bi-shield-check me-2"></i>Reponse de l'administration</span>
+                      {% if feedback.adminResponseDate %}
+                        <span class="admin-reply-card__date">{{ feedback.adminResponseDate|date('d/m/Y H:i') }}</span>
+                      {% endif %}
+                    </div>
+                    <p class="mb-0">{{ feedback.adminResponse }}</p>
                   </div>
                 {% endif %}
               </div>
@@ -79,15 +183,28 @@
         </div>
 
         <div class="col-lg-4">
-          <div class="ft-app-card h-100">
-            <div class="ft-app-card-header">
-              <i class="bi bi-chat-left-text me-2 text-primary"></i>Laisser un avis
+          <div class="feedback-panel ft-app-card h-100">
+            <div class="ft-app-card-header feedback-panel__header">
+              <div class="feedback-panel__header-icon"><i class="bi bi-chat-left-text"></i></div>
+              <div>
+                <div class="feedback-panel__eyebrow">Votre feedback</div>
+                <div>Laisser un avis</div>
+              </div>
             </div>
             <div class="ft-app-card-body">
+              <div class="feedback-panel__intro">
+                Votre retour aide a ameliorer la qualite editoriale et la pertinence des prochaines publications.
+              </div>
+              {% if commentNotice %}
+                <div class="alert alert-{{ commentNotice.type == 'danger' ? 'danger' : 'warning' }} feedback-panel__alert" role="alert">
+                  <i class="bi {{ commentNotice.type == 'danger' ? 'bi-shield-exclamation' : 'bi-exclamation-triangle' }} me-2"></i>
+                  {{ commentNotice.message }}
+                </div>
+              {% endif %}
               {{ form_start(commentForm, {attr: {novalidate: 'novalidate'}}) }}
                 <div class="mb-3">
                   {{ form_label(commentForm.commentaire, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
-                  {{ form_widget(commentForm.commentaire, {attr: {class: 'form-control ft-input', rows: 4, placeholder: 'Votre commentaire'}}) }}
+                  {{ form_widget(commentForm.commentaire, {attr: {class: 'form-control ft-input feedback-panel__textarea', rows: 5, placeholder: 'Partagez votre avis, votre experience ou votre suggestion'}}) }}
                   {% if commentForm.commentaire.vars.errors|length > 0 %}
                     <div class="text-danger small mt-1">{{ form_errors(commentForm.commentaire) }}</div>
                   {% endif %}
@@ -130,19 +247,53 @@
 
 {% block stylesheets %}
 <style>
+.ft-publication-shell {
+  border: 1px solid rgba(191, 219, 254, 0.8);
+  box-shadow: 0 28px 70px rgba(37, 99, 235, 0.12);
+}
 .publication-hero {
-  min-height: 320px;
+  min-height: 360px;
   background: radial-gradient(circle at top left, rgba(191,219,254,0.38), transparent 32%),
               radial-gradient(circle at right center, rgba(147,197,253,0.28), transparent 28%),
               linear-gradient(135deg, rgba(29,78,216,0.94) 0%, rgba(59,130,246,0.9) 48%, rgba(125,211,252,0.78) 100%),
               url('{{ asset('images/hero-publication.jpg') }}') center/cover no-repeat;
   position: relative;
   border-radius: 24px 24px 0 0;
+  overflow: hidden;
 }
 .publication-hero-mask {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(15,23,42,0.14), rgba(30,64,175,0.28));
+  background: linear-gradient(135deg, rgba(15,23,42,0.28), rgba(30,64,175,0.18));
+}
+.publication-hero-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(8px);
+  opacity: 0.65;
+}
+.publication-hero-orb--one {
+  width: 220px;
+  height: 220px;
+  background: rgba(255, 255, 255, 0.18);
+  top: -60px;
+  right: 16%;
+}
+.publication-hero-orb--two {
+  width: 180px;
+  height: 180px;
+  background: rgba(191, 219, 254, 0.22);
+  bottom: -40px;
+  left: 42%;
+}
+.publication-hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.65), transparent 80%);
 }
 .publication-hero-content {
   position: relative;
@@ -150,9 +301,153 @@
   padding: 2.75rem 2.5rem 3rem;
   text-shadow: 0 8px 22px rgba(15, 23, 42, 0.16);
 }
+.publication-hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) 280px;
+  gap: 2rem;
+  align-items: end;
+}
+.publication-hero-title {
+  max-width: 760px;
+  font-size: clamp(2.2rem, 4vw, 3.35rem);
+  line-height: 1.05;
+  margin-bottom: 1rem;
+}
+.publication-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  padding: 0.58rem 0.9rem;
+  background: rgba(255, 255, 255, 0.14);
+  color: #eff6ff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.publication-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.35rem;
+  margin-bottom: 1.4rem;
+  color: rgba(239, 246, 255, 0.94);
+}
+.publication-hero-meta span {
+  display: inline-flex;
+  align-items: center;
+}
+.publication-hero-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+.publication-hero-summary__item {
+  min-width: 140px;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+}
+.publication-hero-summary__label {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: rgba(219, 234, 254, 0.9);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.publication-score-panel {
+  padding: 1.35rem 1.2rem;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.10));
+  border: 1px solid rgba(255,255,255,0.22);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.16);
+}
+.publication-score-panel__ring {
+  width: 148px;
+  height: 148px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(#facc15 0deg, #f59e0b 194deg, rgba(255,255,255,0.18) 194deg 360deg);
+  box-shadow: inset 0 0 24px rgba(255,255,255,0.14);
+}
+.publication-score-panel__inner {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.72);
+}
+.publication-score-panel__value {
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 800;
+}
+.publication-score-panel__scale {
+  margin-top: 0.15rem;
+  color: rgba(219, 234, 254, 0.92);
+  font-size: 0.9rem;
+}
+.publication-score-panel__legend {
+  text-align: center;
+}
+.publication-score-panel__title {
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(219, 234, 254, 0.9);
+  margin-bottom: 0.45rem;
+}
+.publication-score-panel__stars {
+  color: #facc15;
+  display: flex;
+  justify-content: center;
+  gap: 0.18rem;
+  margin-bottom: 0.35rem;
+}
+.publication-score-panel__text {
+  color: rgba(239, 246, 255, 0.92);
+  font-size: 0.9rem;
+}
+.section-heading__eyebrow {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  color: #2563eb;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.section-heading__title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+.section-heading--row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.publication-content-card,
+.reaction-panel {
+  border-radius: 24px;
+  padding: 1.45rem;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  border: 1px solid #dbeafe;
+  box-shadow: 0 16px 42px rgba(59, 130, 246, 0.08);
+}
 .publication-copy p {
   color: #334155;
-  line-height: 1.8;
+  line-height: 1.9;
 }
 .comment-card {
   border-radius: 18px;
@@ -160,6 +455,119 @@
   padding: 1.35rem;
   border: 1px solid #e2e8f0;
   box-shadow: 0 14px 28px rgba(59, 130, 246, 0.06);
+}
+.comment-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+  margin-bottom: 0.95rem;
+}
+.comment-card__identity {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+}
+.comment-card__avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.2);
+}
+.comment-card__author {
+  color: #0f172a;
+  font-weight: 800;
+}
+.comment-card__meta {
+  color: #64748b;
+  font-size: 0.88rem;
+}
+.comment-card__body {
+  color: #1e293b;
+  font-size: 1rem;
+}
+.comment-card__stars {
+  color: #f59e0b;
+  display: flex;
+  gap: 0.18rem;
+}
+.comment-owner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.comment-edit-panel {
+  flex: 1 1 100%;
+}
+.comment-edit-panel summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  background: rgba(219, 234, 254, 0.76);
+  color: #1d4ed8;
+  font-weight: 800;
+}
+.comment-edit-panel summary::-webkit-details-marker {
+  display: none;
+}
+.comment-edit-form {
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.75rem;
+}
+.comment-owner-actions__row {
+  display: flex;
+  justify-content: flex-end;
+}
+.comment-owner-actions__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(147, 197, 253, 0.65);
+  background: linear-gradient(180deg, #eff6ff, #dbeafe);
+  color: #1d4ed8;
+  font-weight: 800;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.08);
+}
+.comment-owner-actions__button--danger {
+  background: linear-gradient(180deg, #fff1f2, #ffe4e6);
+  border-color: rgba(251, 113, 133, 0.45);
+  color: #be123c;
+}
+.admin-reply-card {
+  border-radius: 16px;
+  padding: 1rem 1.05rem;
+  background: linear-gradient(180deg, #eff6ff, #f8fbff);
+  border: 1px solid #bfdbfe;
+}
+.admin-reply-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+  align-items: center;
+}
+.admin-reply-card__title {
+  color: #1d4ed8;
+  font-weight: 800;
+}
+.admin-reply-card__date {
+  color: #64748b;
+  font-size: 0.82rem;
 }
 .ft-badge-small {
   background: rgba(255,255,255,0.88);
@@ -173,6 +581,45 @@
 }
 .ft-app-card-header {
   font-weight: 700;
+}
+.feedback-panel {
+  position: sticky;
+  top: 1.5rem;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 24px 50px rgba(37, 99, 235, 0.12);
+}
+.feedback-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.feedback-panel__header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18);
+}
+.feedback-panel__eyebrow {
+  color: #64748b;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.feedback-panel__intro {
+  margin-bottom: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #eff6ff, #f8fbff);
+  color: #475569;
+  border: 1px solid #dbeafe;
+}
+.feedback-panel__textarea {
+  min-height: 132px;
 }
 .ft-rating-picker {
   display: grid;
@@ -224,6 +671,125 @@
 .ft-rating-picker__input:focus + .ft-rating-picker__label {
   border-color: #60a5fa;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.10), 0 16px 32px rgba(37, 99, 235, 0.14);
+}
+.reaction-tile {
+  min-width: 180px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  background: #fff;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.reaction-tile:hover {
+  transform: translateY(-2px);
+}
+.reaction-tile__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+}
+.reaction-tile__content {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  line-height: 1.1;
+}
+.reaction-tile__label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+}
+.reaction-tile__value {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+.reaction-tile--like {
+  border-color: rgba(22, 163, 74, 0.2);
+  box-shadow: 0 14px 28px rgba(22, 163, 74, 0.08);
+}
+.reaction-tile--like .reaction-tile__icon {
+  background: rgba(34, 197, 94, 0.14);
+  color: #15803d;
+}
+.reaction-tile--like .reaction-tile__label,
+.reaction-tile--like .reaction-tile__value {
+  color: #166534;
+}
+.reaction-tile--dislike {
+  border-color: rgba(239, 68, 68, 0.18);
+  box-shadow: 0 14px 28px rgba(239, 68, 68, 0.08);
+}
+.reaction-tile--dislike .reaction-tile__icon {
+  background: rgba(248, 113, 113, 0.14);
+  color: #dc2626;
+}
+.reaction-tile--dislike .reaction-tile__label,
+.reaction-tile--dislike .reaction-tile__value {
+  color: #b91c1c;
+}
+.comments-count-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #eff6ff, #dbeafe);
+  color: #1d4ed8;
+  font-weight: 800;
+}
+.comments-empty-state {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f8fbff, #f8fafc);
+  border: 1px dashed #bfdbfe;
+  color: #64748b;
+}
+.comments-empty-state i {
+  font-size: 1.3rem;
+  color: #2563eb;
+}
+@media (max-width: 991.98px) {
+  .publication-hero-layout {
+    grid-template-columns: 1fr;
+  }
+  .publication-score-panel {
+    max-width: 320px;
+  }
+  .feedback-panel {
+    position: static;
+  }
+}
+@media (max-width: 767.98px) {
+  .publication-hero-content {
+    padding: 2rem 1.35rem 2.25rem;
+  }
+  .publication-hero {
+    min-height: 320px;
+  }
+  .publication-content-card,
+  .reaction-panel {
+    padding: 1.1rem;
+  }
+  .section-heading--row,
+  .comment-card__header,
+  .admin-reply-card__header {
+    flex-direction: column;
+    align-items: start;
+  }
+  .reaction-tile {
+    width: 100%;
+    justify-content: start;
+  }
 }
 </style>
 {% endblock %}

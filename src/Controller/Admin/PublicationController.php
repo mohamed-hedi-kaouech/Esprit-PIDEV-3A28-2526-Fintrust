@@ -2,8 +2,8 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\User\Feedback;
 use App\Entity\Publication\Publication;
-use App\Form\Admin\PublicationFeedbackFormType;
 use App\Form\Admin\PublicationFormType;
 use App\Repository\PublicationRepository;
 use App\Service\ExportService;
@@ -189,22 +189,19 @@ class PublicationController extends AbstractController
     #[Route('/{id}/comments', name: 'comments', methods: ['GET'])]
     public function showComments(Publication $publication, Request $request): Response
     {
-        $feedbacks = $publication->getFeedbacks()
+        $allFeedbacks = $publication->getFeedbacks();
+        $feedbacks = $allFeedbacks
             ->filter(fn($f) => $f->getCommentaire() !== null && trim((string) $f->getCommentaire()) !== '')
             ->toArray();
 
         $commentCount = count($feedbacks);
-        $likeCount = 0;
-        $dislikeCount = 0;
-
-        foreach ($feedbacks as $feedback) {
-            $type = strtoupper((string) $feedback->getTypeReaction());
-            if ($type === 'LIKE') {
-                $likeCount++;
-            } elseif ($type === 'DISLIKE') {
-                $dislikeCount++;
-            }
-        }
+        $likeCount = $allFeedbacks->filter(
+            fn($feedback) => strtoupper((string) $feedback->getTypeReaction()) === 'LIKE'
+        )->count();
+        $dislikeCount = $allFeedbacks->filter(
+            fn($feedback) => strtoupper((string) $feedback->getTypeReaction()) === 'DISLIKE'
+        )->count();
+        $engagementScore = ($commentCount * 3) + ($likeCount * 2) - $dislikeCount;
 
         return $this->render('admin/publication/comments.html.twig', [
             'publication' => $publication,
@@ -212,26 +209,63 @@ class PublicationController extends AbstractController
             'commentCount' => $commentCount,
             'likeCount' => $likeCount,
             'dislikeCount' => $dislikeCount,
+            'engagementScore' => $engagementScore,
         ]);
     }
 
     #[Route('/{id}/feedback/{feedbackId}/reply', name: 'reply_feedback', methods: ['POST'])]
     public function replyFeedback(Publication $publication, int $feedbackId, Request $request): Response
     {
-        $feedback = $this->em->find(\App\Entity\Publication\PublicationFeedback::class, $feedbackId);
+        $feedback = $this->em->getRepository(Feedback::class)->find($feedbackId);
         
         if (!$feedback || $feedback->getPublication()->getId() !== $publication->getId()) {
             throw $this->createNotFoundException();
         }
 
-        $reply = new \App\Entity\Publication\PublicationFeedback();
-        $form = $this->createForm(PublicationFeedbackFormType::class, $reply);
-        $form->handleRequest($request);
+        if (!$this->isCsrfTokenValid('reply_feedback_' . $feedback->getIdFeedback(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action invalide.');
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->publicationService->replyToComment($feedback, $this->getUser(), $reply->getContent());
-            $this->addFlash('success', 'Réponse ajoutée avec succès!');
+            return $this->redirectToRoute('admin_publications_comments', ['id' => $publication->getId()]);
         }
+
+        $reply = trim((string) $request->request->get('admin_response', ''));
+
+        if ($reply === '') {
+            $this->addFlash('error', 'La reponse admin ne peut pas etre vide.');
+            return $this->redirectToRoute('admin_publications_comments', ['id' => $publication->getId()]);
+        }
+
+        $feedback
+            ->setAdminResponse($reply)
+            ->setAdminResponseDate(new \DateTime());
+
+        $this->em->flush();
+        $this->addFlash('success', 'La reponse admin a bien ete enregistree.');
+
+        return $this->redirectToRoute('admin_publications_comments', ['id' => $publication->getId()]);
+    }
+
+    #[Route('/{id}/feedback/{feedbackId}/delete-reply', name: 'delete_reply', methods: ['POST'])]
+    public function deleteReply(Publication $publication, int $feedbackId, Request $request): Response
+    {
+        $feedback = $this->em->getRepository(Feedback::class)->find($feedbackId);
+
+        if (!$feedback || $feedback->getPublication()->getId() !== $publication->getId()) {
+            throw $this->createNotFoundException();
+        }
+
+        if (!$this->isCsrfTokenValid('delete_reply_' . $feedback->getIdFeedback(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action invalide.');
+
+            return $this->redirectToRoute('admin_publications_comments', ['id' => $publication->getId()]);
+        }
+
+        $feedback
+            ->setAdminResponse(null)
+            ->setAdminResponseDate(null);
+
+        $this->em->flush();
+        $this->addFlash('success', 'La reponse admin a ete supprimee.');
 
         return $this->redirectToRoute('admin_publications_comments', ['id' => $publication->getId()]);
     }

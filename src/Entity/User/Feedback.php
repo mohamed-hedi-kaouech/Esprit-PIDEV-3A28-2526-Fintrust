@@ -26,6 +26,12 @@ class Feedback
     #[ORM\Column(name: 'date_feedback', type: 'datetime', nullable: true)]
     private \DateTimeInterface|null $dateFeedback;
 
+    #[ORM\Column(name: 'admin_response', type: 'text', nullable: true)]
+    private ?string $adminResponse = null;
+
+    #[ORM\Column(name: 'admin_response_date', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $adminResponseDate = null;
+
     // FIX: added inversedBy: 'feedbacks' to match Publication#feedbacks OneToMany
     #[ORM\ManyToOne(targetEntity: \App\Entity\Publication\Publication::class, inversedBy: 'feedbacks')]
     #[ORM\JoinColumn(name: 'id_publication', referencedColumnName: 'id_publication', onDelete: 'CASCADE')]
@@ -81,6 +87,28 @@ class Feedback
     public function setDateFeedback(\DateTimeInterface|null $dateFeedback): static
     {
         $this->dateFeedback = $dateFeedback;
+        return $this;
+    }
+
+    public function getAdminResponse(): ?string
+    {
+        return $this->adminResponse;
+    }
+
+    public function setAdminResponse(?string $adminResponse): static
+    {
+        $this->adminResponse = $adminResponse;
+        return $this;
+    }
+
+    public function getAdminResponseDate(): ?\DateTimeInterface
+    {
+        return $this->adminResponseDate;
+    }
+
+    public function setAdminResponseDate(?\DateTimeInterface $adminResponseDate): static
+    {
+        $this->adminResponseDate = $adminResponseDate;
         return $this;
     }
 

@@ -67,8 +67,8 @@
                 <span class="feedback-stat-card__icon">&#9733;</span>
                 <span class="feedback-stat-card__label">Engagement</span>
             </div>
-            <strong class="feedback-stat-card__value">{{ commentCount + likeCount + dislikeCount }}</strong>
-            <p class="feedback-stat-card__hint">Signaux cumules autour de la publication.</p>
+            <strong class="feedback-stat-card__value">{{ engagementScore }}</strong>
+            <p class="feedback-stat-card__hint">Formule : commentaires x3 + likes x2 - dislikes.</p>
         </article>
     </section>
 
@@ -110,6 +110,33 @@
                             {% endif %}
                             <span class="comment-meta-pill">Publication #{{ publication.id }}</span>
                         </div>
+
+                        {% if feedback.adminResponse %}
+                            <div class="admin-response-card">
+                                <div class="admin-response-card__header">
+                                    <strong><i class="bi bi-shield-check me-2"></i>Reponse admin</strong>
+                                    {% if feedback.adminResponseDate %}
+                                        <small>{{ feedback.adminResponseDate|date('d/m/Y H:i') }}</small>
+                                    {% endif %}
+                                </div>
+                                <p class="admin-response-card__text">{{ feedback.adminResponse }}</p>
+                                <form method="post" action="{{ path('admin_publications_delete_reply', {id: publication.id, feedbackId: feedback.idFeedback}) }}" class="admin-response-card__delete">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_reply_' ~ feedback.idFeedback) }}">
+                                    <button type="submit" class="feedback-action-link feedback-action-link--danger">Supprimer la reponse</button>
+                                </form>
+                            </div>
+                        {% endif %}
+
+                        <form method="post" action="{{ path('admin_publications_reply_feedback', {id: publication.id, feedbackId: feedback.idFeedback}) }}" class="admin-reply-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('reply_feedback_' ~ feedback.idFeedback) }}">
+                            <label class="admin-reply-form__label">Reponse de l'administration</label>
+                            <textarea name="admin_response" class="admin-reply-form__textarea" rows="4" placeholder="Ecrivez une reponse professionnelle et utile...">{{ feedback.adminResponse }}</textarea>
+                            <div class="admin-reply-form__actions">
+                                <button type="submit" class="admin-reply-form__button">
+                                    {{ feedback.adminResponse ? 'Mettre a jour la reponse' : 'Repondre au commentaire' }}
+                                </button>
+                            </div>
+                        </form>
                     </article>
                 {% endfor %}
             </div>
@@ -462,6 +489,99 @@
     color: #1e3a8a;
     font-size: 0.82rem;
     font-weight: 700;
+}
+
+.admin-response-card {
+    margin-top: 1rem;
+    padding: 1rem 1.1rem;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #eff6ff, #f8fbff);
+    border: 1px solid rgba(147, 197, 253, 0.65);
+}
+
+.admin-response-card__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    color: #1d4ed8;
+    margin-bottom: 0.55rem;
+}
+
+.admin-response-card__header small {
+    color: #64748b;
+}
+
+.admin-response-card__text {
+    margin: 0;
+    color: #334155;
+    line-height: 1.7;
+}
+
+.admin-response-card__delete {
+    margin-top: 0.85rem;
+}
+
+.admin-reply-form {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.95);
+}
+
+.admin-reply-form__label {
+    display: block;
+    margin-bottom: 0.55rem;
+    color: #334155;
+    font-weight: 700;
+}
+
+.admin-reply-form__textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #0f172a;
+    resize: vertical;
+    transition: border-color 0.24s ease, box-shadow 0.24s ease;
+}
+
+.admin-reply-form__textarea:focus {
+    outline: none;
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.admin-reply-form__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.85rem;
+}
+
+.admin-reply-form__button,
+.feedback-action-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.78rem 1.05rem;
+    border-radius: 999px;
+    border: none;
+    text-decoration: none;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.admin-reply-form__button {
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    color: #fff;
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.18);
+}
+
+.feedback-action-link--danger {
+    background: rgba(254, 226, 226, 0.9);
+    color: #b91c1c;
+    border: 1px solid rgba(248, 113, 113, 0.4);
 }
 
 .feedback-empty-card {
