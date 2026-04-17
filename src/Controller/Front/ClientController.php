@@ -145,9 +145,17 @@ class ClientController extends AbstractController
         return $this->redirectToRoute('front_markets', ['symbol' => $symbol]);
     }
 
-    #[Route('/marches-economie/watchlist/{symbol}/remove', name: 'watchlist_remove', methods: ['POST'])]
-    public function removeFromWatchlist(string $symbol, Request $request): RedirectResponse
+    #[Route('/marches-economie/watchlist/remove', name: 'watchlist_remove', methods: ['POST'])]
+    public function removeFromWatchlist(Request $request): RedirectResponse
     {
+        $symbol = (string) $request->request->get('symbol', '');
+
+        if ($symbol === '') {
+            $this->addFlash('error', 'Le symbole a retirer est invalide.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
         if (!$this->isCsrfTokenValid('watchlist_remove_' . $symbol, (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'La demande est invalide.');
 

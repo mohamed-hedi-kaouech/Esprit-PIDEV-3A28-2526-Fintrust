@@ -405,7 +405,8 @@
                     </div>
                     <div class="d-flex gap-2 flex-wrap">
                       <a href="{{ path('front_markets', {symbol: item.symbol}) }}" class="btn ft-btn-outline-primary btn-sm">Voir le detail</a>
-                      <form method="post" action="{{ path('front_watchlist_remove', {symbol: item.symbol}) }}">
+                      <form method="post" action="{{ path('front_watchlist_remove') }}">
+                        <input type="hidden" name="symbol" value="{{ item.symbol }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('watchlist_remove_' ~ item.symbol) }}">
                         <button type="submit" class="btn ft-btn-soft btn-sm">Retirer</button>
                       </form>
