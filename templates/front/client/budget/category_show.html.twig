@@ -1,0 +1,115 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}{{ categorie.nomCategorie }}{% endblock %}
+
+{% block body %}
+<div class="ft-app-page ft-budget-page">
+  <div class="container-fluid px-4 py-4" style="max-width: 1320px;">
+    <section class="ft-budget-hero mb-4">
+      <div class="ft-budget-hero-copy">
+        <span class="ft-budget-kicker"><i class="bi bi-folder2-open"></i>Detail categorie</span>
+        <h1 class="ft-page-title mb-2">{{ categorie.nomCategorie }}</h1>
+        <p class="ft-budget-subtitle mb-0">Vue detaillee de la categorie, de ses items et de son equilibre budgetaire.</p>
+      </div>
+      <div class="ft-budget-hero-panel">
+        <span class="ft-budget-hero-panel-label">Performance</span>
+        <strong>{{ usage|round(1) }}%</strong>
+        <span>{{ categorie.items|length }} item(s) • {{ categorie.alertes|filter(a => a.active)|length }} alerte(s)</span>
+      </div>
+    </section>
+
+    <section class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">Synthese budgetaire</div>
+          <div class="ft-app-card-body">
+            <div class="row g-3 mb-3">
+              <div class="col-4">
+                <div class="ft-budget-metric-box"><span>Budget</span><strong>{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} TND</strong></div>
+              </div>
+              <div class="col-4">
+                <div class="ft-budget-metric-box"><span>Depenses</span><strong>{{ spent|number_format(2, ',', ' ') }} TND</strong></div>
+              </div>
+              <div class="col-4">
+                <div class="ft-budget-metric-box"><span>Reste</span><strong>{{ remaining|number_format(2, ',', ' ') }} TND</strong></div>
+              </div>
+            </div>
+
+            <div class="ft-budget-progress-track mb-2">
+              <div class="ft-budget-progress-value {{ usage >= 100 ? 'is-danger' : (usage >= 80 ? 'is-warning' : '') }}" style="width: {{ usage > 100 ? 100 : usage }}%;"></div>
+            </div>
+            <div class="text-muted small">Seuil d alerte: {{ categorie.seuilAlerte|number_format(2, ',', ' ') }} TND</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">Actions</div>
+          <div class="ft-app-card-body d-flex flex-column gap-2">
+            <a href="{{ path('front_budget_item_create', {'categorie': categorie.idCategorie}) }}" class="btn ft-btn-primary">
+              <i class="bi bi-journal-plus me-2"></i>Ajouter un item
+            </a>
+            <a href="{{ path('front_budget_category_edit', {'idCategorie': categorie.idCategorie}) }}" class="btn ft-btn-outline-primary">
+              <i class="bi bi-pencil-square me-2"></i>Modifier la categorie
+            </a>
+            <a href="{{ path('front_budget_categories') }}" class="btn ft-btn-outline-primary">
+              <i class="bi bi-arrow-left me-2"></i>Retour aux categories
+            </a>
+            <form method="post" action="{{ path('front_budget_category_delete', {'idCategorie': categorie.idCategorie}) }}" onsubmit="return confirm('Supprimer cette categorie ?');">
+              <input type="hidden" name="_token" value="{{ csrf_token('front_budget_delete_category_' ~ categorie.idCategorie) }}">
+              <button type="submit" class="btn btn-outline-danger w-100">
+                <i class="bi bi-trash me-2"></i>Supprimer la categorie
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ft-app-card ft-premium-card">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+        <span>Items de la categorie</span>
+        <span class="badge ft-badge-blue">{{ categorie.items|length }}</span>
+      </div>
+      <div class="ft-app-card-body">
+        {% if categorie.items is empty %}
+          <div class="text-center py-4">
+            <p class="text-muted mb-3">Aucun item rattache a cette categorie pour le moment.</p>
+            <a href="{{ path('front_budget_item_create', {'categorie': categorie.idCategorie}) }}" class="btn ft-btn-primary">Creer le premier item</a>
+          </div>
+        {% else %}
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Libelle</th>
+                  <th>Montant</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in categorie.items %}
+                  <tr>
+                    <td>{{ item.libelle }}</td>
+                    <td>{{ item.montant|number_format(2, ',', ' ') }} TND</td>
+                    <td>
+                      <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ path('front_budget_item_show', {'idItem': item.idItem}) }}" class="btn ft-btn-outline-primary btn-sm">Voir</a>
+                        <a href="{{ path('front_budget_item_edit', {'idItem': item.idItem}) }}" class="btn ft-btn-outline-primary btn-sm">Modifier</a>
+                        <form method="post" action="{{ path('front_budget_item_delete', {'idItem': item.idItem}) }}" onsubmit="return confirm('Supprimer cet item ?');">
+                          <input type="hidden" name="_token" value="{{ csrf_token('front_budget_delete_item_' ~ item.idItem) }}">
+                          <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

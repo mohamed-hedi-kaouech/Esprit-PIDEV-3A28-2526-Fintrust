@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Categorie\Alerte;
+use App\Entity\Categorie\Categorie;
 use App\Entity\Categorie\Item;
 use App\Form\Admin\ItemType;
 use App\Repository\ItemRepository;
@@ -11,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use TCPDF;
 
@@ -279,6 +281,71 @@ class ItemController extends AbstractController
         $response = new Response($pdfContent);
         $response->headers->set('Content-Type', 'application/pdf');
         $response->headers->set('Content-Disposition', 'attachment; filename="items_' . date('Y-m-d_H-i-s') . '.pdf"');
+
+        return $response;
+    }
+
+    #[Route('/export/csv', name: 'export_csv', methods: ['GET'])]
+    public function exportCsv(Request $request, ItemRepository $repository): StreamedResponse
+    {
+        $search = $request->query->get('search', '');
+        $categorieId = $request->query->get('categorie', '');
+        $minAmount = $request->query->get('min_amount', '');
+        $maxAmount = $request->query->get('max_amount', '');
+
+        $queryBuilder = $repository->createQueryBuilder('i')
+            ->leftJoin('i.categorieRel', 'c')
+            ->addSelect('c');
+
+        if (!empty($search)) {
+            $queryBuilder->andWhere('i.libelle LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        if (!empty($categorieId)) {
+            $queryBuilder->andWhere('i.idCategorie = :categorieId')
+                ->setParameter('categorieId', $categorieId);
+        }
+
+        if (!empty($minAmount)) {
+            $queryBuilder->andWhere('i.montant >= :minAmount')
+                ->setParameter('minAmount', (float) $minAmount);
+        }
+
+        if (!empty($maxAmount)) {
+            $queryBuilder->andWhere('i.montant <= :maxAmount')
+                ->setParameter('maxAmount', (float) $maxAmount);
+        }
+
+        /** @var Item[] $items */
+        $items = $queryBuilder->orderBy('i.idItem', 'DESC')->getQuery()->getResult();
+
+        $response = new StreamedResponse(function () use ($items): void {
+            $handle = fopen('php://output', 'wb');
+            if ($handle === false) {
+                return;
+            }
+
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($handle, ['ID', 'Libelle', 'Categorie', 'Montant', 'Budget categorie', 'Seuil alerte'], ';');
+
+            foreach ($items as $item) {
+                $categorie = $item->getCategorieRel();
+                fputcsv($handle, [
+                    $item->getIdItem(),
+                    $item->getLibelle(),
+                    $categorie?->getNomCategorie() ?? 'N/A',
+                    number_format($item->getMontant(), 2, '.', ''),
+                    $categorie instanceof Categorie ? number_format($categorie->getBudgetPrevu(), 2, '.', '') : '',
+                    $categorie instanceof Categorie ? number_format($categorie->getSeuilAlerte(), 2, '.', '') : '',
+                ], ';');
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="items_' . date('Y-m-d_H-i-s') . '.csv"');
 
         return $response;
     }

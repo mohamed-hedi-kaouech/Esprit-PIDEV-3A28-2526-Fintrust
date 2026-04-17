@@ -174,8 +174,21 @@
           <div class="ft-app-card-body">
             {% if qrUrl %}
               <img src="{{ qrUrl }}" alt="QR Code {{ user.fullName }}"
-                   class="img-fluid rounded border" style="max-width:160px"/>
-              <p class="text-muted small mt-2 mb-0">Scannez pour voir votre profil public</p>
+                   class="img-fluid rounded border bg-white p-2" style="max-width:240px"/>
+              <p class="text-muted small mt-3 mb-2">Scannez pour voir votre profil public</p>
+              {% if publicProfileUrl %}
+                <a href="{{ publicProfileUrl }}" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir le profil sur cet appareil
+                </a>
+                <p class="text-muted small mt-2 mb-0 text-break">{{ publicProfileUrl }}</p>
+              {% endif %}
+              {% if qrNeedsPublicUrl %}
+                <div class="alert alert-warning small mt-3 mb-0 text-start">
+                  Le QR pointe actuellement vers une adresse locale. Pour le scanner depuis votre telephone,
+                  remplacez `FINTRUST_PUBLIC_URL` par l'URL publique ou l'adresse IP de votre machine.
+                </div>
+              {% endif %}
             {% else %}
               <div class="text-muted py-3">
                 <i class="bi bi-qr-code fs-2 d-block mb-2"></i>Non disponible

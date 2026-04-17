@@ -111,14 +111,23 @@ class ClientController extends AbstractController
             return $this->redirectToRoute('front_profile');
         }
 
-        $qrUrl = $user->getQrToken()
-            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $request->getSchemeAndHttpHost())
+        $baseUrl = $request->getSchemeAndHttpHost();
+        $publicProfileUrl = $user->getQrToken()
+            ? $this->qrCodeService->getPublicProfileUrl($user->getQrToken(), $baseUrl)
             : null;
+        $qrUrl = $user->getQrToken()
+            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $baseUrl)
+            : null;
+        $qrNeedsPublicUrl = $user->getQrToken()
+            ? $this->qrCodeService->isLocalOnlyUrl($baseUrl)
+            : false;
 
         return $this->render('front/client/profile.html.twig', [
             'form' => $form,
             'user' => $user,
             'qrUrl' => $qrUrl,
+            'publicProfileUrl' => $publicProfileUrl,
+            'qrNeedsPublicUrl' => $qrNeedsPublicUrl,
         ]);
     }
 

@@ -11,7 +11,7 @@
   <title>{% block title %}FinTrust{% endblock %} — FinTrust Banking</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="{{ asset('css/fintrust-front.css') }}"/>
   {% block stylesheets %}{% endblock %}
@@ -89,7 +89,7 @@
             </li>
 
             <li class="nav-item">
-              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'budget' %}active{% endif %}" href="{{ app.user.kycApproved ? path('admin_categorie_list', {slug: 'budget'}) : path('front_kyc_status') }}">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'budget' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_module', {slug: 'budget'}) : path('front_kyc_status') }}">
                 <i class="bi bi-calculator me-1"></i>Budget
               </a>
             </li>

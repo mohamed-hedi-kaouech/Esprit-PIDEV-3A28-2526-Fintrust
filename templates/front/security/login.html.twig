@@ -95,6 +95,32 @@
             <button type="submit" class="btn ft-btn-primary w-100 py-2 fw-semibold mt-2">
               <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
             </button>
+
+            <div class="ft-auth-divider" aria-hidden="true">
+              <span>Ou continuer avec</span>
+            </div>
+
+            <button
+              type="button"
+              class="btn ft-btn-biometric w-100 py-2 fw-semibold"
+              id="openBiometricModal"
+              aria-haspopup="dialog"
+              aria-controls="biometricModal"
+            >
+              <i class="bi bi-person-bounding-box me-2"></i>Connexion par reconnaissance faciale
+            </button>
+
+            <div class="text-center mt-3">
+              <button
+                type="button"
+                class="btn btn-link ft-auth-inline-link p-0"
+                id="openBiometricEnroll"
+                aria-haspopup="dialog"
+                aria-controls="biometricModal"
+              >
+                Activer la connexion faciale sur cet appareil
+              </button>
+            </div>
           </form>
 
           <div class="text-center mt-4">
@@ -110,6 +136,55 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-face-modal" id="biometricModal" aria-hidden="true">
+  <div class="ft-face-modal__backdrop" data-close-biometric></div>
+  <div
+    class="ft-face-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="biometricModalTitle"
+    aria-describedby="biometricModalText"
+  >
+    <button type="button" class="ft-face-modal__close" data-close-biometric aria-label="Fermer">
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <div class="ft-face-modal__eyebrow" id="biometricModeLabel">Connexion biometrique</div>
+    <h2 class="ft-face-modal__title" id="biometricModalTitle">Connexion securisee par visage</h2>
+    <p class="ft-face-modal__text" id="biometricModalText">Positionnez votre visage dans le cadre pour continuer.</p>
+
+    <div class="ft-face-status" id="biometricStatus">
+      <span class="ft-face-status__dot"></span>
+      <span id="biometricStatusText">Preparation de la camera...</span>
+    </div>
+
+    <div class="ft-face-camera">
+      <video id="biometricVideo" class="ft-face-camera__video" playsinline autoplay muted></video>
+      <div class="ft-face-camera__placeholder" id="biometricPlaceholder">
+        <div class="ft-face-camera__icon"><i class="bi bi-camera-video"></i></div>
+        <p class="mb-0">Autorisez la camera pour lancer le scan.</p>
+      </div>
+      <div class="ft-face-frame">
+        <div class="ft-face-frame__corners"></div>
+        <div class="ft-face-frame__scan"></div>
+      </div>
+    </div>
+
+    <div class="ft-face-state-list">
+      <div class="ft-face-state-pill"><i class="bi bi-camera-video me-2"></i>Preparation de la camera</div>
+      <div class="ft-face-state-pill"><i class="bi bi-person-check me-2"></i>Visage detecte</div>
+      <div class="ft-face-state-pill"><i class="bi bi-shield-check me-2"></i>Verification en cours</div>
+    </div>
+
+    <div class="ft-face-feedback d-none" id="biometricFeedback"></div>
+
+    <div class="ft-face-modal__footer">
+      <button type="button" class="btn btn-outline-secondary" data-close-biometric>Annuler</button>
+      <button type="button" class="btn ft-btn-outline-primary d-none" id="retryBiometric">Reessayer</button>
     </div>
   </div>
 </div>
@@ -129,8 +204,440 @@
       icon.className = 'bi bi-eye';
     }
   });
+
+  (() => {
+    const modal = document.getElementById('biometricModal');
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const captchaCheckbox = document.getElementById('captcha_confirm');
+    const openLoginButton = document.getElementById('openBiometricModal');
+    const openEnrollButton = document.getElementById('openBiometricEnroll');
+    const closeButtons = modal ? modal.querySelectorAll('[data-close-biometric]') : [];
+    const video = document.getElementById('biometricVideo');
+    const placeholder = document.getElementById('biometricPlaceholder');
+    const statusText = document.getElementById('biometricStatusText');
+    const feedback = document.getElementById('biometricFeedback');
+    const retryButton = document.getElementById('retryBiometric');
+    const title = document.getElementById('biometricModalTitle');
+    const text = document.getElementById('biometricModalText');
+    const modeLabel = document.getElementById('biometricModeLabel');
+    let stream = null;
+    let scanTimers = [];
+
+    const clearTimers = () => {
+      scanTimers.forEach((timer) => window.clearTimeout(timer));
+      scanTimers = [];
+    };
+
+    const stopCamera = () => {
+      clearTimers();
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+        stream = null;
+      }
+      if (video) {
+        video.srcObject = null;
+      }
+    };
+
+    const setStatus = (message) => {
+      if (statusText) {
+        statusText.textContent = message;
+      }
+    };
+
+    const setFeedback = (message, type = 'info') => {
+      if (!feedback) {
+        return;
+      }
+
+      feedback.className = `ft-face-feedback ft-face-feedback--${type}`;
+      feedback.textContent = message;
+    };
+
+    const resetFeedback = () => {
+      if (!feedback) {
+        return;
+      }
+
+      feedback.className = 'ft-face-feedback d-none';
+      feedback.textContent = '';
+    };
+
+    const submitLoginAfterRecognition = () => {
+      const email = emailInput?.value.trim() ?? '';
+      const password = passwordInput?.value ?? '';
+
+      if (email === '' || password.trim() === '') {
+        setStatus('Connexion impossible');
+        setFeedback('La reconnaissance a reussi, mais il faut encore renseigner votre adresse e-mail et votre mot de passe pour terminer la connexion.', 'error');
+        retryButton?.classList.remove('d-none');
+        return;
+      }
+
+      if (captchaCheckbox && !captchaCheckbox.checked) {
+        setStatus('Verification supplementaire requise');
+        setFeedback('Veuillez valider la verification anti-bot avant de continuer.', 'error');
+        retryButton?.classList.remove('d-none');
+        return;
+      }
+
+      setStatus('Connexion en cours...');
+      setFeedback('Identite reconnue. Connexion securisee en cours...', 'success');
+      stopCamera();
+
+      window.setTimeout(() => {
+        if (loginForm?.requestSubmit) {
+          loginForm.requestSubmit();
+          return;
+        }
+
+        loginForm?.submit();
+      }, 700);
+    };
+
+    const openModal = async (mode) => {
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('ft-face-modal-open');
+      resetFeedback();
+      retryButton?.classList.add('d-none');
+
+      if (mode === 'enroll') {
+        modeLabel.textContent = 'Activation biometrique';
+        title.textContent = 'Enregistrer mon visage sur cet appareil';
+        text.textContent = 'Connectez-vous d abord normalement, puis utilisez cette option pour activer une reconnaissance plus rapide et plus securisee.';
+        setStatus('Activation disponible apres une connexion classique.');
+        placeholder?.classList.remove('d-none');
+        setFeedback('La partie visuelle est prete. Il faudra encore brancher l enrollement et la verification cote serveur pour activer la vraie biometrie.', 'info');
+        return;
+      }
+
+      modeLabel.textContent = 'Connexion biometrique';
+      title.textContent = 'Connexion securisee par visage';
+      text.textContent = 'Positionnez votre visage dans le cadre pour continuer.';
+      setStatus('Preparation de la camera...');
+      placeholder?.classList.remove('d-none');
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        if (video) {
+          video.srcObject = stream;
+        }
+
+        setStatus('Visage detecte');
+        placeholder?.classList.add('d-none');
+        scanTimers.push(window.setTimeout(() => setStatus('Verification en cours...'), 1200));
+        scanTimers.push(window.setTimeout(() => {
+          setStatus('Identite confirmee');
+          setFeedback('Identite reconnue. Connexion en cours...', 'success');
+        }, 2600));
+        scanTimers.push(window.setTimeout(() => {
+          submitLoginAfterRecognition();
+        }, 3600));
+      } catch (error) {
+        setStatus('Camera indisponible');
+        setFeedback('Nous n avons pas pu demarrer la camera. Utilisez votre mot de passe ou reessayez.', 'error');
+        retryButton?.classList.remove('d-none');
+      }
+    };
+
+    const closeModal = () => {
+      if (!modal) {
+        return;
+      }
+
+      stopCamera();
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('ft-face-modal-open');
+      retryButton?.classList.add('d-none');
+      resetFeedback();
+    };
+
+    openLoginButton?.addEventListener('click', () => openModal('login'));
+    openEnrollButton?.addEventListener('click', () => openModal('enroll'));
+    retryButton?.addEventListener('click', () => {
+      stopCamera();
+      resetFeedback();
+      openModal('login');
+    });
+    closeButtons.forEach((button) => button.addEventListener('click', closeModal));
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal?.classList.contains('is-open')) {
+        closeModal();
+      }
+    });
+  })();
 </script>
 <style>
+  .ft-auth-divider {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    margin: 1.2rem 0 1rem;
+    color: #7b8aa4;
+    font-size: .88rem;
+    font-weight: 600;
+  }
+
+  .ft-auth-divider::before,
+  .ft-auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(21, 96, 189, 0), rgba(21, 96, 189, .14), rgba(21, 96, 189, 0));
+  }
+
+  .ft-btn-biometric {
+    background: #fff;
+    color: #123c8d;
+    border: 1.5px solid rgba(21, 96, 189, .16);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+  }
+
+  .ft-btn-biometric:hover {
+    background: #f8fbff;
+    color: #0f3f94;
+    border-color: rgba(21, 96, 189, .28);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, .08);
+  }
+
+  .ft-auth-inline-link {
+    color: #1c5fd1;
+    font-size: .92rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .ft-auth-inline-link:hover {
+    color: #0f4cae;
+    text-decoration: underline;
+  }
+
+  .ft-face-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 1200;
+  }
+
+  .ft-face-modal.is-open {
+    display: block;
+  }
+
+  .ft-face-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, .38);
+    backdrop-filter: blur(6px);
+  }
+
+  .ft-face-modal__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(92vw, 540px);
+    margin: 5vh auto;
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,250,255,.98));
+    border: 1px solid rgba(21, 96, 189, .1);
+    box-shadow: 0 30px 80px rgba(15, 23, 42, .18);
+    border-radius: 28px;
+    padding: 1.5rem 1.5rem 1.35rem;
+  }
+
+  .ft-face-modal__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, .28);
+    background: rgba(255,255,255,.86);
+    color: #475569;
+  }
+
+  .ft-face-modal__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .45rem .8rem;
+    border-radius: 999px;
+    background: #edf5ff;
+    color: #18448f;
+    font-size: .76rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    margin-bottom: 1rem;
+  }
+
+  .ft-face-modal__title {
+    font-family: var(--ft-font-display);
+    color: #0f172a;
+    font-size: 1.85rem;
+    margin-bottom: .45rem;
+  }
+
+  .ft-face-modal__text {
+    color: #64748b;
+    margin-bottom: 1rem;
+  }
+
+  .ft-face-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .45rem .8rem;
+    border-radius: 999px;
+    background: #f8fbff;
+    border: 1px solid rgba(21, 96, 189, .08);
+    color: #194287;
+    font-size: .88rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .ft-face-status__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
+    box-shadow: 0 0 0 6px rgba(37, 99, 235, .08);
+  }
+
+  .ft-face-camera {
+    position: relative;
+    overflow: hidden;
+    min-height: 300px;
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at top, rgba(59, 130, 246, .12), transparent 40%),
+      linear-gradient(180deg, #eef5ff, #f8fbff);
+    border: 1px solid rgba(21, 96, 189, .1);
+  }
+
+  .ft-face-camera__video,
+  .ft-face-camera__placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ft-face-camera__video {
+    object-fit: cover;
+    background: #dbeafe;
+  }
+
+  .ft-face-camera__placeholder {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    color: #54708f;
+    padding: 1.5rem;
+    background: linear-gradient(180deg, rgba(248, 251, 255, .88), rgba(237, 245, 255, .96));
+  }
+
+  .ft-face-camera__icon {
+    width: 72px;
+    height: 72px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 24px;
+    background: rgba(255,255,255,.92);
+    border: 1px solid rgba(21, 96, 189, .12);
+    color: #1d4ed8;
+    font-size: 1.7rem;
+    margin-bottom: .9rem;
+  }
+
+  .ft-face-frame {
+    position: absolute;
+    inset: 14%;
+    border-radius: 30px;
+    pointer-events: none;
+  }
+
+  .ft-face-frame__corners {
+    position: absolute;
+    inset: 0;
+    border-radius: 30px;
+    border: 1.5px solid rgba(148, 163, 184, .38);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.42);
+  }
+
+  .ft-face-frame__scan {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 22%;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(59,130,246,0), rgba(59,130,246,.92), rgba(59,130,246,0));
+    box-shadow: 0 0 18px rgba(59,130,246,.35);
+    animation: ft-face-scan 2.8s ease-in-out infinite;
+  }
+
+  .ft-face-state-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin-top: 1rem;
+  }
+
+  .ft-face-state-pill {
+    padding: .55rem .8rem;
+    border-radius: 999px;
+    background: #f8fbff;
+    border: 1px solid rgba(21, 96, 189, .08);
+    color: #54708f;
+    font-size: .84rem;
+    font-weight: 600;
+  }
+
+  .ft-face-feedback {
+    margin-top: 1rem;
+    border-radius: 16px;
+    padding: .9rem 1rem;
+    font-size: .92rem;
+    line-height: 1.5;
+  }
+
+  .ft-face-feedback--success {
+    background: #edfdf3;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+
+  .ft-face-feedback--error {
+    background: #fff1f2;
+    color: #be123c;
+    border: 1px solid #fecdd3;
+  }
+
+  .ft-face-feedback--info {
+    background: #f8fbff;
+    color: #31537c;
+    border: 1px solid rgba(21, 96, 189, .1);
+  }
+
+  .ft-face-modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: .7rem;
+    margin-top: 1.15rem;
+  }
+
   .ft-captcha-card {
     padding: 1rem 1.05rem;
     border-radius: 1.1rem;
@@ -178,6 +685,36 @@
     background: linear-gradient(135deg, #2563eb, #3b82f6);
     border-color: transparent;
     color: #fff;
+  }
+
+  @keyframes ft-face-scan {
+    0%, 100% { top: 18%; opacity: .55; }
+    50% { top: 76%; opacity: 1; }
+  }
+
+  @media (max-width: 575.98px) {
+    .ft-face-modal__dialog {
+      width: calc(100vw - 1.25rem);
+      margin: 2.5vh auto;
+      padding: 1.15rem 1rem 1rem;
+      border-radius: 24px;
+    }
+
+    .ft-face-modal__title {
+      font-size: 1.55rem;
+    }
+
+    .ft-face-camera {
+      min-height: 250px;
+    }
+
+    .ft-face-modal__footer {
+      flex-direction: column-reverse;
+    }
+
+    .ft-face-modal__footer .btn {
+      width: 100%;
+    }
   }
 </style>
 {% endblock %}

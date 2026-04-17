@@ -1,0 +1,241 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}{{ is_edit ? 'Modifier Item' : 'Creer Item' }}{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-budget-page {
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 22%),
+        linear-gradient(180deg, #f6f9fc 0%, #edf4fb 100%);
+    }
+
+    .ft-item-premium-hero,
+    .ft-item-premium-form,
+    .ft-item-impact-card {
+      border-radius: 24px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+    }
+
+    .ft-item-premium-hero {
+      padding: 1.8rem;
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 34%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 247, 255, 0.92));
+    }
+
+    .ft-item-premium-form,
+    .ft-item-impact-card {
+      padding: 1.5rem;
+      height: 100%;
+    }
+
+    .ft-item-premium-form .form-control,
+    .ft-item-premium-form .form-select {
+      min-height: 54px;
+      border-radius: 16px;
+    }
+
+    .ft-item-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 0.8rem;
+    }
+
+    .ft-item-meta-pill {
+      border-radius: 999px;
+      padding: 0.55rem 0.9rem;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .ft-item-impact-metric {
+      padding: 0.95rem 1rem;
+      border-radius: 18px;
+      border: 1px solid #e2e8f0;
+      background: #fbfdff;
+      margin-bottom: 0.8rem;
+    }
+
+    .ft-item-impact-metric span {
+      display: block;
+      color: #64748b;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+
+    .ft-item-impact-metric strong {
+      color: #0f172a;
+      font-size: 1.05rem;
+    }
+
+    .ft-item-impact-warning {
+      border-radius: 18px;
+      padding: 1rem;
+      background: linear-gradient(135deg, #0f172a, #1d4ed8);
+      color: #dbeafe;
+      line-height: 1.75;
+    }
+
+    .ft-item-impact-warning strong {
+      display: block;
+      color: #fff;
+      margin-bottom: 0.35rem;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+<div class="ft-app-page ft-budget-page">
+  <div class="container-fluid px-4 py-4" style="max-width: 1100px;">
+    <section class="ft-budget-hero ft-item-premium-hero mb-4">
+      <div class="ft-budget-hero-copy">
+        <span class="ft-budget-kicker"><i class="bi bi-journal-text"></i>{{ is_edit ? 'Edition item' : 'Nouvel item' }}</span>
+        <h1 class="ft-page-title mb-2">{{ is_edit ? 'Modifier l item' : 'Creer un item budgetaire' }}</h1>
+        <p class="ft-budget-subtitle mb-0">Le client gere ses items budgetaires directement depuis l espace budget avec une vision immediate de l impact.</p>
+        <div class="ft-item-meta-row">
+          <span class="ft-item-meta-pill">Impact categorie en temps reel</span>
+          <span class="ft-item-meta-pill">Guidance budgetaire intelligente</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="row g-4">
+      <div class="col-xl-8">
+        <div class="ft-item-premium-form">
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+          <div class="row g-4">
+            <div class="col-12">
+              {{ form_label(form.libelle, 'Libelle', { label_attr: { class: 'form-label fw-semibold' } }) }}
+              {{ form_widget(form.libelle, { attr: { class: 'form-control', placeholder: 'Ex: Courses, Carburant, Facture internet' } }) }}
+              {{ form_errors(form.libelle) }}
+            </div>
+
+            <div class="col-md-6">
+              {{ form_label(form.montant, 'Montant', { label_attr: { class: 'form-label fw-semibold' } }) }}
+              {{ form_widget(form.montant, { attr: { class: 'form-control', placeholder: 'Entrez le montant' } }) }}
+              {{ form_errors(form.montant) }}
+            </div>
+
+            <div class="col-md-6">
+              {{ form_label(form.categorieRel, 'Categorie', { label_attr: { class: 'form-label fw-semibold' } }) }}
+              {{ form_widget(form.categorieRel, { attr: { class: 'form-select' } }) }}
+              {{ form_errors(form.categorieRel) }}
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <button type="submit" class="btn ft-btn-primary">
+              <i class="bi bi-check-circle me-2"></i>{{ is_edit ? 'Mettre a jour' : 'Creer l item' }}
+            </button>
+            {% if is_edit and item %}
+              <a href="{{ path('front_budget_item_show', {'idItem': item.idItem}) }}" class="btn ft-btn-outline-primary">Annuler</a>
+            {% else %}
+              <a href="{{ path('front_budget_categories') }}" class="btn ft-btn-outline-primary">Annuler</a>
+            {% endif %}
+          </div>
+        {{ form_end(form) }}
+        </div>
+      </div>
+
+      <div class="col-xl-4">
+        <aside class="ft-item-impact-card">
+          <span class="ft-budget-kicker mb-3"><i class="bi bi-activity"></i>Impact instantane</span>
+          <div class="ft-item-impact-metric">
+            <span>Categorie choisie</span>
+            <strong id="itemPreviewCategory">Selectionnez une categorie</strong>
+          </div>
+          <div class="ft-item-impact-metric">
+            <span>Budget categorie</span>
+            <strong id="itemPreviewBudget">-</strong>
+          </div>
+          <div class="ft-item-impact-metric">
+            <span>Seuil d alerte</span>
+            <strong id="itemPreviewThreshold">-</strong>
+          </div>
+          <div class="ft-item-impact-metric">
+            <span>Impact apres ajout</span>
+            <strong id="itemPreviewImpact">-</strong>
+          </div>
+          <div class="ft-item-impact-warning" id="itemPreviewAdvice">
+            <strong>Assistant budget</strong>
+            Choisissez une categorie pour obtenir une recommendation contextualisee.
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    const amountInput = document.getElementById('{{ form.montant.vars.id }}');
+    const categorySelect = document.getElementById('{{ form.categorieRel.vars.id }}');
+    const previewCategory = document.getElementById('itemPreviewCategory');
+    const previewBudget = document.getElementById('itemPreviewBudget');
+    const previewThreshold = document.getElementById('itemPreviewThreshold');
+    const previewImpact = document.getElementById('itemPreviewImpact');
+    const previewAdvice = document.getElementById('itemPreviewAdvice');
+
+    const categoriesData = {
+      {% for categorie in form.categorieRel.vars.choices %}
+        {{ categorie.data.idCategorie }}: {
+          nom: "{{ categorie.data.nomCategorie }}",
+          budget: {{ categorie.data.budgetPrevu }},
+          threshold: {{ categorie.data.seuilAlerte }}
+        }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    };
+
+    const formatTnd = (value) => new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(value) + ' TND';
+
+    const updateImpactPreview = () => {
+      const categoryId = categorySelect?.value || '';
+      const amount = Number.parseFloat(amountInput?.value || '0');
+
+      if (!categoryId || !categoriesData[categoryId]) {
+        previewCategory.textContent = 'Selectionnez une categorie';
+        previewBudget.textContent = '-';
+        previewThreshold.textContent = '-';
+        previewImpact.textContent = '-';
+        previewAdvice.innerHTML = '<strong>Assistant budget</strong>Choisissez une categorie pour obtenir une recommendation contextualisee.';
+        return;
+      }
+
+      const selected = categoriesData[categoryId];
+      const ratio = selected.budget > 0 ? ((amount / selected.budget) * 100) : 0;
+
+      previewCategory.textContent = selected.nom;
+      previewBudget.textContent = formatTnd(selected.budget);
+      previewThreshold.textContent = formatTnd(selected.threshold);
+      previewImpact.textContent = ratio.toFixed(1) + '% du budget si ajoute immediatement';
+
+      if (ratio >= 80) {
+        previewAdvice.innerHTML = '<strong>Assistant budget</strong>Cette categorie est proche de sa zone de vigilance. Ajouter cet item pourrait declencher une alerte preventive.';
+      } else if (ratio >= 50) {
+        previewAdvice.innerHTML = '<strong>Assistant budget</strong>L impact reste raisonnable, mais la categorie doit etre surveillee si plusieurs items similaires sont ajoutes.';
+      } else {
+        previewAdvice.innerHTML = '<strong>Assistant budget</strong>La categorie reste dans une zone confortable apres cet ajout. Le risque est faible a ce stade.';
+      }
+    };
+
+    amountInput?.addEventListener('input', updateImpactPreview);
+    categorySelect?.addEventListener('change', updateImpactPreview);
+    updateImpactPreview();
+  </script>
+{% endblock %}

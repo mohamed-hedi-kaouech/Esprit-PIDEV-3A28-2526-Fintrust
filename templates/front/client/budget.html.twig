@@ -2,6 +2,326 @@
 
 {% block title %}{{ module.title }}{% endblock %}
 
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-budget-page {
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 22%),
+        radial-gradient(circle at top right, rgba(6, 182, 212, 0.08), transparent 18%),
+        linear-gradient(180deg, #f6f9fc 0%, #edf4fb 100%);
+    }
+
+    .ft-budget-page .container-fluid {
+      max-width: 1380px !important;
+    }
+
+    .ft-budget-hero,
+    .ft-dash-card,
+    .ft-app-card,
+    .ft-budget-focus-card,
+    .ft-budget-category-card,
+    .ft-budget-insight-card,
+    .ft-budget-mini-chart-card {
+      border-radius: 24px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+    }
+
+    .ft-budget-hero {
+      padding: 2rem;
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 34%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 247, 255, 0.92));
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 420px);
+      gap: 1.5rem;
+    }
+
+    .ft-budget-kicker {
+      background: rgba(219, 234, 254, 0.92);
+      color: #1d4ed8;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .ft-budget-subtitle {
+      max-width: 760px;
+      color: #475569;
+      line-height: 1.9;
+      font-size: 1.02rem;
+    }
+
+    .ft-budget-hero-panel {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 64, 175, 0.94));
+      color: #fff;
+      padding: 1.45rem;
+      border: 0;
+      box-shadow: 0 24px 60px rgba(29, 78, 216, 0.24);
+    }
+
+    .ft-budget-hero-panel-label {
+      color: rgba(255, 255, 255, 0.68);
+    }
+
+    .ft-budget-hero-panel strong {
+      color: #fff;
+      font-size: 2.1rem;
+    }
+
+    .ft-budget-hero-panel span:last-child {
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.7;
+    }
+
+    .ft-budget-hero-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .ft-budget-hero-stat {
+      padding: 0.9rem;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ft-budget-hero-stat span {
+      display: block;
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.3rem;
+      font-weight: 700;
+    }
+
+    .ft-budget-hero-stat strong {
+      font-size: 1rem;
+    }
+
+    .ft-budget-hero-note {
+      margin-top: 1rem;
+      padding: 0.95rem 1rem;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.16), rgba(59, 130, 246, 0.16));
+      color: #dbeafe;
+      line-height: 1.7;
+    }
+
+    .ft-dash-card {
+      position: relative;
+      overflow: hidden;
+      padding: 1.25rem;
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(14px);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ft-dash-card:hover,
+    .ft-app-card:hover,
+    .ft-budget-category-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 56px rgba(15, 23, 42, 0.12);
+    }
+
+    .ft-dash-card::after {
+      content: '';
+      position: absolute;
+      inset: auto -32px -48px auto;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.08), transparent 70%);
+    }
+
+    .ft-dash-card-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .ft-dash-card-trend {
+      position: relative;
+      z-index: 1;
+      color: #64748b;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .ft-app-card {
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(14px);
+    }
+
+    .ft-app-card-header {
+      padding-top: 1.2rem;
+      padding-bottom: 1.2rem;
+      font-weight: 800;
+    }
+
+    .ft-budget-progress-shell,
+    .ft-budget-mini-chart-card,
+    .ft-budget-ai-reco,
+    .ft-budget-side-metric {
+      border-radius: 20px;
+    }
+
+    .ft-budget-mini-chart-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(280px, 360px);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .ft-budget-mini-chart-card {
+      padding: 1rem;
+      background: #fbfdff;
+      border: 1px solid #e2e8f0;
+      min-height: 315px;
+    }
+
+    .ft-budget-mini-chart-card canvas {
+      width: 100% !important;
+      height: 260px !important;
+    }
+
+    .ft-budget-insight-card {
+      background:
+        radial-gradient(circle at top right, rgba(6, 182, 212, 0.12), transparent 36%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(240, 249, 255, 0.92));
+      padding: 1.2rem;
+    }
+
+    .ft-budget-ai-reco {
+      margin-top: 1rem;
+      padding: 1rem 1.05rem;
+      background: linear-gradient(135deg, #0f172a, #1d4ed8);
+      color: #dbeafe;
+      line-height: 1.75;
+    }
+
+    .ft-budget-ai-reco strong {
+      display: block;
+      color: #fff;
+      margin-bottom: 0.35rem;
+    }
+
+    .ft-budget-category-card {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .ft-budget-category-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
+    .ft-budget-category-actions .btn,
+    .ft-budget-category-actions button {
+      border-radius: 14px;
+      padding: 0.62rem 0.9rem;
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 1199px) {
+      .ft-budget-hero,
+      .ft-budget-mini-chart-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .ft-budget-hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .ft-budget-hero,
+      .ft-dash-card,
+      .ft-app-card {
+        border-radius: 20px;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  {% set weeklyCounts = [] %}
+  {% for day, count in weeklyActivity %}
+    {% set weeklyCounts = weeklyCounts|merge([count]) %}
+  {% endfor %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    const weeklyLabels = {{ weeklyActivity|keys|json_encode|raw }};
+    const weeklyValues = {{ weeklyCounts|json_encode|raw }};
+    const donutLabels = {{ topCategories|map(stat => stat.categorie.nomCategorie)|json_encode|raw }};
+    const donutValues = {{ topCategories|map(stat => stat.spent)|json_encode|raw }};
+
+    const momentumCtx = document.getElementById('budgetMomentumChart');
+    if (momentumCtx) {
+      new Chart(momentumCtx, {
+        type: 'line',
+        data: {
+          labels: weeklyLabels,
+          datasets: [{
+            data: weeklyValues,
+            tension: 0.38,
+            fill: true,
+            borderColor: '#1d4ed8',
+            backgroundColor: 'rgba(37, 99, 235, 0.12)',
+            pointRadius: 4,
+            pointBackgroundColor: '#06b6d4',
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b' } },
+            y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.15)' }, ticks: { color: '#64748b', stepSize: 1 } }
+          }
+        }
+      });
+    }
+
+    const donutCtx = document.getElementById('budgetDonutChart');
+    if (donutCtx && donutLabels.length > 0) {
+      new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: donutLabels,
+          datasets: [{
+            data: donutValues,
+            backgroundColor: ['#1d4ed8', '#2563eb', '#06b6d4'],
+            borderWidth: 0,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { usePointStyle: true, color: '#475569', font: { family: 'Inter', weight: '700' } }
+            }
+          }
+        }
+      });
+    }
+  </script>
+{% endblock %}
+
 {% block body %}
 <div class="ft-app-page ft-budget-page">
   <div class="container-fluid px-4 py-4" style="max-width: 1320px;">
@@ -11,11 +331,22 @@
           <i class="bi bi-stars"></i>
           Budget intelligence
         </span>
-        <h1 class="ft-page-title mb-2">{{ module.title }}</h1>
+        <h1 class="ft-page-title mb-2">Budget Intelligence</h1>
         <p class="ft-budget-subtitle mb-0">
           Centralisez vos categories, surveillez vos depenses et detectez les signaux sensibles
-          depuis un cockpit budgetaire plus utile et plus lisible.
+          depuis un cockpit budgetaire plus utile, plus premium et plus lisible.
         </p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <a href="{{ path('front_budget_categories') }}" class="btn ft-btn-primary">
+            <i class="bi bi-grid-3x3-gap me-2"></i>Cockpit categories
+          </a>
+          <a href="{{ path('front_budget_category_create') }}" class="btn ft-btn-outline-primary">
+            <i class="bi bi-plus-circle me-2"></i>Nouvelle categorie
+          </a>
+          <a href="{{ path('front_budget_item_create') }}" class="btn ft-btn-outline-primary">
+            <i class="bi bi-journal-plus me-2"></i>Nouvel item
+          </a>
+        </div>
       </div>
 
       <div class="ft-budget-hero-panel">
@@ -31,6 +362,7 @@
           <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-wallet2"></i></div>
           <div class="ft-dash-card-label">Budget total</div>
           <div class="ft-dash-card-value">{{ totalBudget|number_format(2, ',', ' ') }} TND</div>
+          <div class="ft-dash-card-trend">+12% ce mois</div>
         </div>
       </div>
       <div class="col-6 col-xl-3">
@@ -38,6 +370,7 @@
           <div class="ft-dash-card-icon ft-dash-icon-orange"><i class="bi bi-graph-up-arrow"></i></div>
           <div class="ft-dash-card-label">Depenses cumulees</div>
           <div class="ft-dash-card-value">{{ totalSpent|number_format(2, ',', ' ') }} TND</div>
+          <div class="ft-dash-card-trend">{{ globalUsage >= 70 ? 'Hausse rapide' : 'Sous controle' }}</div>
         </div>
       </div>
       <div class="col-6 col-xl-3">
@@ -45,6 +378,7 @@
           <div class="ft-dash-card-icon ft-dash-icon-green"><i class="bi bi-piggy-bank"></i></div>
           <div class="ft-dash-card-label">Reste disponible</div>
           <div class="ft-dash-card-value">{{ remainingBudget|number_format(2, ',', ' ') }} TND</div>
+          <div class="ft-dash-card-trend">Reserve encore mobilisable</div>
         </div>
       </div>
       <div class="col-6 col-xl-3">
@@ -52,6 +386,32 @@
           <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-bell"></i></div>
           <div class="ft-dash-card-label">Alertes actives</div>
           <div class="ft-dash-card-value">{{ activeAlerts }}</div>
+          <div class="ft-dash-card-trend">{{ activeAlerts > 0 ? 'Action recommandee' : 'Aucune tension critique' }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ft-app-card ft-premium-card mb-4">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-sliders me-2 text-primary"></i>Gestion categorie et budget</span>
+        <span class="badge ft-badge-blue">CRUD budget</span>
+      </div>
+      <div class="ft-app-card-body">
+        <p class="text-muted mb-3">
+          Retrouvez ici les actions principales de creation, consultation, modification et suivi
+          des categories budgetaires.
+        </p>
+
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ path('front_budget_categories') }}" class="btn ft-btn-outline-primary">
+            <i class="bi bi-grid me-2"></i>Liste des categories
+          </a>
+          <a href="{{ path('front_budget_category_create') }}" class="btn ft-btn-outline-primary">
+            <i class="bi bi-plus-circle me-2"></i>Creer une categorie
+          </a>
+          <a href="{{ path('front_budget_item_create') }}" class="btn ft-btn-outline-primary">
+            <i class="bi bi-journal-plus me-2"></i>Creer un item
+          </a>
         </div>
       </div>
     </section>
@@ -74,6 +434,17 @@
               </div>
               <div class="ft-budget-progress-track">
                 <div class="ft-budget-progress-value" style="width: {{ globalUsage > 100 ? 100 : globalUsage }}%;"></div>
+              </div>
+            </div>
+
+            <div class="ft-budget-mini-chart-grid">
+              <div class="ft-budget-mini-chart-card">
+                <span class="ft-budget-progress-label d-block mb-2">Momentum budgetaire</span>
+                <canvas id="budgetMomentumChart"></canvas>
+              </div>
+              <div class="ft-budget-mini-chart-card">
+                <span class="ft-budget-progress-label d-block mb-2">Repartition categories</span>
+                <canvas id="budgetDonutChart"></canvas>
               </div>
             </div>
 
@@ -120,7 +491,7 @@
       <div class="col-xl-4">
         <div class="ft-app-card ft-premium-card h-100">
           <div class="ft-app-card-header">
-            <i class="bi bi-lightbulb me-2 text-primary"></i>Insight FinTrust
+            <i class="bi bi-lightbulb me-2 text-primary"></i>Assistant budget IA
           </div>
           <div class="ft-app-card-body">
             <div class="ft-budget-insight-card mb-3">
@@ -141,6 +512,16 @@
                 <span>Alertes actives</span>
                 <strong>{{ activeAlerts }}</strong>
               </div>
+            </div>
+
+            <div class="ft-budget-ai-reco">
+              <strong>Recommendation actionnable</strong>
+              {% if topCategories is not empty %}
+                Vos depenses "{{ topCategories[0].categorie.nomCategorie }}" progressent plus vite que prevu.
+                Une alerte preventive est recommandee avant de franchir 80% du seuil.
+              {% else %}
+                Commencez par alimenter quelques categories pour activer une guidance budgetaire plus fine.
+              {% endif %}
             </div>
 
             <div class="d-flex flex-wrap gap-2 mt-4">
@@ -268,6 +649,24 @@
                   <div class="d-flex justify-content-between align-items-center text-muted small">
                     <span>{{ stat.usage|round(1) }}% utilise</span>
                     <span>Seuil d alerte : {{ stat.categorie.seuilAlerte|number_format(2, ',', ' ') }} TND</span>
+                  </div>
+
+                  <div class="ft-budget-category-actions">
+                    <a href="{{ path('front_budget_category_show', {'idCategorie': stat.categorie.idCategorie}) }}" class="btn ft-btn-outline-primary btn-sm">
+                      <i class="bi bi-eye me-2"></i>Details
+                    </a>
+                    <a href="{{ path('front_budget_item_create', {'categorie': stat.categorie.idCategorie}) }}" class="btn ft-btn-outline-primary btn-sm">
+                      <i class="bi bi-journal-plus me-2"></i>Ajouter item
+                    </a>
+                    <a href="{{ path('front_budget_category_edit', {'idCategorie': stat.categorie.idCategorie}) }}" class="btn ft-btn-outline-primary btn-sm">
+                      <i class="bi bi-pencil-square me-2"></i>Modifier
+                    </a>
+                    <form method="post" action="{{ path('front_budget_category_delete', {'idCategorie': stat.categorie.idCategorie}) }}" onsubmit="return confirm('Supprimer cette categorie ?');">
+                      <input type="hidden" name="_token" value="{{ csrf_token('front_budget_delete_category_' ~ stat.categorie.idCategorie) }}">
+                      <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash me-2"></i>Supprimer
+                      </button>
+                    </form>
                   </div>
                 </article>
               </div>

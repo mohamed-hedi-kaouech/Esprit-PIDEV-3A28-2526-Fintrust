@@ -1,0 +1,225 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}Categories Budget{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-budget-page {
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 22%),
+        linear-gradient(180deg, #f6f9fc 0%, #edf4fb 100%);
+    }
+
+    .ft-budget-list-toolbar,
+    .ft-budget-list-hero,
+    .ft-budget-category-card {
+      border-radius: 24px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+    }
+
+    .ft-budget-list-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(260px, 340px);
+      gap: 1.2rem;
+      padding: 1.8rem;
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 34%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 247, 255, 0.92));
+    }
+
+    .ft-budget-list-toolbar {
+      padding: 1.25rem;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+    }
+
+    .ft-budget-list-toolbar .form-control,
+    .ft-budget-list-toolbar .btn {
+      border-radius: 16px;
+      min-height: 52px;
+    }
+
+    .ft-budget-category-card {
+      background: rgba(255, 255, 255, 0.9);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ft-budget-category-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 56px rgba(15, 23, 42, 0.12);
+    }
+
+    .ft-budget-card-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.42rem 0.72rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .ft-budget-card-status.ok { background: #dcfce7; color: #166534; }
+    .ft-budget-card-status.warning { background: #fef3c7; color: #92400e; }
+    .ft-budget-card-status.danger { background: #fee2e2; color: #991b1b; }
+
+    .ft-budget-category-progress {
+      height: 12px;
+      border-radius: 999px;
+      background: #dbeafe;
+      overflow: hidden;
+      margin-top: 0.85rem;
+    }
+
+    .ft-budget-category-progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #1d4ed8, #2563eb, #06b6d4);
+    }
+
+    .ft-budget-card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+
+    .ft-budget-card-actions .btn,
+    .ft-budget-card-actions button {
+      border-radius: 14px;
+      padding: 0.6rem 0.85rem;
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 1199px) {
+      .ft-budget-list-hero {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+<div class="ft-app-page ft-budget-page">
+  <div class="container-fluid px-4 py-4" style="max-width: 1320px;">
+    <section class="ft-budget-hero ft-budget-list-hero mb-4">
+      <div class="ft-budget-hero-copy">
+        <span class="ft-budget-kicker"><i class="bi bi-grid-3x3-gap"></i>Budget cockpit</span>
+        <h1 class="ft-page-title mb-2">Mes categories budgetaires</h1>
+        <p class="ft-budget-subtitle mb-0">
+          Pilotez vos categories avec une vue plus premium, plus lisible et plus orientee decision.
+        </p>
+      </div>
+      <div class="ft-budget-hero-panel">
+        <span class="ft-budget-hero-panel-label">Navigation rapide</span>
+        <strong>{{ categories|length }} categorie(s)</strong>
+        <span>Gestion client du budget sans acces admin</span>
+      </div>
+    </section>
+
+    <section class="ft-budget-list-toolbar mb-4">
+      <div>
+        <form method="get" class="row g-3 align-items-end">
+          <div class="col-md-8">
+            <label class="form-label fw-semibold">Recherche</label>
+            <input type="search" name="search" value="{{ search }}" class="form-control" placeholder="Rechercher une categorie...">
+          </div>
+          <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn ft-btn-primary flex-grow-1">
+              <i class="bi bi-search me-2"></i>Filtrer
+            </button>
+            <a href="{{ path('front_budget_category_create') }}" class="btn ft-btn-outline-primary flex-grow-1">
+              <i class="bi bi-plus-circle me-2"></i>Nouvelle
+            </a>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    {% if categories is empty %}
+      <section class="ft-app-card ft-premium-card">
+        <div class="ft-app-card-body text-center py-5">
+          <div class="ft-page-icon-lg mx-auto mb-3"><i class="bi bi-folder2-open"></i></div>
+          <h2 class="h4 mb-2">Aucune categorie disponible</h2>
+          <p class="text-muted mb-4">Commencez par creer votre premiere categorie budgetaire dans l espace client.</p>
+          <a href="{{ path('front_budget_category_create') }}" class="btn ft-btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Creer une categorie
+          </a>
+        </div>
+      </section>
+    {% else %}
+      <section class="row g-3">
+        {% for categorie in categories %}
+          {% set spent = categorie.totalSpent is defined ? categorie.totalSpent : 0 %}
+          {% set itemCount = categorie.itemCount is defined ? categorie.itemCount : categorie.items|length %}
+          {% set usage = categorie.usage is defined ? categorie.usage : (categorie.budgetPrevu > 0 ? (spent / categorie.budgetPrevu) * 100 : 0) %}
+          {% set activeAlertes = categorie.alertCount is defined ? categorie.alertCount : categorie.alertes|filter(a => a.active)|length %}
+          <div class="col-12 col-lg-6">
+            <article class="ft-budget-category-card h-100">
+              <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                <div>
+                  <h3 class="h5 mb-1">{{ categorie.nomCategorie }}</h3>
+                  <p class="text-muted small mb-0">{{ itemCount }} item(s) • {{ activeAlertes }} alerte(s)</p>
+                </div>
+                <span class="ft-budget-card-status {{ usage >= 100 ? 'danger' : (usage >= 80 ? 'warning' : 'ok') }}">
+                  {{ usage >= 100 ? 'Critique' : (usage >= 80 ? 'Vigilance' : 'Sain') }}
+                </span>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-4">
+                  <div class="ft-budget-metric-box">
+                    <span>Budget</span>
+                    <strong>{{ categorie.budgetPrevu|number_format(2, ',', ' ') }}</strong>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="ft-budget-metric-box">
+                    <span>Depenses</span>
+                    <strong>{{ spent|number_format(2, ',', ' ') }}</strong>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="ft-budget-metric-box">
+                    <span>Seuil</span>
+                    <strong>{{ categorie.seuilAlerte|number_format(2, ',', ' ') }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ft-budget-category-progress">
+                <span style="width: {{ usage > 100 ? 100 : usage }}%;"></span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-2 text-muted small">
+                <span>{{ usage|round(1) }}% du budget consomme</span>
+                <span>{{ itemCount }} item(s)</span>
+              </div>
+
+              <div class="ft-budget-card-actions">
+                <a href="{{ path('front_budget_category_show', {'idCategorie': categorie.idCategorie}) }}" class="btn ft-btn-outline-primary btn-sm">
+                  <i class="bi bi-eye me-2"></i>Details
+                </a>
+                <a href="{{ path('front_budget_item_create', {'categorie': categorie.idCategorie}) }}" class="btn ft-btn-outline-primary btn-sm">
+                  <i class="bi bi-journal-plus me-2"></i>Ajouter item
+                </a>
+                <a href="{{ path('front_budget_category_edit', {'idCategorie': categorie.idCategorie}) }}" class="btn ft-btn-outline-primary btn-sm">
+                  <i class="bi bi-pencil-square me-2"></i>Modifier
+                </a>
+                <form method="post" action="{{ path('front_budget_category_delete', {'idCategorie': categorie.idCategorie}) }}" onsubmit="return confirm('Supprimer cette categorie ?');">
+                  <input type="hidden" name="_token" value="{{ csrf_token('front_budget_delete_category_' ~ categorie.idCategorie) }}">
+                  <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-trash me-2"></i>Supprimer
+                  </button>
+                </form>
+              </div>
+            </article>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

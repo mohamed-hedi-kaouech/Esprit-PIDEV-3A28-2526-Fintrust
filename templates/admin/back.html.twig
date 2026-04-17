@@ -123,9 +123,10 @@
           <span>Gestion des prets</span>
         </a>
 
-        <a href="{{ path('admin_categorie_list') }}" class="ft-sidebar-link">
+        <a href="{{ path('admin_categorie_stats') }}"
+           class="ft-sidebar-link {% if app.request.attributes.get('_route') == 'admin_categorie_stats' %}active{% endif %}">
           <i class="bi bi-calculator"></i>
-          <span>Suivi budgetaire</span>
+          <span>Statistiques budget</span>
         </a>
 
         <a href="{{ path('admin_publications_index') }}"

@@ -1,0 +1,71 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}{{ item.libelle }}{% endblock %}
+
+{% block body %}
+<div class="ft-app-page ft-budget-page">
+  <div class="container-fluid px-4 py-4" style="max-width: 1100px;">
+    <section class="ft-budget-hero mb-4">
+      <div class="ft-budget-hero-copy">
+        <span class="ft-budget-kicker"><i class="bi bi-eye"></i>Detail item</span>
+        <h1 class="ft-page-title mb-2">{{ item.libelle }}</h1>
+        <p class="ft-budget-subtitle mb-0">Consultez cet item sans quitter la partie client.</p>
+      </div>
+    </section>
+
+    <section class="row g-4">
+      <div class="col-lg-8">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">Informations generales</div>
+          <div class="ft-app-card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="ft-budget-metric-box"><span>ID</span><strong>{{ item.idItem }}</strong></div>
+              </div>
+              <div class="col-md-4">
+                <div class="ft-budget-metric-box"><span>Montant</span><strong>{{ item.montant|number_format(2, ',', ' ') }} TND</strong></div>
+              </div>
+              <div class="col-md-4">
+                <div class="ft-budget-metric-box"><span>Contribution</span><strong>{{ percentage|round(1) }}%</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">Categorie associee</div>
+          <div class="ft-app-card-body d-flex flex-column gap-2">
+            <strong>{{ item.categorieRel.nomCategorie }}</strong>
+            <span class="text-muted">Budget categorie: {{ item.categorieRel.budgetPrevu|number_format(2, ',', ' ') }} TND</span>
+            <span class="text-muted">Total categorie: {{ categoryTotal|number_format(2, ',', ' ') }} TND</span>
+            <a href="{{ path('front_budget_category_show', {'idCategorie': item.categorieRel.idCategorie}) }}" class="btn ft-btn-outline-primary mt-2">Voir la categorie</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ft-app-card ft-premium-card mt-4">
+      <div class="ft-app-card-header">Actions rapides</div>
+      <div class="ft-app-card-body d-flex flex-wrap gap-2">
+        <a href="{{ path('front_budget_item_edit', {'idItem': item.idItem}) }}" class="btn ft-btn-primary">
+          <i class="bi bi-pencil-square me-2"></i>Modifier
+        </a>
+        <a href="{{ path('front_budget_item_create', {'categorie': item.categorieRel.idCategorie}) }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-plus-circle me-2"></i>Ajouter un item similaire
+        </a>
+        <a href="{{ path('front_budget_category_show', {'idCategorie': item.categorieRel.idCategorie}) }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-arrow-left me-2"></i>Retour a la categorie
+        </a>
+        <form method="post" action="{{ path('front_budget_item_delete', {'idItem': item.idItem}) }}" onsubmit="return confirm('Supprimer cet item ?');">
+          <input type="hidden" name="_token" value="{{ csrf_token('front_budget_delete_item_' ~ item.idItem) }}">
+          <button type="submit" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-2"></i>Supprimer
+          </button>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

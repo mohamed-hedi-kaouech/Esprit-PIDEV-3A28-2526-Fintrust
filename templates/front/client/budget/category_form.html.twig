@@ -1,0 +1,503 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}{{ is_edit ? 'Modifier Categorie' : 'Creer Categorie' }}{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-category-form-hero,
+    .ft-category-form-card,
+    .ft-category-form-preview-card {
+      background: linear-gradient(135deg, rgba(233, 244, 255, 0.96), rgba(255, 255, 255, 0.96));
+      border: 1px solid rgba(175, 204, 255, 0.8);
+      border-radius: 2rem;
+      box-shadow: 0 24px 60px rgba(21, 96, 189, 0.08);
+    }
+
+    .ft-category-form-hero {
+      padding: 2.5rem;
+    }
+
+    .ft-category-form-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.4rem;
+      border-radius: 999px;
+      background: #fff;
+      color: #2456d3;
+      font-weight: 700;
+      border: 1px solid rgba(175, 204, 255, 0.9);
+      margin-bottom: 1.5rem;
+    }
+
+    .ft-category-form-title {
+      font-size: clamp(2.3rem, 5vw, 4rem);
+      line-height: 1.05;
+      margin-bottom: 1rem;
+      color: #17213f;
+      font-weight: 800;
+    }
+
+    .ft-category-form-subtitle,
+    .ft-category-form-preview-text,
+    .ft-category-form-help {
+      color: #4e6489;
+      font-size: 1.05rem;
+    }
+
+    .ft-category-form-card,
+    .ft-category-form-preview-card {
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .ft-category-form-label {
+      display: block;
+      margin-bottom: 0.9rem;
+      font-weight: 800;
+      color: #354d76;
+      text-transform: uppercase;
+      font-size: 0.92rem;
+    }
+
+    .ft-category-form-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      border: 1px solid rgba(192, 212, 245, 0.95);
+      border-radius: 1.3rem;
+      background: #f7fbff;
+      padding: 0.5rem 0.8rem;
+    }
+
+    .ft-category-form-input-icon {
+      color: #2a63da;
+      width: 2.4rem;
+      display: inline-flex;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .ft-category-form-input {
+      border: 1px solid rgba(192, 212, 245, 0.95);
+      border-radius: 0.9rem;
+      min-height: 3.4rem;
+      box-shadow: none;
+    }
+
+    .ft-category-form-input:focus {
+      border-color: #2a63da;
+      box-shadow: 0 0 0 0.2rem rgba(42, 99, 218, 0.12);
+    }
+
+    .ft-category-form-tip,
+    .ft-category-form-preview-note {
+      margin-top: 1rem;
+      padding: 0.9rem 1.2rem;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #fff3c9, #ffefb0);
+      color: #d06f00;
+      font-weight: 700;
+    }
+
+    .ft-category-form-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .ft-category-form-preview-item {
+      border: 1px solid rgba(198, 217, 247, 0.9);
+      border-radius: 1.25rem;
+      padding: 1.2rem;
+      background: #fff;
+    }
+
+    .ft-category-form-preview-item span {
+      display: block;
+      color: #657b9d;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .ft-category-form-preview-item strong {
+      color: #17356f;
+      font-size: 1.25rem;
+    }
+
+    .ft-category-form-preview-status {
+      margin-bottom: 1.2rem;
+    }
+
+    .ft-category-smart-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
+    .ft-category-smart-chip {
+      border: 1px solid rgba(37, 99, 235, 0.16);
+      background: #fff;
+      color: #1d4ed8;
+      border-radius: 999px;
+      padding: 0.58rem 0.9rem;
+      font-size: 0.84rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .ft-category-smart-chip:hover {
+      background: #eef6ff;
+      transform: translateY(-1px);
+    }
+
+    .ft-category-slider-shell {
+      margin-top: 1.1rem;
+      padding: 1rem;
+      border-radius: 18px;
+      background: #f8fbff;
+      border: 1px solid rgba(191, 219, 254, 0.95);
+    }
+
+    .ft-category-slider-shell input[type="range"] {
+      width: 100%;
+      accent-color: #2563eb;
+    }
+
+    .ft-category-slider-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      color: #64748b;
+      font-size: 0.84rem;
+      font-weight: 700;
+      margin-top: 0.6rem;
+    }
+
+    .ft-category-preview-health {
+      padding: 1rem;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(198, 217, 247, 0.9);
+      margin-bottom: 1rem;
+    }
+
+    .ft-category-preview-health strong {
+      display: block;
+      color: #0f172a;
+      margin-bottom: 0.35rem;
+    }
+
+    .ft-category-preview-bar {
+      height: 12px;
+      border-radius: 999px;
+      background: #dbeafe;
+      overflow: hidden;
+      margin-top: 0.8rem;
+    }
+
+    .ft-category-preview-bar span {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #16a34a, #2563eb, #eab308);
+    }
+
+    .ft-category-form-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+
+    .ft-category-form-submit {
+      min-width: 15rem;
+    }
+
+    @media (max-width: 768px) {
+      .ft-category-form-hero,
+      .ft-category-form-card,
+      .ft-category-form-preview-card {
+        padding: 1.4rem;
+        border-radius: 1.4rem;
+      }
+
+      .ft-category-form-preview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+<div class="ft-app-page ft-budget-page">
+  <div class="container-fluid px-4 py-4" style="max-width: 1320px;">
+    <section class="ft-category-form-hero mb-4">
+      <div class="ft-category-form-hero-copy">
+        <span class="ft-category-form-kicker">
+          <i class="bi bi-folder-plus"></i>
+          {{ is_edit ? 'Mise a jour' : 'Nouvelle configuration' }}
+        </span>
+        <h1 class="ft-category-form-title">{{ is_edit ? 'Modifier la categorie' : 'Creer une nouvelle categorie' }}</h1>
+        <p class="ft-category-form-subtitle">
+          Gere votre budget depuis l espace client avec une interface dediee, sans acces a l administration.
+        </p>
+      </div>
+    </section>
+
+    <div class="row g-4 align-items-start">
+      <div class="col-12 col-xl-8">
+        <section class="ft-category-form-card">
+          {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+
+          <div class="row g-4">
+            <div class="col-12 col-lg-6">
+              <div class="ft-category-form-field">
+                {{ form_label(form.nomCategorie, 'Nom de la categorie', { label_attr: { class: 'ft-category-form-label' } }) }}
+                <div class="ft-category-form-input-wrap">
+                  <span class="ft-category-form-input-icon"><i class="bi bi-folder2-open"></i></span>
+                  {{ form_widget(form.nomCategorie, {
+                    attr: {
+                      class: 'form-control ft-category-form-input',
+                      placeholder: 'Ex: Alimentation, Transport'
+                    }
+                  }) }}
+                </div>
+                <div class="ft-category-form-help">Ex: Alimentation, Transport</div>
+                <div class="ft-category-smart-row">
+                  <button type="button" class="ft-category-smart-chip" data-category-suggestion="Alimentation">Alimentation</button>
+                  <button type="button" class="ft-category-smart-chip" data-category-suggestion="Transport">Transport</button>
+                  <button type="button" class="ft-category-smart-chip" data-category-suggestion="Sante">Sante</button>
+                  <button type="button" class="ft-category-smart-chip" data-category-suggestion="Loisirs">Loisirs</button>
+                </div>
+                {{ form_errors(form.nomCategorie) }}
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+              <div class="ft-category-form-field">
+                {{ form_label(form.budgetPrevu, 'Budget prevu', { label_attr: { class: 'ft-category-form-label' } }) }}
+                <div class="ft-category-form-input-wrap">
+                  <span class="ft-category-form-input-icon"><i class="bi bi-wallet2"></i></span>
+                  {{ form_widget(form.budgetPrevu, {
+                    attr: {
+                      class: 'form-control ft-category-form-input',
+                      placeholder: 'Entrez le budget prevu',
+                      'data-preview-budget': 'true'
+                    }
+                  }) }}
+                </div>
+                <div class="ft-category-form-help">Montant maximum prevu pour cette categorie.</div>
+                <div class="ft-category-form-tip">Exemple : Budget recommande 300 EUR</div>
+                {{ form_errors(form.budgetPrevu) }}
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="ft-category-form-field">
+                {{ form_label(form.seuilAlerte, 'Seuil d alerte', { label_attr: { class: 'ft-category-form-label' } }) }}
+                <div class="ft-category-form-input-wrap">
+                  <span class="ft-category-form-input-icon"><i class="bi bi-bell"></i></span>
+                  {{ form_widget(form.seuilAlerte, {
+                    attr: {
+                      class: 'form-control ft-category-form-input',
+                      placeholder: 'Entrez le seuil d alerte',
+                      'data-preview-seuil': 'true'
+                    }
+                  }) }}
+                </div>
+                <div class="ft-category-form-help">Vous serez alerte lorsque ce seuil est atteint.</div>
+                <div class="ft-category-slider-shell">
+                  <strong class="d-block mb-2">Curseur de vigilance</strong>
+                  <input type="range" min="0" max="100" value="80" id="categoryThresholdRatio">
+                  <div class="ft-category-slider-meta">
+                    <span>Seuil conseille: 80% du budget</span>
+                    <span id="categoryThresholdHint">Zone equilibree</span>
+                  </div>
+                </div>
+                {{ form_errors(form.seuilAlerte) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="ft-category-form-actions">
+            <button type="submit" class="btn ft-btn-primary ft-category-form-submit">
+              <i class="bi bi-check-circle me-2"></i>{{ is_edit ? 'Mettre a jour la categorie' : 'Creer la categorie' }}
+            </button>
+            <button type="button" class="btn ft-btn-outline-primary" id="saveCategoryDraft">
+              <i class="bi bi-save me-2"></i>Enregistrer comme brouillon
+            </button>
+            {% if is_edit and categorie %}
+              <a href="{{ path('front_budget_category_show', {'idCategorie': categorie.idCategorie}) }}" class="btn ft-btn-outline-primary ft-category-form-cancel">Annuler</a>
+            {% else %}
+              <a href="{{ path('front_budget_categories') }}" class="btn ft-btn-outline-primary ft-category-form-cancel">Annuler</a>
+            {% endif %}
+          </div>
+
+          {{ form_end(form) }}
+        </section>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <aside class="ft-category-form-preview-card">
+          <span class="ft-category-chart-kicker">Mini preview</span>
+          <h2>Resume categorie</h2>
+          <p class="ft-category-form-preview-text">
+            Un apercu instantane pour verifier l equilibre entre votre budget et le seuil de vigilance.
+          </p>
+
+          <div class="ft-category-form-preview-grid">
+            <div class="ft-category-form-preview-item">
+              <span>Budget</span>
+              <strong id="categoryPreviewBudget">{{ categorie ? categorie.budgetPrevu|number_format(0, ',', ' ') ~ ' EUR' : '0 EUR' }}</strong>
+            </div>
+            <div class="ft-category-form-preview-item">
+              <span>Seuil</span>
+              <strong id="categoryPreviewSeuil">{{ categorie ? categorie.seuilAlerte|number_format(0, ',', ' ') ~ ' EUR' : '0 EUR' }}</strong>
+            </div>
+          </div>
+
+          <div class="ft-category-form-preview-status" id="categoryPreviewStatus">
+            <span class="ft-badge-success">Normal</span>
+          </div>
+
+          <div class="ft-category-preview-health">
+            <strong>Etat previsionnel</strong>
+            <span id="categoryHealthText">Zone de vigilance : 0%</span>
+            <div class="ft-category-preview-bar">
+              <span id="categoryPreviewBar"></span>
+            </div>
+          </div>
+
+          <div class="ft-category-form-preview-note">
+            Une bonne categorie commence par un budget clair et un seuil d alerte realiste.
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    const budgetInput = document.querySelector('[data-preview-budget="true"]');
+    const seuilInput = document.querySelector('[data-preview-seuil="true"]');
+    const budgetPreview = document.getElementById('categoryPreviewBudget');
+    const seuilPreview = document.getElementById('categoryPreviewSeuil');
+    const statusPreview = document.getElementById('categoryPreviewStatus');
+    const thresholdRatio = document.getElementById('categoryThresholdRatio');
+    const thresholdHint = document.getElementById('categoryThresholdHint');
+    const previewBar = document.getElementById('categoryPreviewBar');
+    const healthText = document.getElementById('categoryHealthText');
+    const draftButton = document.getElementById('saveCategoryDraft');
+    const categoryInput = document.getElementById('{{ form.nomCategorie.vars.id }}');
+
+    const formatAmount = (value) => {
+      const numeric = Number.parseFloat(value);
+      if (Number.isNaN(numeric) || numeric <= 0) {
+        return '0 EUR';
+      }
+
+      return new Intl.NumberFormat('fr-FR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(numeric) + ' EUR';
+    };
+
+    const updatePreview = () => {
+      const budget = Number.parseFloat(budgetInput?.value || '0');
+      const seuil = Number.parseFloat(seuilInput?.value || '0');
+
+      if (budgetPreview) {
+        budgetPreview.textContent = formatAmount(budgetInput?.value || '0');
+      }
+
+      if (seuilPreview) {
+        seuilPreview.textContent = formatAmount(seuilInput?.value || '0');
+      }
+
+      const ratio = budget > 0 ? (seuil / budget) * 100 : 0;
+      if (previewBar) {
+        previewBar.style.width = Math.max(0, Math.min(100, ratio)) + '%';
+      }
+      if (healthText) {
+        healthText.textContent = 'Zone de vigilance : ' + ratio.toFixed(0) + '%';
+      }
+
+      if (!statusPreview) {
+        return;
+      }
+
+      let badgeClass = 'ft-badge-success';
+      let badgeLabel = 'Normal';
+
+      if (budget > 0 && seuil >= budget) {
+        badgeClass = 'ft-badge-danger';
+        badgeLabel = 'Risque';
+      } else if (budget > 0 && seuil >= (budget * 0.75)) {
+        badgeClass = 'ft-badge-warning';
+        badgeLabel = 'Attention';
+      }
+
+      statusPreview.innerHTML = '<span class="' + badgeClass + '">' + badgeLabel + '</span>';
+    };
+
+    thresholdRatio?.addEventListener('input', () => {
+      const budget = Number.parseFloat(budgetInput?.value || '0');
+      const ratio = Number.parseFloat(thresholdRatio.value || '80');
+      if (budget > 0 && seuilInput) {
+        seuilInput.value = ((budget * ratio) / 100).toFixed(2);
+      }
+      if (thresholdHint) {
+        thresholdHint.textContent = ratio >= 85 ? 'Zone tres sensible' : (ratio >= 75 ? 'Zone equilibree' : 'Zone prudente');
+      }
+      updatePreview();
+    });
+
+    document.querySelectorAll('[data-category-suggestion]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        if (categoryInput) {
+          categoryInput.value = chip.dataset.categorySuggestion || '';
+          categoryInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+    });
+
+    draftButton?.addEventListener('click', () => {
+      const draft = {
+        nomCategorie: categoryInput?.value || '',
+        budgetPrevu: budgetInput?.value || '',
+        seuilAlerte: seuilInput?.value || ''
+      };
+      window.localStorage.setItem('fintrust_budget_category_draft', JSON.stringify(draft));
+      window.alert('Brouillon enregistre localement.');
+    });
+
+    budgetInput?.addEventListener('input', updatePreview);
+    seuilInput?.addEventListener('input', updatePreview);
+
+    try {
+      const draft = JSON.parse(window.localStorage.getItem('fintrust_budget_category_draft') || 'null');
+      if (draft) {
+        if (categoryInput && !categoryInput.value) {
+          categoryInput.value = draft.nomCategorie || '';
+        }
+        if (budgetInput && !budgetInput.value) {
+          budgetInput.value = draft.budgetPrevu || '';
+        }
+        if (seuilInput && !seuilInput.value) {
+          seuilInput.value = draft.seuilAlerte || '';
+        }
+      }
+    } catch (error) {
+    }
+
+    updatePreview();
+  </script>
+{% endblock %}

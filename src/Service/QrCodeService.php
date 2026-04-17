@@ -10,6 +10,10 @@ namespace App\Service;
  */
 class QrCodeService
 {
+    public function __construct(
+        private readonly string $fintrustPublicUrl = '',
+    ) {}
+
     /**
      * Génère un token unique sécurisé pour le QR code d'un utilisateur.
      * 48 caractères hexadécimaux (24 octets aléatoires).
@@ -28,7 +32,34 @@ class QrCodeService
      */
     public function getQrImageUrl(string $token, string $baseUrl = ''): string
     {
-        $data = urlencode($baseUrl . '/espace-client/qr/' . $token);
-        return "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={$data}";
+        $data = urlencode($this->getPublicProfileUrl($token, $baseUrl));
+
+        return "https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=16&ecc=M&data={$data}";
+    }
+
+    public function getPublicProfileUrl(string $token, string $baseUrl = ''): string
+    {
+        $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
+
+        return $resolvedBaseUrl . '/espace-client/qr/' . $token;
+    }
+
+    public function isLocalOnlyUrl(string $baseUrl = ''): bool
+    {
+        $resolvedBaseUrl = $this->resolveBaseUrl($baseUrl);
+        $host = (string) parse_url($resolvedBaseUrl, PHP_URL_HOST);
+        $host = strtolower($host);
+
+        return in_array($host, ['localhost', '127.0.0.1', '::1'], true);
+    }
+
+    private function resolveBaseUrl(string $baseUrl = ''): string
+    {
+        $configuredBaseUrl = trim((string) $this->fintrustPublicUrl);
+        if ($configuredBaseUrl !== '') {
+            return rtrim($configuredBaseUrl, '/');
+        }
+
+        return rtrim($baseUrl, '/');
     }
 }

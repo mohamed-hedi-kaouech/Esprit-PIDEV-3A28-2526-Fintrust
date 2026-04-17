@@ -39,6 +39,20 @@
             {% endif %}
           </span>
         </div>
+        <div class="ft-dash-hero-metrics">
+          <div class="ft-dash-hero-metric">
+            <span class="ft-dash-hero-metric-label">Segment</span>
+            <strong>{{ user.clientSegment == 'A_RISQUE' ? 'A risque' : user.clientSegment }}</strong>
+          </div>
+          <div class="ft-dash-hero-metric">
+            <span class="ft-dash-hero-metric-label">Risque</span>
+            <strong>{{ user.riskLevel }}</strong>
+          </div>
+          <div class="ft-dash-hero-metric">
+            <span class="ft-dash-hero-metric-label">Flux moyen</span>
+            <strong>{{ user.averageTransactionAmount|number_format(0, ',', ' ') }} TND</strong>
+          </div>
+        </div>
       </div>
 
       <div class="ft-dash-hero-side">
@@ -60,6 +74,16 @@
         <a href="{{ path('front_profile') }}" class="btn ft-btn-outline-primary btn-sm ft-dash-profile-btn">
           <i class="bi bi-person-gear me-1"></i>Profile
         </a>
+        <div class="ft-dash-hero-actions">
+          <a href="{{ path('front_notifications') }}" class="ft-dash-quick-link">
+            <i class="bi bi-bell"></i>
+            <span>Mes alertes</span>
+          </a>
+          <a href="#ft-services" class="ft-dash-quick-link">
+            <i class="bi bi-grid"></i>
+            <span>Mes services</span>
+          </a>
+        </div>
       </div>
     </section>
 
@@ -118,6 +142,7 @@
             {% elseif user.status == 'EN_ATTENTE' %}<span class="badge ft-badge-warning">En attente</span>
             {% else %}<span class="badge ft-badge-danger">Suspendu</span>{% endif %}
           </div>
+          <div class="ft-dash-card-note">Disponibilite immediate de vos parcours FinTrust.</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
@@ -130,6 +155,7 @@
             {% elseif user.kycStatus == 'REFUSE' %}<span class="badge ft-badge-danger">Refuse</span>
             {% else %}<span class="badge ft-badge-neutral">Non soumis</span>{% endif %}
           </div>
+          <div class="ft-dash-card-note">Niveau de verification d identite du compte.</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
@@ -137,6 +163,7 @@
           <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-calendar-check-fill"></i></div>
           <div class="ft-dash-card-label">Membre depuis</div>
           <div class="ft-dash-card-value fw-semibold small">{{ user.createdAt|date('d/m/Y') }}</div>
+          <div class="ft-dash-card-note">Presence active dans l ecosysteme FinTrust.</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
@@ -144,6 +171,7 @@
           <div class="ft-dash-card-icon ft-dash-icon-orange"><i class="bi bi-award-fill"></i></div>
           <div class="ft-dash-card-label">Role</div>
           <div class="ft-dash-card-value"><span class="badge ft-badge-blue">{{ user.role }}</span></div>
+          <div class="ft-dash-card-note">Position actuelle dans votre espace client.</div>
         </div>
       </div>
     </div>
@@ -154,6 +182,7 @@
           <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-translate"></i></div>
           <div class="ft-dash-card-label">Langue</div>
           <div class="ft-dash-card-value">{{ user.preferredLanguage|upper }}</div>
+          <div class="ft-dash-card-note">Langue principale de votre interface et des echanges.</div>
         </div>
       </div>
       <div class="col-md-6 col-xl-3">
@@ -161,6 +190,7 @@
           <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-circle-half"></i></div>
           <div class="ft-dash-card-label">Theme</div>
           <div class="ft-dash-card-value">{{ user.themeMode == 'dark' ? 'Sombre' : 'Clair' }}</div>
+          <div class="ft-dash-card-note">Ambiance d affichage adaptee a votre preference.</div>
         </div>
       </div>
       <div class="col-md-6 col-xl-3">
@@ -168,6 +198,7 @@
           <div class="ft-dash-card-icon ft-dash-icon-green"><i class="bi bi-arrow-left-right"></i></div>
           <div class="ft-dash-card-label">Frequence transactions</div>
           <div class="ft-dash-card-value">{{ user.transactionFrequency|number_format(2, ',', ' ') }}/jour</div>
+          <div class="ft-dash-card-note">Cadence moyenne detectee sur vos mouvements recents.</div>
         </div>
       </div>
       <div class="col-md-6 col-xl-3">
@@ -182,6 +213,15 @@
           <div class="ft-dash-card-icon ft-dash-icon-red"><i class="bi bi-shield-fill-exclamation"></i></div>
           <div class="ft-dash-card-label">Fraud score</div>
           <div class="ft-dash-card-value">{{ user.fraudScore|number_format(1, ',', ' ') }}/100</div>
+          <div class="ft-dash-card-note">Signal previsionnel dedie a la protection du compte.</div>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="ft-dash-card ft-dash-card-soft ft-dash-card-highlight">
+          <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-gem"></i></div>
+          <div class="ft-dash-card-label">Badge prestige</div>
+          <div class="ft-dash-card-value">{{ user.engagementBadge }}</div>
+          <div class="ft-dash-card-note">Niveau d engagement evolutif dans l univers FinTrust.</div>
         </div>
       </div>
     </div>
@@ -837,6 +877,173 @@
 
 {% block javascripts %}
   {{ parent() }}
+  <style>
+    .ft-dash-hero {
+      padding: 1.8rem 1.9rem;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.28), transparent 32%),
+        radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.14), transparent 24%),
+        linear-gradient(135deg, #ffffff 0%, #eef6ff 48%, #d8eafe 100%);
+    }
+
+    .ft-dash-hero::before {
+      content: '';
+      position: absolute;
+      inset: auto auto 16px 52%;
+      width: 220px;
+      height: 90px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(59,130,246,.12), rgba(125,211,252,.02));
+      filter: blur(18px);
+      pointer-events: none;
+    }
+
+    .ft-dash-hero-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .85rem;
+      margin-top: 1.2rem;
+    }
+
+    .ft-dash-hero-metric {
+      min-width: 120px;
+      padding: .85rem 1rem;
+      border-radius: 18px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(21,96,189,.08);
+      box-shadow: 0 16px 30px rgba(21,96,189,.08);
+      backdrop-filter: blur(6px);
+    }
+
+    .ft-dash-hero-metric-label {
+      display: block;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      color: #6480a5;
+      margin-bottom: .3rem;
+    }
+
+    .ft-dash-hero-metric strong {
+      color: #10305c;
+      font-size: 1rem;
+    }
+
+    .ft-dash-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: .6rem;
+    }
+
+    .ft-dash-quick-link {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .6rem .9rem;
+      border-radius: 999px;
+      text-decoration: none;
+      background: rgba(255,255,255,.76);
+      color: #204b87;
+      border: 1px solid rgba(21,96,189,.1);
+      font-size: .85rem;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(21,96,189,.08);
+      transition: all .2s ease;
+    }
+
+    .ft-dash-quick-link:hover {
+      transform: translateY(-1px);
+      color: #fff;
+      background: linear-gradient(135deg, #1a73e8, #1560BD);
+      border-color: transparent;
+    }
+
+    .ft-dash-card {
+      border-radius: 18px;
+      padding: 1.15rem 1.2rem;
+      box-shadow: 0 10px 28px rgba(15,23,42,.07);
+    }
+
+    .ft-dash-card-accent,
+    .ft-dash-card-soft {
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 30%),
+        linear-gradient(180deg, rgba(255,255,255,.98), #f8fbff);
+    }
+
+    .ft-dash-card-note {
+      margin-top: .15rem;
+      color: #68809f;
+      font-size: .77rem;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+
+    .ft-dash-card-highlight {
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.22), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(196,181,253,.14), transparent 28%),
+        linear-gradient(180deg, #ffffff, #eef5ff);
+    }
+
+    .ft-insight-panel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at top right, rgba(96,165,250,.12), transparent 28%),
+        linear-gradient(180deg, #ffffff, #f7fbff);
+    }
+
+    .ft-insight-panel::after {
+      content: '';
+      position: absolute;
+      right: -40px;
+      bottom: -40px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,.1), transparent 68%);
+    }
+
+    .ft-action-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 35%),
+        linear-gradient(180deg, #ffffff, #f9fbff);
+      border: 1px solid rgba(21,96,189,.08);
+      box-shadow: 0 10px 24px rgba(15,23,42,.05);
+    }
+
+    .ft-action-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: linear-gradient(180deg, #1a73e8, #7c3aed);
+      border-radius: 18px 0 0 18px;
+    }
+
+    @media (max-width: 991.98px) {
+      .ft-dash-hero-actions {
+        justify-content: flex-start;
+      }
+
+      .ft-dash-hero-metrics {
+        gap: .65rem;
+      }
+
+      .ft-dash-hero-metric {
+        min-width: 0;
+        flex: 1 1 140px;
+      }
+    }
+  </style>
   <script>
     (function () {
       const drawer = document.querySelector('[data-ft-assistant-drawer]');

@@ -157,15 +157,24 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_user_list');
         }
 
-        $qrUrl = $user->getQrToken()
-            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $request->getSchemeAndHttpHost())
+        $baseUrl = $request->getSchemeAndHttpHost();
+        $publicProfileUrl = $user->getQrToken()
+            ? $this->qrCodeService->getPublicProfileUrl($user->getQrToken(), $baseUrl)
             : null;
+        $qrUrl = $user->getQrToken()
+            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $baseUrl)
+            : null;
+        $qrNeedsPublicUrl = $user->getQrToken()
+            ? $this->qrCodeService->isLocalOnlyUrl($baseUrl)
+            : false;
 
         return $this->render('admin/users/edit.html.twig', [
             'form'  => $form,
             'user'  => $user,
             'kyc'   => $kyc,
             'qrUrl' => $qrUrl,
+            'publicProfileUrl' => $publicProfileUrl,
+            'qrNeedsPublicUrl' => $qrNeedsPublicUrl,
         ]);
     }
 
