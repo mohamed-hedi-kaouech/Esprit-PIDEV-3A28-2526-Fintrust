@@ -84,8 +84,6 @@ class ClientController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $this->behavioralProfileService->refreshUserBehavior($user);
-
         $kyc = $this->kycRepository->findLatestByUser($user);
 
         return $this->render('front/client/dashboard.html.twig', [
@@ -99,8 +97,6 @@ class ClientController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $this->behavioralProfileService->refreshUserBehavior($user);
-
         $form = $this->createForm(ProfileFormType::class, $user);
         $form->handleRequest($request);
 
@@ -111,14 +107,9 @@ class ClientController extends AbstractController
             return $this->redirectToRoute('front_profile');
         }
 
-        $qrUrl = $user->getQrToken()
-            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $request->getSchemeAndHttpHost())
-            : null;
-
         return $this->render('front/client/profile.html.twig', [
             'form' => $form,
             'user' => $user,
-            'qrUrl' => $qrUrl,
         ]);
     }
 
@@ -134,16 +125,7 @@ class ClientController extends AbstractController
             return $this->redirectToRoute('front_dashboard');
         }
 
-        if (!in_array($mode, [User::THEME_LIGHT, User::THEME_DARK], true)) {
-            $this->addFlash('error', 'Le theme demande est invalide.');
-
-            return $this->redirectToRoute('front_dashboard');
-        }
-
-        $user->setThemeMode($mode);
-        $this->userService->updateProfile($user);
-
-        $this->addFlash('success', sprintf('Theme %s active.', $mode === User::THEME_DARK ? 'sombre' : 'clair'));
+        $this->addFlash('info', 'Le changement de theme n est pas disponible avec la structure actuelle de la base.');
 
         return $this->redirect($request->headers->get('referer') ?: $this->generateUrl('front_dashboard'));
     }
@@ -284,8 +266,6 @@ class ClientController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $this->behavioralProfileService->refreshUserBehavior($user);
-
         if (!isset(self::FRONT_MODULES[$slug])) {
             throw $this->createNotFoundException('Module introuvable.');
         }
@@ -573,12 +553,6 @@ class ClientController extends AbstractController
     #[IsGranted('PUBLIC_ACCESS')]
     public function qrView(string $token): Response
     {
-        $user = $this->userService->findByQrToken($token);
-
-        if (!$user) {
-            throw $this->createNotFoundException('QR code invalide ou expire.');
-        }
-
-        return $this->render('front/client/qr_view.html.twig', ['user' => $user]);
+        throw $this->createNotFoundException('Le QR code public n est pas disponible avec la structure actuelle de la base.');
     }
 }

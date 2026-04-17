@@ -157,9 +157,7 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_user_list');
         }
 
-        $qrUrl = $user->getQrToken()
-            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $request->getSchemeAndHttpHost())
-            : null;
+        $qrUrl = null;
 
         return $this->render('admin/users/edit.html.twig', [
             'form'  => $form,

@@ -22,6 +22,9 @@
         <a href="{{ path('front_wallet_transfer_history') }}" class="btn ft-btn-outline-primary">
           <i class="bi bi-send me-1"></i>Transferts
         </a>
+        <a href="{{ path('front_wallet_international_transfer_new') }}" class="btn ft-btn-outline-primary{% if wallet and wallet.estBloque %} disabled{% endif %}">
+          <i class="bi bi-globe-americas me-1"></i>International
+        </a>
         <a href="{{ path('front_wallet_cheques') }}" class="btn ft-btn-outline-primary">
           <i class="bi bi-receipt me-1"></i>Cheques
         </a>
@@ -183,6 +186,10 @@
                 <a href="{{ path('front_wallet_transfer_new') }}" class="ft-shortcut-tile">
                   <i class="bi bi-send"></i>
                   <span>Transferer</span>
+                </a>
+                <a href="{{ path('front_wallet_international_transfer_new') }}" class="ft-shortcut-tile">
+                  <i class="bi bi-globe-americas"></i>
+                  <span>International</span>
                 </a>
                 <a href="{{ path('front_wallet_cheques') }}" class="ft-shortcut-tile">
                   <i class="bi bi-journal-text"></i>

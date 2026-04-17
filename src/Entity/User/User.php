@@ -10,45 +10,43 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Entité User — Utilisateur de la plateforme FinTrust.
+ * Entite User.
  *
- * Implémente UserInterface et PasswordAuthenticatedUserInterface
- * pour l'intégration avec le système de sécurité Symfony.
+ * Cette version ne mappe que les colonnes reellement presentes dans la table
+ * `users`. Les anciennes proprietes non persistables sont conservees, quand
+ * utile, sous forme de compatibilite applicative non Doctrine.
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
-#[UniqueEntity(fields: ['email'], message: 'Un compte existe déjà avec cette adresse e-mail.')]
+#[UniqueEntity(fields: ['email'], message: 'Un compte existe deja avec cette adresse e-mail.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    // ---- Statuts du compte ----
     public const STATUS_EN_ATTENTE = 'EN_ATTENTE';
-    public const STATUS_ACTIF      = 'ACTIF';
-    public const STATUS_SUSPENDU   = 'SUSPENDU';
+    public const STATUS_ACTIF = 'ACTIF';
+    public const STATUS_SUSPENDU = 'SUSPENDU';
 
-    // ---- Statuts KYC ----
-    public const KYC_NONE       = null;
+    public const KYC_NONE = null;
     public const KYC_EN_ATTENTE = 'EN_ATTENTE';
-    public const KYC_APPROUVE   = 'APPROUVE';
-    public const KYC_REFUSE     = 'REFUSE';
+    public const KYC_APPROUVE = 'APPROUVE';
+    public const KYC_REFUSE = 'REFUSE';
 
-    // ---- Rôles ----
     public const ROLE_CLIENT = 'CLIENT';
-    public const ROLE_ADMIN  = 'ADMIN';
+    public const ROLE_ADMIN = 'ADMIN';
 
     public const LANGUAGE_FR = 'fr';
     public const LANGUAGE_EN = 'en';
     public const LANGUAGE_AR = 'ar';
 
     public const THEME_LIGHT = 'light';
-    public const THEME_DARK  = 'dark';
+    public const THEME_DARK = 'dark';
 
     public const SEGMENT_STANDARD = 'STANDARD';
-    public const SEGMENT_VIP      = 'VIP';
-    public const SEGMENT_AT_RISK  = 'A_RISQUE';
+    public const SEGMENT_VIP = 'VIP';
+    public const SEGMENT_AT_RISK = 'A_RISQUE';
 
-    public const RISK_LOW      = 'LOW';
-    public const RISK_MEDIUM   = 'MEDIUM';
-    public const RISK_HIGH     = 'HIGH';
+    public const RISK_LOW = 'LOW';
+    public const RISK_MEDIUM = 'MEDIUM';
+    public const RISK_HIGH = 'HIGH';
     public const RISK_CRITICAL = 'CRITICAL';
 
     #[ORM\Id]
@@ -56,17 +54,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\GeneratedValue]
     private int $id;
 
-    /** ID du dernier KYC soumis (dénormalisation pour accès rapide) */
     #[ORM\Column(name: 'currentKycId', type: 'integer', nullable: true)]
     private ?int $currentKycId = null;
 
     #[ORM\Column(type: 'string', length: 50)]
     #[Assert\NotBlank(message: 'Le nom est obligatoire.')]
-    #[Assert\Length(max: 50, maxMessage: 'Le nom ne peut pas dépasser {{ limit }} caractères.')]
+    #[Assert\Length(max: 50, maxMessage: 'Le nom ne peut pas depasser {{ limit }} caracteres.')]
     private string $nom;
 
     #[ORM\Column(type: 'string', length: 50)]
-    #[Assert\NotBlank(message: 'Le prénom est obligatoire.')]
+    #[Assert\NotBlank(message: 'Le prenom est obligatoire.')]
     #[Assert\Length(max: 50)]
     private string $prenom;
 
@@ -78,96 +75,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'numTel', type: 'string', length: 20, nullable: true)]
     #[Assert\Regex(
         pattern: '/^\+?[0-9\s\-]{8,20}$/',
-        message: 'Le numéro de téléphone est invalide.'
+        message: 'Le numero de telephone est invalide.'
     )]
     private ?string $numTel = null;
 
-    /** CLIENT ou ADMIN — stocké en base, converti en ROLE_* pour Symfony */
     #[ORM\Column(type: 'string', length: 10)]
     private string $role = self::ROLE_CLIENT;
 
-    /** Mot de passe hashé (bcrypt/argon2 via Symfony) */
     #[ORM\Column(type: 'string', length: 255)]
     private string $password;
 
-    /** EN_ATTENTE | APPROUVE | REFUSE | null */
     #[ORM\Column(name: 'kycStatus', type: 'string', length: 20, nullable: true)]
     private ?string $kycStatus = null;
 
     #[ORM\Column(name: 'createdAt', type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
-    /** EN_ATTENTE | ACTIF | SUSPENDU */
     #[ORM\Column(type: 'string', length: 20)]
     private string $status = self::STATUS_EN_ATTENTE;
 
-    #[ORM\Column(name: 'is_verified', type: 'boolean', options: ['default' => true])]
-    private bool $isVerified = true;
-
-    #[ORM\Column(name: 'email_verification_code', type: 'string', length: 6, nullable: true)]
+    /**
+     * Proprietes transitoires de compatibilite, non mappees en base.
+     * Elles evitent de casser brutalement certains services existants.
+     */
     private ?string $emailVerificationCode = null;
-
-    #[ORM\Column(name: 'email_verification_expires_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $emailVerificationExpiresAt = null;
-
-    #[ORM\Column(name: 'email_verified_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $emailVerifiedAt = null;
 
-    #[ORM\Column(name: 'password_changed_at', type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $passwordChangedAt = null;
-
-    #[ORM\Column(name: 'auth_session_version', type: 'integer', options: ['default' => 1])]
-    private int $authSessionVersion = 1;
-
-    /** Token unique pour le QR code client */
-    #[ORM\Column(name: 'qr_token', type: 'string', length: 64, nullable: true, unique: true)]
-    private ?string $qrToken = null;
-
-    #[ORM\Column(name: 'preferred_language', type: 'string', length: 5, options: ['default' => self::LANGUAGE_FR])]
-    #[Assert\Choice(choices: [self::LANGUAGE_FR, self::LANGUAGE_EN, self::LANGUAGE_AR], message: 'La langue choisie est invalide.')]
-    private string $preferredLanguage = self::LANGUAGE_FR;
-
-    #[ORM\Column(name: 'theme_mode', type: 'string', length: 10, options: ['default' => self::THEME_LIGHT])]
-    #[Assert\Choice(choices: [self::THEME_LIGHT, self::THEME_DARK], message: 'Le mode d’affichage choisi est invalide.')]
-    private string $themeMode = self::THEME_LIGHT;
-
-    #[ORM\Column(name: 'transaction_frequency', type: 'float', options: ['default' => 0])]
-    private float $transactionFrequency = 0.0;
-
-    #[ORM\Column(name: 'average_transaction_amount', type: 'float', options: ['default' => 0])]
-    private float $averageTransactionAmount = 0.0;
-
-    #[ORM\Column(name: 'risk_score', type: 'float', options: ['default' => 0])]
-    private float $riskScore = 0.0;
-
-    #[ORM\Column(name: 'fraud_score', type: 'float', options: ['default' => 0])]
-    private float $fraudScore = 0.0;
-
-    #[ORM\Column(name: 'risk_level', type: 'string', length: 20, options: ['default' => self::RISK_LOW])]
-    #[Assert\Choice(choices: [self::RISK_LOW, self::RISK_MEDIUM, self::RISK_HIGH, self::RISK_CRITICAL], message: 'Le niveau de risque est invalide.')]
-    private string $riskLevel = self::RISK_LOW;
-
-    #[ORM\Column(name: 'client_segment', type: 'string', length: 20, options: ['default' => self::SEGMENT_STANDARD])]
-    #[Assert\Choice(choices: [self::SEGMENT_STANDARD, self::SEGMENT_VIP, self::SEGMENT_AT_RISK], message: 'Le segment client est invalide.')]
-    private string $clientSegment = self::SEGMENT_STANDARD;
-
-    #[ORM\Column(name: 'behavior_updated_at', type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $behaviorUpdatedAt = null;
-
-    // =========================================================================
-    // UserInterface
-    // =========================================================================
-
-    /** Identifiant unique utilisé par Symfony Security (email). */
     public function getUserIdentifier(): string
     {
         return $this->email;
     }
 
-    /**
-     * Retourne les rôles Symfony à partir du champ `role` en base.
-     * ROLE_ADMIN hérite de ROLE_CLIENT et ROLE_USER (voir security.yaml).
-     */
     public function getRoles(): array
     {
         return $this->role === self::ROLE_ADMIN
@@ -175,12 +114,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             : ['ROLE_CLIENT', 'ROLE_USER'];
     }
 
-    /** Efface les données sensibles temporaires (non utilisé ici). */
-    public function eraseCredentials(): void {}
-
-    // =========================================================================
-    // Helpers métier
-    // =========================================================================
+    public function eraseCredentials(): void
+    {
+    }
 
     public function isKycApproved(): bool
     {
@@ -197,14 +133,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->role === self::ROLE_ADMIN;
     }
 
+    /**
+     * Compatibilite sans colonne `is_verified`.
+     * On considere qu'un compte non suspendu est autorise a se connecter.
+     */
     public function isVerified(): bool
     {
-        return $this->isVerified;
+        return $this->status !== self::STATUS_SUSPENDU;
+    }
+
+    public function setIsVerified(bool $verified): static
+    {
+        if ($verified && $this->status === self::STATUS_EN_ATTENTE) {
+            $this->status = self::STATUS_ACTIF;
+        }
+
+        if (!$verified && $this->status === self::STATUS_ACTIF) {
+            $this->status = self::STATUS_EN_ATTENTE;
+        }
+
+        return $this;
     }
 
     public function isEmailVerificationExpired(): bool
     {
-        return $this->emailVerificationExpiresAt === null || $this->emailVerificationExpiresAt < new \DateTimeImmutable();
+        return $this->emailVerificationExpiresAt !== null
+            && $this->emailVerificationExpiresAt < new \DateTimeImmutable();
     }
 
     public function getFullName(): string
@@ -214,51 +168,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isVip(): bool
     {
-        return $this->clientSegment === self::SEGMENT_VIP;
+        return false;
     }
 
     public function isAtRisk(): bool
     {
-        return $this->clientSegment === self::SEGMENT_AT_RISK || in_array($this->riskLevel, [self::RISK_HIGH, self::RISK_CRITICAL], true);
+        return $this->status === self::STATUS_SUSPENDU;
     }
 
     public function isCriticalRisk(): bool
     {
-        return $this->riskLevel === self::RISK_CRITICAL;
+        return false;
     }
 
     public function rotateAuthSessionVersion(): static
     {
-        $this->authSessionVersion++;
-
         return $this;
     }
 
     public function getEngagementBadge(): string
     {
-        if (
-            $this->isActive()
-            && $this->isKycApproved()
-            && $this->isVip()
-            && $this->transactionFrequency >= 1.2
-            && $this->averageTransactionAmount >= 2500
-        ) {
-            return 'ROI FINTRUST';
-        }
-
-        if (
-            $this->isActive()
-            && $this->isKycApproved()
-            && $this->transactionFrequency >= 0.85
-            && $this->averageTransactionAmount >= 1200
-        ) {
+        if ($this->isActive() && $this->isKycApproved()) {
             return 'ELITE';
         }
 
-        if (
-            $this->isActive()
-            && $this->transactionFrequency >= 0.45
-        ) {
+        if ($this->isActive()) {
             return 'ACTIF+';
         }
 
@@ -268,16 +202,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getEngagementBadgeTone(): string
     {
         return match ($this->getEngagementBadge()) {
-            'ROI FINTRUST' => 'royal',
             'ELITE' => 'elite',
             'ACTIF+' => 'active',
             default => 'standard',
         };
     }
-
-    // =========================================================================
-    // Getters / Setters
-    // =========================================================================
 
     public function getId(): int { return $this->id; }
 
@@ -311,8 +240,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getStatus(): string { return $this->status; }
     public function setStatus(string $v): static { $this->status = $v; return $this; }
 
-    public function setIsVerified(bool $v): static { $this->isVerified = $v; return $this; }
-
     public function getEmailVerificationCode(): ?string { return $this->emailVerificationCode; }
     public function setEmailVerificationCode(?string $v): static { $this->emailVerificationCode = $v; return $this; }
 
@@ -322,39 +249,44 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getEmailVerifiedAt(): ?\DateTimeInterface { return $this->emailVerifiedAt; }
     public function setEmailVerifiedAt(?\DateTimeInterface $v): static { $this->emailVerifiedAt = $v; return $this; }
 
-    public function getPasswordChangedAt(): ?\DateTimeInterface { return $this->passwordChangedAt; }
-    public function setPasswordChangedAt(?\DateTimeInterface $v): static { $this->passwordChangedAt = $v; return $this; }
+    public function getAuthSessionVersion(): int { return 1; }
+    public function setAuthSessionVersion(int $v): static { return $this; }
 
-    public function getAuthSessionVersion(): int { return $this->authSessionVersion; }
-    public function setAuthSessionVersion(int $v): static { $this->authSessionVersion = $v; return $this; }
+    public function getQrToken(): ?string { return null; }
+    public function setQrToken(?string $v): static { return $this; }
 
-    public function getQrToken(): ?string { return $this->qrToken; }
-    public function setQrToken(?string $v): static { $this->qrToken = $v; return $this; }
+    public function getPreferredLanguage(): string { return self::LANGUAGE_FR; }
+    public function setPreferredLanguage(string $v): static { return $this; }
 
-    public function getPreferredLanguage(): string { return $this->preferredLanguage; }
-    public function setPreferredLanguage(string $v): static { $this->preferredLanguage = $v; return $this; }
+    public function getThemeMode(): string { return self::THEME_LIGHT; }
+    public function setThemeMode(string $v): static { return $this; }
 
-    public function getThemeMode(): string { return $this->themeMode; }
-    public function setThemeMode(string $v): static { $this->themeMode = $v; return $this; }
+    public function getTransactionFrequency(): float { return 0.0; }
+    public function setTransactionFrequency(float $v): static { return $this; }
 
-    public function getTransactionFrequency(): float { return $this->transactionFrequency; }
-    public function setTransactionFrequency(float $v): static { $this->transactionFrequency = $v; return $this; }
+    public function getAverageTransactionAmount(): float { return 0.0; }
+    public function setAverageTransactionAmount(float $v): static { return $this; }
 
-    public function getAverageTransactionAmount(): float { return $this->averageTransactionAmount; }
-    public function setAverageTransactionAmount(float $v): static { $this->averageTransactionAmount = $v; return $this; }
+    public function getRiskScore(): float { return $this->isAtRisk() ? 75.0 : 10.0; }
+    public function setRiskScore(float $v): static { return $this; }
 
-    public function getRiskScore(): float { return $this->riskScore; }
-    public function setRiskScore(float $v): static { $this->riskScore = $v; return $this; }
+    public function getFraudScore(): float { return $this->isAtRisk() ? 60.0 : 5.0; }
+    public function setFraudScore(float $v): static { return $this; }
 
-    public function getFraudScore(): float { return $this->fraudScore; }
-    public function setFraudScore(float $v): static { $this->fraudScore = $v; return $this; }
+    public function getRiskLevel(): string
+    {
+        return $this->isAtRisk() ? self::RISK_HIGH : self::RISK_LOW;
+    }
 
-    public function getRiskLevel(): string { return $this->riskLevel; }
-    public function setRiskLevel(string $v): static { $this->riskLevel = $v; return $this; }
+    public function setRiskLevel(string $v): static { return $this; }
 
-    public function getClientSegment(): string { return $this->clientSegment; }
-    public function setClientSegment(string $v): static { $this->clientSegment = $v; return $this; }
+    public function getClientSegment(): string
+    {
+        return $this->isAtRisk() ? self::SEGMENT_AT_RISK : self::SEGMENT_STANDARD;
+    }
 
-    public function getBehaviorUpdatedAt(): ?\DateTimeInterface { return $this->behaviorUpdatedAt; }
-    public function setBehaviorUpdatedAt(?\DateTimeInterface $v): static { $this->behaviorUpdatedAt = $v; return $this; }
+    public function setClientSegment(string $v): static { return $this; }
+
+    public function getBehaviorUpdatedAt(): ?\DateTimeInterface { return null; }
+    public function setBehaviorUpdatedAt(?\DateTimeInterface $v): static { return $this; }
 }

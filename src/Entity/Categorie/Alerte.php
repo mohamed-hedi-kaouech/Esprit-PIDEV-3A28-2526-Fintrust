@@ -25,7 +25,6 @@ class Alerte
     #[ORM\Column(name: 'active', type: 'boolean', nullable: true)]
     private bool|null $active = true;
 
-    #[ORM\Column(name: 'read_status', type: 'boolean', options: ['default' => false])]
     private bool $read = false;
 
     #[ORM\Column(name: 'created_at', type: 'datetime')]

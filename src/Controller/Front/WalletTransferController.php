@@ -77,6 +77,8 @@ class WalletTransferController extends AbstractController
 
                 $this->addFlash('error', 'Erreur technique temporaire: ' . $exception->getMessage());
             }
+        } elseif ($form->isSubmitted()) {
+            $this->addFlash('error', 'Le formulaire de transfert contient des champs invalides.');
         }
 
         return $this->render('front/client/wallet/transfer_new.html.twig', [

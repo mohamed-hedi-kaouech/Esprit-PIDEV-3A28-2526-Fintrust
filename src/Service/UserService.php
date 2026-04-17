@@ -33,14 +33,12 @@ class UserService
         $user->setStatus(User::STATUS_EN_ATTENTE);
         $user->setCreatedAt(new \DateTime());
         $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
-        $user->setQrToken($this->qrCodeService->generateToken());
         $user->setIsVerified(false);
 
         $this->refreshEmailVerificationCode($user, false);
 
         $this->em->persist($user);
         $this->em->flush();
-        $this->behavioralProfileService->refreshUserBehavior($user);
     }
 
     public function createClientByAdmin(User $user, string $plainPassword): void
@@ -48,7 +46,6 @@ class UserService
         $user->setRole(User::ROLE_CLIENT);
         $user->setCreatedAt(new \DateTime());
         $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
-        $user->setQrToken($this->qrCodeService->generateToken());
         $user->setIsVerified(true);
         $user->setEmailVerificationCode(null);
         $user->setEmailVerificationExpiresAt(null);
@@ -56,7 +53,6 @@ class UserService
 
         $this->em->persist($user);
         $this->em->flush();
-        $this->behavioralProfileService->refreshUserBehavior($user);
     }
 
     public function refreshEmailVerificationCode(User $user, bool $flush = true): string
@@ -185,26 +181,16 @@ class UserService
 
     public function updateProfile(User $user, ?string $plainPassword = null): void
     {
-        $previousRiskLevel = $user->getRiskLevel();
-
         if ($plainPassword) {
             $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
         }
 
         $this->em->flush();
-        $this->behavioralProfileService->refreshUserBehavior($user);
-
-        if (
-            $user->getRiskLevel() !== $previousRiskLevel
-            && in_array($user->getRiskLevel(), [User::RISK_HIGH, User::RISK_CRITICAL], true)
-        ) {
-            $this->notificationService->notifyRiskEscalation($user, $user->getRiskLevel());
-        }
     }
 
     public function findByQrToken(string $token): ?User
     {
-        return $this->userRepository->findOneBy(['qrToken' => $token]);
+        return null;
     }
 
     /**

@@ -22,3 +22,6 @@
 /var/cache/
 /var/log/
 ###< symfony/asset-mapper ###
+.env
+.env.local
+.env.*.local

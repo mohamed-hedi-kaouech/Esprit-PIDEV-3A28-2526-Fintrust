@@ -1,0 +1,134 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Transfert international simule{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="ft-page-icon-lg"><i class="bi bi-globe-americas"></i></div>
+        <div>
+          <h1 class="ft-page-title mb-0">Transfert international simule</h1>
+          <p class="text-muted mb-0 small">Simulation multi-devise avec taux externe, frais calcules et enregistrement local dans vos transactions.</p>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('front_wallet_dashboard') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-house-door me-1"></i>Dashboard wallet
+        </a>
+        <a href="{{ path('front_wallet_transactions') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-list-ul me-1"></i>Transactions
+        </a>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-xl-7">
+        <div class="ft-app-card ft-premium-card">
+          <div class="ft-app-card-header">
+            <i class="bi bi-send-check me-2 text-primary"></i>Formulaire de transfert
+          </div>
+          <div class="ft-app-card-body">
+            {{ form_start(form) }}
+              <div class="row g-3">
+                <div class="col-12">
+                  {{ form_label(form.sourceWalletId, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                  {{ form_widget(form.sourceWalletId) }}
+                  {{ form_errors(form.sourceWalletId) }}
+                </div>
+                <div class="col-md-6">
+                  {{ form_label(form.amount, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                  {{ form_widget(form.amount) }}
+                  {{ form_errors(form.amount) }}
+                </div>
+                <div class="col-md-6">
+                  {{ form_label(form.beneficiary, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                  {{ form_widget(form.beneficiary) }}
+                  {{ form_errors(form.beneficiary) }}
+                </div>
+                <div class="col-md-6">
+                  {{ form_label(form.sourceCurrency, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                  {{ form_widget(form.sourceCurrency) }}
+                  {{ form_errors(form.sourceCurrency) }}
+                </div>
+                <div class="col-md-6">
+                  {{ form_label(form.targetCurrency, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                  {{ form_widget(form.targetCurrency) }}
+                  {{ form_errors(form.targetCurrency) }}
+                </div>
+                <div class="col-12">
+                  {{ form_label(form.reference, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                  {{ form_widget(form.reference) }}
+                  {{ form_errors(form.reference) }}
+                </div>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 mt-4">
+                <button type="submit" name="preview_transfer" value="1" class="btn ft-btn-outline-primary">
+                  <i class="bi bi-calculator me-1"></i>Calculer le recapitulatif
+                </button>
+
+                {% if preview %}
+                  <button type="submit" name="confirm_transfer" value="1" class="btn ft-btn-primary">
+                    <i class="bi bi-shield-check me-1"></i>Confirmer le transfert
+                  </button>
+                {% endif %}
+              </div>
+            {{ form_end(form) }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-5">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-info-circle me-2 text-primary"></i>Principes de la demo
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-history-card mb-3">
+              <span class="ft-history-icon blue"><i class="bi bi-currency-exchange"></i></span>
+              <div>
+                <strong>Taux externe</strong>
+                <p class="mb-0">Recuperation du taux du jour via `HttpClient` Symfony.</p>
+              </div>
+            </div>
+            <div class="ft-history-card mb-3">
+              <span class="ft-history-icon orange"><i class="bi bi-percent"></i></span>
+              <div>
+                <strong>Frais simules</strong>
+                <p class="mb-0">Frais bancaires calcules cote serveur pour un rendu realiste.</p>
+              </div>
+            </div>
+            <div class="ft-history-card mb-3">
+              <span class="ft-history-icon green"><i class="bi bi-database-check"></i></span>
+              <div>
+                <strong>Trace locale</strong>
+                <p class="mb-0">Une transaction locale de type `transfert` est enregistree avec un marqueur international dans la description.</p>
+              </div>
+            </div>
+            <div class="alert alert-light border mb-0">
+              Le debit est refuse automatiquement si le wallet est bloque, inactif ou si le solde ne couvre pas le montant plus les frais.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if preview %}
+      <div class="row g-4 mt-1">
+        <div class="col-12">
+          {% include 'front/client/wallet/_international_transfer_summary.html.twig' with {transfer: preview, mode: 'preview'} %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if completedTransfer %}
+      <div class="row g-4 mt-1">
+        <div class="col-12">
+          {% include 'front/client/wallet/_international_transfer_summary.html.twig' with {transfer: completedTransfer, mode: 'success'} %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

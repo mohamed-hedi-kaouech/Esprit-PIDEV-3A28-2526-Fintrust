@@ -5,9 +5,9 @@ namespace App\Controller\Admin;
 use App\Entity\Categorie\Alerte;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\Request;
 
 #[Route('/admin/alerte', name: 'admin_alerte_')]
 class AlerteController extends AbstractController
@@ -23,8 +23,8 @@ class AlerteController extends AbstractController
             ->createQueryBuilder('a')
             ->leftJoin('a.categorie', 'c')
             ->addSelect('c')
-            ->addOrderBy('a.read', 'ASC')
-            ->orderBy('a.createdAt', 'DESC')
+            ->addOrderBy('a.active', 'DESC')
+            ->addOrderBy('a.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
 
@@ -38,13 +38,12 @@ class AlerteController extends AbstractController
     {
         if (!$this->isCsrfTokenValid('mark_read' . $alerte->getIdAlerte(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+
             return $this->redirectToRoute('admin_alerte_list');
         }
 
-        $alerte->setRead(true);
-        $this->entityManager->flush();
+        $this->addFlash('info', 'Le statut de lecture n est pas disponible avec la base actuelle. Aucune modification n a ete appliquee.');
 
-        $this->addFlash('success', 'Alerte marquée comme lue.');
         return $this->redirectToRoute('admin_alerte_list');
     }
 
@@ -53,13 +52,12 @@ class AlerteController extends AbstractController
     {
         if (!$this->isCsrfTokenValid('mark_unread' . $alerte->getIdAlerte(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+
             return $this->redirectToRoute('admin_alerte_list');
         }
 
-        $alerte->setRead(false);
-        $this->entityManager->flush();
+        $this->addFlash('info', 'Le statut de lecture n est pas disponible avec la base actuelle. Aucune modification n a ete appliquee.');
 
-        $this->addFlash('success', 'Alerte marquée comme non lue.');
         return $this->redirectToRoute('admin_alerte_list');
     }
 
@@ -68,13 +66,15 @@ class AlerteController extends AbstractController
     {
         if (!$this->isCsrfTokenValid('delete' . $alerte->getIdAlerte(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+
             return $this->redirectToRoute('admin_alerte_list');
         }
 
         $this->entityManager->remove($alerte);
         $this->entityManager->flush();
 
-        $this->addFlash('success', 'Alerte supprimée avec succès.');
+        $this->addFlash('success', 'Alerte supprimee avec succes.');
+
         return $this->redirectToRoute('admin_alerte_list');
     }
 }

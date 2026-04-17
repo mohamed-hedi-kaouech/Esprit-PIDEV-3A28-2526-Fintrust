@@ -6,6 +6,10 @@
 parameters:
     fintrust.mailer_from: '%env(string:FINTRUST_SMTP_FROM)%'
     fintrust.login_url: '%env(string:FINTRUST_LOGIN_URL)%'
+    fintrust.openai_api_key_default: ''
+    fintrust.openai_model_default: 'gpt-4.1-mini'
+    fintrust.openai_api_key: '%env(default:fintrust.openai_api_key_default:OPENAI_API_KEY)%'
+    fintrust.openai_model: '%env(default:fintrust.openai_model_default:OPENAI_MODEL)%'
 
 services:
     # default configuration for services in *this* file
@@ -17,6 +21,8 @@ services:
             string $kernelEnvironment: '%kernel.environment%'
             string $fintrustMailerFrom: '%fintrust.mailer_from%'
             string $fintrustLoginUrl: '%fintrust.login_url%'
+            string $openAiApiKey: '%fintrust.openai_api_key%'
+            string $openAiModel: '%fintrust.openai_model%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

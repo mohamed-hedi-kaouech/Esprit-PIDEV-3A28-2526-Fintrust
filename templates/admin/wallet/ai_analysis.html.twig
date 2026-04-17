@@ -1,0 +1,183 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Analyse IA Wallet #{{ wallet.idWallet }}{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_wallet_index') }}" class="text-muted small text-decoration-none">Pilotage Wallet</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_wallet_show', {id: wallet.idWallet}) }}" class="text-muted small text-decoration-none">Wallet #{{ wallet.idWallet }}</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Analyse IA</span>
+{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="ft-admin-page-title mb-1">
+      <i class="bi bi-stars me-2 text-primary"></i>Analyse IA du wallet #{{ wallet.idWallet }}
+    </h1>
+    <p class="text-muted mb-0">Synthese intelligente du comportement du wallet pour aider l admin a detecter les anomalies.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{{ path('admin_wallet_show', {id: wallet.idWallet}) }}" class="btn ft-btn-outline-primary">
+      <i class="bi bi-arrow-left me-2"></i>Retour au wallet
+    </a>
+    <a href="{{ path('admin_wallet_ai_analysis', {id: wallet.idWallet}) }}" class="btn ft-btn-primary">
+      <i class="bi bi-arrow-repeat me-2"></i>Relancer l analyse
+    </a>
+  </div>
+</div>
+
+{% if analysisSource == 'local_fallback' %}
+  <div class="alert alert-warning">
+    <strong>Analyse de secours generee localement.</strong>
+    <div class="small mt-2">Le service IA externe est temporairement indisponible.</div>
+  </div>
+{% elseif analysisError %}
+  <div class="alert alert-danger">
+    <strong>Analyse indisponible :</strong> {{ analysisError }}
+  </div>
+{% endif %}
+
+<section class="row g-3 mb-4">
+  <div class="col-md-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue h-100">
+      <div class="ft-admin-kpi-mini-label">Solde</div>
+      <div class="ft-admin-kpi-mini-value">{{ snapshot.balance|number_format(2, ',', ' ') }}</div>
+      <div class="ft-admin-kpi-mini-text">{{ snapshot.currency }}</div>
+    </article>
+  </div>
+  <div class="col-md-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-green h-100">
+      <div class="ft-admin-kpi-mini-label">Transactions</div>
+      <div class="ft-admin-kpi-mini-value">{{ snapshot.total_transactions }}</div>
+      <div class="ft-admin-kpi-mini-text">{{ snapshot.recent_transactions_30d }} sur 30 jours</div>
+    </article>
+  </div>
+  <div class="col-md-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-amber h-100">
+      <div class="ft-admin-kpi-mini-label">Cheques</div>
+      <div class="ft-admin-kpi-mini-value">{{ snapshot.total_cheques }}</div>
+      <div class="ft-admin-kpi-mini-text">{{ snapshot.refused_cheques }} refuses</div>
+    </article>
+  </div>
+  <div class="col-md-3">
+    <article class="ft-admin-kpi-mini {{ snapshot.is_blocked ? 'ft-admin-kpi-mini-red' : 'ft-admin-kpi-mini-green' }} h-100">
+      <div class="ft-admin-kpi-mini-label">Etat</div>
+      <div class="ft-admin-kpi-mini-value">{{ snapshot.status|upper }}</div>
+      <div class="ft-admin-kpi-mini-text">{{ snapshot.is_blocked ? 'Wallet bloque' : 'Wallet non bloque' }}</div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4">
+  <div class="col-xl-8">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-robot me-2 text-primary"></i>Lecture IA</span>
+        {% if model %}
+          <span class="badge {{ analysisSource == 'local_fallback' ? 'ft-badge-warning' : 'ft-badge-blue' }}">{{ model }}</span>
+        {% endif %}
+      </div>
+      <div class="ft-admin-card-body">
+        {% if analysis %}
+          {% set riskTone = analysis.risk_level == 'eleve' ? 'danger' : (analysis.risk_level == 'moyen' ? 'warning' : 'success') %}
+          <div class="mb-4">
+            <div class="small text-muted mb-2">Niveau de risque estime</div>
+            <span class="badge ft-badge-{{ riskTone }}">{{ analysis.risk_level|upper }}</span>
+          </div>
+
+          <div class="mb-4">
+            <h5 class="fw-bold">1. Resume du comportement</h5>
+            <p class="mb-0">{{ analysis.summary }}</p>
+          </div>
+
+          <div class="mb-4">
+            <h5 class="fw-bold">2. Anomalies eventuelles</h5>
+            {% if analysis.anomalies is empty %}
+              <p class="text-muted mb-0">Aucune anomalie majeure remontee par l IA.</p>
+            {% else %}
+              <ul class="mb-0">
+                {% for item in analysis.anomalies %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <h5 class="fw-bold">3. Recommandations admin</h5>
+            {% if analysis.recommendations is empty %}
+              <p class="text-muted mb-0">Aucune recommandation specifique fournie.</p>
+            {% else %}
+              <ul class="mb-0">
+                {% for item in analysis.recommendations %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+
+          <div>
+            <h5 class="fw-bold">4. Explication claire</h5>
+            <p class="mb-0">{{ analysis.explanation }}</p>
+          </div>
+        {% else %}
+          <div class="text-muted">
+            L analyse n a pas pu etre produite. Verifiez la configuration `OPENAI_API_KEY` puis relancez.
+          </div>
+        {% endif %}
+      </div>
+    </article>
+  </div>
+
+  <div class="col-xl-4">
+    <article class="ft-admin-card mb-4">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-database me-2 text-primary"></i>Donnees envoyees au modele
+      </div>
+      <div class="ft-admin-card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-6 text-muted">Frequence</dt>
+          <dd class="col-6">{{ snapshot.activity_frequency }}</dd>
+
+          <dt class="col-6 text-muted">Tentatives echouees</dt>
+          <dd class="col-6">{{ snapshot.failed_attempts }}</dd>
+
+          <dt class="col-6 text-muted">Actif</dt>
+          <dd class="col-6">{{ snapshot.is_active ? 'Oui' : 'Non' }}</dd>
+
+          <dt class="col-6 text-muted">Bloque</dt>
+          <dd class="col-6">{{ snapshot.is_blocked ? 'Oui' : 'Non' }}</dd>
+
+          <dt class="col-6 text-muted">Date creation</dt>
+          <dd class="col-6">{{ snapshot.created_at ?: '-' }}</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="ft-admin-card">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-clock-history me-2 text-primary"></i>Dernieres transactions
+      </div>
+      <div class="ft-admin-card-body p-0">
+        {% if snapshot.latest_transactions is empty %}
+          <div class="p-4 text-muted">Aucune transaction recente.</div>
+        {% else %}
+          <div class="list-group list-group-flush">
+            {% for item in snapshot.latest_transactions %}
+              <div class="list-group-item px-4 py-3">
+                <div class="fw-semibold">#{{ item.id }} · {{ item.type|upper }}</div>
+                <div class="text-muted small">{{ item.amount|number_format(2, ',', ' ') }} {{ snapshot.currency }}</div>
+                <div class="small">{{ item.description ?: 'Sans description' }}</div>
+                <div class="text-muted small mt-1">{{ item.date }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}

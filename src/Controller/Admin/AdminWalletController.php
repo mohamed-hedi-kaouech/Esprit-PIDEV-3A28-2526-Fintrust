@@ -7,6 +7,7 @@ use App\Entity\Wallet\Cheque;
 use App\Entity\Wallet\Transaction;
 use App\Entity\Wallet\Wallet;
 use App\Service\NotificationService;
+use App\Service\OpenAIWalletAnalysisService;
 use App\Service\WalletAuditService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
@@ -24,6 +25,7 @@ class AdminWalletController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly NotificationService $notificationService,
+        private readonly OpenAIWalletAnalysisService $openAIWalletAnalysisService,
         private readonly WalletAuditService $walletAuditService,
     ) {
     }
@@ -242,6 +244,42 @@ class AdminWalletController extends AbstractController
             'transactionStats' => $transactionStats,
             'latestCheques' => $latestCheques,
             'auditEntries' => $this->walletAuditService->getRecentEntries(20, $wallet->getIdUser()),
+        ]);
+    }
+
+    #[Route('/{id}/analyse-ia', name: 'ai_analysis', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function aiAnalysis(int $id): Response
+    {
+        /** @var Wallet|null $wallet */
+        $wallet = $this->entityManager->getRepository(Wallet::class)->find($id);
+
+        if (!$wallet instanceof Wallet) {
+            throw $this->createNotFoundException('Wallet introuvable.');
+        }
+
+        $snapshot = $this->openAIWalletAnalysisService->buildWalletSnapshot($wallet);
+        $analysis = null;
+        $errorMessage = null;
+        $model = null;
+        $analysisSource = null;
+
+        $result = $this->openAIWalletAnalysisService->analyzeWalletWithFallback($wallet);
+        $snapshot = $result['snapshot'];
+        $analysis = $result['analysis'];
+        $model = $result['model'];
+        $analysisSource = $result['source'];
+
+        if (($result['fallback_reason'] ?? null) !== null) {
+            $this->addFlash('warning', 'Analyse de secours generee localement.');
+        }
+
+        return $this->render('admin/wallet/ai_analysis.html.twig', [
+            'wallet' => $wallet,
+            'snapshot' => $snapshot,
+            'analysis' => $analysis,
+            'analysisError' => $errorMessage,
+            'model' => $model,
+            'analysisSource' => $analysisSource,
         ]);
     }
 

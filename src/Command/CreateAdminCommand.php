@@ -3,8 +3,6 @@
 namespace App\Command;
 
 use App\Entity\User\User;
-use App\Service\BehavioralProfileService;
-use App\Service\QrCodeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -15,15 +13,13 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[AsCommand(
     name: 'app:create-admin',
-    description: 'Créer un utilisateur administrateur',
+    description: 'Creer un utilisateur administrateur',
 )]
 class CreateAdminCommand extends Command
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly QrCodeService $qrCodeService,
-        private readonly BehavioralProfileService $behavioralProfileService,
     ) {
         parent::__construct();
     }
@@ -37,14 +33,13 @@ class CreateAdminCommand extends Command
         $nom = 'Administrateur';
         $prenom = 'FinTrust';
 
-        // Vérifier si l'admin existe déjà
         $existingAdmin = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
         if ($existingAdmin) {
-            $io->warning("Un utilisateur avec l'email {$email} existe déjà.");
+            $io->warning("Un utilisateur avec l'email {$email} existe deja.");
+
             return Command::FAILURE;
         }
 
-        // Créer l'admin
         $admin = new User();
         $admin->setEmail($email);
         $admin->setNom($nom);
@@ -53,21 +48,14 @@ class CreateAdminCommand extends Command
         $admin->setStatus(User::STATUS_ACTIF);
         $admin->setCreatedAt(new \DateTime());
         $admin->setPassword($this->passwordHasher->hashPassword($admin, $password));
-        $admin->setQrToken($this->qrCodeService->generateToken());
         $admin->setIsVerified(true);
-        $admin->setEmailVerificationCode(null);
-        $admin->setEmailVerificationExpiresAt(null);
-        $admin->setEmailVerifiedAt(new \DateTime());
 
         $this->em->persist($admin);
         $this->em->flush();
 
-        // Initialiser le profil comportemental
-        $this->behavioralProfileService->refreshUserBehavior($admin);
-
-        $io->success("Admin créé avec succès !");
+        $io->success('Admin cree avec succes !');
         $io->table(
-            ['Email', 'Mot de passe', 'Rôle'],
+            ['Email', 'Mot de passe', 'Role'],
             [[$email, $password, 'ADMIN']]
         );
 
