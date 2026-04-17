@@ -223,15 +223,8 @@
     const text = document.getElementById('biometricModalText');
     const modeLabel = document.getElementById('biometricModeLabel');
     let stream = null;
-    let scanTimers = [];
-
-    const clearTimers = () => {
-      scanTimers.forEach((timer) => window.clearTimeout(timer));
-      scanTimers = [];
-    };
 
     const stopCamera = () => {
-      clearTimers();
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
         stream = null;
@@ -265,38 +258,6 @@
       feedback.textContent = '';
     };
 
-    const submitLoginAfterRecognition = () => {
-      const email = emailInput?.value.trim() ?? '';
-      const password = passwordInput?.value ?? '';
-
-      if (email === '' || password.trim() === '') {
-        setStatus('Connexion impossible');
-        setFeedback('Renseignez votre adresse e-mail et votre mot de passe avant d utiliser la connexion faciale.', 'error');
-        retryButton?.classList.remove('d-none');
-        return;
-      }
-
-      if (captchaCheckbox && !captchaCheckbox.checked) {
-        setStatus('Verification supplementaire requise');
-        setFeedback('Veuillez valider la verification anti-bot avant de continuer.', 'error');
-        retryButton?.classList.remove('d-none');
-        return;
-      }
-
-      setStatus('Connexion en cours...');
-      setFeedback('Identite reconnue. Connexion securisee en cours...', 'success');
-      stopCamera();
-
-      window.setTimeout(() => {
-        if (loginForm?.requestSubmit) {
-          loginForm.requestSubmit();
-          return;
-        }
-
-        loginForm?.submit();
-      }, 700);
-    };
-
     const openModal = async (mode) => {
       if (!modal) {
         return;
@@ -311,40 +272,20 @@
       if (mode === 'enroll') {
         modeLabel.textContent = 'Activation biometrique';
         title.textContent = 'Enregistrer mon visage sur cet appareil';
-        text.textContent = 'Connectez-vous d abord normalement, puis utilisez cette option pour activer une connexion plus rapide et plus securisee.';
-        setStatus('Activation disponible apres une connexion classique.');
+        text.textContent = 'Un enrôlement biométrique réel doit être lié à un appareil sécurisé pour éviter qu une autre personne puisse se connecter à votre place.';
+        setStatus('Activation securisee non disponible');
         placeholder?.classList.remove('d-none');
-        setFeedback('Le design et le parcours sont prets. Il faudra encore brancher un vrai service biometrque cote serveur pour une activation complete.', 'info');
+        setFeedback('Le mode de demonstration a ete desactive. Tant qu un vrai systeme securise de type passkey/WebAuthn n est pas en place, aucun visage ne peut etre enregistre ni utilise pour ouvrir une session.', 'error');
         return;
       }
 
       modeLabel.textContent = 'Connexion biometrique';
-      title.textContent = 'Connexion securisee par visage';
-      text.textContent = 'Positionnez votre visage dans le cadre pour continuer.';
-      setStatus('Preparation de la camera...');
+      title.textContent = 'Connexion biométrique sécurisée indisponible';
+      text.textContent = 'La connexion par visage a ete bloquee tant qu une verification biométrique reelle et securisee n est pas implementee.';
+      setStatus('Connexion faciale desactivee');
       placeholder?.classList.remove('d-none');
-
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-        if (video) {
-          video.srcObject = stream;
-        }
-
-        setStatus('Visage detecte');
-        placeholder?.classList.add('d-none');
-        scanTimers.push(window.setTimeout(() => setStatus('Verification en cours...'), 1200));
-        scanTimers.push(window.setTimeout(() => {
-          setStatus('Identite confirmee');
-          setFeedback('Identite reconnue. Connexion en cours...', 'success');
-        }, 2600));
-        scanTimers.push(window.setTimeout(() => {
-          submitLoginAfterRecognition();
-        }, 3600));
-      } catch (error) {
-        setStatus('Camera indisponible');
-        setFeedback('Nous n avons pas pu demarrer la camera. Utilisez votre mot de passe ou reessayez.', 'error');
-        retryButton?.classList.remove('d-none');
-      }
+      stopCamera();
+      setFeedback('Pour empecher qu une autre personne soit acceptee par erreur, la version actuelle a ete desactivee. Utilisez votre mot de passe jusqu a la mise en place d une vraie authentification biométrique liee a l appareil.', 'error');
     };
 
     const closeModal = () => {
@@ -362,11 +303,7 @@
 
     openLoginButton?.addEventListener('click', () => openModal('login'));
     openEnrollButton?.addEventListener('click', () => openModal('enroll'));
-    retryButton?.addEventListener('click', () => {
-      stopCamera();
-      resetFeedback();
-      openModal('login');
-    });
+    retryButton?.addEventListener('click', () => closeModal());
     closeButtons.forEach((button) => button.addEventListener('click', closeModal));
 
     document.addEventListener('keydown', (event) => {
