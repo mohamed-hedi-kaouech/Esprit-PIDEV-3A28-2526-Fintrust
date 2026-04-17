@@ -11,8 +11,10 @@ use App\Security\KycAccessChecker;
 use App\Security\RiskAccessChecker;
 use App\Service\BehavioralProfileService;
 use App\Service\CaptchaService;
+use App\Service\EconomicDataService;
 use App\Service\FinancialNewsService;
 use App\Service\KycService;
+use App\Service\MarketWatchService;
 use App\Service\NotificationService;
 use App\Service\KycVerificationCenterService;
 use App\Service\QrCodeService;
@@ -67,6 +69,8 @@ class ClientController extends AbstractController
         private readonly QrCodeService $qrCodeService,
         private readonly UserIntelligenceService $userIntelligenceService,
         private readonly FinancialNewsService $financialNewsService,
+        private readonly EconomicDataService $economicDataService,
+        private readonly MarketWatchService $marketWatchService,
         private readonly KycVerificationCenterService $kycVerificationCenterService,
         private readonly KycAccessChecker $kycAccessChecker,
         private readonly RiskAccessChecker $riskAccessChecker,
@@ -87,7 +91,73 @@ class ClientController extends AbstractController
             'user' => $user,
             'kyc' => $kyc,
             'newsFeed' => $this->financialNewsService->getUserFeed($user, 3),
+            'economyOverview' => $this->economicDataService->getOverview(),
+            'watchlistHighlights' => $this->marketWatchService->getWatchlistHighlights(3),
         ]);
+    }
+
+    #[Route('/marches-economie', name: 'markets', methods: ['GET'])]
+    public function markets(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        $selectedSymbol = (string) $request->query->get('symbol', '');
+        $watchlist = $this->marketWatchService->getWatchlist();
+        $defaultSymbol = $selectedSymbol !== '' ? $selectedSymbol : ($watchlist[0]['symbol'] ?? 'AAPL');
+        $assetDetail = $this->marketWatchService->getAssetDetail($defaultSymbol);
+
+        return $this->render('front/client/markets.html.twig', [
+            'user' => $user,
+            'economyOverview' => $this->economicDataService->getOverview(),
+            'inflation' => $this->economicDataService->getInflation(),
+            'rates' => $this->economicDataService->getRates(),
+            'currencies' => $this->economicDataService->getCurrencies(),
+            'indicators' => $this->economicDataService->getIndicators(),
+            'watchlist' => $watchlist,
+            'watchlistHighlights' => $this->marketWatchService->getHighlights(),
+            'trendingAssets' => $this->marketWatchService->getTrending(),
+            'discoverableAssets' => $this->marketWatchService->getDiscoverableAssets(),
+            'marketOverview' => $this->marketWatchService->getMarketOverview(),
+            'assetDetail' => $assetDetail,
+        ]);
+    }
+
+    #[Route('/marches-economie/watchlist/add', name: 'watchlist_add', methods: ['POST'])]
+    public function addToWatchlist(Request $request): RedirectResponse
+    {
+        if (!$this->isCsrfTokenValid('watchlist_add', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'La demande est invalide.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        $symbol = (string) $request->request->get('symbol', '');
+        if ($symbol === '' || !$this->marketWatchService->addToWatchlist($symbol)) {
+            $this->addFlash('error', 'Actif introuvable.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        $this->addFlash('success', 'Actif ajoute a votre watchlist.');
+
+        return $this->redirectToRoute('front_markets', ['symbol' => $symbol]);
+    }
+
+    #[Route('/marches-economie/watchlist/{symbol}/remove', name: 'watchlist_remove', methods: ['POST'])]
+    public function removeFromWatchlist(string $symbol, Request $request): RedirectResponse
+    {
+        if (!$this->isCsrfTokenValid('watchlist_remove_' . $symbol, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'La demande est invalide.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        $this->marketWatchService->removeFromWatchlist($symbol);
+        $this->addFlash('success', 'Actif retire de votre watchlist.');
+
+        return $this->redirectToRoute('front_markets');
     }
 
     #[Route('/actualites-financieres', name: 'news', methods: ['GET'])]
