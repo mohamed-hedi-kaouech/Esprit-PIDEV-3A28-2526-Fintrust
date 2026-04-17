@@ -232,6 +232,56 @@
       </div>
     </div>
 
+    <div class="ft-app-card mb-4 ft-premium-card ft-market-widget-card">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-bar-chart-line me-2 text-primary"></i>Marches & watchlist</span>
+        <a href="{{ path('front_markets') }}" class="btn ft-btn-outline-primary btn-sm">Voir plus</a>
+      </div>
+      <div class="ft-app-card-body">
+        <div class="row g-3">
+          <div class="col-xl-4">
+            <div class="ft-market-overview-card">
+              <div class="ft-market-overview-kicker">Vue d ensemble economique</div>
+              <h3>{{ economyOverview.summary }}</h3>
+              <div class="ft-market-overview-grid">
+                <div class="ft-market-overview-item">
+                  <span>Inflation</span>
+                  <strong>{{ economyOverview.inflationRate|number_format(1, ',', ' ') }}%</strong>
+                </div>
+                <div class="ft-market-overview-item">
+                  <span>Taux</span>
+                  <strong>{{ economyOverview.interestRate|number_format(2, ',', ' ') }}%</strong>
+                </div>
+                <div class="ft-market-overview-item">
+                  <span>Devise</span>
+                  <strong>{{ economyOverview.primaryCurrency }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-8">
+            <div class="row g-3">
+              {% for item in watchlistHighlights %}
+                <div class="col-md-4">
+                  <div class="ft-market-mini-card">
+                    <div class="ft-market-mini-top">
+                      <span class="badge ft-badge-neutral">{{ item.category }}</span>
+                      <span class="ft-market-mini-symbol">{{ item.symbol }}</span>
+                    </div>
+                    <strong>{{ item.name }}</strong>
+                    <div class="ft-market-mini-value">{{ item.currentValue|number_format(2, ',', ' ') }}</div>
+                    <div class="ft-market-mini-trend {{ item.trend == 'UP' ? 'up' : (item.trend == 'DOWN' ? 'down' : 'stable') }}">
+                      {{ item.changePercent >= 0 ? '+' : '' }}{{ item.changePercent|number_format(2, ',', ' ') }}%
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
       <div class="ft-app-card mb-4 ft-premium-card ft-relax-dashboard-card" data-ft-dash-relax>
         <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <span><i class="bi bi-stars me-2 text-primary"></i>Espace detente</span>
@@ -1005,6 +1055,99 @@
   {% block javascripts %}
   {{ parent() }}
   <style>
+    .ft-market-widget-card {
+      border: 1px solid rgba(191, 219, 254, 0.95);
+      background:
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.08), transparent 24%),
+        radial-gradient(circle at left bottom, rgba(59, 130, 246, 0.09), transparent 24%),
+        linear-gradient(135deg, rgba(255,255,255,.99), rgba(247,251,255,.98));
+      box-shadow: 0 22px 42px rgba(15, 23, 42, 0.06);
+    }
+    .ft-market-overview-card {
+      padding: 1.15rem;
+      border-radius: 1.25rem;
+      border: 1px solid #dbe7f7;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(244,250,255,.95));
+      height: 100%;
+    }
+    .ft-market-overview-kicker {
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .72rem;
+      font-weight: 800;
+      margin-bottom: .45rem;
+    }
+    .ft-market-overview-card h3 {
+      color: #0f172a;
+      font-size: 1.02rem;
+      font-weight: 800;
+      line-height: 1.55;
+      margin-bottom: 1rem;
+    }
+    .ft-market-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .65rem;
+    }
+    .ft-market-overview-item {
+      padding: .8rem;
+      border-radius: 1rem;
+      background: rgba(255,255,255,.88);
+      border: 1px solid #e2e8f0;
+    }
+    .ft-market-overview-item span {
+      display: block;
+      color: #64748b;
+      font-size: .75rem;
+      font-weight: 700;
+      margin-bottom: .25rem;
+    }
+    .ft-market-overview-item strong {
+      color: #0f172a;
+      font-size: .95rem;
+      font-weight: 800;
+    }
+    .ft-market-mini-card {
+      padding: 1rem;
+      border-radius: 1.2rem;
+      border: 1px solid #dbe7f7;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,251,255,.95));
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+      height: 100%;
+    }
+    .ft-market-mini-top {
+      display: flex;
+      justify-content: space-between;
+      gap: .6rem;
+      align-items: center;
+      margin-bottom: .6rem;
+    }
+    .ft-market-mini-symbol {
+      color: #64748b;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .ft-market-mini-card strong {
+      display: block;
+      color: #0f172a;
+      font-size: .95rem;
+      line-height: 1.45;
+      margin-bottom: .5rem;
+    }
+    .ft-market-mini-value {
+      color: #0f172a;
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: .35rem;
+    }
+    .ft-market-mini-trend {
+      font-size: .88rem;
+      font-weight: 800;
+    }
+    .ft-market-mini-trend.up { color: #059669; }
+    .ft-market-mini-trend.down { color: #dc2626; }
+    .ft-market-mini-trend.stable { color: #475569; }
     .ft-news-widget-card {
       border: 1px solid rgba(191, 219, 254, 0.95);
       background:
