@@ -1,13 +1,18 @@
 <?php
+// src/Controller/LoanController/UserLoanController.php
 
 namespace App\Controller\LoanController;
 
+use App\Repository\Loan\LoanRepository;
 use App\Service\Loan\LoanService;
 use App\Service\Loan\RepaymentService;
+use App\Service\Loan\DocRaptorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Environment;
 
 #[Route('/loan', name: 'loan_')]
 class UserLoanController extends AbstractController
@@ -17,30 +22,15 @@ class UserLoanController extends AbstractController
         private RepaymentService $repaymentService,
     ) {}
 
-    /**
-     * My Loans list — returns ALL loans for now (no user filter)
-     * TODO: filter by $this->getUser()->getId() after user module merge
-     *
-     * Route: GET /loan/my-loans
-     * Name:  my_loans              ← matches path('my_loans') in loan_details.html.twig
-     */
     #[Route('/my-loans', name: 'my_loans', methods: ['GET'])]
     public function myLoans(): Response
     {
-        // TODO: replace getAllLoans() with getLoansByUserId($this->getUser()->getId())
         $loans = $this->loanService->getAllLoans();
-
         return $this->render('html/Loan/User/my_loans.html.twig', [
             'loans' => $loans,
         ]);
     }
 
-    /**
-     * Loan detail + repayment schedule
-     *
-     * Route: GET /loan/{id}/details
-     * Name:  loan_user_details
-     */
     #[Route('/{id}/details', name: 'user_details', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function details(int $id): Response
     {
@@ -50,16 +40,9 @@ class UserLoanController extends AbstractController
             throw $this->createNotFoundException('Prêt introuvable.');
         }
 
-        // TODO: add ownership check after user module merge:
-        // if ($loan->getUser()->getId() !== $this->getUser()->getId()) {
-        //     throw $this->createAccessDeniedException();
-        // }
-
         $stats      = $this->loanService->getLoanStats($loan);
         $nextUnpaid = $this->loanService->getNextUnpaidRepayment($loan);
-
-        // canPay drives the Action column and "Payer maintenant" banner in the template
-        $canPay = $loan->getStatus() === 'ACTIVE';
+        $canPay     = $loan->getStatus() === 'ACTIVE';
 
         return $this->render('html/Loan/User/loan_details.html.twig', [
             'loan'       => $loan,
@@ -69,44 +52,75 @@ class UserLoanController extends AbstractController
         ]);
     }
 
-    /**
-     * Pay a single installment (sequential rule enforced in RepaymentService)
-     *
-     * Route: POST /loan/repayment/{id}/pay
-     * Name:  repayment_pay         ← matches path('repayment_pay', {id: repayment.repayId}) in template
-     */
     #[Route('/repayment/{id}/pay', name: 'repayment_pay', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function payRepayment(int $id, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('pay_repayment_' . $id, $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
-            return $this->redirectToRoute('my_loans');
+            return $this->redirectToRoute('loan_my_loans');
         }
 
         try {
             $repayment = $this->repaymentService->findById($id);
-
             if (!$repayment) {
                 throw new \Exception('Échéance introuvable.');
             }
 
             $loanId = $repayment->getLoan()->getLoanId();
-
-            // TODO: add ownership check after user module merge:
-            // if ($repayment->getLoan()->getUser()->getId() !== $this->getUser()->getId()) {
-            //     throw new \Exception('Accès refusé.');
-            // }
-
-            // markAsPaid handles sequential validation + loan completion check
             $this->repaymentService->markAsPaid($id);
 
             $this->addFlash('success', 'Échéance payée avec succès.');
-
             return $this->redirectToRoute('loan_user_details', ['id' => $loanId]);
 
         } catch (\Exception $e) {
             $this->addFlash('error', $e->getMessage());
-            return $this->redirectToRoute('my_loans');
+            return $this->redirectToRoute('loan_my_loans');
         }
     }
+
+        #[Route('/{loanId}/export-pdf', name: 'export_pdf', requirements: ['loanId' => '\d+'], methods: ['GET'])]
+        public function exportPdf(
+            int $loanId,
+            LoanRepository $loanRepository,
+            DocRaptorService $docRaptorService,
+            Environment $twig
+        ): Response {
+            $loan = $loanRepository->find($loanId);
+            
+            if (!$loan) {
+                throw $this->createNotFoundException('Prêt introuvable.');
+            }
+
+            // Generate repayment plan
+            $repaymentPlan = $this->loanService->generateRepaymentPreview($loan);
+            $monthlyPayment = $this->loanService->calculateMonthlyPayment($loan);
+            $totalInterest = $this->loanService->calculateTotalInterest($loan);
+            $totalCost = $loan->getAmount() + $totalInterest;
+
+            // Render HTML template for PDF
+            $html = $twig->render('html/Loan/User/repayment_plan_pdf.html.twig', [
+                'loan' => $loan,
+                
+                'repaymentPlan' => $repaymentPlan,
+                'monthlyPayment' => $monthlyPayment,
+                'totalInterest' => $totalInterest,
+                'totalCost' => $totalCost,
+                'generatedAt' => new \DateTime(),
+            ]);
+
+            // Generate PDF
+            $pdfContent = $docRaptorService->generatePdf($html, 'plan-remboursement-' . $loan->getLoanId() . '.pdf');
+
+            // Create response
+            $response = new Response($pdfContent);
+            $disposition = $response->headers->makeDisposition(
+                ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                'plan-remboursement-' . $loan->getLoanId() . '.pdf'
+            );
+            
+            $response->headers->set('Content-Type', 'application/pdf');
+            $response->headers->set('Content-Disposition', $disposition);
+
+            return $response;
+        }
 }

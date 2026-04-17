@@ -7,6 +7,7 @@
         "php": ">=8.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "docraptor/docraptor": "^4.2",
         "doctrine/dbal": "^4.2",
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
@@ -42,12 +43,8 @@
         "symfony/validator": "6.4.*",
         "symfony/web-link": "6.4.*",
         "symfony/yaml": "6.4.*",
+        "tecnickcom/tcpdf": "^6.6",
         "twig/extra-bundle": "^2.12|^3.0",
-<<<<<<< HEAD
-=======
-        "twig/twig": "^2.12|^3.0",
-        "tecnickcom/tcpdf": "^6.6"
->>>>>>> origin/dev
         "twig/intl-extra": "^3.24",
         "twig/twig": "^2.12|^3.0"
     },

@@ -65,10 +65,11 @@ class LoanService
     /**
      * Get loan by ID
      */
-    public function getLoanById(int $loanId): ?Loan
-    {
-        return $this->loanRepository->find($loanId);
-    }
+ public function getLoanById(int $id): ?Loan
+{
+    // Use findOneBy because primary key is loanId, not id
+    return $this->loanRepository->findOneBy(['loanId' => $id]);
+}
 
     /**
      * Get loans by user ID
@@ -111,7 +112,7 @@ class LoanService
      */
     public function calculateMonthlyPayment(Loan $loan): float
     {
-        $monthlyRate = $loan->getInterestRate() / 100 / 12;
+        $monthlyRate = (float) $loan->getInterestRate() / 100 / 12;
         $amount = (float) $loan->getAmount();
         $duration = $loan->getDuration();
 
@@ -128,7 +129,7 @@ class LoanService
     public function generateRepaymentPlan(Loan $loan): array
     {
         $repayments = [];
-        $monthlyRate = $loan->getInterestRate() / 100 / 12;
+        $monthlyRate = (float) $loan->getInterestRate() / 100 / 12;
         $monthlyPayment = $this->calculateMonthlyPayment($loan);
         $balance = (float) $loan->getAmount();
 
@@ -166,7 +167,7 @@ class LoanService
     public function generateRepaymentPreview(Loan $loan): array
     {
         $plan = [];
-        $monthlyRate = $loan->getInterestRate() / 100 / 12;
+        $monthlyRate = (float) $loan->getInterestRate() / 100 / 12;
         $monthlyPayment = $this->calculateMonthlyPayment($loan);
         $balance = (float) $loan->getAmount();
 
