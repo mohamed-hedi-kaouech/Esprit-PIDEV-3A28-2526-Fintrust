@@ -36,76 +36,37 @@
       <div class="ft-admin-card-header">
         <i class="bi bi-plus-circle me-2 text-primary"></i>Nouveau produit
       </div>
-      <div class="ft-admin-card-body">
-        <form method="POST" action="{{ path('CreateProduct') }}" class="row g-3" novalidate>
-          <input type="hidden" name="_token" value="{{ csrf_token('create_product') }}">
+      <div class="form-card">
+    {{ form_start(form) }}
+    <div class="form-group">
+        <label class="field-label">Nouvelle Catégorie</label>
+        {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
+        {{ form_errors(form.category) }}
+    </div>
 
-          <div class="col-12">
-            <label for="category" class="form-label fw-semibold">Categorie</label>
-            <select id="category" name="category" class="form-select ft-input product-admin-input">
-              <option value="">Selectionner une categorie</option>
-              {% for cat in categories %}
-                <option value="{{ cat }}" {{ formData.category == cat ? 'selected' : '' }}>
-                  {{ cat|replace({'_': ' '})|title }}
-                </option>
-              {% endfor %}
-            </select>
-            <div class="ft-filter-help">Choisissez un type de produit coherent avec l offre FinTrust.</div>
-          </div>
+    <div class="form-group">
+        <label class="field-label">Nouveau Prix (DT)</label>
+        <div class="price-row">
+            {{ form_widget(form.price, {'attr': {'class': 'form-input'}}) }}
+            <span class="currency-tag">DT</span>
+        </div>
+        {{ form_errors(form.price) }}
+    </div>
 
-          <div class="col-md-6">
-            <label for="price" class="form-label fw-semibold">Prix (DT)</label>
-            <div class="input-group">
-              <span class="input-group-text bg-white text-primary"><i class="bi bi-cash-stack"></i></span>
-              <input
-                type="text"
-                id="price"
-                name="price"
-                class="form-control ft-input product-admin-input border-start-0"
-                placeholder="Ex: 149.90"
-                value="{{ formData.price }}"
-              >
-              <span class="input-group-text bg-white text-primary fw-semibold">DT</span>
-            </div>
-            <div class="ft-filter-help">Saisissez un montant strictement positif.</div>
-          </div>
+    <div class="form-group">
+        <label class="field-label">Nouvelle Description</label>
+        {{ form_widget(form.description, {'attr': {'class': 'form-textarea'}}) }}
+        {{ form_errors(form.description) }}
+    </div>
 
-          <div class="col-md-6">
-            <label for="createdAtPreview" class="form-label fw-semibold">Date de creation</label>
-            <input
-              type="text"
-              id="createdAtPreview"
-              class="form-control ft-input product-admin-input"
-              value="{{ 'now'|date('d/m/Y') }}"
-              disabled
-            >
-            <div class="ft-filter-help">La date du jour sera appliquee automatiquement a l enregistrement.</div>
-          </div>
+    <hr class="form-divider">
 
-          <div class="col-12">
-            <label for="description" class="form-label fw-semibold">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              class="form-control ft-input product-admin-input product-admin-textarea"
-              placeholder="Decrivez clairement le produit, ses avantages et son positionnement."
-              rows="6"
-            >{{ formData.description }}</textarea>
-            <div class="ft-filter-help">La description doit etre claire, concise et utile pour la souscription.</div>
-          </div>
-
-          <div class="col-12 d-flex flex-wrap gap-2 pt-2">
-            <button type="submit" class="btn ft-btn-primary">
-              <i class="bi bi-check2-circle me-2"></i>Ajouter le produit
-            </button>
-            <a href="{{ path('product_list') }}" class="btn btn-outline-secondary">
-              <i class="bi bi-x-circle me-2"></i>Annuler
-            </a>
-          </div>
-        </form>
-      </div>
-    </article>
-  </div>
+    <div class="btn-row">
+        <button type="submit" class="btn btn-primary">✓ Ajouter le Produit</button>
+        <a href="{{ path('product_list') }}" class="btn btn-secondary">Annuler</a>
+    </div>
+    {{ form_end(form) }}
+</div>
 
   <div class="col-12 col-xl-4">
     <article class="ft-admin-card mb-4 product-admin-sidecard">
