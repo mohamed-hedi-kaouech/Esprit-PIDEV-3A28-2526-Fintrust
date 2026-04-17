@@ -20,59 +20,41 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-/**
- * Contrôleur Admin — Gestion des utilisateurs (BackOffice)
- *
- * CRUD complet : liste, édition, suppression, activation, suspension.
- * Recherche, filtres, tri, pagination, export CSV/PDF, QR code, notifications.
- */
 #[IsGranted('ROLE_ADMIN')]
 #[Route('/admin/utilisateurs', name: 'admin_user_')]
 class UserController extends AbstractController
 {
-    /** Nombre d'utilisateurs par page */
     private const PAGE_SIZE = 15;
 
     public function __construct(
-        private readonly UserRepository      $userRepository,
-        private readonly KycRepository       $kycRepository,
-        private readonly UserService         $userService,
-        private readonly ExportService       $exportService,
+        private readonly UserRepository $userRepository,
+        private readonly KycRepository $kycRepository,
+        private readonly UserService $userService,
+        private readonly ExportService $exportService,
         private readonly NotificationService $notificationService,
-        private readonly QrCodeService       $qrCodeService,
-        private readonly ValidatorInterface  $validator,
+        private readonly QrCodeService $qrCodeService,
+        private readonly ValidatorInterface $validator,
     ) {}
 
-    // =========================================================================
-    // LISTE — Recherche + Filtres + Tri + Pagination
-    // =========================================================================
-
-    /**
-     * Liste paginée des utilisateurs avec filtres et tri dynamique.
-     *
-     * Paramètres GET : search, role, status, kycStatus, sort, dir, page
-     */
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(Request $request): Response
     {
-        // Récupération des filtres depuis la query string
         $filters = [
-            'search'    => $request->query->get('search', ''),
-            'role'      => $request->query->get('role', ''),
-            'status'    => $request->query->get('status', ''),
+            'search' => $request->query->get('search', ''),
+            'role' => $request->query->get('role', ''),
+            'status' => $request->query->get('status', ''),
             'kycStatus' => $request->query->get('kycStatus', ''),
-            'sort'      => $request->query->get('sort', 'createdAt'),
-            'dir'       => $request->query->get('dir', 'DESC'),
+            'sort' => $request->query->get('sort', 'createdAt'),
+            'dir' => $request->query->get('dir', 'DESC'),
         ];
 
         $page = max(1, (int) $request->query->get('page', 1));
 
-        // QueryBuilder filtré + pagination via Doctrine Paginator
-        $qb        = $this->userRepository->createFilteredQueryBuilder($filters);
-        $statsQb   = clone $qb;
+        $qb = $this->userRepository->createFilteredQueryBuilder($filters);
+        $statsQb = clone $qb;
         $paginator = new Paginator(
             $qb->setFirstResult(($page - 1) * self::PAGE_SIZE)
-               ->setMaxResults(self::PAGE_SIZE)
+                ->setMaxResults(self::PAGE_SIZE)
         );
 
         $total = count($paginator);
@@ -82,12 +64,12 @@ class UserController extends AbstractController
         $userStats = $this->buildUserStats($filteredUsers);
 
         return $this->render('admin/users/list.html.twig', [
-            'users'      => $paginator,
-            'filters'    => $filters,
-            'page'       => $page,
-            'pages'      => $pages,
-            'total'      => $total,
-            'userStats'  => $userStats,
+            'users' => $paginator,
+            'filters' => $filters,
+            'page' => $page,
+            'pages' => $pages,
+            'total' => $total,
+            'userStats' => $userStats,
         ]);
     }
 
@@ -106,11 +88,11 @@ class UserController extends AbstractController
 
             $this->notificationService->notify(
                 $user,
-                'Votre compte FinTrust a été créé par un administrateur. Vous pouvez maintenant vous connecter.',
+                'Votre compte FinTrust a ete cree par un administrateur. Vous pouvez maintenant vous connecter.',
                 'SUCCESS'
             );
 
-            $this->addFlash('success', "Le client {$user->getFullName()} a été ajouté avec succès.");
+            $this->addFlash('success', "Le client {$user->getFullName()} a ete ajoute avec succes.");
 
             return $this->redirectToRoute('admin_user_edit', ['id' => $user->getId()]);
         }
@@ -120,14 +102,6 @@ class UserController extends AbstractController
         ]);
     }
 
-    // =========================================================================
-    // ÉDITION
-    // =========================================================================
-
-    /**
-     * Formulaire d'édition d'un utilisateur (rôle, statut, infos personnelles).
-     * Validation Symfony côté serveur.
-     */
     #[Route('/{id}/modifier', name: 'edit', methods: ['GET', 'POST'])]
     public function edit(User $user, Request $request): Response
     {
@@ -142,103 +116,97 @@ class UserController extends AbstractController
 
             $plainPassword = $form->get('plainPassword')->getData();
             $this->userService->updateProfile($user, $plainPassword ?: null);
-            $this->addFlash('success', "L'utilisateur {$user->getFullName()} a été mis à jour.");
+            $this->addFlash('success', "L'utilisateur {$user->getFullName()} a ete mis a jour.");
+
             return $this->redirectToRoute('admin_user_list');
         }
 
-        $qrUrl = $user->getQrToken()
-            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $request->getSchemeAndHttpHost())
+        $baseUrl = $request->getSchemeAndHttpHost();
+        $publicProfileUrl = $user->getQrToken()
+            ? $this->qrCodeService->getPublicProfileUrl($user->getQrToken(), $baseUrl)
             : null;
+        $qrUrl = $user->getQrToken()
+            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $baseUrl)
+            : null;
+        $qrNeedsPublicUrl = $user->getQrToken()
+            ? $this->qrCodeService->isLocalOnlyUrl($baseUrl)
+            : false;
 
         return $this->render('admin/users/edit.html.twig', [
-            'form'  => $form,
-            'user'  => $user,
-            'kyc'   => $kyc,
+            'form' => $form,
+            'user' => $user,
+            'kyc' => $kyc,
             'qrUrl' => $qrUrl,
+            'publicProfileUrl' => $publicProfileUrl,
+            'qrNeedsPublicUrl' => $qrNeedsPublicUrl,
         ]);
     }
 
-    // =========================================================================
-    // SUPPRESSION
-    // =========================================================================
-
-    /**
-     * Supprime un utilisateur (POST uniquement, protection CSRF).
-     */
     #[Route('/{id}/supprimer', name: 'delete', methods: ['POST'])]
     public function delete(User $user, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('delete_user_' . $user->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+
             return $this->redirectToRoute('admin_user_list');
         }
 
         $name = $user->getFullName();
         $this->userService->deleteUser($user);
-        $this->addFlash('success', "L'utilisateur « {$name} » a été supprimé définitivement.");
+        $this->addFlash('success', "L'utilisateur « {$name} » a ete supprime definitivement.");
 
         return $this->redirectToRoute('admin_user_list');
     }
 
-    // =========================================================================
-    // ACTIVATION / SUSPENSION
-    // =========================================================================
-
-    /**
-     * Active le compte d'un utilisateur.
-     */
     #[Route('/{id}/activer', name: 'activate', methods: ['POST'])]
     public function activate(User $user, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('activate_' . $user->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+
             return $this->redirectToRoute('admin_user_list');
         }
 
         $this->userService->activateUser($user);
-        $this->notificationService->notify($user, 'Votre compte FinTrust a été activé par un administrateur.', 'SUCCESS');
+        $this->notificationService->notify($user, 'Votre compte FinTrust a ete active par un administrateur.', 'SUCCESS');
         $this->addFlash('success', "{$user->getFullName()} est maintenant actif.");
 
         return $this->redirectToRoute('admin_user_list');
     }
 
-    /**
-     * Suspend le compte d'un utilisateur.
-     */
     #[Route('/{id}/suspendre', name: 'suspend', methods: ['POST'])]
     public function suspend(User $user, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('suspend_' . $user->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+
             return $this->redirectToRoute('admin_user_list');
         }
 
         $this->userService->suspendUser($user);
-        $this->notificationService->notify($user, 'Votre compte a été suspendu. Contactez le support FinTrust.', 'WARNING');
-        $this->addFlash('warning', "{$user->getFullName()} a été suspendu.");
+        $this->notificationService->notify($user, 'Votre compte a ete suspendu. Contactez le support FinTrust.', 'WARNING');
+        $this->addFlash('warning', "{$user->getFullName()} a ete suspendu.");
 
         return $this->redirectToRoute('admin_user_list');
     }
 
-    // =========================================================================
-    // NOTIFICATION MANUELLE
-    // =========================================================================
-
-    /**
-     * Envoie une notification interne à un utilisateur depuis l'admin.
-     */
     #[Route('/{id}/notifier', name: 'notify', methods: ['POST'])]
     public function notify(User $user, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('notify_' . $user->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+
             return $this->redirectToRoute('admin_user_list');
         }
 
-        $message = trim($request->request->get('message', ''));
+        $message = trim((string) $request->request->get('message', ''));
         $type = strtoupper((string) $request->request->get('type', 'INFO'));
+        $channel = strtoupper((string) $request->request->get('channel', 'INTERNE'));
         $allowedTypes = ['INFO', 'SUCCESS', 'WARNING', 'ERROR'];
+        $allowedChannels = ['INTERNE', 'EMAIL'];
         $type = in_array($type, $allowedTypes, true) ? $type : 'INFO';
+        $channel = in_array($channel, $allowedChannels, true) ? $channel : 'INTERNE';
+
         $errors = $this->validator->validate($message, [
             new Assert\NotBlank(['message' => 'Le message ne peut pas etre vide.']),
             new Assert\Length([
@@ -250,8 +218,16 @@ class UserController extends AbstractController
         ]);
 
         if (count($errors) === 0) {
-            $this->notificationService->notify($user, $message, $type);
-            $this->addFlash('success', 'Notification envoyée à ' . $user->getFullName());
+            try {
+                $this->notificationService->notify($user, $message, $type, $channel);
+                $this->addFlash('success', sprintf(
+                    'Notification envoyee a %s via %s.',
+                    $user->getFullName(),
+                    $channel === 'EMAIL' ? 'e-mail' : 'notification interne'
+                ));
+            } catch (\RuntimeException $exception) {
+                $this->addFlash('error', $exception->getMessage());
+            }
         } else {
             $this->addFlash('error', (string) $errors[0]->getMessage());
         }
@@ -264,19 +240,24 @@ class UserController extends AbstractController
     {
         if (!$this->isCsrfTokenValid('notify_client', $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+
             return $this->redirectToRoute('admin_dashboard');
         }
 
         $userId = (int) $request->request->get('user_id');
         $message = trim((string) $request->request->get('message', ''));
         $type = strtoupper((string) $request->request->get('type', 'INFO'));
+        $channel = strtoupper((string) $request->request->get('channel', 'INTERNE'));
 
         $user = $this->userRepository->find($userId);
         $allowedTypes = ['INFO', 'SUCCESS', 'WARNING', 'ERROR'];
+        $allowedChannels = ['INTERNE', 'EMAIL'];
         $type = in_array($type, $allowedTypes, true) ? $type : 'INFO';
+        $channel = in_array($channel, $allowedChannels, true) ? $channel : 'INTERNE';
 
         if (!$user || $user->getRole() !== User::ROLE_CLIENT) {
             $this->addFlash('error', 'Client introuvable.');
+
             return $this->redirectToRoute('admin_dashboard');
         }
 
@@ -292,22 +273,24 @@ class UserController extends AbstractController
 
         if (count($errors) > 0) {
             $this->addFlash('error', (string) $errors[0]->getMessage());
+
             return $this->redirectToRoute('admin_dashboard');
         }
 
-        $this->notificationService->notify($user, $message, $type);
-        $this->addFlash('success', 'Notification envoyée à ' . $user->getFullName() . '.');
+        try {
+            $this->notificationService->notify($user, $message, $type, $channel);
+            $this->addFlash('success', sprintf(
+                'Notification envoyee a %s via %s.',
+                $user->getFullName(),
+                $channel === 'EMAIL' ? 'e-mail' : 'notification interne'
+            ));
+        } catch (\RuntimeException $exception) {
+            $this->addFlash('error', $exception->getMessage());
+        }
 
         return $this->redirectToRoute('admin_dashboard');
     }
 
-    // =========================================================================
-    // EXPORT CSV / PDF
-    // =========================================================================
-
-    /**
-     * Exporte la liste filtrée en CSV (téléchargement direct).
-     */
     #[Route('/export/csv', name: 'export_csv', methods: ['GET'])]
     public function exportCsv(Request $request): Response
     {
@@ -319,9 +302,6 @@ class UserController extends AbstractController
         return $this->exportService->exportUsersCsv($users);
     }
 
-    /**
-     * Exporte la liste filtrée en HTML imprimable (PDF via window.print).
-     */
     #[Route('/export/pdf', name: 'export_pdf', methods: ['GET'])]
     public function exportPdf(Request $request): Response
     {
@@ -333,20 +313,15 @@ class UserController extends AbstractController
         return $this->exportService->exportUsersPdfHtml($users);
     }
 
-    // =========================================================================
-    // HELPERS PRIVÉS
-    // =========================================================================
-
-    /** Extrait les filtres de la requête GET. */
     private function getFilters(Request $request): array
     {
         return [
-            'search'    => $request->query->get('search', ''),
-            'role'      => $request->query->get('role', ''),
-            'status'    => $request->query->get('status', ''),
+            'search' => $request->query->get('search', ''),
+            'role' => $request->query->get('role', ''),
+            'status' => $request->query->get('status', ''),
             'kycStatus' => $request->query->get('kycStatus', ''),
-            'sort'      => $request->query->get('sort', 'createdAt'),
-            'dir'       => $request->query->get('dir', 'DESC'),
+            'sort' => $request->query->get('sort', 'createdAt'),
+            'dir' => $request->query->get('dir', 'DESC'),
         ];
     }
 

@@ -123,8 +123,22 @@
       </div>
       <div class="ft-admin-card-body">
         {% if qrUrl %}
-          <img src="{{ qrUrl }}" alt="QR {{ user.fullName }}" class="img-fluid rounded border" style="max-width:160px"/>
-          <p class="text-muted small mt-2 mb-0 text-break">{{ user.qrToken }}</p>
+          <img src="{{ qrUrl }}" alt="QR {{ user.fullName }}" class="img-fluid rounded border bg-white p-2" style="max-width:240px"/>
+          {% if publicProfileUrl %}
+            <a href="{{ publicProfileUrl }}" target="_blank" rel="noopener noreferrer"
+               class="btn btn-sm btn-outline-primary mt-3">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir le profil public
+            </a>
+            <p class="text-muted small mt-2 mb-0 text-break">{{ publicProfileUrl }}</p>
+          {% else %}
+            <p class="text-muted small mt-2 mb-0 text-break">{{ user.qrToken }}</p>
+          {% endif %}
+          {% if qrNeedsPublicUrl %}
+            <div class="alert alert-warning small mt-3 mb-0 text-start">
+              Cette URL est locale uniquement. Pour un scan depuis un telephone, configurez `FINTRUST_PUBLIC_URL`
+              avec l'URL publique ou l'adresse IP reseau de cette machine.
+            </div>
+          {% endif %}
         {% else %}
           <div class="text-muted py-3">
             <i class="bi bi-qr-code fs-2 d-block mb-2"></i>Non disponible

@@ -4,7 +4,9 @@ namespace App\Controller\Admin;
 
 use App\Repository\KycRepository;
 use App\Service\KycService;
+use App\Service\KycVerificationCenterService;
 use App\Service\NotificationService;
+use App\Service\UserIntelligenceService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +22,8 @@ class KycController extends AbstractController
     public function __construct(
         private readonly KycRepository $kycRepository,
         private readonly KycService $kycService,
+        private readonly KycVerificationCenterService $kycVerificationCenterService,
+        private readonly UserIntelligenceService $userIntelligenceService,
         private readonly NotificationService $notificationService,
         private readonly ValidatorInterface $validator,
     ) {}
@@ -58,6 +62,10 @@ class KycController extends AbstractController
         return $this->render('admin/kyc/view.html.twig', [
             'kyc' => $kyc,
             'filesData' => $filesData,
+            'intelligenceProfile' => $this->userIntelligenceService->buildProfileEnrichment($kyc->getUser()),
+            'riskProfile' => $this->userIntelligenceService->getRiskProfile($kyc->getUser()),
+            'financialBehavior' => $this->userIntelligenceService->getFinancialBehaviorSummary($kyc->getUser()),
+            'kycCenter' => $this->kycVerificationCenterService->buildCenter($kyc->getUser()),
         ]);
     }
 

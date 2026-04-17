@@ -2,6 +2,7 @@
 
 namespace App\Entity\Wallet;
 
+use App\Entity\User\User;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

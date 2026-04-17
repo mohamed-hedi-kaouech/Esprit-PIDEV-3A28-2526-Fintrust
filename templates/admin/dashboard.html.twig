@@ -6,6 +6,232 @@
   <span class="fw-semibold">Tableau de bord</span>
 {% endblock %}
 
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-admin-copilot-shell {
+      position: relative;
+    }
+    .ft-admin-copilot-main,
+    .ft-admin-copilot-side {
+      overflow: hidden;
+      border-color: rgba(191, 219, 254, 0.92);
+      box-shadow: 0 22px 42px rgba(15, 23, 42, 0.06);
+      background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.11), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(247,251,255,.98));
+    }
+    .ft-admin-copilot-main::before,
+    .ft-admin-copilot-side::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: linear-gradient(180deg, #2563eb, #38bdf8, #22c55e);
+      opacity: .95;
+    }
+    .ft-admin-copilot-main .ft-admin-card-header,
+    .ft-admin-copilot-side .ft-admin-card-header {
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(180deg, rgba(239,246,255,.95), rgba(255,255,255,.9));
+    }
+    .ft-admin-copilot-intro {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 1.4rem;
+      padding: 1.2rem 1.3rem;
+      border-radius: 1.35rem;
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      background:
+        radial-gradient(circle at right top, rgba(56,189,248,.16), transparent 28%),
+        linear-gradient(135deg, rgba(239,246,255,.98), rgba(255,255,255,.96));
+    }
+    .ft-admin-copilot-intro-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .42rem .8rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      color: #1d4ed8;
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .03em;
+      margin-bottom: .7rem;
+    }
+    .ft-admin-copilot-intro-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: .35rem;
+    }
+    .ft-admin-copilot-intro-copy {
+      max-width: 760px;
+      color: #64748b;
+      font-size: .95rem;
+      line-height: 1.65;
+    }
+    .ft-admin-copilot-api-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: .48rem .85rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,.04);
+      color: #475569;
+      font-size: .74rem;
+      font-weight: 700;
+      border: 1px solid rgba(203, 213, 225, .9);
+      white-space: nowrap;
+    }
+    .ft-admin-copilot-case {
+      padding: 1.2rem;
+      border-radius: 1.4rem;
+      border: 1px solid rgba(203, 213, 225, .9);
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 14px 28px rgba(15, 23, 42, 0.04);
+    }
+    .ft-admin-copilot-case + .ft-admin-copilot-case {
+      margin-top: 1rem;
+    }
+    .ft-admin-copilot-case-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .ft-admin-copilot-user {
+      display: flex;
+      gap: .85rem;
+      align-items: center;
+    }
+    .ft-admin-copilot-avatar {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(59,130,246,.16), rgba(125,211,252,.26));
+      color: #1d4ed8;
+      font-weight: 800;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    .ft-admin-copilot-user-name {
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: .1rem;
+    }
+    .ft-admin-copilot-user-meta {
+      color: #64748b;
+      font-size: .82rem;
+    }
+    .ft-admin-copilot-badges {
+      display: flex;
+      gap: .45rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .ft-admin-copilot-summary {
+      padding: .95rem 1rem;
+      border-radius: 1rem;
+      background: linear-gradient(180deg, rgba(248,250,252,.95), rgba(255,255,255,.92));
+      border: 1px solid rgba(226, 232, 240, .95);
+      margin-bottom: 1rem;
+      color: #334155;
+      line-height: 1.6;
+    }
+    .ft-admin-copilot-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .ft-admin-copilot-panel {
+      padding: 1rem;
+      border-radius: 1rem;
+      background: rgba(255,255,255,.86);
+      border: 1px solid rgba(226, 232, 240, .95);
+    }
+    .ft-admin-copilot-panel-title {
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: .75rem;
+    }
+    .ft-admin-copilot-list {
+      margin: 0;
+      padding-left: 1rem;
+      color: #334155;
+      font-size: .9rem;
+    }
+    .ft-admin-copilot-list li + li {
+      margin-top: .3rem;
+    }
+    .ft-admin-copilot-justification {
+      margin-bottom: .85rem;
+      color: #334155;
+      line-height: 1.65;
+    }
+    .ft-admin-copilot-review {
+      padding: 1rem 1.05rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(191, 219, 254, 0.88);
+      background:
+        radial-gradient(circle at right top, rgba(59,130,246,.08), transparent 26%),
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(244,248,255,.96));
+      color: #475569;
+      line-height: 1.7;
+    }
+    .ft-admin-copilot-side-stack {
+      display: grid;
+      gap: .95rem;
+    }
+    .ft-admin-copilot-sample {
+      padding: 1rem;
+      border-radius: 1.15rem;
+      border: 1px solid rgba(203, 213, 225, .9);
+      background: rgba(255,255,255,.88);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.035);
+    }
+    .ft-admin-copilot-sample-head {
+      display: flex;
+      justify-content: space-between;
+      gap: .75rem;
+      align-items: flex-start;
+      margin-bottom: .55rem;
+    }
+    .ft-admin-copilot-sample-title {
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .ft-admin-copilot-sample-risk {
+      color: #64748b;
+      font-size: .82rem;
+      margin-bottom: .7rem;
+    }
+    .ft-admin-copilot-sample-copy {
+      color: #334155;
+      font-size: .9rem;
+      line-height: 1.6;
+      margin-bottom: .7rem;
+    }
+    @media (max-width: 991.98px) {
+      .ft-admin-copilot-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
 {% block admin_content %}
 <section class="ft-admin-hero">
   <div class="ft-admin-hero-grid">
@@ -335,6 +561,118 @@
   </div>
 </div>
 
+<div class="row g-4 mb-5">
+  <div class="col-xl-8">
+    <div class="ft-admin-card h-100 ft-admin-copilot-main">
+      <div class="ft-admin-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-shield-lock me-2 text-primary"></i>FinTrust Compliance Copilot</span>
+        <span class="badge ft-badge-blue rounded-pill px-3">Analyse sans base additionnelle</span>
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-copilot-intro">
+          <div>
+            <div class="ft-admin-copilot-intro-kicker">
+              <i class="bi bi-stars"></i>
+              Assistant data analyst
+            </div>
+            <div class="ft-admin-copilot-intro-title">Analyses de conformite plus lisibles, plus rapides et plus credibles</div>
+            <div class="ft-admin-copilot-intro-copy">Draft automatique, synthese des signaux, justification analytique et proposition de decision finale a partir des donnees deja presentes dans FinTrust.</div>
+          </div>
+          <span class="ft-admin-copilot-api-chip">API: POST /compliance/generate-review</span>
+        </div>
+
+        {% if complianceCases is empty %}
+          <div class="text-center text-muted py-4">
+            <i class="bi bi-shield-check fs-2 d-block mb-2 text-success"></i>
+            Aucun dossier n est disponible pour le copilot pour le moment.
+          </div>
+        {% else %}
+          <div class="ft-admin-copilot-shell">
+            {% for review in complianceCases %}
+              <article class="ft-admin-copilot-case">
+                <div class="ft-admin-copilot-case-head">
+                  <div class="ft-admin-copilot-user">
+                    <div class="ft-admin-copilot-avatar">
+                      {{ review.profileName|split(' ')|map(v => v|first)|join('')|slice(0, 2)|upper }}
+                    </div>
+                    <div>
+                      <div class="ft-admin-copilot-user-name">{{ review.profileName }}</div>
+                      <div class="ft-admin-copilot-user-meta">{{ review.caseId }}{% if review.userId %} · Client #{{ review.userId }}{% endif %}</div>
+                    </div>
+                  </div>
+                  <div class="ft-admin-copilot-badges">
+                    <span class="badge {{ review.recommendedDecision == 'APPROVE' ? 'ft-badge-success' : (review.recommendedDecision == 'REJECT' ? 'ft-badge-danger' : 'ft-badge-warning') }}">{{ review.recommendedDecision }}</span>
+                    <span class="badge {{ review.riskLevel in ['HIGH', 'CRITICAL'] ? 'ft-badge-danger' : (review.riskLevel == 'MEDIUM' ? 'ft-badge-warning' : 'ft-badge-blue') }}">{{ review.riskLevel }}</span>
+                  </div>
+                </div>
+
+                <div class="ft-admin-copilot-summary">
+                  <strong>Resume du dossier :</strong> {{ review.summary }}
+                </div>
+
+                <div class="ft-admin-copilot-grid">
+                  <div class="ft-admin-copilot-panel">
+                    <div class="ft-admin-copilot-panel-title">Signaux cles observes</div>
+                    <ul class="ft-admin-copilot-list">
+                      {% for signal in review.keySignals %}
+                        <li>{{ signal }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  <div class="ft-admin-copilot-panel">
+                    <div class="ft-admin-copilot-panel-title">Elements de vigilance</div>
+                    {% if review.elementsOfVigilance is empty %}
+                      <div class="small text-muted">Aucun element de vigilance majeur detecte.</div>
+                    {% else %}
+                      <ul class="ft-admin-copilot-list">
+                        {% for item in review.elementsOfVigilance %}
+                          <li>{{ item }}</li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="ft-admin-copilot-justification">
+                  <strong>Justification :</strong> {{ review.justification }}
+                </div>
+                <div class="ft-admin-copilot-review">{{ review.generatedReview }}</div>
+              </article>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="ft-admin-card h-100 ft-admin-copilot-side">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-journal-text me-2 text-primary"></i>Cas analytiques de reference
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-copilot-side-stack">
+          {% for sample in complianceSamples|slice(0, 4) %}
+            <article class="ft-admin-copilot-sample">
+              <div class="ft-admin-copilot-sample-head">
+                <div class="ft-admin-copilot-sample-title">{{ sample.label }}</div>
+                <span class="badge {{ sample.recommendedDecision == 'APPROVE' ? 'ft-badge-success' : (sample.recommendedDecision == 'REJECT' ? 'ft-badge-danger' : 'ft-badge-warning') }}">{{ sample.recommendedDecision }}</span>
+              </div>
+              <div class="ft-admin-copilot-sample-risk">Risque {{ sample.riskLevel }}</div>
+              <div class="ft-admin-copilot-sample-copy">{{ sample.justification }}</div>
+              <ul class="ft-admin-copilot-list">
+                {% for signal in sample.keySignals|slice(0, 2) %}
+                  <li>{{ signal }}</li>
+                {% endfor %}
+              </ul>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row g-4">
   <div class="col-xl-5">
     <div class="ft-admin-card ft-admin-accent-card ft-admin-accent-card-notify h-100">
@@ -364,10 +702,9 @@
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold small ft-admin-notify-label">Canal</label>
-              <select class="form-select ft-input ft-admin-notify-input" id="adminNotifyChannel">
-                <option value="Interne">Interne</option>
-                <option value="Push">Push</option>
-                <option value="Email">Email</option>
+              <select class="form-select ft-input ft-admin-notify-input" id="adminNotifyChannel" name="channel">
+                <option value="INTERNE">Interne</option>
+                <option value="EMAIL">Email</option>
               </select>
             </div>
           </div>

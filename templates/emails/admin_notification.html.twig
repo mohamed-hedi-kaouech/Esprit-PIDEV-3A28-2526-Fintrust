@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Notification FinTrust</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f8ff;font-family:Inter,Arial,sans-serif;color:#0f172a;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f8ff;padding:32px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 18px 40px rgba(21,96,189,.12);">
+          <tr>
+            <td style="padding:32px 40px;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#ffffff;">
+              <div style="display:inline-block;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;">
+                Notification admin FinTrust
+              </div>
+              <h1 style="margin:18px 0 10px;font-size:28px;line-height:1.2;font-weight:800;">{{ typeLabel }} sur votre compte</h1>
+              <p style="margin:0;font-size:15px;line-height:1.7;opacity:.92;">
+                Bonjour {{ user.getFullName() }}, une mise a jour importante vient d etre envoyee par notre equipe.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:36px 40px;">
+              <div style="padding:20px 22px;border-radius:18px;background:#f8fbff;border:1px solid #dbeafe;">
+                <p style="margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#2563eb;">Message</p>
+                <p style="margin:0;font-size:16px;line-height:1.75;color:#334155;">{{ message }}</p>
+              </div>
+
+              <p style="margin:24px 0 0;font-size:15px;line-height:1.75;color:#475569;">
+                Si une action est demandee, nous vous invitons a vous connecter a votre espace FinTrust afin de consulter votre situation plus en detail.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 32px;background:#f8fbff;border-top:1px solid #e2e8f0;">
+              <p style="margin:0;font-size:13px;color:#64748b;line-height:1.7;">
+                FinTrust<br>
+                Plateforme bancaire digitale securisee<br>
+                Cet e-mail a ete envoye automatiquement, merci de ne pas y repondre.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

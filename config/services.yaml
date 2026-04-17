@@ -6,6 +6,8 @@
 parameters:
     fintrust.mailer_from: '%env(string:FINTRUST_SMTP_FROM)%'
     fintrust.login_url: '%env(string:FINTRUST_LOGIN_URL)%'
+    fintrust.public_url: '%env(string:FINTRUST_PUBLIC_URL)%'
+    fintrust.mailer_dsn: '%env(string:MAILER_DSN)%'
 
 services:
     # default configuration for services in *this* file
@@ -16,6 +18,8 @@ services:
             string $appSecret: '%kernel.secret%'
             string $fintrustMailerFrom: '%fintrust.mailer_from%'
             string $fintrustLoginUrl: '%fintrust.login_url%'
+            string $fintrustPublicUrl: '%fintrust.public_url%'
+            string $fintrustMailerDsn: '%fintrust.mailer_dsn%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

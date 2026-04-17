@@ -11,9 +11,12 @@ use App\Security\KycAccessChecker;
 use App\Security\RiskAccessChecker;
 use App\Service\BehavioralProfileService;
 use App\Service\CaptchaService;
+use App\Service\FinancialNewsService;
 use App\Service\KycService;
 use App\Service\NotificationService;
+use App\Service\KycVerificationCenterService;
 use App\Service\QrCodeService;
+use App\Service\UserIntelligenceService;
 use App\Service\UserService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -62,6 +65,9 @@ class ClientController extends AbstractController
         private readonly UserService $userService,
         private readonly NotificationService $notificationService,
         private readonly QrCodeService $qrCodeService,
+        private readonly UserIntelligenceService $userIntelligenceService,
+        private readonly FinancialNewsService $financialNewsService,
+        private readonly KycVerificationCenterService $kycVerificationCenterService,
         private readonly KycAccessChecker $kycAccessChecker,
         private readonly RiskAccessChecker $riskAccessChecker,
         private readonly ValidatorInterface $validator,
@@ -80,6 +86,38 @@ class ClientController extends AbstractController
         return $this->render('front/client/dashboard.html.twig', [
             'user' => $user,
             'kyc' => $kyc,
+            'newsFeed' => $this->financialNewsService->getUserFeed($user, 3),
+        ]);
+    }
+
+    #[Route('/actualites-financieres', name: 'news', methods: ['GET'])]
+    public function news(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        $category = strtoupper((string) $request->query->get('category', ''));
+        $country = strtolower((string) $request->query->get('country', ''));
+        $keyword = trim((string) $request->query->get('keyword', ''));
+
+        $articles = $this->financialNewsService->getFinancialNews([
+            'category' => $category !== '' ? $category : null,
+            'country' => $country !== '' ? $country : null,
+            'keyword' => $keyword !== '' ? $keyword : null,
+            'limit' => 12,
+        ]);
+
+        return $this->render('front/client/news.html.twig', [
+            'user' => $user,
+            'articles' => $articles,
+            'headline' => $articles[0] ?? null,
+            'marketHighlights' => $this->financialNewsService->getMarketNews(3),
+            'bankHighlights' => $this->financialNewsService->getBankNews(3),
+            'categoryCounts' => $this->financialNewsService->getCategoryCounts(),
+            'selectedCategory' => $category,
+            'selectedCountry' => $country,
+            'selectedKeyword' => $keyword,
         ]);
     }
 
@@ -100,14 +138,27 @@ class ClientController extends AbstractController
             return $this->redirectToRoute('front_profile');
         }
 
-        $qrUrl = $user->getQrToken()
-            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $request->getSchemeAndHttpHost())
+        $baseUrl = $request->getSchemeAndHttpHost();
+        $publicProfileUrl = $user->getQrToken()
+            ? $this->qrCodeService->getPublicProfileUrl($user->getQrToken(), $baseUrl)
             : null;
+        $qrUrl = $user->getQrToken()
+            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $baseUrl)
+            : null;
+        $qrNeedsPublicUrl = $user->getQrToken()
+            ? $this->qrCodeService->isLocalOnlyUrl($baseUrl)
+            : false;
 
         return $this->render('front/client/profile.html.twig', [
             'form' => $form,
             'user' => $user,
             'qrUrl' => $qrUrl,
+            'publicProfileUrl' => $publicProfileUrl,
+            'qrNeedsPublicUrl' => $qrNeedsPublicUrl,
+            'intelligenceProfile' => $this->userIntelligenceService->buildProfileEnrichment($user),
+            'riskProfile' => $this->userIntelligenceService->getRiskProfile($user),
+            'financialBehavior' => $this->userIntelligenceService->getFinancialBehaviorSummary($user),
+            'monitoringTimeline' => $this->userIntelligenceService->buildMonitoringTimeline($user),
         ]);
     }
 
@@ -265,6 +316,7 @@ class ClientController extends AbstractController
         return $this->render('front/client/kyc_status.html.twig', [
             'user' => $user,
             'kyc' => $kyc,
+            'kycCenter' => $this->kycVerificationCenterService->buildCenter($user),
         ]);
     }
 

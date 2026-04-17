@@ -1,36 +1,53 @@
-{# Profil Client — hérite de front/front.html.twig #}
 {% extends 'front/front.html.twig' %}
 {% block title %}Mon profil{% endblock %}
 
 {% block body %}
 <div class="ft-app-page">
   <div class="container-fluid px-4 py-4" style="max-width:1100px">
-
-    {# En-tête #}
     <div class="d-flex align-items-center gap-3 mb-4">
       <div class="ft-page-icon-lg"><i class="bi bi-person-circle"></i></div>
       <div>
         <h1 class="ft-page-title mb-0">Mon profil</h1>
-        <p class="text-muted mb-0 small">Gérez vos informations personnelles</p>
+        <p class="text-muted mb-0 small">Gerez vos informations personnelles et votre profil intelligent FinTrust.</p>
       </div>
     </div>
 
-    <div class="row g-4">
+    <section class="ft-profile-hero mb-4">
+      <div class="ft-profile-hero-main">
+        <span class="ft-profile-kicker">
+          <i class="bi bi-stars me-2"></i>Profil intelligent
+        </span>
+        <h2 class="ft-profile-hero-title">{{ user.fullName }}</h2>
+        <p class="ft-profile-hero-text mb-0">{{ intelligenceProfile.generatedSummary }}</p>
+      </div>
+      <div class="ft-profile-hero-metrics">
+        <div class="ft-profile-metric-card">
+          <span class="ft-profile-metric-label">Score de confiance</span>
+          <strong>{{ intelligenceProfile.trustScore }}/100</strong>
+        </div>
+        <div class="ft-profile-metric-card">
+          <span class="ft-profile-metric-label">Segment client</span>
+          <strong>{{ intelligenceProfile.segment }}</strong>
+        </div>
+        <div class="ft-profile-metric-card">
+          <span class="ft-profile-metric-label">Risque</span>
+          <strong>{{ riskProfile.riskLevel }}</strong>
+        </div>
+        <div class="ft-profile-metric-card">
+          <span class="ft-profile-metric-label">Stabilite</span>
+          <strong>{{ intelligenceProfile.stability }}</strong>
+        </div>
+      </div>
+    </section>
 
-      {# ---- Formulaire de modification ---- #}
+    <div class="row g-4">
       <div class="col-lg-7">
         <div class="ft-app-card">
           <div class="ft-app-card-header">
             <i class="bi bi-pencil-square me-2 text-primary"></i>Informations personnelles
           </div>
           <div class="ft-app-card-body">
-
-            {# Validation Symfony côté serveur uniquement. #}
-            {{ form_start(form, {attr: {
-              novalidate: 'novalidate',
-              id: 'profileForm'
-            }}) }}
-
+            {{ form_start(form, {attr: {novalidate: 'novalidate', id: 'profileForm'}}) }}
               {{ form_errors(form) }}
 
               <div class="row g-3 mb-3">
@@ -70,33 +87,22 @@
                 <div class="col-md-6">
                   {{ form_label(form.preferredLanguage, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
                   {{ form_widget(form.preferredLanguage, {attr: {class: 'form-select ft-input'}}) }}
-                  {% if form.preferredLanguage.vars.errors|length > 0 %}
-                    <div class="text-danger small mt-1">{{ form_errors(form.preferredLanguage) }}</div>
-                  {% endif %}
                 </div>
                 <div class="col-md-6">
                   {{ form_label(form.themeMode, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
                   {{ form_widget(form.themeMode, {attr: {class: 'form-select ft-input'}}) }}
-                  {% if form.themeMode.vars.errors|length > 0 %}
-                    <div class="text-danger small mt-1">{{ form_errors(form.themeMode) }}</div>
-                  {% endif %}
                 </div>
               </div>
 
               <button type="submit" class="btn ft-btn-primary">
                 <i class="bi bi-check-lg me-2"></i>Enregistrer les modifications
               </button>
-
             {{ form_end(form) }}
-
           </div>
         </div>
       </div>
 
-      {# ---- Panneau latéral ---- #}
       <div class="col-lg-5">
-
-        {# Résumé du compte #}
         <div class="ft-app-card mb-4">
           <div class="ft-app-card-header">
             <i class="bi bi-info-circle me-2 text-primary"></i>Informations du compte
@@ -104,7 +110,7 @@
           <div class="ft-app-card-body p-0">
             <ul class="list-group list-group-flush">
               <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
-                <span class="text-muted small">Rôle</span>
+                <span class="text-muted small">Role</span>
                 <span class="badge ft-badge-blue">{{ user.role }}</span>
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
@@ -115,9 +121,9 @@
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
                 <span class="text-muted small">KYC</span>
-                {% if user.kycStatus == 'APPROUVE' %}<span class="badge ft-badge-success">Approuvé</span>
+                {% if user.kycStatus == 'APPROUVE' %}<span class="badge ft-badge-success">Approuve</span>
                 {% elseif user.kycStatus == 'EN_ATTENTE' %}<span class="badge ft-badge-warning">En attente</span>
-                {% elseif user.kycStatus == 'REFUSE' %}<span class="badge ft-badge-danger">Refusé</span>
+                {% elseif user.kycStatus == 'REFUSE' %}<span class="badge ft-badge-danger">Refuse</span>
                 {% else %}<span class="badge ft-badge-neutral">Non soumis</span>{% endif %}
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
@@ -130,7 +136,7 @@
 
         <div class="ft-app-card mb-4">
           <div class="ft-app-card-header">
-            <i class="bi bi-sliders me-2 text-primary"></i>Préférences & profil intelligent
+            <i class="bi bi-sliders me-2 text-primary"></i>Preferences et profil intelligent
           </div>
           <div class="ft-app-card-body p-0">
             <ul class="list-group list-group-flush">
@@ -143,7 +149,7 @@
                 <span class="badge ft-badge-neutral">{{ user.themeMode == 'dark' ? 'Sombre' : 'Clair' }}</span>
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
-                <span class="text-muted small">Fréquence transactions</span>
+                <span class="text-muted small">Frequence transactions</span>
                 <span class="small fw-semibold">{{ user.transactionFrequency|number_format(2, ',', ' ') }}/jour</span>
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
@@ -158,24 +164,30 @@
                 <span class="text-muted small">Fraud score</span>
                 <span class="badge {{ user.fraudScore >= 70 ? 'ft-badge-danger' : (user.fraudScore >= 35 ? 'ft-badge-warning' : 'ft-badge-blue') }}">{{ user.fraudScore|number_format(1, ',', ' ') }}/100</span>
               </li>
-              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
-                <span class="text-muted small">Segment</span>
-                <span class="badge {{ user.clientSegment == 'VIP' ? 'ft-badge-success' : (user.clientSegment == 'A_RISQUE' ? 'ft-badge-danger' : 'ft-badge-blue') }}">{{ user.clientSegment }}</span>
-              </li>
             </ul>
           </div>
         </div>
 
-        {# QR Code #}
         <div class="ft-app-card text-center">
           <div class="ft-app-card-header">
             <i class="bi bi-qr-code me-2 text-primary"></i>Mon QR Code
           </div>
           <div class="ft-app-card-body">
             {% if qrUrl %}
-              <img src="{{ qrUrl }}" alt="QR Code {{ user.fullName }}"
-                   class="img-fluid rounded border" style="max-width:160px"/>
-              <p class="text-muted small mt-2 mb-0">Scannez pour voir votre profil public</p>
+              <img src="{{ qrUrl }}" alt="QR Code {{ user.fullName }}" class="img-fluid rounded border bg-white p-2" style="max-width:240px"/>
+              <p class="text-muted small mt-3 mb-2">Scannez pour voir votre profil public</p>
+              {% if publicProfileUrl %}
+                <a href="{{ publicProfileUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir le profil sur cet appareil
+                </a>
+                <p class="text-muted small mt-2 mb-0 text-break">{{ publicProfileUrl }}</p>
+              {% endif %}
+              {% if qrNeedsPublicUrl %}
+                <div class="alert alert-warning small mt-3 mb-0 text-start">
+                  Le QR pointe actuellement vers une adresse locale. Pour le scanner depuis votre telephone,
+                  remplacez `FINTRUST_PUBLIC_URL` par l'URL publique ou l'adresse IP de votre machine.
+                </div>
+              {% endif %}
             {% else %}
               <div class="text-muted py-3">
                 <i class="bi bi-qr-code fs-2 d-block mb-2"></i>Non disponible
@@ -183,11 +195,277 @@
             {% endif %}
           </div>
         </div>
-
       </div>
     </div>
 
+    <div class="row g-4 mt-1">
+      <div class="col-lg-6">
+        <div class="ft-app-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Resume du profil
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-insight-grid">
+              <div class="ft-insight-pill">
+                <span>Derniere analyse</span>
+                <strong>{{ intelligenceProfile.lastAnalyzedAt|date('d/m/Y H:i') }}</strong>
+              </div>
+              <div class="ft-insight-pill">
+                <span>Activite</span>
+                <strong>{{ intelligenceProfile.activityStatus }}</strong>
+              </div>
+              <div class="ft-insight-pill">
+                <span>Stabilite</span>
+                <strong>{{ intelligenceProfile.stability }}</strong>
+              </div>
+              <div class="ft-insight-pill">
+                <span>KYC</span>
+                <strong>{{ intelligenceProfile.lastKycStatus ?? 'Aucun depot' }}</strong>
+              </div>
+            </div>
+            <div class="ft-soft-panel mt-3">
+              <div class="fw-semibold text-primary mb-2">Signaux de vigilance</div>
+              {% if intelligenceProfile.monitoringFlags is empty %}
+                <div class="text-muted small">Aucun signal majeur detecte actuellement.</div>
+              {% else %}
+                <div class="d-flex flex-wrap gap-2">
+                  {% for flag in intelligenceProfile.monitoringFlags %}
+                    <span class="badge ft-badge-neutral">{{ flag }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="ft-app-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-shield-exclamation me-2 text-primary"></i>Profil de risque
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-risk-score-wrap mb-3">
+              <div class="ft-risk-score-value">{{ riskProfile.globalRiskScore|number_format(1, ',', ' ') }}/100</div>
+              <div class="ft-risk-score-caption">Niveau {{ riskProfile.riskLevel|lower }}</div>
+            </div>
+            <div class="ft-soft-panel">
+              <div class="fw-semibold text-primary mb-2">Facteurs clefs</div>
+              <ul class="ft-list-clean mb-0">
+                {% for factor in riskProfile.keyRiskFactors %}
+                  <li>{{ factor }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% if riskProfile.alerts is not empty %}
+              <div class="ft-soft-panel ft-soft-panel-warning mt-3">
+                <div class="fw-semibold mb-2">Alertes</div>
+                <ul class="ft-list-clean mb-0">
+                  {% for alert in riskProfile.alerts %}
+                    <li>{{ alert }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="ft-app-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-cash-coin me-2 text-primary"></i>Comportement financier
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-insight-grid">
+              <div class="ft-insight-pill">
+                <span>Frequence</span>
+                <strong>{{ financialBehavior.transactionFrequency|number_format(2, ',', ' ') }}/jour</strong>
+              </div>
+              <div class="ft-insight-pill">
+                <span>Montant moyen</span>
+                <strong>{{ financialBehavior.avgTransactionAmount|number_format(2, ',', ' ') }} TND</strong>
+              </div>
+              <div class="ft-insight-pill">
+                <span>Tendance</span>
+                <strong>{{ financialBehavior.activityTrend }}</strong>
+              </div>
+              <div class="ft-insight-pill">
+                <span>Stabilite</span>
+                <strong>{{ financialBehavior.stabilityScore }}/100</strong>
+              </div>
+            </div>
+            <p class="text-muted small mb-0 mt-3">{{ financialBehavior.summary }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="ft-app-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-clock-history me-2 text-primary"></i>Historique et surveillance
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-timeline">
+              {% for item in monitoringTimeline %}
+                <div class="ft-timeline-item">
+                  <div class="ft-timeline-dot ft-timeline-{{ item.tone }}"></div>
+                  <div>
+                    <div class="fw-semibold small">{{ item.label }}</div>
+                    <div class="text-muted small">{{ item.detail }}</div>
+                    <div class="text-muted x-small">{{ item.date }}</div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
 
+{% block javascripts %}
+  {{ parent() }}
+  <style>
+    .ft-profile-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+      gap: 1rem;
+      padding: 1.5rem;
+      border-radius: 1.6rem;
+      background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 40%),
+        linear-gradient(135deg, #ffffff 0%, #f6faff 54%, #edf5ff 100%);
+      border: 1px solid #dbe7f7;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+    }
+    .ft-profile-kicker {
+      display: inline-flex;
+      align-items: center;
+      padding: .45rem .85rem;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.08);
+      color: #1d4ed8;
+      font-weight: 700;
+      font-size: .84rem;
+      margin-bottom: .85rem;
+    }
+    .ft-profile-hero-title {
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: .5rem;
+    }
+    .ft-profile-hero-text {
+      color: #526581;
+      max-width: 60ch;
+    }
+    .ft-profile-hero-metrics,
+    .ft-insight-grid {
+      display: grid;
+      gap: .85rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ft-profile-metric-card,
+    .ft-insight-pill {
+      padding: 1rem;
+      border-radius: 1.15rem;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(191, 219, 254, 0.9);
+    }
+    .ft-profile-metric-card strong,
+    .ft-insight-pill strong {
+      display: block;
+      margin-top: .25rem;
+      color: #0f172a;
+      font-size: 1.05rem;
+    }
+    .ft-profile-metric-label,
+    .ft-insight-pill span {
+      color: #64748b;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      font-weight: 700;
+    }
+    .ft-soft-panel {
+      padding: 1rem 1.05rem;
+      border-radius: 1.1rem;
+      background: linear-gradient(135deg, #f8fbff, #eff6ff);
+      border: 1px solid #dbe7f7;
+    }
+    .ft-soft-panel-warning {
+      background: linear-gradient(135deg, #fffaf0, #fff3d9);
+      border-color: #f7d8a8;
+    }
+    .ft-list-clean {
+      list-style: none;
+      padding: 0;
+    }
+    .ft-list-clean li {
+      display: flex;
+      gap: .6rem;
+      align-items: flex-start;
+      color: #41546f;
+      font-size: .92rem;
+    }
+    .ft-list-clean li + li {
+      margin-top: .5rem;
+    }
+    .ft-list-clean li::before {
+      content: "";
+      width: .5rem;
+      height: .5rem;
+      border-radius: 999px;
+      margin-top: .35rem;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+    }
+    .ft-risk-score-wrap {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: .75rem;
+      padding-bottom: .8rem;
+      border-bottom: 1px solid #e5edf7;
+    }
+    .ft-risk-score-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .ft-risk-score-caption {
+      color: #64748b;
+      font-weight: 600;
+    }
+    .ft-timeline {
+      display: grid;
+      gap: 1rem;
+    }
+    .ft-timeline-item {
+      display: grid;
+      grid-template-columns: 14px minmax(0, 1fr);
+      gap: .8rem;
+      align-items: start;
+    }
+    .ft-timeline-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      margin-top: .25rem;
+      box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.08);
+    }
+    .ft-timeline-success { background: #10b981; }
+    .ft-timeline-warning { background: #f59e0b; }
+    .ft-timeline-danger { background: #ef4444; }
+    .ft-timeline-info { background: #3b82f6; }
+    .x-small { font-size: .74rem; }
+    @media (max-width: 991px) {
+      .ft-profile-hero {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
