@@ -2,11 +2,13 @@
 
 namespace App\Service;
 
+use App\Entity\Produit\ProductSubscription;
 use App\Entity\User\Client\Kyc;
 use App\Entity\User\Client\KycFile;
 use App\Entity\User\Client\Notification;
 use App\Entity\User\User;
 use App\Repository\UserRepository;
+use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -107,6 +109,13 @@ class UserService
 
     public function deleteUser(User $user): void
     {
+        /** @var ProductSubscription[] $subscriptions */
+        $subscriptions = $this->em->getRepository(ProductSubscription::class)->findBy(['clientUser' => $user]);
+
+        foreach ($subscriptions as $subscription) {
+            $this->em->remove($subscription);
+        }
+
         /** @var Kyc[] $kycRecords */
         $kycRecords = $this->em->getRepository(Kyc::class)->findBy(['user' => $user]);
 
@@ -122,7 +131,12 @@ class UserService
 
         $user->setCurrentKycId(null);
         $this->em->remove($user);
-        $this->em->flush();
+
+        try {
+            $this->em->flush();
+        } catch (ForeignKeyConstraintViolationException $exception) {
+            throw new \RuntimeException('Impossible de supprimer cet utilisateur tant que des donnees liees existent encore dans la plateforme.', 0, $exception);
+        }
     }
 
     private function deleteKycFileArtifact(KycFile $file): void

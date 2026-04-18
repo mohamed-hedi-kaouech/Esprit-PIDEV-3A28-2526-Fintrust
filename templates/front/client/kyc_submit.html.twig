@@ -134,6 +134,7 @@
               <div class="ft-selfie-stage">
                 <video id="kycSelfieVideo" class="ft-selfie-stage__video" playsinline autoplay muted></video>
                 <canvas id="kycSelfieCanvas" class="d-none"></canvas>
+                <img id="kycSelfieStageCapture" class="ft-selfie-stage__capture d-none" alt="Selfie KYC capture">
                 <div class="ft-selfie-stage__placeholder" id="kycSelfiePlaceholder">
                   <div class="ft-selfie-stage__icon"><i class="bi bi-person-bounding-box"></i></div>
                   <p class="mb-0">Autorisez la camera, placez votre visage dans le cadre puis capturez votre selfie de reference.</p>
@@ -217,11 +218,13 @@
   const saveSignatureBtn = document.getElementById('saveSignatureBtn');
   const selfieVideo = document.getElementById('kycSelfieVideo');
   const selfieCanvas = document.getElementById('kycSelfieCanvas');
-  const selfieField = document.getElementById('selfieDataField');
+  const selfieField = document.getElementById('selfieDataField')
+    || document.querySelector('input[name$="[selfieData]"]');
   const selfieStatus = document.getElementById('kycSelfieStatus');
   const selfiePlaceholder = document.getElementById('kycSelfiePlaceholder');
   const selfiePreview = document.getElementById('kycSelfiePreview');
   const selfiePreviewEmpty = document.getElementById('kycSelfiePreviewEmpty');
+  const selfieStageCapture = document.getElementById('kycSelfieStageCapture');
   const startSelfieCaptureBtn = document.getElementById('startSelfieCaptureBtn');
   const captureSelfieReferenceBtn = document.getElementById('captureSelfieReferenceBtn');
   const resetSelfieReferenceBtn = document.getElementById('resetSelfieReferenceBtn');
@@ -229,6 +232,39 @@
   let drawing = false;
   let hasSignature = false;
   let selfieStream = null;
+  let selfieReady = false;
+
+  const waitForSelfieFrame = async () => {
+    if (!selfieVideo) {
+      return false;
+    }
+
+    if (selfieVideo.readyState >= 2 && (selfieVideo.videoWidth || selfieVideo.clientWidth)) {
+      return true;
+    }
+
+    return new Promise((resolve) => {
+      let settled = false;
+
+      const finish = (value) => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        resolve(value);
+      };
+
+      const onReady = () => finish(true);
+
+      selfieVideo.addEventListener('loadeddata', onReady, { once: true });
+      selfieVideo.addEventListener('canplay', onReady, { once: true });
+
+      window.setTimeout(() => {
+        finish(selfieVideo.readyState >= 2);
+      }, 1400);
+    });
+  };
 
   const renderFiles = (files) => {
     fileList.innerHTML = '';
@@ -390,38 +426,148 @@
         audio: false
       });
 
+      selfieVideo.onloadedmetadata = null;
       selfieVideo.srcObject = selfieStream;
+      selfieReady = false;
+      const markSelfieReady = async () => {
+        try {
+          await selfieVideo.play();
+        } catch (error) {
+          // La video est deja en lecture sur certains navigateurs.
+        }
+        selfieReady = true;
+        selfieStatus.textContent = 'Camera active. Vous pouvez maintenant capturer votre selfie de reference.';
+      };
+      selfieVideo.onloadedmetadata = markSelfieReady;
+      selfieVideo.onloadeddata = markSelfieReady;
+
+      if (selfieVideo.readyState >= 2) {
+        markSelfieReady();
+      }
+
+      await waitForSelfieFrame();
+      if (selfieVideo.readyState >= 2) {
+        selfieReady = true;
+        selfieStatus.textContent = 'Camera active. Vous pouvez maintenant capturer votre selfie de reference.';
+      }
+
+      selfieStageCapture?.classList.add('d-none');
+      selfieStageCapture?.setAttribute('src', '');
+      selfieVideo.classList.remove('d-none');
       selfiePlaceholder?.classList.add('d-none');
-      selfieStatus.textContent = 'Camera active. Capturez maintenant votre selfie de reference.';
+      if (!selfieReady) {
+        selfieStatus.textContent = 'Camera detectee. Si besoin, attendez un instant avant la capture.';
+      }
     } catch (error) {
       selfieStatus.textContent = 'Impossible d ouvrir la camera. Verifiez les autorisations du navigateur.';
     }
   };
 
-  const captureSelfieReference = () => {
-    if (!selfieVideo || !selfieCanvas || !selfieVideo.videoWidth || !selfieVideo.videoHeight) {
-      selfieStatus.textContent = 'La camera n est pas encore prete. Activez-la puis reessayez.';
+  const captureSelfieReference = async () => {
+    if (!selfieVideo || !selfieCanvas) {
+      selfieStatus.textContent = 'Le module selfie n est pas disponible sur cette page.';
       return;
     }
 
-    selfieCanvas.width = selfieVideo.videoWidth;
-    selfieCanvas.height = selfieVideo.videoHeight;
-    const selfieContext = selfieCanvas.getContext('2d');
-    selfieContext.drawImage(selfieVideo, 0, 0, selfieCanvas.width, selfieCanvas.height);
+    if (!selfieField) {
+      selfieStatus.textContent = 'Le champ de stockage du selfie est introuvable sur la page.';
+      return;
+    }
 
-    const dataUrl = selfieCanvas.toDataURL('image/png');
-    selfieField.value = dataUrl;
-    selfiePreview.src = dataUrl;
-    selfiePreview.classList.remove('d-none');
-    selfiePreviewEmpty.classList.add('d-none');
-    selfieStatus.textContent = 'Selfie KYC capture avec succes. Il sera enregistre avec votre dossier.';
+    if (selfieVideo.readyState < 2) {
+      const frameReady = await waitForSelfieFrame();
+      if (!frameReady) {
+        selfieStatus.textContent = 'La camera ne fournit pas encore d image exploitable. Reessayez dans une seconde.';
+        return;
+      }
+    }
+
+    const sourceWidth = selfieVideo.videoWidth > 0 ? selfieVideo.videoWidth : Math.max(selfieVideo.clientWidth, 720);
+    const sourceHeight = selfieVideo.videoHeight > 0 ? selfieVideo.videoHeight : Math.max(selfieVideo.clientHeight, 540);
+
+    if (!sourceWidth || !sourceHeight) {
+      selfieStatus.textContent = 'La camera n est pas encore prete. Attendez encore une seconde puis recommencez.';
+      return;
+    }
+
+    try {
+      const captureCanvas = document.createElement('canvas');
+      captureCanvas.width = sourceWidth;
+      captureCanvas.height = sourceHeight;
+      const selfieContext = captureCanvas.getContext('2d');
+      if (!selfieContext) {
+        selfieStatus.textContent = 'La capture selfie est indisponible sur ce navigateur.';
+        return;
+      }
+
+      const videoTrack = selfieStream?.getVideoTracks?.()[0] ?? null;
+      const imageCaptureSupported = typeof window.ImageCapture !== 'undefined' && videoTrack;
+
+      if (imageCaptureSupported) {
+        try {
+          const imageCapture = new window.ImageCapture(videoTrack);
+          const frame = await imageCapture.grabFrame();
+          selfieContext.save();
+          selfieContext.translate(captureCanvas.width, 0);
+          selfieContext.scale(-1, 1);
+          selfieContext.drawImage(frame, 0, 0, captureCanvas.width, captureCanvas.height);
+          selfieContext.restore();
+        } catch (imageCaptureError) {
+          selfieContext.save();
+          selfieContext.translate(captureCanvas.width, 0);
+          selfieContext.scale(-1, 1);
+          selfieContext.drawImage(selfieVideo, 0, 0, captureCanvas.width, captureCanvas.height);
+          selfieContext.restore();
+        }
+      } else {
+        selfieContext.save();
+        selfieContext.translate(captureCanvas.width, 0);
+        selfieContext.scale(-1, 1);
+        selfieContext.drawImage(selfieVideo, 0, 0, captureCanvas.width, captureCanvas.height);
+        selfieContext.restore();
+      }
+
+      const dataUrl = captureCanvas.toDataURL('image/png');
+      selfieCanvas.width = captureCanvas.width;
+      selfieCanvas.height = captureCanvas.height;
+      const storageContext = selfieCanvas.getContext('2d');
+      if (!storageContext) {
+        throw new Error('Le canvas de stockage est indisponible.');
+      }
+
+      storageContext.drawImage(captureCanvas, 0, 0);
+
+      selfieField.value = dataUrl;
+      selfiePreview.src = dataUrl;
+      selfiePreview.classList.remove('d-none');
+      selfiePreviewEmpty?.classList.add('d-none');
+      selfieStageCapture.src = dataUrl;
+      selfieStageCapture.classList.remove('d-none');
+      selfieVideo.classList.add('d-none');
+      selfieVideo.classList.add('ft-selfie-stage__video--captured');
+      window.setTimeout(() => {
+        selfieVideo.classList.remove('ft-selfie-stage__video--captured');
+      }, 280);
+      selfieStatus.textContent = 'Selfie KYC capture avec succes. L image figee est maintenant enregistree dans le formulaire.';
+    } catch (error) {
+      const message = error instanceof Error && error.message ? error.message : 'Erreur de capture inconnue.';
+      selfieStatus.textContent = `La capture a echoue : ${message}`;
+    }
   };
 
   const resetSelfieReference = () => {
+    if (!selfieField) {
+      selfieStatus.textContent = 'Le champ de stockage du selfie est introuvable sur la page.';
+      return;
+    }
+
     selfieField.value = '';
     selfiePreview.src = '';
     selfiePreview.classList.add('d-none');
-    selfiePreviewEmpty.classList.remove('d-none');
+    selfiePreviewEmpty?.classList.remove('d-none');
+    selfieStageCapture?.classList.add('d-none');
+    selfieStageCapture?.setAttribute('src', '');
+    selfieVideo.classList.remove('d-none');
     selfieStatus.textContent = 'Aucun selfie capture pour le moment.';
   };
 
@@ -429,8 +575,8 @@
     startSelfieCamera();
   });
 
-  captureSelfieReferenceBtn?.addEventListener('click', () => {
-    captureSelfieReference();
+  captureSelfieReferenceBtn?.addEventListener('click', async () => {
+    await captureSelfieReference();
   });
 
   resetSelfieReferenceBtn?.addEventListener('click', () => {
@@ -597,6 +743,7 @@
   }
 
   .ft-selfie-stage__video,
+  .ft-selfie-stage__capture,
   .ft-selfie-stage__placeholder {
     position: absolute;
     inset: 0;
@@ -606,6 +753,17 @@
 
   .ft-selfie-stage__video {
     object-fit: cover;
+    transform: scaleX(-1);
+    transition: filter .18s ease, transform .18s ease;
+  }
+
+  .ft-selfie-stage__capture {
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+
+  .ft-selfie-stage__video--captured {
+    filter: brightness(1.12) saturate(1.05);
   }
 
   .ft-selfie-stage__placeholder {
