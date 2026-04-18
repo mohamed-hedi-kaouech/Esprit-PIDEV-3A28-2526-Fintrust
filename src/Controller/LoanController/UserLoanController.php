@@ -7,6 +7,7 @@ use App\Repository\Loan\LoanRepository;
 use App\Service\Loan\LoanService;
 use App\Service\Loan\RepaymentService;
 use App\Service\Loan\DocRaptorService;
+use App\Service\Loan\RepaymentEmailService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +21,8 @@ class UserLoanController extends AbstractController
     public function __construct(
         private LoanService      $loanService,
         private RepaymentService $repaymentService,
+        private RepaymentEmailService $emailService,
+        private string $testUserEmail,
     ) {}
 
     #[Route('/my-loans', name: 'my_loans', methods: ['GET'])]
@@ -52,6 +55,7 @@ class UserLoanController extends AbstractController
         ]);
     }
 
+
     #[Route('/repayment/{id}/pay', name: 'repayment_pay', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function payRepayment(int $id, Request $request): Response
     {
@@ -66,10 +70,17 @@ class UserLoanController extends AbstractController
                 throw new \Exception('Échéance introuvable.');
             }
 
-            $loanId = $repayment->getLoan()->getLoanId();
+            $loan = $repayment->getLoan();
+            $loanId = $loan->getLoanId();
+
+            // Mark as paid
             $this->repaymentService->markAsPaid($id);
 
-            $this->addFlash('success', 'Échéance payée avec succès.');
+            // Send confirmation email to test email (until user module is ready)
+            $this->emailService->sendPaymentConfirmation($repayment, $loan, $this->testUserEmail);
+
+            $this->addFlash('success', 'Échéance payée avec succès. Un email de confirmation a été envoyé à ' . $this->testUserEmail);
+            
             return $this->redirectToRoute('loan_user_details', ['id' => $loanId]);
 
         } catch (\Exception $e) {
@@ -77,6 +88,7 @@ class UserLoanController extends AbstractController
             return $this->redirectToRoute('loan_my_loans');
         }
     }
+
 
         #[Route('/{loanId}/export-pdf', name: 'export_pdf', requirements: ['loanId' => '\d+'], methods: ['GET'])]
         public function exportPdf(
