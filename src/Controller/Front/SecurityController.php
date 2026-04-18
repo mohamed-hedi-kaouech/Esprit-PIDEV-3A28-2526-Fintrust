@@ -42,7 +42,7 @@ class SecurityController extends AbstractController
                 $accountVerificationMailer->sendVerificationCode($user);
                 $this->addFlash('success', 'Compte cree avec succes. Un code de verification a ete envoye a votre adresse e-mail.');
             } catch (\Throwable) {
-                $this->addFlash('warning', 'Compte cree avec succes. L envoi de l e-mail a echoue pour le moment, mais vous pouvez demander un nouveau code.');
+                $this->addFlash('warning', 'Compte cree avec succes. L e-mail n a pas pu etre envoye sur cette machine, mais un code local est disponible sur l ecran de verification.');
             }
 
             return $this->redirectToRoute('app_verify_account', [

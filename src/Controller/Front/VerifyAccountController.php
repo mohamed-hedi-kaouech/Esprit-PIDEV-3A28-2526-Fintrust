@@ -18,6 +18,7 @@ class VerifyAccountController extends AbstractController
         Request $request,
         UserRepository $userRepository,
         UserService $userService,
+        AccountVerificationMailer $accountVerificationMailer,
     ): Response {
         $prefilledEmail = (string) $request->query->get('email', '');
         $form = $this->createForm(VerifyAccountCodeType::class, null, [
@@ -52,6 +53,10 @@ class VerifyAccountController extends AbstractController
         return $this->render('front/security/verify_account.html.twig', [
             'verifyForm' => $form,
             'prefilledEmail' => $prefilledEmail,
+            'mailDeliveryDisabled' => $accountVerificationMailer->isMailerDisabled(),
+            'verificationPreview' => $prefilledEmail !== ''
+                ? $accountVerificationMailer->getLatestPreviewForEmail($prefilledEmail)
+                : null,
         ]);
     }
 
@@ -87,7 +92,7 @@ class VerifyAccountController extends AbstractController
             $accountVerificationMailer->sendVerificationCode($user);
             $this->addFlash('success', 'Un nouveau code de verification a ete envoye a votre adresse e-mail.');
         } catch (\Throwable) {
-            $this->addFlash('warning', 'Le code a bien ete regenere, mais l envoi e-mail a echoue. Reessayez dans un instant.');
+            $this->addFlash('warning', 'Le code a bien ete regenere. L e-mail n a pas pu etre envoye sur cette machine, mais le code local est affiche sur cette page.');
         }
 
         return $this->redirectToRoute('app_verify_account', ['email' => $email]);
