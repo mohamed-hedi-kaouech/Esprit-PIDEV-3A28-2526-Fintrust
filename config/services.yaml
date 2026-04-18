@@ -16,6 +16,7 @@ services:
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         bind:
             string $appSecret: '%kernel.secret%'
+            string $projectDir: '%kernel.project_dir%'
             string $fintrustMailerFrom: '%fintrust.mailer_from%'
             string $fintrustLoginUrl: '%fintrust.login_url%'
             string $fintrustPublicUrl: '%fintrust.public_url%'
