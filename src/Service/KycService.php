@@ -28,7 +28,7 @@ class KycService
     /**
      * @param UploadedFile[] $uploadedFiles
      */
-    public function submitKyc(User $user, Kyc $kyc, array $uploadedFiles, string $signatureData): void
+    public function submitKyc(User $user, Kyc $kyc, array $uploadedFiles, string $signatureData, string $selfieData = ''): void
     {
         $kyc->setUser($user);
         $kyc->setStatut(Kyc::STATUT_EN_ATTENTE);
@@ -45,6 +45,8 @@ class KycService
             $kyc->addFile($kycFile);
             $this->em->persist($kycFile);
         }
+
+        $this->storeSelfieReference($kyc, $selfieData);
 
         $this->em->persist($kyc);
 
@@ -93,6 +95,35 @@ class KycService
 
         $kyc->setSignaturePath('uploads/kyc-signatures/' . $filename);
         $kyc->setSignatureUploadedAt(new \DateTime());
+    }
+
+    private function storeSelfieReference(Kyc $kyc, string $selfieData): void
+    {
+        if (!preg_match('/^data:image\/(png|jpeg|jpg);base64,/', $selfieData)) {
+            return;
+        }
+
+        $binary = base64_decode(substr($selfieData, strpos($selfieData, ',') + 1), true);
+        if ($binary === false || $binary === '') {
+            return;
+        }
+
+        $directory = $this->projectDir . '/public/uploads/kyc-files';
+        if (!is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $filename = 'selfie_reference_' . bin2hex(random_bytes(8)) . '.png';
+        file_put_contents($directory . '/' . $filename, $binary);
+
+        $kycFile = new KycFile();
+        $kycFile->setFileName($filename);
+        $kycFile->setFileType('image/png');
+        $kycFile->setFileSize(strlen($binary));
+        $kycFile->setFilePath('uploads/kyc-files/' . $filename);
+        $kycFile->setUpdatedAt(new \DateTime());
+        $kyc->addFile($kycFile);
+        $this->em->persist($kycFile);
     }
 
     public function approveKyc(Kyc $kyc, ?string $commentaire = null): void

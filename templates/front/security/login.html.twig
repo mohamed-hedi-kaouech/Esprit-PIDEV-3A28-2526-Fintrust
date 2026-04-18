@@ -1,4 +1,4 @@
-﻿{% extends 'front/front.html.twig' %}
+{% extends 'front/front.html.twig' %}
 
 {% block title %}Connexion{% endblock %}
 
@@ -6,132 +6,174 @@
 <div class="ft-auth-page">
   <div class="container">
     <div class="row justify-content-center align-items-center min-vh-100 py-5">
-      <div class="col-12 col-sm-10 col-md-7 col-lg-5">
-        <div class="ft-auth-card">
-          <div class="ft-auth-header text-center mb-4">
-            <div class="ft-auth-logo mb-3">
-              <a href="{{ path('app') }}" class="d-inline-flex text-decoration-none" title="Retour a l accueil">
-                <svg viewBox="0 0 40 40" fill="none" width="48" height="48">
-                  <rect width="40" height="40" rx="10" fill="#1560BD"/>
-                  <path d="M10 28V18l10-8 10 8v10H24v-6h-8v6H10Z" fill="white"/>
-                </svg>
-              </a>
+      <div class="col-12 col-lg-10">
+        <div class="row g-4 align-items-stretch">
+          <div class="col-lg-6">
+            <div class="ft-login-showcase h-100">
+              <div class="ft-login-showcase__eyebrow">
+                <i class="bi bi-stars"></i>
+                <span>Connexion intelligente FinTrust</span>
+              </div>
+              <h1 class="ft-login-showcase__title">Entrez avec votre mot de passe ou votre selfie KYC de reference</h1>
+              <p class="ft-login-showcase__text">
+                Votre selfie KYC est enregistre dans vos fichiers de verification. Lors de la connexion,
+                FinTrust compare le selfie capture avec votre dossier, puis valide l acces avec votre mot de passe.
+              </p>
+
+              <div class="ft-login-showcase__grid">
+                <div class="ft-login-spotlight">
+                  <div class="ft-login-spotlight__icon"><i class="bi bi-camera2"></i></div>
+                  <div>
+                    <strong>Selfie KYC</strong>
+                    <p>Capture guidee, comparaison visuelle et refus si le selfie ne correspond pas au compte.</p>
+                  </div>
+                </div>
+                <div class="ft-login-spotlight">
+                  <div class="ft-login-spotlight__icon"><i class="bi bi-shield-lock"></i></div>
+                  <div>
+                    <strong>Double validation</strong>
+                    <p>Le mot de passe reste actif pour garder une connexion plus serieuse et plus sure.</p>
+                  </div>
+                </div>
+                <div class="ft-login-spotlight">
+                  <div class="ft-login-spotlight__icon"><i class="bi bi-folder-check"></i></div>
+                  <div>
+                    <strong>Sans nouvelle table</strong>
+                    <p>Le selfie de reference est conserve dans les fichiers KYC deja existants.</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h1 class="ft-auth-title">Bon retour</h1>
-            <p class="text-muted">Connectez-vous a votre espace client FinTrust</p>
           </div>
 
-          {% if error %}
-            <div class="alert alert-danger d-flex align-items-center" role="alert">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i>
-              <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
-            </div>
-          {% endif %}
-
-          {% if app.request.query.get('reset') %}
-            <div class="alert alert-info d-flex align-items-center" role="alert">
-              <i class="bi bi-shield-lock-fill me-2"></i>
-              <span>Votre mot de passe a ete mis a jour. Veuillez vous reconnecter.</span>
-            </div>
-          {% endif %}
-
-          <form method="post" action="{{ path('app_login') }}" id="loginForm" novalidate="novalidate">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}"/>
-
-            <div class="mb-3">
-              <label for="email" class="form-label fw-semibold">
-                <i class="bi bi-envelope me-1 text-primary"></i>Adresse e-mail
-              </label>
-              <input
-                type="text"
-                id="email"
-                name="email"
-                value="{{ last_username }}"
-                class="form-control ft-input"
-                placeholder="vous@exemple.com"
-                autocomplete="email"
-              />
-            </div>
-
-            <div class="mb-3">
-              <div class="d-flex justify-content-between align-items-center">
-                <label for="password" class="form-label fw-semibold">
-                  <i class="bi bi-lock me-1 text-primary"></i>Mot de passe
-                </label>
-                <a href="{{ path('app_forgot_password') }}" class="small fw-semibold text-decoration-none">
-                  Mot de passe oublie ?
-                </a>
+          <div class="col-lg-6">
+            <div class="ft-auth-card">
+              <div class="ft-auth-header text-center mb-4">
+                <div class="ft-auth-logo mb-3">
+                  <a href="{{ path('app') }}" class="d-inline-flex text-decoration-none" title="Retour a l accueil">
+                    <svg viewBox="0 0 40 40" fill="none" width="52" height="52">
+                      <rect width="40" height="40" rx="10" fill="#1560BD"/>
+                      <path d="M10 28V18l10-8 10 8v10H24v-6h-8v6H10Z" fill="white"/>
+                    </svg>
+                  </a>
+                </div>
+                <h2 class="ft-auth-title">Bon retour</h2>
+                <p class="text-muted mb-0">Connectez-vous a votre espace client FinTrust</p>
               </div>
-              <div class="input-group">
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  class="form-control ft-input"
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
-                  autocomplete="current-password"
-                />
-                <button class="btn btn-outline-secondary ft-toggle-pwd" type="button" id="togglePwd" tabindex="-1">
-                  <i class="bi bi-eye" id="togglePwdIcon"></i>
+
+              {% if error %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                  <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
+                </div>
+              {% endif %}
+
+              {% if app.request.query.get('reset') %}
+                <div class="alert alert-info d-flex align-items-center" role="alert">
+                  <i class="bi bi-shield-lock-fill me-2"></i>
+                  <span>Votre mot de passe a ete mis a jour. Veuillez vous reconnecter.</span>
+                </div>
+              {% endif %}
+
+              <form method="post" action="{{ path('app_login') }}" id="loginForm" novalidate="novalidate">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}"/>
+
+                <div class="mb-3">
+                  <label for="email" class="form-label fw-semibold">
+                    <i class="bi bi-envelope me-1 text-primary"></i>Adresse e-mail
+                  </label>
+                  <input
+                    type="text"
+                    id="email"
+                    name="email"
+                    value="{{ last_username }}"
+                    class="form-control ft-input"
+                    placeholder="vous@exemple.com"
+                    autocomplete="email"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <label for="password" class="form-label fw-semibold">
+                      <i class="bi bi-lock me-1 text-primary"></i>Mot de passe
+                    </label>
+                    <a href="{{ path('app_forgot_password') }}" class="small fw-semibold text-decoration-none">
+                      Mot de passe oublie ?
+                    </a>
+                  </div>
+                  <div class="input-group">
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      class="form-control ft-input"
+                      placeholder="••••••••"
+                      autocomplete="current-password"
+                    />
+                    <button class="btn btn-outline-secondary ft-toggle-pwd" type="button" id="togglePwd" tabindex="-1">
+                      <i class="bi bi-eye" id="togglePwdIcon"></i>
+                    </button>
+                  </div>
+                </div>
+
+                {% if captcha_required %}
+                  <div class="ft-captcha-card mb-3">
+                    <label class="form-label fw-semibold mb-2">
+                      <i class="bi bi-shield-check me-1 text-primary"></i>Verification anti-bot
+                    </label>
+                    <input type="hidden" name="captcha_token" value="{{ captcha.token }}">
+                    <label class="ft-captcha-checkbox" for="captcha_confirm">
+                      <input type="checkbox" id="captcha_confirm" name="captcha_confirm" value="1">
+                      <span class="ft-captcha-box"><i class="bi bi-check-lg"></i></span>
+                      <span class="ft-captcha-label">{{ captcha.label }}</span>
+                    </label>
+                    <div class="form-text">La verification s active apres plusieurs tentatives echouees.</div>
+                  </div>
+                {% endif %}
+
+                <button type="submit" class="btn ft-btn-primary w-100 py-2 fw-semibold mt-2">
+                  <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
                 </button>
+
+                <div class="ft-auth-divider" aria-hidden="true">
+                  <span>Ou continuer avec</span>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn ft-btn-selfie w-100 py-2 fw-semibold"
+                  id="openSelfieLogin"
+                  aria-haspopup="dialog"
+                  aria-controls="selfieModal"
+                >
+                  <i class="bi bi-person-bounding-box me-2"></i>Connexion selfie KYC + mot de passe
+                </button>
+
+                <div class="text-center mt-3">
+                  <button
+                    type="button"
+                    class="btn btn-link ft-auth-inline-link p-0"
+                    id="openSelfieEnroll"
+                    aria-haspopup="dialog"
+                    aria-controls="selfieModal"
+                  >
+                    Enregistrer ou remplacer mon selfie KYC
+                  </button>
+                </div>
+              </form>
+
+              <div class="text-center mt-4">
+                <span class="text-muted small">Pas encore de compte ?</span>
+                <a href="{{ path('app_register') }}" class="ms-1 fw-semibold text-primary text-decoration-none">
+                  Creer un compte
+                </a>
+                <div class="mt-2">
+                  <a href="{{ path('app_verify_account', last_username ? {email: last_username} : {}) }}" class="small fw-semibold text-decoration-none">
+                    Verifier mon adresse e-mail
+                  </a>
+                </div>
               </div>
-            </div>
-
-            {% if captcha_required %}
-              <div class="ft-captcha-card mb-3">
-                <label class="form-label fw-semibold mb-2">
-                  <i class="bi bi-shield-check me-1 text-primary"></i>Verification anti-bot
-                </label>
-                <input type="hidden" name="captcha_token" value="{{ captcha.token }}">
-                <label class="ft-captcha-checkbox" for="captcha_confirm">
-                  <input type="checkbox" id="captcha_confirm" name="captcha_confirm" value="1">
-                  <span class="ft-captcha-box"><i class="bi bi-check-lg"></i></span>
-                  <span class="ft-captcha-label">{{ captcha.label }}</span>
-                </label>
-                <div class="form-text">La verification s active apres plusieurs tentatives echouees.</div>
-              </div>
-            {% endif %}
-
-            <button type="submit" class="btn ft-btn-primary w-100 py-2 fw-semibold mt-2">
-              <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
-            </button>
-
-            <div class="ft-auth-divider" aria-hidden="true">
-              <span>Ou continuer avec</span>
-            </div>
-
-            <button
-              type="button"
-              class="btn ft-btn-biometric w-100 py-2 fw-semibold"
-              id="openBiometricModal"
-              aria-haspopup="dialog"
-              aria-controls="biometricModal"
-            >
-              <i class="bi bi-person-bounding-box me-2"></i>Connexion biometrique locale
-            </button>
-
-            <div class="text-center mt-3">
-              <button
-                type="button"
-                class="btn btn-link ft-auth-inline-link p-0"
-                id="openBiometricEnroll"
-                aria-haspopup="dialog"
-                aria-controls="biometricModal"
-              >
-                Activer la connexion biometrique sur cet appareil
-              </button>
-            </div>
-          </form>
-
-          <div class="text-center mt-4">
-            <span class="text-muted small">Pas encore de compte ?</span>
-            <a href="{{ path('app_register') }}" class="ms-1 fw-semibold text-primary text-decoration-none">
-              Creer un compte
-            </a>
-            <div class="mt-2">
-              <a href="{{ path('app_verify_account', last_username ? {email: last_username} : {}) }}" class="small fw-semibold text-decoration-none">
-                Verifier mon adresse e-mail
-              </a>
             </div>
           </div>
         </div>
@@ -140,51 +182,67 @@
   </div>
 </div>
 
-<div class="ft-face-modal" id="biometricModal" aria-hidden="true">
-  <div class="ft-face-modal__backdrop" data-close-biometric></div>
+<div class="ft-face-modal" id="selfieModal" aria-hidden="true">
+  <div class="ft-face-modal__backdrop" data-close-selfie></div>
   <div
     class="ft-face-modal__dialog"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="biometricModalTitle"
-    aria-describedby="biometricModalText"
+    aria-labelledby="selfieModalTitle"
+    aria-describedby="selfieModalText"
   >
-    <button type="button" class="ft-face-modal__close" data-close-biometric aria-label="Fermer">
+    <button type="button" class="ft-face-modal__close" data-close-selfie aria-label="Fermer">
       <i class="bi bi-x-lg"></i>
     </button>
 
-    <div class="ft-face-modal__eyebrow" id="biometricModeLabel">Connexion biometrique</div>
-    <h2 class="ft-face-modal__title" id="biometricModalTitle">Connexion biometrique securisee</h2>
-    <p class="ft-face-modal__text" id="biometricModalText">Votre visage reste valide localement sur votre PC via Windows Hello, Face ID ou la biometrie de votre appareil.</p>
+    <div class="ft-face-modal__eyebrow" id="selfieModeLabel">Connexion selfie KYC</div>
+    <h2 class="ft-face-modal__title" id="selfieModalTitle">Verifier mon identite avec mon selfie KYC</h2>
+    <p class="ft-face-modal__text" id="selfieModalText">
+      Capturez un selfie depuis votre camera. FinTrust le compare au selfie de reference enregistre dans vos fichiers KYC,
+      puis valide la connexion avec votre mot de passe.
+    </p>
 
-    <div class="ft-face-status" id="biometricStatus">
+    <div class="ft-face-status" id="selfieStatus">
       <span class="ft-face-status__dot"></span>
-      <span id="biometricStatusText">Preparation securisee...</span>
+      <span id="selfieStatusText">Camera prete</span>
     </div>
 
-    <div class="ft-face-camera">
-      <video id="biometricVideo" class="ft-face-camera__video" playsinline autoplay muted></video>
-      <div class="ft-face-camera__placeholder" id="biometricPlaceholder">
-        <div class="ft-face-camera__icon"><i class="bi bi-shield-lock"></i></div>
-        <p class="mb-0">Validez avec Windows Hello, Face ID ou la biometrie locale de votre appareil.</p>
+    <div class="ft-selfie-shell">
+      <div class="ft-selfie-camera">
+        <video id="selfieVideo" class="ft-selfie-camera__video" playsinline autoplay muted></video>
+        <canvas id="selfieCanvas" class="d-none"></canvas>
+        <div class="ft-selfie-camera__placeholder" id="selfiePlaceholder">
+          <div class="ft-selfie-camera__icon"><i class="bi bi-camera2"></i></div>
+          <p class="mb-0">Autorisez la camera puis capturez votre selfie de verification.</p>
+        </div>
+        <div class="ft-selfie-frame">
+          <div class="ft-selfie-frame__corners"></div>
+          <div class="ft-selfie-frame__scan"></div>
+        </div>
       </div>
-      <div class="ft-face-frame">
-        <div class="ft-face-frame__corners"></div>
-        <div class="ft-face-frame__scan"></div>
+
+      <div class="ft-selfie-preview d-none" id="selfiePreviewWrap">
+        <div class="ft-selfie-preview__label">Apercu capture</div>
+        <img id="selfiePreview" alt="Selfie capture" class="ft-selfie-preview__image">
       </div>
     </div>
 
     <div class="ft-face-state-list">
-      <div class="ft-face-state-pill"><i class="bi bi-phone me-2"></i>Appareil pret</div>
-      <div class="ft-face-state-pill"><i class="bi bi-person-check me-2"></i>Identite locale verifiee</div>
-      <div class="ft-face-state-pill"><i class="bi bi-shield-check me-2"></i>Validation FinTrust</div>
+      <div class="ft-face-state-pill"><i class="bi bi-camera-video me-2"></i>Camera locale</div>
+      <div class="ft-face-state-pill"><i class="bi bi-folder2-open me-2"></i>Reference KYC</div>
+      <div class="ft-face-state-pill"><i class="bi bi-key me-2"></i>Mot de passe conserve</div>
     </div>
 
-    <div class="ft-face-feedback d-none" id="biometricFeedback"></div>
+    <div class="ft-face-feedback d-none" id="selfieFeedback"></div>
 
     <div class="ft-face-modal__footer">
-      <button type="button" class="btn btn-outline-secondary" data-close-biometric>Annuler</button>
-      <button type="button" class="btn ft-btn-outline-primary d-none" id="retryBiometric">Reessayer</button>
+      <button type="button" class="btn btn-outline-secondary" data-close-selfie>Annuler</button>
+      <button type="button" class="btn btn-outline-primary" id="captureSelfieBtn">
+        <i class="bi bi-camera-fill me-2"></i>Capturer
+      </button>
+      <button type="button" class="btn ft-btn-primary" id="selfieActionBtn">
+        <i class="bi bi-shield-check me-2"></i>Verifier
+      </button>
     </div>
   </div>
 </div>
@@ -206,21 +264,29 @@
   });
 
   (() => {
-    const modal = document.getElementById('biometricModal');
+    const modal = document.getElementById('selfieModal');
+    const video = document.getElementById('selfieVideo');
+    const canvas = document.getElementById('selfieCanvas');
+    const placeholder = document.getElementById('selfiePlaceholder');
+    const previewWrap = document.getElementById('selfiePreviewWrap');
+    const preview = document.getElementById('selfiePreview');
+    const statusText = document.getElementById('selfieStatusText');
+    const feedback = document.getElementById('selfieFeedback');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
-    const openLoginButton = document.getElementById('openBiometricModal');
-    const openEnrollButton = document.getElementById('openBiometricEnroll');
-    const closeButtons = modal ? modal.querySelectorAll('[data-close-biometric]') : [];
-    const placeholder = document.getElementById('biometricPlaceholder');
-    const statusText = document.getElementById('biometricStatusText');
-    const feedback = document.getElementById('biometricFeedback');
-    const retryButton = document.getElementById('retryBiometric');
-    const title = document.getElementById('biometricModalTitle');
-    const text = document.getElementById('biometricModalText');
-    const modeLabel = document.getElementById('biometricModeLabel');
-    const biometricToken = {{ csrf_token('biometric_login')|json_encode|raw }};
+    const captureButton = document.getElementById('captureSelfieBtn');
+    const actionButton = document.getElementById('selfieActionBtn');
+    const openLoginButton = document.getElementById('openSelfieLogin');
+    const openEnrollButton = document.getElementById('openSelfieEnroll');
+    const title = document.getElementById('selfieModalTitle');
+    const text = document.getElementById('selfieModalText');
+    const modeLabel = document.getElementById('selfieModeLabel');
+    const closeButtons = modal ? modal.querySelectorAll('[data-close-selfie]') : [];
+    const csrfToken = {{ csrf_token('selfie_auth')|json_encode|raw }};
+
     let currentMode = 'login';
+    let currentStream = null;
+    let capturedSelfie = '';
 
     const setStatus = (message) => {
       if (statusText) {
@@ -246,51 +312,73 @@
       feedback.textContent = '';
     };
 
-    const setRetry = (label, visible = true) => {
-      if (!retryButton) {
+    const setMode = (mode) => {
+      currentMode = mode;
+
+      if (mode === 'enroll') {
+        modeLabel.textContent = 'Enregistrement selfie KYC';
+        title.textContent = 'Enregistrer ou remplacer mon selfie KYC';
+        text.textContent = 'Capturez un selfie clair. Il sera range dans vos fichiers KYC et servira ensuite de reference pour votre connexion selfie + mot de passe.';
+        actionButton.innerHTML = '<i class="bi bi-cloud-check me-2"></i>Enregistrer';
+        setStatus('Pret a enregistrer');
+        setFeedback('Saisissez l e-mail et le mot de passe du compte, puis capturez un selfie clair avant d enregistrer.', 'info');
         return;
       }
 
-      retryButton.textContent = label;
-      retryButton.classList.toggle('d-none', !visible);
+      modeLabel.textContent = 'Connexion selfie KYC';
+      title.textContent = 'Verifier mon identite avec mon selfie KYC';
+      text.textContent = 'Capturez un selfie depuis votre camera. FinTrust le compare au selfie de reference enregistre dans vos fichiers KYC, puis valide la connexion avec votre mot de passe.';
+      actionButton.innerHTML = '<i class="bi bi-shield-check me-2"></i>Verifier';
+      setStatus('Camera prete');
+      setFeedback('Renseignez votre e-mail et votre mot de passe, puis capturez votre selfie pour verifier votre identite.', 'info');
     };
 
-    const base64UrlToBuffer = (value) => {
-      const padding = '='.repeat((4 - value.length % 4) % 4);
-      const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
-      const binary = window.atob(base64);
-      const bytes = new Uint8Array(binary.length);
+    const stopCamera = () => {
+      if (currentStream) {
+        currentStream.getTracks().forEach((track) => track.stop());
+        currentStream = null;
+      }
+    };
 
-      for (let index = 0; index < binary.length; index += 1) {
-        bytes[index] = binary.charCodeAt(index);
+    const startCamera = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('La camera n est pas disponible sur ce navigateur.');
       }
 
-      return bytes.buffer;
-    };
-
-    const bufferToBase64Url = (buffer) => {
-      const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-      let binary = '';
-      bytes.forEach((byte) => {
-        binary += String.fromCharCode(byte);
+      stopCamera();
+      currentStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user',
+          width: { ideal: 960 },
+          height: { ideal: 720 }
+        },
+        audio: false
       });
 
-      return window.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+      video.srcObject = currentStream;
+      placeholder?.classList.add('d-none');
+      setStatus('Camera active');
     };
 
-    const withPublicKeyBuffers = (options) => ({
-      ...options,
-      challenge: base64UrlToBuffer(options.challenge),
-      user: options.user ? { ...options.user, id: base64UrlToBuffer(options.user.id) } : undefined,
-      excludeCredentials: (options.excludeCredentials || []).map((credential) => ({
-        ...credential,
-        id: base64UrlToBuffer(credential.id),
-      })),
-      allowCredentials: (options.allowCredentials || []).map((credential) => ({
-        ...credential,
-        id: base64UrlToBuffer(credential.id),
-      })),
-    });
+    const captureSelfie = () => {
+      if (!video || !canvas || !video.videoWidth || !video.videoHeight) {
+        throw new Error('La camera n est pas encore prete. Attendez une seconde puis recommencez.');
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      capturedSelfie = canvas.toDataURL('image/png');
+
+      if (preview && previewWrap) {
+        preview.src = capturedSelfie;
+        previewWrap.classList.remove('d-none');
+      }
+
+      setStatus('Selfie capture');
+      setFeedback('Selfie capture avec succes. Vous pouvez maintenant lancer la verification.', 'success');
+    };
 
     const postJson = async (url, payload) => {
       const response = await fetch(url, {
@@ -304,197 +392,59 @@
 
       const data = await response.json();
       if (!response.ok) {
-        const error = new Error(data.message || 'Operation biometrique impossible.');
-        error.code = data.code || 'biometric_error';
+        const error = new Error(data.message || 'Operation selfie impossible.');
+        error.code = data.code || 'selfie_error';
+        error.score = data.score;
+        error.threshold = data.threshold;
         throw error;
       }
 
       return data;
     };
 
-    const requireWebAuthn = () => {
-      if (!window.PublicKeyCredential || !navigator.credentials) {
-        throw new Error('La biometrie securisee n est pas disponible sur ce navigateur. Utilisez Edge, Chrome ou Safari recent.');
-      }
-    };
-
-    const ensureBiometricEnvironment = async () => {
-      requireWebAuthn();
-
-      const localHosts = ['localhost', '127.0.0.1', '::1'];
-      if (!window.isSecureContext && !localHosts.includes(window.location.hostname)) {
-        throw new Error('La biometrie securisee exige HTTPS ou http://localhost. Ouvrez FinTrust en local sur localhost ou activez HTTPS.');
-      }
-
-      if (typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
-        const available = await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-        if (!available) {
-          throw new Error('Aucune biometrie locale n est configuree sur ce PC. Activez Windows Hello dans les parametres Windows avant de continuer.');
-        }
-      }
-    };
-
-    const normalizeBiometricError = (error, mode) => {
-      if (!error) {
-        return new Error(mode === 'enroll' ? 'Activation impossible.' : 'Verification impossible.');
-      }
-
-      if (error.code) {
-        return error;
-      }
-
-      if (error.name === 'NotAllowedError') {
-        return new Error(
-          mode === 'enroll'
-            ? 'Activation interrompue ou refusee. Verifiez que Windows Hello ou Face ID est bien configure sur ce PC, puis acceptez la fenetre de validation.'
-            : 'Verification interrompue ou refusee. Validez avec Windows Hello, Face ID ou la biometrie locale de cet appareil pour ouvrir la session.'
-        );
-      }
-
-      if (error.name === 'InvalidStateError') {
-        return new Error('Cet appareil semble deja lie ou la demande biometrique est devenue invalide. Reessayez apres avoir ferme la fenetre.');
-      }
-
-      if (error.name === 'SecurityError') {
-        return new Error('La biometrie locale exige une page securisee. Utilisez HTTPS ou http://localhost sur votre PC.');
-      }
-
-      if (error.name === 'AbortError') {
-        return new Error('La verification biometrique a ete interrompue. Reessayez et validez la fenetre Windows Hello ou Face ID.');
-      }
-
-      if (error.name === 'NotSupportedError') {
-        return new Error('Ce navigateur ou cet appareil ne prend pas correctement en charge la biometrie securisee. Utilisez Edge, Chrome ou Safari recent.');
-      }
-
-      if ((error.message || '').includes('privacy-considerations-client')) {
-        return new Error('La validation biometrique n a pas ete autorisee sur ce PC. Verifiez Windows Hello, restez sur une page securisee et acceptez la demande de l appareil.');
-      }
-
-      return error;
-    };
-
-    const switchToEnrollMode = () => {
-      currentMode = 'enroll';
-      modeLabel.textContent = 'Activation biometrique';
-      title.textContent = 'Enregistrer mon visage sur cet appareil';
-      text.textContent = 'Ce compte sera lie a la biometrie locale de votre PC. Votre visage reste gere par Windows Hello ou Face ID sur cet appareil.';
-      setStatus('Activation recommandee');
-      setFeedback('Entrez votre mot de passe puis cliquez sur "Activer maintenant" pour enregistrer ce PC pour ce compte.', 'info');
-      placeholder?.classList.remove('d-none');
-      setRetry('Activer maintenant', true);
-    };
-
-    const switchToLoginMode = () => {
-      currentMode = 'login';
-      modeLabel.textContent = 'Connexion biometrique';
-      title.textContent = 'Connexion biometrique securisee';
-      text.textContent = 'Utilisez la biometrie locale de votre PC pour ouvrir la session du compte saisi. Une autre personne ne peut pas entrer sans validation Windows Hello ou Face ID.';
-      setStatus('Pret a verifier');
-      setFeedback('Saisissez votre e-mail, puis validez avec Windows Hello, Face ID ou la biometrie configuree sur cet appareil.', 'info');
-      placeholder?.classList.remove('d-none');
-      setRetry('Reessayer', false);
-    };
-
-    const handleBiometricEnroll = async () => {
-      await ensureBiometricEnvironment();
-
+    const ensureCredentials = () => {
       const email = emailInput?.value.trim() ?? '';
       const password = passwordInput?.value ?? '';
 
       if (email === '' || password.trim() === '') {
-        throw new Error('Renseignez votre e-mail et votre mot de passe pour lier ce PC a votre compte.');
+        throw new Error('Renseignez votre e-mail et votre mot de passe avant d utiliser le selfie KYC.');
       }
 
-      setStatus('Preparation de l activation...');
-      const options = await postJson('{{ path('app_biometric_enroll_options') }}', {
-        _token: biometricToken,
-        email,
-        password,
-      });
-
-      let credential;
-      try {
-        setStatus('Validation Windows Hello / Face ID...');
-        credential = await navigator.credentials.create({
-          publicKey: withPublicKeyBuffers(options),
-        });
-      } catch (error) {
-        throw normalizeBiometricError(error, 'enroll');
+      if (capturedSelfie === '') {
+        throw new Error('Capturez d abord votre selfie pour continuer.');
       }
 
-      if (!credential || !credential.response || typeof credential.response.getPublicKey !== 'function') {
-        throw new Error('Ce navigateur ne fournit pas la cle biometrique necessaire. Utilisez Edge, Chrome ou Safari recent.');
-      }
-
-      const publicKey = credential.response.getPublicKey();
-      if (!publicKey) {
-        throw new Error('La cle biometrique de cet appareil est indisponible.');
-      }
-
-      await postJson('{{ path('app_biometric_enroll_verify') }}', {
-        _token: biometricToken,
-        email,
-        id: credential.id,
-        clientDataJSON: bufferToBase64Url(credential.response.clientDataJSON),
-        publicKeySpki: bufferToBase64Url(publicKey),
-        publicKeyAlgorithm: credential.response.getPublicKeyAlgorithm(),
-        deviceLabel: navigator.userAgentData?.platform || navigator.platform || 'Appareil biometrique',
-      });
-
-      setStatus('Biometrie activee');
-      setFeedback('Ce PC est maintenant autorise pour ce compte. A la prochaine connexion, FinTrust demandera la biometrie locale de cet appareil avant d ouvrir la session.', 'success');
-      setRetry('Reessayer', false);
+      return { email, password, selfie: capturedSelfie, _token: csrfToken };
     };
 
-    const handleBiometricLogin = async () => {
-      await ensureBiometricEnvironment();
+    const runAction = async () => {
+      const payload = ensureCredentials();
 
-      const email = emailInput?.value.trim() ?? '';
-      if (email === '') {
-        throw new Error('Renseignez votre e-mail avant d utiliser la connexion biometrique.');
+      if (currentMode === 'enroll') {
+        setStatus('Enregistrement du selfie...');
+        const result = await postJson('{{ path('app_selfie_enroll') }}', payload);
+        setStatus('Selfie KYC enregistre');
+        setFeedback(result.message || 'Votre selfie KYC est pret.', 'success');
+        return;
       }
 
-      setStatus('Preparation de la verification...');
-      const options = await postJson('{{ path('app_biometric_auth_options') }}', {
-        _token: biometricToken,
-        email,
-      });
-
-      let assertion;
-      try {
-        setStatus('Validation Windows Hello / Face ID...');
-        assertion = await navigator.credentials.get({
-          publicKey: withPublicKeyBuffers(options),
-        });
-      } catch (error) {
-        throw normalizeBiometricError(error, 'login');
-      }
-
-      if (!assertion) {
-        throw new Error('La verification biometrique n a pas pu etre finalisee.');
-      }
-
-      setStatus('Validation FinTrust...');
-      const result = await postJson('{{ path('app_biometric_auth_verify') }}', {
-        _token: biometricToken,
-        email,
-        id: assertion.id,
-        clientDataJSON: bufferToBase64Url(assertion.response.clientDataJSON),
-        authenticatorData: bufferToBase64Url(assertion.response.authenticatorData),
-        signature: bufferToBase64Url(assertion.response.signature),
-      });
-
-      setStatus('Identite confirmee');
-      setFeedback(result.message || 'Identite confirmee. Connexion en cours...', 'success');
-      setRetry('Reessayer', false);
+      setStatus('Comparaison du selfie KYC...');
+      const result = await postJson('{{ path('app_selfie_auth') }}', payload);
+      setStatus('Connexion validee');
+      setFeedback(`${result.message || 'Connexion validee.'} Score de correspondance : ${result.score}/100.`, 'success');
 
       window.setTimeout(() => {
         window.location.href = result.redirectUrl || '{{ path('front_dashboard') }}';
       }, 700);
     };
 
-    const openModal = (mode) => {
+    const handleError = (error) => {
+      const suffix = error.score ? ` Score obtenu : ${error.score}/100.` : '';
+      setStatus(currentMode === 'enroll' ? 'Enregistrement impossible' : 'Verification impossible');
+      setFeedback((error.message || 'Une erreur est survenue.') + suffix, 'error');
+    };
+
+    const openModal = async (mode) => {
       if (!modal) {
         return;
       }
@@ -502,79 +452,47 @@
       modal.classList.add('is-open');
       modal.setAttribute('aria-hidden', 'false');
       document.body.classList.add('ft-face-modal-open');
+      capturedSelfie = '';
+      previewWrap?.classList.add('d-none');
       resetFeedback();
+      setMode(mode);
 
-      if (mode === 'enroll') {
-        switchToEnrollMode();
-        return;
+      try {
+        await startCamera();
+      } catch (error) {
+        handleError(error);
       }
-
-      switchToLoginMode();
     };
 
     const closeModal = () => {
-      if (!modal) {
-        return;
-      }
-
-      modal.classList.remove('is-open');
-      modal.setAttribute('aria-hidden', 'true');
+      stopCamera();
+      modal?.classList.remove('is-open');
+      modal?.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('ft-face-modal-open');
-      setRetry('Reessayer', false);
+      capturedSelfie = '';
       resetFeedback();
+      previewWrap?.classList.add('d-none');
+      placeholder?.classList.remove('d-none');
     };
 
-    const runCurrentMode = async () => {
-      if (currentMode === 'enroll') {
-        await handleBiometricEnroll();
-        return;
-      }
-
-      await handleBiometricLogin();
-    };
-
-    const handleActionError = (error) => {
-      if (error?.code === 'no_registered_device') {
-        switchToEnrollMode();
-        return;
-      }
-
-      const normalized = normalizeBiometricError(error, currentMode);
-      setStatus(currentMode === 'enroll' ? 'Activation impossible' : 'Verification impossible');
-      setFeedback(normalized.message || 'La verification biometrique a echoue.', 'error');
-      setRetry(currentMode === 'enroll' ? 'Activer maintenant' : 'Reessayer', true);
-    };
-
-    retryButton?.addEventListener('click', async () => {
-      resetFeedback();
-      setRetry('Reessayer', false);
-
+    openLoginButton?.addEventListener('click', () => openModal('login'));
+    openEnrollButton?.addEventListener('click', () => openModal('enroll'));
+    captureButton?.addEventListener('click', () => {
       try {
-        await runCurrentMode();
+        captureSelfie();
       } catch (error) {
-        handleActionError(error);
+        handleError(error);
+      }
+    });
+    actionButton?.addEventListener('click', async () => {
+      try {
+        await runAction();
+      } catch (error) {
+        handleError(error);
       }
     });
 
     closeButtons.forEach((button) => button.addEventListener('click', closeModal));
-
-    openLoginButton?.addEventListener('click', async () => {
-      openModal('login');
-      try {
-        await runCurrentMode();
-      } catch (error) {
-        handleActionError(error);
-      }
-    });
-
-    openEnrollButton?.addEventListener('click', async () => {
-      openModal('enroll');
-      try {
-        await runCurrentMode();
-      } catch (error) {
-        handleActionError(error);
-      }
-    });
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && modal?.classList.contains('is-open')) {
@@ -582,7 +500,93 @@
       }
     });
   })();
-</script><style>
+</script>
+
+<style>
+  .ft-login-showcase {
+    position: relative;
+    overflow: hidden;
+    padding: 2rem;
+    border-radius: 32px;
+    border: 1px solid rgba(59, 130, 246, .14);
+    background:
+      radial-gradient(circle at top left, rgba(59, 130, 246, .18), transparent 38%),
+      radial-gradient(circle at 82% 18%, rgba(34, 211, 238, .16), transparent 28%),
+      linear-gradient(135deg, rgba(239, 246, 255, .98), rgba(255, 255, 255, .98) 46%, rgba(239, 246, 255, .96));
+    box-shadow: 0 28px 70px rgba(15, 23, 42, .08);
+  }
+
+  .ft-login-showcase__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .5rem .9rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .92);
+    color: #1e4fbf;
+    font-size: .78rem;
+    font-weight: 700;
+    box-shadow: 0 10px 26px rgba(37, 99, 235, .12);
+    margin-bottom: 1.4rem;
+  }
+
+  .ft-login-showcase__title {
+    font-family: var(--ft-font-display);
+    font-size: clamp(2.4rem, 4vw, 3.35rem);
+    line-height: .98;
+    color: #0f2247;
+    margin-bottom: 1rem;
+  }
+
+  .ft-login-showcase__text {
+    color: #577197;
+    font-size: 1.04rem;
+    line-height: 1.7;
+    max-width: 44rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .ft-login-showcase__grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .ft-login-spotlight {
+    display: grid;
+    grid-template-columns: 54px 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: 1rem 1.1rem;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .86);
+    border: 1px solid rgba(148, 163, 184, .16);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, .05);
+  }
+
+  .ft-login-spotlight__icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(37, 99, 235, .18), rgba(6, 182, 212, .16));
+    color: #1d4ed8;
+    font-size: 1.25rem;
+  }
+
+  .ft-login-spotlight strong {
+    display: block;
+    color: #112b56;
+    margin-bottom: .2rem;
+  }
+
+  .ft-login-spotlight p {
+    margin: 0;
+    color: #617998;
+    line-height: 1.55;
+  }
+
   .ft-auth-divider {
     display: flex;
     align-items: center;
@@ -601,21 +605,20 @@
     background: linear-gradient(90deg, rgba(21, 96, 189, 0), rgba(21, 96, 189, .14), rgba(21, 96, 189, 0));
   }
 
-  .ft-btn-biometric {
-    background: #fff;
-    color: #123c8d;
-    border: 1.5px solid rgba(21, 96, 189, .16);
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
-    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+  .ft-btn-selfie {
+    background: linear-gradient(135deg, #f9fbff, #edf5ff);
+    color: #113f98;
+    border: 1.5px solid rgba(37, 99, 235, .18);
+    border-radius: 14px;
+    box-shadow: 0 16px 34px rgba(37, 99, 235, .09);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
   }
 
-  .ft-btn-biometric:hover {
-    background: #f8fbff;
-    color: #0f3f94;
-    border-color: rgba(21, 96, 189, .28);
+  .ft-btn-selfie:hover {
+    color: #0e3b8b;
+    border-color: rgba(37, 99, 235, .28);
     transform: translateY(-1px);
-    box-shadow: 0 14px 30px rgba(15, 23, 42, .08);
+    box-shadow: 0 20px 40px rgba(37, 99, 235, .14);
   }
 
   .ft-auth-inline-link {
@@ -623,11 +626,6 @@
     font-size: .92rem;
     font-weight: 600;
     text-decoration: none;
-  }
-
-  .ft-auth-inline-link:hover {
-    color: #0f4cae;
-    text-decoration: underline;
   }
 
   .ft-face-modal {
@@ -644,20 +642,22 @@
   .ft-face-modal__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(15, 23, 42, .38);
-    backdrop-filter: blur(6px);
+    background: rgba(15, 23, 42, .44);
+    backdrop-filter: blur(8px);
   }
 
   .ft-face-modal__dialog {
     position: relative;
     z-index: 1;
-    width: min(92vw, 540px);
-    margin: 5vh auto;
-    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,250,255,.98));
-    border: 1px solid rgba(21, 96, 189, .1);
-    box-shadow: 0 30px 80px rgba(15, 23, 42, .18);
-    border-radius: 28px;
-    padding: 1.5rem 1.5rem 1.35rem;
+    width: min(94vw, 720px);
+    margin: 4vh auto;
+    padding: 1.5rem;
+    border-radius: 30px;
+    border: 1px solid rgba(148, 163, 184, .16);
+    background:
+      radial-gradient(circle at top right, rgba(96, 165, 250, .18), transparent 26%),
+      linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,250,255,.98));
+    box-shadow: 0 30px 80px rgba(15, 23, 42, .22);
   }
 
   .ft-face-modal__close {
@@ -668,7 +668,7 @@
     height: 40px;
     border-radius: 999px;
     border: 1px solid rgba(148, 163, 184, .28);
-    background: rgba(255,255,255,.86);
+    background: rgba(255,255,255,.92);
     color: #475569;
   }
 
@@ -680,7 +680,7 @@
     border-radius: 999px;
     background: #edf5ff;
     color: #18448f;
-    font-size: .76rem;
+    font-size: .78rem;
     font-weight: 700;
     letter-spacing: .02em;
     margin-bottom: 1rem;
@@ -689,13 +689,14 @@
   .ft-face-modal__title {
     font-family: var(--ft-font-display);
     color: #0f172a;
-    font-size: 1.85rem;
+    font-size: 2rem;
     margin-bottom: .45rem;
   }
 
   .ft-face-modal__text {
     color: #64748b;
     margin-bottom: 1rem;
+    max-width: 46rem;
   }
 
   .ft-face-status {
@@ -720,10 +721,17 @@
     box-shadow: 0 0 0 6px rgba(37, 99, 235, .08);
   }
 
-  .ft-face-camera {
+  .ft-selfie-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .ft-selfie-camera {
     position: relative;
     overflow: hidden;
-    min-height: 300px;
+    min-height: 320px;
     border-radius: 24px;
     background:
       radial-gradient(circle at top, rgba(59, 130, 246, .12), transparent 40%),
@@ -731,122 +739,143 @@
     border: 1px solid rgba(21, 96, 189, .1);
   }
 
-  .ft-face-camera__video,
-  .ft-face-camera__placeholder {
+  .ft-selfie-camera__video,
+  .ft-selfie-camera__placeholder {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
   }
 
-  .ft-face-camera__video {
+  .ft-selfie-camera__video {
     object-fit: cover;
     background: #dbeafe;
   }
 
-  .ft-face-camera__placeholder {
+  .ft-selfie-camera__placeholder {
     display: grid;
     place-items: center;
     text-align: center;
-    color: #54708f;
-    padding: 1.5rem;
-    background: linear-gradient(180deg, rgba(248, 251, 255, .88), rgba(237, 245, 255, .96));
+    color: #54729d;
+    padding: 1.6rem;
+    background: linear-gradient(180deg, rgba(248, 251, 255, .92), rgba(239, 246, 255, .92));
   }
 
-  .ft-face-camera__icon {
+  .ft-selfie-camera__icon {
     width: 72px;
     height: 72px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 24px;
-    background: rgba(255,255,255,.92);
-    border: 1px solid rgba(21, 96, 189, .12);
+    margin: 0 auto 1rem;
+    border-radius: 22px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, .88);
     color: #1d4ed8;
-    font-size: 1.7rem;
-    margin-bottom: .9rem;
+    font-size: 1.4rem;
+    box-shadow: 0 18px 38px rgba(37, 99, 235, .12);
   }
 
-  .ft-face-frame {
-    position: absolute;
-    inset: 14%;
-    border-radius: 30px;
+  .ft-selfie-frame {
     pointer-events: none;
-  }
-
-  .ft-face-frame__corners {
     position: absolute;
     inset: 0;
-    border-radius: 30px;
-    border: 1.5px solid rgba(148, 163, 184, .38);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.42);
+    display: grid;
+    place-items: center;
   }
 
-  .ft-face-frame__scan {
+  .ft-selfie-frame__corners {
+    width: min(66%, 320px);
+    height: min(74%, 230px);
+    border-radius: 28px;
+    border: 1.5px solid rgba(59, 130, 246, .24);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.5);
+  }
+
+  .ft-selfie-frame__scan {
     position: absolute;
-    left: 8%;
-    right: 8%;
-    top: 22%;
+    width: 54%;
     height: 2px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, rgba(59,130,246,0), rgba(59,130,246,.92), rgba(59,130,246,0));
-    box-shadow: 0 0 18px rgba(59,130,246,.35);
-    animation: ft-face-scan 2.8s ease-in-out infinite;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0), rgba(96, 165, 250, .95), rgba(59, 130, 246, 0));
+    box-shadow: 0 0 18px rgba(96, 165, 250, .44);
+    animation: ftScan 2.8s ease-in-out infinite;
+  }
+
+  .ft-selfie-preview {
+    padding: .9rem;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #ffffff, #f7fbff);
+    border: 1px solid rgba(148, 163, 184, .16);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+  }
+
+  .ft-selfie-preview__label {
+    font-size: .82rem;
+    font-weight: 700;
+    color: #40608f;
+    margin-bottom: .7rem;
+  }
+
+  .ft-selfie-preview__image {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 18px;
+    border: 1px solid rgba(21, 96, 189, .1);
   }
 
   .ft-face-state-list {
     display: flex;
     flex-wrap: wrap;
-    gap: .6rem;
-    margin-top: 1rem;
+    gap: .75rem;
+    margin: 1rem 0;
   }
 
   .ft-face-state-pill {
-    padding: .55rem .8rem;
+    display: inline-flex;
+    align-items: center;
+    padding: .6rem .9rem;
     border-radius: 999px;
-    background: #f8fbff;
-    border: 1px solid rgba(21, 96, 189, .08);
-    color: #54708f;
-    font-size: .84rem;
+    background: rgba(255, 255, 255, .9);
+    border: 1px solid rgba(191, 219, 254, .88);
+    color: #527094;
     font-weight: 600;
   }
 
   .ft-face-feedback {
-    margin-top: 1rem;
-    border-radius: 16px;
-    padding: .9rem 1rem;
-    font-size: .92rem;
-    line-height: 1.5;
+    padding: 1rem 1.1rem;
+    border-radius: 20px;
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+
+  .ft-face-feedback--info {
+    background: #eef5ff;
+    color: #2353a5;
+    border: 1px solid rgba(96, 165, 250, .24);
   }
 
   .ft-face-feedback--success {
-    background: #edfdf3;
-    color: #166534;
-    border: 1px solid #bbf7d0;
+    background: #edfdf7;
+    color: #0f766e;
+    border: 1px solid rgba(45, 212, 191, .28);
   }
 
   .ft-face-feedback--error {
     background: #fff1f2;
     color: #be123c;
-    border: 1px solid #fecdd3;
-  }
-
-  .ft-face-feedback--info {
-    background: #f8fbff;
-    color: #31537c;
-    border: 1px solid rgba(21, 96, 189, .1);
+    border: 1px solid rgba(251, 113, 133, .28);
   }
 
   .ft-face-modal__footer {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
-    gap: .7rem;
-    margin-top: 1.15rem;
+    gap: .75rem;
+    margin-top: .5rem;
   }
 
   .ft-captcha-card {
-    padding: 1rem 1.05rem;
-    border-radius: 1.1rem;
+    padding: 1rem 1.1rem;
+    border-radius: 1.25rem;
     border: 1px solid #dbe7f7;
     background: linear-gradient(135deg, #f8fbff, #eef5ff);
   }
@@ -855,8 +884,8 @@
     display: flex;
     align-items: center;
     gap: .85rem;
-    padding: .85rem .95rem;
-    border-radius: .95rem;
+    padding: .9rem .95rem;
+    border-radius: 1rem;
     background: #fff;
     border: 1px dashed #bfd4f5;
     cursor: pointer;
@@ -871,13 +900,13 @@
   .ft-captcha-box {
     width: 28px;
     height: 28px;
-    border-radius: .55rem;
+    border-radius: .6rem;
     border: 1.5px solid #93c5fd;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: transparent;
     background: #eff6ff;
+    color: transparent;
     transition: all .2s ease;
     flex-shrink: 0;
   }
@@ -888,42 +917,20 @@
   }
 
   .ft-captcha-checkbox input:checked + .ft-captcha-box {
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
     border-color: transparent;
-    color: #fff;
   }
 
-  @keyframes ft-face-scan {
-    0%, 100% { top: 18%; opacity: .55; }
-    50% { top: 76%; opacity: 1; }
+  @keyframes ftScan {
+    0%, 100% { transform: translateY(-72px); opacity: .68; }
+    50% { transform: translateY(72px); opacity: 1; }
   }
 
-  @media (max-width: 575.98px) {
-    .ft-face-modal__dialog {
-      width: calc(100vw - 1.25rem);
-      margin: 2.5vh auto;
-      padding: 1.15rem 1rem 1rem;
-      border-radius: 24px;
-    }
-
-    .ft-face-modal__title {
-      font-size: 1.55rem;
-    }
-
-    .ft-face-camera {
-      min-height: 250px;
-    }
-
-    .ft-face-modal__footer {
-      flex-direction: column-reverse;
-    }
-
-    .ft-face-modal__footer .btn {
-      width: 100%;
+  @media (max-width: 991.98px) {
+    .ft-selfie-shell {
+      grid-template-columns: 1fr;
     }
   }
 </style>
 {% endblock %}
-
-
-

@@ -398,8 +398,8 @@ class UserController extends AbstractController
                 }
             }
 
-            if ($latestSignup === null || $createdAt > new \DateTimeImmutable($latestSignup)) {
-                $latestSignup = $createdAt->format('d/m/Y');
+            if ($latestSignup === null || $createdAt > $latestSignup) {
+                $latestSignup = $createdAt;
             }
 
             if ($user->getRole() === User::ROLE_ADMIN) {
@@ -439,7 +439,7 @@ class UserController extends AbstractController
             'kycApproved' => $kycApproved,
             'newThisMonth' => $newThisMonth,
             'growthRate' => $growthRate,
-            'latestSignup' => $latestSignup,
+            'latestSignup' => $latestSignup?->format('d/m/Y'),
             'activationRate' => $activationRate,
             'approvalRate' => $approvalRate,
             'monthlyLabels' => array_values(array_map(static fn(array $item) => $item['label'], $monthlyMap)),

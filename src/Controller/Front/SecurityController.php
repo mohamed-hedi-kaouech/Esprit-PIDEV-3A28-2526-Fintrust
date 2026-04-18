@@ -6,8 +6,8 @@ use App\Entity\User\User;
 use App\Form\Front\RegistrationFormType;
 use App\Repository\UserRepository;
 use App\Service\AccountVerificationMailer;
-use App\Service\BiometricPasskeyService;
 use App\Service\CaptchaService;
+use App\Service\SelfieKycAuthService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -75,96 +75,68 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    #[Route('/login/biometric/enroll/options', name: 'app_biometric_enroll_options', methods: ['POST'])]
-    public function biometricEnrollOptions(
+    #[Route('/login/selfie/enroll', name: 'app_selfie_enroll', methods: ['POST'])]
+    public function selfieEnroll(
         Request $request,
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
-        BiometricPasskeyService $biometricPasskeyService,
+        SelfieKycAuthService $selfieKycAuthService,
     ): JsonResponse {
         $payload = $this->getJsonPayload($request);
 
-        if (!$this->isCsrfTokenValid('biometric_login', (string) ($payload['_token'] ?? ''))) {
-            return $this->json(['code' => 'invalid_request', 'message' => 'La demande biometrique est invalide.'], Response::HTTP_FORBIDDEN);
+        if (!$this->isCsrfTokenValid('selfie_auth', (string) ($payload['_token'] ?? ''))) {
+            return $this->json(['code' => 'invalid_request', 'message' => 'La demande selfie est invalide.'], Response::HTTP_FORBIDDEN);
         }
 
         $email = trim((string) ($payload['email'] ?? ''));
         $password = (string) ($payload['password'] ?? '');
+        $selfie = (string) ($payload['selfie'] ?? '');
 
-        if ($email === '' || $password === '') {
-            return $this->json(['code' => 'missing_credentials', 'message' => 'Renseignez votre e-mail et votre mot de passe pour activer la biometrie.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        if ($email === '' || $password === '' || $selfie === '') {
+            return $this->json(['code' => 'missing_credentials', 'message' => 'Renseignez votre e-mail, votre mot de passe et capturez votre selfie pour activer ce mode de connexion.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $user = $userRepository->findByEmail($email);
         if (!$user instanceof User || !$passwordHasher->isPasswordValid($user, $password)) {
-            return $this->json(['code' => 'invalid_credentials', 'message' => 'Identifiants invalides.'], Response::HTTP_UNAUTHORIZED);
+            return $this->json(['code' => 'invalid_credentials', 'message' => 'E-mail ou mot de passe invalide.'], Response::HTTP_UNAUTHORIZED);
         }
 
         if (!$user->isVerified()) {
-            return $this->json(['code' => 'email_not_verified', 'message' => 'Verifiez d abord votre adresse e-mail avant d activer la biometrie.'], Response::HTTP_CONFLICT);
+            return $this->json(['code' => 'email_not_verified', 'message' => 'Verifiez d abord votre adresse e-mail avant d activer la connexion selfie KYC.'], Response::HTTP_CONFLICT);
         }
 
         if ($user->isAdmin()) {
-            return $this->json(['code' => 'admin_account', 'message' => 'Utilisez l espace admin pour ce compte.'], Response::HTTP_CONFLICT);
-        }
-
-        return $this->json($biometricPasskeyService->createEnrollmentOptions(
-            $user,
-            $this->getBiometricRpId($request),
-            $request->getSession()
-        ));
-    }
-
-    #[Route('/login/biometric/enroll/verify', name: 'app_biometric_enroll_verify', methods: ['POST'])]
-    public function biometricEnrollVerify(
-        Request $request,
-        UserRepository $userRepository,
-        BiometricPasskeyService $biometricPasskeyService,
-    ): JsonResponse {
-        $payload = $this->getJsonPayload($request);
-
-        if (!$this->isCsrfTokenValid('biometric_login', (string) ($payload['_token'] ?? ''))) {
-            return $this->json(['code' => 'invalid_request', 'message' => 'La demande biometrique est invalide.'], Response::HTTP_FORBIDDEN);
-        }
-
-        $email = trim((string) ($payload['email'] ?? ''));
-        $user = $userRepository->findByEmail($email);
-
-        if (!$user instanceof User) {
-            return $this->json(['code' => 'user_not_found', 'message' => 'Compte introuvable pour l activation biometrique.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['code' => 'admin_account', 'message' => 'Cette connexion selfie est reservee a l espace client.'], Response::HTTP_CONFLICT);
         }
 
         try {
-            $biometricPasskeyService->completeEnrollment(
-                $user,
-                $payload,
-                $this->getBiometricOrigin($request),
-                $request->getSession()
-            );
+            $result = $selfieKycAuthService->storeReferenceSelfie($user, $selfie);
         } catch (\RuntimeException $exception) {
-            return $this->json(['code' => 'enrollment_failed', 'message' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+            return $this->json(['code' => 'enrollment_failed', 'message' => $exception->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        return $this->json([
-            'message' => 'Connexion biometrique activee avec succes sur cet appareil.',
-        ]);
+        return $this->json($result);
     }
 
-    #[Route('/login/biometric/options', name: 'app_biometric_auth_options', methods: ['POST'])]
-    public function biometricAuthOptions(
+    #[Route('/login/selfie/auth', name: 'app_selfie_auth', methods: ['POST'])]
+    public function selfieAuth(
         Request $request,
         UserRepository $userRepository,
-        BiometricPasskeyService $biometricPasskeyService,
+        UserPasswordHasherInterface $passwordHasher,
+        SelfieKycAuthService $selfieKycAuthService,
     ): JsonResponse {
         $payload = $this->getJsonPayload($request);
 
-        if (!$this->isCsrfTokenValid('biometric_login', (string) ($payload['_token'] ?? ''))) {
-            return $this->json(['code' => 'invalid_request', 'message' => 'La demande biometrique est invalide.'], Response::HTTP_FORBIDDEN);
+        if (!$this->isCsrfTokenValid('selfie_auth', (string) ($payload['_token'] ?? ''))) {
+            return $this->json(['code' => 'invalid_request', 'message' => 'La demande selfie est invalide.'], Response::HTTP_FORBIDDEN);
         }
 
         $email = trim((string) ($payload['email'] ?? ''));
-        if ($email === '') {
-            return $this->json(['code' => 'missing_email', 'message' => 'Renseignez votre e-mail pour utiliser la biometrie.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        $password = (string) ($payload['password'] ?? '');
+        $selfie = (string) ($payload['selfie'] ?? '');
+
+        if ($email === '' || $password === '' || $selfie === '') {
+            return $this->json(['code' => 'missing_credentials', 'message' => 'Renseignez votre e-mail, votre mot de passe et capturez votre selfie pour continuer.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $user = $userRepository->findByEmail($email);
@@ -172,8 +144,12 @@ class SecurityController extends AbstractController
             return $this->json(['code' => 'user_not_found', 'message' => 'Aucun compte ne correspond a cet e-mail.'], Response::HTTP_NOT_FOUND);
         }
 
+        if (!$passwordHasher->isPasswordValid($user, $password)) {
+            return $this->json(['code' => 'invalid_credentials', 'message' => 'E-mail ou mot de passe invalide.'], Response::HTTP_UNAUTHORIZED);
+        }
+
         if (!$user->isVerified()) {
-            return $this->json(['code' => 'email_not_verified', 'message' => 'Votre adresse e-mail doit etre verifiee avant la connexion biometrique.'], Response::HTTP_CONFLICT);
+            return $this->json(['code' => 'email_not_verified', 'message' => 'Votre adresse e-mail doit etre verifiee avant la connexion selfie KYC.'], Response::HTTP_CONFLICT);
         }
 
         if ($user->getStatus() === User::STATUS_SUSPENDU) {
@@ -181,52 +157,25 @@ class SecurityController extends AbstractController
         }
 
         try {
-            return $this->json($biometricPasskeyService->createAuthenticationOptions(
-                $user,
-                $this->getBiometricRpId($request),
-                $request->getSession()
-            ));
+            $result = $selfieKycAuthService->verifySelfie($user, $selfie);
         } catch (\RuntimeException $exception) {
-            $code = str_contains($exception->getMessage(), 'Aucun appareil') ? 'no_registered_device' : 'auth_options_failed';
-
-            return $this->json(['code' => $code, 'message' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
-        }
-    }
-
-    #[Route('/login/biometric/verify', name: 'app_biometric_auth_verify', methods: ['POST'])]
-    public function biometricAuthVerify(
-        Request $request,
-        UserRepository $userRepository,
-        BiometricPasskeyService $biometricPasskeyService,
-    ): JsonResponse {
-        $payload = $this->getJsonPayload($request);
-
-        if (!$this->isCsrfTokenValid('biometric_login', (string) ($payload['_token'] ?? ''))) {
-            return $this->json(['code' => 'invalid_request', 'message' => 'La demande biometrique est invalide.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['code' => 'selfie_unavailable', 'message' => $exception->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $email = trim((string) ($payload['email'] ?? ''));
-        $user = $userRepository->findByEmail($email);
-
-        if (!$user instanceof User) {
-            return $this->json(['code' => 'user_not_found', 'message' => 'Compte biometrique introuvable.'], Response::HTTP_NOT_FOUND);
-        }
-
-        try {
-            $biometricPasskeyService->verifyAuthentication(
-                $user,
-                $payload,
-                $this->getBiometricOrigin($request),
-                $request->getSession()
-            );
-        } catch (\RuntimeException $exception) {
-            return $this->json(['code' => 'auth_verification_failed', 'message' => $exception->getMessage()], Response::HTTP_UNAUTHORIZED);
+        if (!$result['matched']) {
+            return $this->json([
+                'code' => 'selfie_mismatch',
+                'message' => $result['message'],
+                'score' => $result['score'],
+                'threshold' => $result['threshold'],
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
         $this->loginUser($user, 'main');
 
         return $this->json([
-            'message' => 'Identite biometrique confirmee. Connexion en cours...',
+            'message' => 'Selfie reconnu et mot de passe valide. Connexion en cours...',
+            'score' => $result['score'],
             'redirectUrl' => $this->generateUrl('front_dashboard'),
         ]);
     }
@@ -262,13 +211,4 @@ class SecurityController extends AbstractController
         return is_array($data) ? $data : [];
     }
 
-    private function getBiometricOrigin(Request $request): string
-    {
-        return $request->getSchemeAndHttpHost();
-    }
-
-    private function getBiometricRpId(Request $request): string
-    {
-        return (string) $request->getHost();
-    }
 }

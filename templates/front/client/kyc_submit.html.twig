@@ -117,6 +117,59 @@
           </div>
         </div>
 
+        <div class="ft-selfie-card mb-4">
+          <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+            <div>
+              <div class="ft-selfie-card__eyebrow">Selfie KYC de reference</div>
+              <h3 class="ft-selfie-card__title mb-1">Ajoutez le selfie qui servira ensuite pour votre connexion selfie + mot de passe</h3>
+              <p class="text-muted mb-0">Le selfie reste range dans vos fichiers KYC existants, sans nouvelle table ni nouvelle colonne.</p>
+            </div>
+            <button type="button" class="btn btn-outline-primary rounded-pill px-3" id="startSelfieCaptureBtn">
+              <i class="bi bi-camera2 me-2"></i>Activer la camera
+            </button>
+          </div>
+
+          <div class="row g-4 align-items-stretch">
+            <div class="col-lg-8">
+              <div class="ft-selfie-stage">
+                <video id="kycSelfieVideo" class="ft-selfie-stage__video" playsinline autoplay muted></video>
+                <canvas id="kycSelfieCanvas" class="d-none"></canvas>
+                <div class="ft-selfie-stage__placeholder" id="kycSelfiePlaceholder">
+                  <div class="ft-selfie-stage__icon"><i class="bi bi-person-bounding-box"></i></div>
+                  <p class="mb-0">Autorisez la camera, placez votre visage dans le cadre puis capturez votre selfie de reference.</p>
+                </div>
+                <div class="ft-selfie-stage__frame">
+                  <div class="ft-selfie-stage__corners"></div>
+                  <div class="ft-selfie-stage__scan"></div>
+                </div>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <button type="button" class="btn btn-primary" id="captureSelfieReferenceBtn">
+                  <i class="bi bi-camera-fill me-2"></i>Capturer mon selfie
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="resetSelfieReferenceBtn">
+                  <i class="bi bi-arrow-counterclockwise me-2"></i>Reprendre
+                </button>
+              </div>
+
+              <div class="ft-selfie-status" id="kycSelfieStatus">Aucun selfie capture pour le moment.</div>
+              {{ form_widget(form.selfieData, {attr: {id: 'selfieDataField'}}) }}
+            </div>
+
+            <div class="col-lg-4">
+              <div class="ft-selfie-preview-card">
+                <div class="ft-selfie-preview-card__label">Apercu du selfie</div>
+                <img id="kycSelfiePreview" class="ft-selfie-preview-card__image d-none" alt="Selfie KYC capture">
+                <div id="kycSelfiePreviewEmpty" class="ft-selfie-preview-card__empty">
+                  <i class="bi bi-image-alt"></i>
+                  <span>Le selfie capture apparaitra ici.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="ft-voice-helper mb-4">
           <div class="d-flex align-items-start gap-3">
             <div class="ft-voice-helper-icon"><i class="bi bi-megaphone"></i></div>
@@ -162,9 +215,20 @@
   const signatureField = document.getElementById('signatureDataField');
   const clearSignatureBtn = document.getElementById('clearSignatureBtn');
   const saveSignatureBtn = document.getElementById('saveSignatureBtn');
+  const selfieVideo = document.getElementById('kycSelfieVideo');
+  const selfieCanvas = document.getElementById('kycSelfieCanvas');
+  const selfieField = document.getElementById('selfieDataField');
+  const selfieStatus = document.getElementById('kycSelfieStatus');
+  const selfiePlaceholder = document.getElementById('kycSelfiePlaceholder');
+  const selfiePreview = document.getElementById('kycSelfiePreview');
+  const selfiePreviewEmpty = document.getElementById('kycSelfiePreviewEmpty');
+  const startSelfieCaptureBtn = document.getElementById('startSelfieCaptureBtn');
+  const captureSelfieReferenceBtn = document.getElementById('captureSelfieReferenceBtn');
+  const resetSelfieReferenceBtn = document.getElementById('resetSelfieReferenceBtn');
   const ctx = signatureCanvas?.getContext('2d');
   let drawing = false;
   let hasSignature = false;
+  let selfieStream = null;
 
   const renderFiles = (files) => {
     fileList.innerHTML = '';
@@ -305,6 +369,78 @@
     persistSignature();
   });
 
+  const stopSelfieCamera = () => {
+    if (selfieStream) {
+      selfieStream.getTracks().forEach((track) => track.stop());
+      selfieStream = null;
+    }
+  };
+
+  const startSelfieCamera = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      selfieStatus.textContent = 'La camera n est pas disponible sur ce navigateur.';
+      return;
+    }
+
+    stopSelfieCamera();
+
+    try {
+      selfieStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 720 } },
+        audio: false
+      });
+
+      selfieVideo.srcObject = selfieStream;
+      selfiePlaceholder?.classList.add('d-none');
+      selfieStatus.textContent = 'Camera active. Capturez maintenant votre selfie de reference.';
+    } catch (error) {
+      selfieStatus.textContent = 'Impossible d ouvrir la camera. Verifiez les autorisations du navigateur.';
+    }
+  };
+
+  const captureSelfieReference = () => {
+    if (!selfieVideo || !selfieCanvas || !selfieVideo.videoWidth || !selfieVideo.videoHeight) {
+      selfieStatus.textContent = 'La camera n est pas encore prete. Activez-la puis reessayez.';
+      return;
+    }
+
+    selfieCanvas.width = selfieVideo.videoWidth;
+    selfieCanvas.height = selfieVideo.videoHeight;
+    const selfieContext = selfieCanvas.getContext('2d');
+    selfieContext.drawImage(selfieVideo, 0, 0, selfieCanvas.width, selfieCanvas.height);
+
+    const dataUrl = selfieCanvas.toDataURL('image/png');
+    selfieField.value = dataUrl;
+    selfiePreview.src = dataUrl;
+    selfiePreview.classList.remove('d-none');
+    selfiePreviewEmpty.classList.add('d-none');
+    selfieStatus.textContent = 'Selfie KYC capture avec succes. Il sera enregistre avec votre dossier.';
+  };
+
+  const resetSelfieReference = () => {
+    selfieField.value = '';
+    selfiePreview.src = '';
+    selfiePreview.classList.add('d-none');
+    selfiePreviewEmpty.classList.remove('d-none');
+    selfieStatus.textContent = 'Aucun selfie capture pour le moment.';
+  };
+
+  startSelfieCaptureBtn?.addEventListener('click', () => {
+    startSelfieCamera();
+  });
+
+  captureSelfieReferenceBtn?.addEventListener('click', () => {
+    captureSelfieReference();
+  });
+
+  resetSelfieReferenceBtn?.addEventListener('click', () => {
+    resetSelfieReference();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    stopSelfieCamera();
+  });
+
   document.getElementById('voiceGuideBtn')?.addEventListener('click', function() {
     if (!('speechSynthesis' in window)) {
       alert('La lecture vocale n’est pas prise en charge sur ce navigateur.');
@@ -421,6 +557,157 @@
     background: linear-gradient(135deg, #2563eb, #3b82f6);
     color: #fff;
     border-color: transparent;
+  }
+
+  .ft-selfie-card {
+    padding: 1.35rem;
+    border-radius: 1.6rem;
+    border: 1px solid #dbe7f7;
+    background:
+      radial-gradient(circle at top right, rgba(96, 165, 250, .16), transparent 26%),
+      linear-gradient(135deg, #f8fbff, #eef5ff);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, .05);
+  }
+
+  .ft-selfie-card__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    padding: .42rem .8rem;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #1d4ed8;
+    font-size: .76rem;
+    font-weight: 700;
+    margin-bottom: .7rem;
+  }
+
+  .ft-selfie-card__title {
+    color: #102a56;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .ft-selfie-stage {
+    position: relative;
+    overflow: hidden;
+    min-height: 330px;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(59, 130, 246, .14);
+    background: linear-gradient(180deg, #eff6ff, #f8fbff);
+  }
+
+  .ft-selfie-stage__video,
+  .ft-selfie-stage__placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ft-selfie-stage__video {
+    object-fit: cover;
+  }
+
+  .ft-selfie-stage__placeholder {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 1.4rem;
+    color: #567293;
+    background: linear-gradient(180deg, rgba(248,251,255,.94), rgba(239,246,255,.94));
+  }
+
+  .ft-selfie-stage__icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1rem;
+    border-radius: 1.4rem;
+    display: grid;
+    place-items: center;
+    background: rgba(255,255,255,.92);
+    color: #1d4ed8;
+    font-size: 1.5rem;
+    box-shadow: 0 16px 36px rgba(37, 99, 235, .12);
+  }
+
+  .ft-selfie-stage__frame {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+
+  .ft-selfie-stage__corners {
+    width: min(68%, 320px);
+    height: min(76%, 235px);
+    border-radius: 1.8rem;
+    border: 1.5px solid rgba(59, 130, 246, .26);
+  }
+
+  .ft-selfie-stage__scan {
+    position: absolute;
+    width: 56%;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(59,130,246,0), rgba(96,165,250,.98), rgba(59,130,246,0));
+    box-shadow: 0 0 18px rgba(96, 165, 250, .45);
+    animation: ftSelfieScan 2.7s ease-in-out infinite;
+  }
+
+  .ft-selfie-status {
+    margin-top: .85rem;
+    padding: .82rem 1rem;
+    border-radius: 1rem;
+    background: rgba(255,255,255,.88);
+    border: 1px solid rgba(191, 219, 254, .9);
+    color: #194287;
+    font-weight: 600;
+  }
+
+  .ft-selfie-preview-card {
+    height: 100%;
+    padding: 1rem;
+    border-radius: 1.4rem;
+    border: 1px solid #dbe7f7;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+  }
+
+  .ft-selfie-preview-card__label {
+    color: #40608f;
+    font-size: .8rem;
+    font-weight: 700;
+    margin-bottom: .8rem;
+  }
+
+  .ft-selfie-preview-card__image {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 1.1rem;
+    border: 1px solid rgba(21, 96, 189, .12);
+  }
+
+  .ft-selfie-preview-card__empty {
+    min-height: 260px;
+    border-radius: 1.1rem;
+    border: 1px dashed #bfd4f5;
+    background: #f8fbff;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    gap: .5rem;
+    color: #6b87a6;
+    padding: 1rem;
+  }
+
+  .ft-selfie-preview-card__empty i {
+    font-size: 1.5rem;
+    color: #3b82f6;
+  }
+
+  @keyframes ftSelfieScan {
+    0%, 100% { transform: translateY(-74px); opacity: .68; }
+    50% { transform: translateY(74px); opacity: 1; }
   }
 </style>
 {% endblock %}

@@ -4,33 +4,106 @@
 {% block stylesheets %}
   {{ parent() }}
   <style>
-    .ft-analytics-hero {
-      border: 1px solid rgba(147, 197, 253, .7);
+    .ft-app-page {
       background:
-        radial-gradient(circle at top right, rgba(56, 189, 248, .20), transparent 26%),
-        linear-gradient(135deg, rgba(255,255,255,.98), rgba(239,246,255,.94));
-      border-radius: 2rem;
-      padding: 2rem;
-      box-shadow: 0 26px 55px rgba(15, 23, 42, .08);
+        radial-gradient(circle at top right, rgba(56, 189, 248, .09), transparent 22%),
+        radial-gradient(circle at top left, rgba(37, 99, 235, .06), transparent 18%),
+        linear-gradient(180deg, #edf4fb 0%, #f7fbff 36%, #eef4fb 100%);
+      min-height: 100vh;
+    }
+    .ft-analytics-hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(147, 197, 253, .76);
+      background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, .24), transparent 24%),
+        radial-gradient(circle at 10% 85%, rgba(34, 197, 94, .12), transparent 22%),
+        linear-gradient(135deg, rgba(255,255,255,.99), rgba(236,245,255,.95));
+      border-radius: 2.1rem;
+      padding: 2.2rem;
+      box-shadow: 0 28px 56px rgba(15, 23, 42, .09);
+    }
+    .ft-analytics-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: linear-gradient(180deg, #2563eb, #38bdf8, #22c55e);
+    }
+    .ft-analytics-hero::after {
+      content: "";
+      position: absolute;
+      right: -5rem;
+      bottom: -7rem;
+      width: 18rem;
+      height: 18rem;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37, 99, 235, .14), transparent 65%);
+      pointer-events: none;
     }
     .ft-analytics-item {
-      border-radius: 1.5rem;
-      border: 1px solid rgba(203, 213, 225, .9);
-      background: rgba(255,255,255,.95);
-      padding: 1.35rem;
-      box-shadow: 0 16px 32px rgba(15, 23, 42, .05);
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.6rem;
+      border: 1px solid rgba(203, 213, 225, .82);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.98), rgba(244,249,255,.95));
+      padding: 1.4rem;
+      box-shadow: 0 18px 36px rgba(15, 23, 42, .06);
       height: 100%;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .ft-analytics-item::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: linear-gradient(180deg, #60a5fa, #2563eb, #38bdf8);
+    }
+    .ft-analytics-item:hover {
+      transform: translateY(-4px);
+      border-color: rgba(147, 197, 253, .96);
+      box-shadow: 0 22px 40px rgba(37, 99, 235, .10);
     }
     .ft-analytics-score {
       display: inline-flex;
       align-items: center;
       gap: .55rem;
-      padding: .45rem .9rem;
+      padding: .48rem .95rem;
       border-radius: 999px;
       background: rgba(37,99,235,.10);
       color: #1d4ed8;
       font-size: .8rem;
-      font-weight: 700;
+      font-weight: 800;
+      box-shadow: inset 0 0 0 1px rgba(191, 219, 254, .7);
+    }
+    .ft-analytics-side-card {
+      border-radius: 1.65rem;
+      border: 1px solid rgba(191, 219, 254, .84);
+      background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, .16), transparent 26%),
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(243,248,255,.96));
+      box-shadow: 0 20px 38px rgba(15, 23, 42, .07);
+      height: 100%;
+    }
+    .ft-analytics-side-callout {
+      padding: 1.1rem 1.15rem;
+      border-radius: 1.2rem;
+      background:
+        linear-gradient(135deg, rgba(37,99,235,.10), rgba(14,165,233,.10));
+      border: 1px solid rgba(191,219,254,.84);
+    }
+    .ft-analytics-theme-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .42rem .75rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(191,219,254,.82);
+      color: #1d4ed8;
+      font-size: .78rem;
+      font-weight: 800;
     }
   </style>
 {% endblock %}
@@ -70,7 +143,7 @@
         </div>
 
         <div class="col-lg-4">
-          <div class="ft-app-card h-100">
+          <div class="ft-analytics-side-card">
             <div class="ft-app-card-header"><i class="bi bi-sliders me-2 text-primary"></i>Lecture analytique</div>
             <div class="ft-app-card-body">
               <div class="mb-3">
@@ -81,11 +154,11 @@
                 <div class="text-muted small">Themes surveilles</div>
                 <div class="d-flex flex-wrap gap-2 mt-2">
                   {% for theme in relevance.summary.watchThemes %}
-                    <span class="badge ft-badge-blue">{{ theme }}</span>
+                    <span class="ft-analytics-theme-badge"><i class="bi bi-asterisk"></i>{{ theme }}</span>
                   {% endfor %}
                 </div>
               </div>
-              <div class="p-3 rounded-4" style="background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(14,165,233,.08));border:1px solid rgba(191,219,254,.8);">
+              <div class="ft-analytics-side-callout">
                 <div class="text-muted small">Priorite globale</div>
                 <div class="fw-bold fs-5">{{ relevance.summary.globalPriority }}</div>
                 <div class="small text-muted mt-2">Les articles affiches sont fournis a titre informatif et n ont pas valeur de conseil d investissement.</div>
