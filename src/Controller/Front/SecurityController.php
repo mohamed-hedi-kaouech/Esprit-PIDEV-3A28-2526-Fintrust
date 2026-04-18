@@ -4,6 +4,7 @@ namespace App\Controller\Front;
 
 use App\Entity\User\User;
 use App\Form\Front\RegistrationFormType;
+use App\Repository\UserRepository;
 use App\Service\AccountVerificationMailer;
 use App\Service\BiometricPasskeyService;
 use App\Service\CaptchaService;
@@ -13,9 +14,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use App\Repository\UserRepository;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
@@ -37,6 +37,7 @@ class SecurityController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $plainPassword = (string) $form->get('plainPassword')->getData();
             $userService->registerClient($user, $plainPassword);
+
             try {
                 $accountVerificationMailer->sendVerificationCode($user);
                 $this->addFlash('success', 'Compte cree avec succes. Un code de verification a ete envoye a votre adresse e-mail.');
@@ -84,27 +85,27 @@ class SecurityController extends AbstractController
         $payload = $this->getJsonPayload($request);
 
         if (!$this->isCsrfTokenValid('biometric_login', (string) ($payload['_token'] ?? ''))) {
-            return $this->json(['message' => 'La demande biométrique est invalide.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['code' => 'invalid_request', 'message' => 'La demande biometrique est invalide.'], Response::HTTP_FORBIDDEN);
         }
 
         $email = trim((string) ($payload['email'] ?? ''));
         $password = (string) ($payload['password'] ?? '');
 
         if ($email === '' || $password === '') {
-            return $this->json(['message' => 'Renseignez votre e-mail et votre mot de passe pour activer la biométrie.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json(['code' => 'missing_credentials', 'message' => 'Renseignez votre e-mail et votre mot de passe pour activer la biometrie.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $user = $userRepository->findByEmail($email);
         if (!$user instanceof User || !$passwordHasher->isPasswordValid($user, $password)) {
-            return $this->json(['message' => 'Identifiants invalides.'], Response::HTTP_UNAUTHORIZED);
+            return $this->json(['code' => 'invalid_credentials', 'message' => 'Identifiants invalides.'], Response::HTTP_UNAUTHORIZED);
         }
 
         if (!$user->isVerified()) {
-            return $this->json(['message' => 'Verifiez d abord votre adresse e-mail avant d activer la biométrie.'], Response::HTTP_CONFLICT);
+            return $this->json(['code' => 'email_not_verified', 'message' => 'Verifiez d abord votre adresse e-mail avant d activer la biometrie.'], Response::HTTP_CONFLICT);
         }
 
         if ($user->isAdmin()) {
-            return $this->json(['message' => 'Utilisez l espace admin pour ce compte.'], Response::HTTP_CONFLICT);
+            return $this->json(['code' => 'admin_account', 'message' => 'Utilisez l espace admin pour ce compte.'], Response::HTTP_CONFLICT);
         }
 
         return $this->json($biometricPasskeyService->createEnrollmentOptions(
@@ -123,14 +124,14 @@ class SecurityController extends AbstractController
         $payload = $this->getJsonPayload($request);
 
         if (!$this->isCsrfTokenValid('biometric_login', (string) ($payload['_token'] ?? ''))) {
-            return $this->json(['message' => 'La demande biométrique est invalide.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['code' => 'invalid_request', 'message' => 'La demande biometrique est invalide.'], Response::HTTP_FORBIDDEN);
         }
 
         $email = trim((string) ($payload['email'] ?? ''));
         $user = $userRepository->findByEmail($email);
 
         if (!$user instanceof User) {
-            return $this->json(['message' => 'Compte introuvable pour l activation biométrique.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['code' => 'user_not_found', 'message' => 'Compte introuvable pour l activation biometrique.'], Response::HTTP_NOT_FOUND);
         }
 
         try {
@@ -141,11 +142,11 @@ class SecurityController extends AbstractController
                 $request->getSession()
             );
         } catch (\RuntimeException $exception) {
-            return $this->json(['message' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+            return $this->json(['code' => 'enrollment_failed', 'message' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
         }
 
         return $this->json([
-            'message' => 'Connexion biométrique activee avec succes sur cet appareil.',
+            'message' => 'Connexion biometrique activee avec succes sur cet appareil.',
         ]);
     }
 
@@ -158,25 +159,25 @@ class SecurityController extends AbstractController
         $payload = $this->getJsonPayload($request);
 
         if (!$this->isCsrfTokenValid('biometric_login', (string) ($payload['_token'] ?? ''))) {
-            return $this->json(['message' => 'La demande biométrique est invalide.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['code' => 'invalid_request', 'message' => 'La demande biometrique est invalide.'], Response::HTTP_FORBIDDEN);
         }
 
         $email = trim((string) ($payload['email'] ?? ''));
         if ($email === '') {
-            return $this->json(['message' => 'Renseignez votre e-mail pour utiliser la biométrie.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->json(['code' => 'missing_email', 'message' => 'Renseignez votre e-mail pour utiliser la biometrie.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $user = $userRepository->findByEmail($email);
         if (!$user instanceof User) {
-            return $this->json(['message' => 'Aucun compte ne correspond a cet e-mail.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['code' => 'user_not_found', 'message' => 'Aucun compte ne correspond a cet e-mail.'], Response::HTTP_NOT_FOUND);
         }
 
         if (!$user->isVerified()) {
-            return $this->json(['message' => 'Votre adresse e-mail doit etre verifiee avant la connexion biométrique.'], Response::HTTP_CONFLICT);
+            return $this->json(['code' => 'email_not_verified', 'message' => 'Votre adresse e-mail doit etre verifiee avant la connexion biometrique.'], Response::HTTP_CONFLICT);
         }
 
         if ($user->getStatus() === User::STATUS_SUSPENDU) {
-            return $this->json(['message' => 'Votre compte est suspendu.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['code' => 'account_suspended', 'message' => 'Votre compte est suspendu.'], Response::HTTP_FORBIDDEN);
         }
 
         try {
@@ -186,7 +187,9 @@ class SecurityController extends AbstractController
                 $request->getSession()
             ));
         } catch (\RuntimeException $exception) {
-            return $this->json(['message' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+            $code = str_contains($exception->getMessage(), 'Aucun appareil') ? 'no_registered_device' : 'auth_options_failed';
+
+            return $this->json(['code' => $code, 'message' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -199,14 +202,14 @@ class SecurityController extends AbstractController
         $payload = $this->getJsonPayload($request);
 
         if (!$this->isCsrfTokenValid('biometric_login', (string) ($payload['_token'] ?? ''))) {
-            return $this->json(['message' => 'La demande biométrique est invalide.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['code' => 'invalid_request', 'message' => 'La demande biometrique est invalide.'], Response::HTTP_FORBIDDEN);
         }
 
         $email = trim((string) ($payload['email'] ?? ''));
         $user = $userRepository->findByEmail($email);
 
         if (!$user instanceof User) {
-            return $this->json(['message' => 'Compte biométrique introuvable.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['code' => 'user_not_found', 'message' => 'Compte biometrique introuvable.'], Response::HTTP_NOT_FOUND);
         }
 
         try {
@@ -217,13 +220,13 @@ class SecurityController extends AbstractController
                 $request->getSession()
             );
         } catch (\RuntimeException $exception) {
-            return $this->json(['message' => $exception->getMessage()], Response::HTTP_UNAUTHORIZED);
+            return $this->json(['code' => 'auth_verification_failed', 'message' => $exception->getMessage()], Response::HTTP_UNAUTHORIZED);
         }
 
         $this->loginUser($user, 'main');
 
         return $this->json([
-            'message' => 'Identite biométrique confirmee. Connexion en cours...',
+            'message' => 'Identite biometrique confirmee. Connexion en cours...',
             'redirectUrl' => $this->generateUrl('front_dashboard'),
         ]);
     }

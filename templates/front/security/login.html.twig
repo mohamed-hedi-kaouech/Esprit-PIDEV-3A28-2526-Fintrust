@@ -1,4 +1,4 @@
-{% extends 'front/front.html.twig' %}
+﻿{% extends 'front/front.html.twig' %}
 
 {% block title %}Connexion{% endblock %}
 
@@ -68,7 +68,7 @@
                   id="password"
                   name="password"
                   class="form-control ft-input"
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   autocomplete="current-password"
                 />
                 <button class="btn btn-outline-secondary ft-toggle-pwd" type="button" id="togglePwd" tabindex="-1">
@@ -107,7 +107,7 @@
               aria-haspopup="dialog"
               aria-controls="biometricModal"
             >
-              <i class="bi bi-person-bounding-box me-2"></i>Connexion par reconnaissance faciale
+              <i class="bi bi-person-bounding-box me-2"></i>Connexion biometrique locale
             </button>
 
             <div class="text-center mt-3">
@@ -118,7 +118,7 @@
                 aria-haspopup="dialog"
                 aria-controls="biometricModal"
               >
-                Activer la connexion faciale sur cet appareil
+                Activer la connexion biometrique sur cet appareil
               </button>
             </div>
           </form>
@@ -154,19 +154,19 @@
     </button>
 
     <div class="ft-face-modal__eyebrow" id="biometricModeLabel">Connexion biometrique</div>
-    <h2 class="ft-face-modal__title" id="biometricModalTitle">Connexion biométrique sécurisée</h2>
-    <p class="ft-face-modal__text" id="biometricModalText">Utilisez la biométrie sécurisée de votre appareil pour continuer.</p>
+    <h2 class="ft-face-modal__title" id="biometricModalTitle">Connexion biometrique securisee</h2>
+    <p class="ft-face-modal__text" id="biometricModalText">Votre visage reste valide localement sur votre PC via Windows Hello, Face ID ou la biometrie de votre appareil.</p>
 
     <div class="ft-face-status" id="biometricStatus">
       <span class="ft-face-status__dot"></span>
-      <span id="biometricStatusText">Préparation sécurisée...</span>
+      <span id="biometricStatusText">Preparation securisee...</span>
     </div>
 
     <div class="ft-face-camera">
       <video id="biometricVideo" class="ft-face-camera__video" playsinline autoplay muted></video>
       <div class="ft-face-camera__placeholder" id="biometricPlaceholder">
         <div class="ft-face-camera__icon"><i class="bi bi-shield-lock"></i></div>
-        <p class="mb-0">Validez avec Face ID, Windows Hello ou la biométrie de votre appareil.</p>
+        <p class="mb-0">Validez avec Windows Hello, Face ID ou la biometrie locale de votre appareil.</p>
       </div>
       <div class="ft-face-frame">
         <div class="ft-face-frame__corners"></div>
@@ -175,8 +175,8 @@
     </div>
 
     <div class="ft-face-state-list">
-      <div class="ft-face-state-pill"><i class="bi bi-phone me-2"></i>Appareil prêt</div>
-      <div class="ft-face-state-pill"><i class="bi bi-person-check me-2"></i>Identité locale vérifiée</div>
+      <div class="ft-face-state-pill"><i class="bi bi-phone me-2"></i>Appareil pret</div>
+      <div class="ft-face-state-pill"><i class="bi bi-person-check me-2"></i>Identite locale verifiee</div>
       <div class="ft-face-state-pill"><i class="bi bi-shield-check me-2"></i>Validation FinTrust</div>
     </div>
 
@@ -246,6 +246,15 @@
       feedback.textContent = '';
     };
 
+    const setRetry = (label, visible = true) => {
+      if (!retryButton) {
+        return;
+      }
+
+      retryButton.textContent = label;
+      retryButton.classList.toggle('d-none', !visible);
+    };
+
     const base64UrlToBuffer = (value) => {
       const padding = '='.repeat((4 - value.length % 4) % 4);
       const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -295,7 +304,9 @@
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Operation biométrique impossible.');
+        const error = new Error(data.message || 'Operation biometrique impossible.');
+        error.code = data.code || 'biometric_error';
+        throw error;
       }
 
       return data;
@@ -303,39 +314,122 @@
 
     const requireWebAuthn = () => {
       if (!window.PublicKeyCredential || !navigator.credentials) {
-        throw new Error('La biométrie sécurisée n est pas disponible sur ce navigateur.');
+        throw new Error('La biometrie securisee n est pas disponible sur ce navigateur. Utilisez Edge, Chrome ou Safari recent.');
       }
     };
 
-    const handleBiometricEnroll = async () => {
+    const ensureBiometricEnvironment = async () => {
       requireWebAuthn();
+
+      const localHosts = ['localhost', '127.0.0.1', '::1'];
+      if (!window.isSecureContext && !localHosts.includes(window.location.hostname)) {
+        throw new Error('La biometrie securisee exige HTTPS ou http://localhost. Ouvrez FinTrust en local sur localhost ou activez HTTPS.');
+      }
+
+      if (typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+        const available = await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        if (!available) {
+          throw new Error('Aucune biometrie locale n est configuree sur ce PC. Activez Windows Hello dans les parametres Windows avant de continuer.');
+        }
+      }
+    };
+
+    const normalizeBiometricError = (error, mode) => {
+      if (!error) {
+        return new Error(mode === 'enroll' ? 'Activation impossible.' : 'Verification impossible.');
+      }
+
+      if (error.code) {
+        return error;
+      }
+
+      if (error.name === 'NotAllowedError') {
+        return new Error(
+          mode === 'enroll'
+            ? 'Activation interrompue ou refusee. Verifiez que Windows Hello ou Face ID est bien configure sur ce PC, puis acceptez la fenetre de validation.'
+            : 'Verification interrompue ou refusee. Validez avec Windows Hello, Face ID ou la biometrie locale de cet appareil pour ouvrir la session.'
+        );
+      }
+
+      if (error.name === 'InvalidStateError') {
+        return new Error('Cet appareil semble deja lie ou la demande biometrique est devenue invalide. Reessayez apres avoir ferme la fenetre.');
+      }
+
+      if (error.name === 'SecurityError') {
+        return new Error('La biometrie locale exige une page securisee. Utilisez HTTPS ou http://localhost sur votre PC.');
+      }
+
+      if (error.name === 'AbortError') {
+        return new Error('La verification biometrique a ete interrompue. Reessayez et validez la fenetre Windows Hello ou Face ID.');
+      }
+
+      if (error.name === 'NotSupportedError') {
+        return new Error('Ce navigateur ou cet appareil ne prend pas correctement en charge la biometrie securisee. Utilisez Edge, Chrome ou Safari recent.');
+      }
+
+      if ((error.message || '').includes('privacy-considerations-client')) {
+        return new Error('La validation biometrique n a pas ete autorisee sur ce PC. Verifiez Windows Hello, restez sur une page securisee et acceptez la demande de l appareil.');
+      }
+
+      return error;
+    };
+
+    const switchToEnrollMode = () => {
+      currentMode = 'enroll';
+      modeLabel.textContent = 'Activation biometrique';
+      title.textContent = 'Enregistrer mon visage sur cet appareil';
+      text.textContent = 'Ce compte sera lie a la biometrie locale de votre PC. Votre visage reste gere par Windows Hello ou Face ID sur cet appareil.';
+      setStatus('Activation recommandee');
+      setFeedback('Entrez votre mot de passe puis cliquez sur "Activer maintenant" pour enregistrer ce PC pour ce compte.', 'info');
+      placeholder?.classList.remove('d-none');
+      setRetry('Activer maintenant', true);
+    };
+
+    const switchToLoginMode = () => {
+      currentMode = 'login';
+      modeLabel.textContent = 'Connexion biometrique';
+      title.textContent = 'Connexion biometrique securisee';
+      text.textContent = 'Utilisez la biometrie locale de votre PC pour ouvrir la session du compte saisi. Une autre personne ne peut pas entrer sans validation Windows Hello ou Face ID.';
+      setStatus('Pret a verifier');
+      setFeedback('Saisissez votre e-mail, puis validez avec Windows Hello, Face ID ou la biometrie configuree sur cet appareil.', 'info');
+      placeholder?.classList.remove('d-none');
+      setRetry('Reessayer', false);
+    };
+
+    const handleBiometricEnroll = async () => {
+      await ensureBiometricEnvironment();
 
       const email = emailInput?.value.trim() ?? '';
       const password = passwordInput?.value ?? '';
 
       if (email === '' || password.trim() === '') {
-        throw new Error('Renseignez votre e-mail et votre mot de passe pour activer la biométrie.');
+        throw new Error('Renseignez votre e-mail et votre mot de passe pour lier ce PC a votre compte.');
       }
 
-      setStatus('Préparation de l activation...');
+      setStatus('Preparation de l activation...');
       const options = await postJson('{{ path('app_biometric_enroll_options') }}', {
         _token: biometricToken,
         email,
         password,
       });
 
-      setStatus('Validation sur votre appareil...');
-      const credential = await navigator.credentials.create({
-        publicKey: withPublicKeyBuffers(options),
-      });
+      let credential;
+      try {
+        setStatus('Validation Windows Hello / Face ID...');
+        credential = await navigator.credentials.create({
+          publicKey: withPublicKeyBuffers(options),
+        });
+      } catch (error) {
+        throw normalizeBiometricError(error, 'enroll');
+      }
 
       if (!credential || !credential.response || typeof credential.response.getPublicKey !== 'function') {
-        throw new Error('Ce navigateur ne fournit pas la clé biométrique nécessaire. Essayez Chrome, Edge ou Safari récent.');
+        throw new Error('Ce navigateur ne fournit pas la cle biometrique necessaire. Utilisez Edge, Chrome ou Safari recent.');
       }
 
       const publicKey = credential.response.getPublicKey();
       if (!publicKey) {
-        throw new Error('La clé biométrique de l appareil est indisponible.');
+        throw new Error('La cle biometrique de cet appareil est indisponible.');
       }
 
       await postJson('{{ path('app_biometric_enroll_verify') }}', {
@@ -345,35 +439,40 @@
         clientDataJSON: bufferToBase64Url(credential.response.clientDataJSON),
         publicKeySpki: bufferToBase64Url(publicKey),
         publicKeyAlgorithm: credential.response.getPublicKeyAlgorithm(),
-        deviceLabel: navigator.platform || 'Appareil biométrique',
+        deviceLabel: navigator.userAgentData?.platform || navigator.platform || 'Appareil biometrique',
       });
 
-      setStatus('Biométrie activée');
-      setFeedback('Connexion biométrique activée avec succès sur cet appareil. Une autre personne ne pourra pas ouvrir ce compte sans la biométrie valide de cet appareil.', 'success');
-      retryButton?.classList.add('d-none');
+      setStatus('Biometrie activee');
+      setFeedback('Ce PC est maintenant autorise pour ce compte. A la prochaine connexion, FinTrust demandera la biometrie locale de cet appareil avant d ouvrir la session.', 'success');
+      setRetry('Reessayer', false);
     };
 
     const handleBiometricLogin = async () => {
-      requireWebAuthn();
+      await ensureBiometricEnvironment();
 
       const email = emailInput?.value.trim() ?? '';
       if (email === '') {
-        throw new Error('Renseignez votre e-mail avant la connexion biométrique.');
+        throw new Error('Renseignez votre e-mail avant d utiliser la connexion biometrique.');
       }
 
-      setStatus('Préparation de la vérification...');
+      setStatus('Preparation de la verification...');
       const options = await postJson('{{ path('app_biometric_auth_options') }}', {
         _token: biometricToken,
         email,
       });
 
-      setStatus('Vérification locale en cours...');
-      const assertion = await navigator.credentials.get({
-        publicKey: withPublicKeyBuffers(options),
-      });
+      let assertion;
+      try {
+        setStatus('Validation Windows Hello / Face ID...');
+        assertion = await navigator.credentials.get({
+          publicKey: withPublicKeyBuffers(options),
+        });
+      } catch (error) {
+        throw normalizeBiometricError(error, 'login');
+      }
 
       if (!assertion) {
-        throw new Error('La vérification biométrique a été annulée.');
+        throw new Error('La verification biometrique n a pas pu etre finalisee.');
       }
 
       setStatus('Validation FinTrust...');
@@ -386,43 +485,31 @@
         signature: bufferToBase64Url(assertion.response.signature),
       });
 
-      setStatus('Identité confirmée');
-      setFeedback(result.message || 'Identité confirmée. Connexion en cours...', 'success');
-      retryButton?.classList.add('d-none');
+      setStatus('Identite confirmee');
+      setFeedback(result.message || 'Identite confirmee. Connexion en cours...', 'success');
+      setRetry('Reessayer', false);
 
       window.setTimeout(() => {
         window.location.href = result.redirectUrl || '{{ path('front_dashboard') }}';
       }, 700);
     };
 
-    const openModal = async (mode) => {
+    const openModal = (mode) => {
       if (!modal) {
         return;
       }
 
-      currentMode = mode;
       modal.classList.add('is-open');
       modal.setAttribute('aria-hidden', 'false');
       document.body.classList.add('ft-face-modal-open');
       resetFeedback();
-      retryButton?.classList.add('d-none');
 
       if (mode === 'enroll') {
-        modeLabel.textContent = 'Activation biometrique';
-        title.textContent = 'Enregistrer mon visage sur cet appareil';
-        text.textContent = 'Cette activation liera ce compte a la biométrie sécurisée de cet appareil. Une autre personne ne pourra pas entrer sur ce compte sans validation biométrique locale.';
-        setStatus('Prêt à activer');
-        placeholder?.classList.remove('d-none');
-        setFeedback('Renseignez vos identifiants, puis validez l activation sur votre appareil.', 'info');
+        switchToEnrollMode();
         return;
       }
 
-      modeLabel.textContent = 'Connexion biometrique';
-      title.textContent = 'Connexion biométrique sécurisée';
-      text.textContent = 'Utilisez la biométrie sécurisée de votre appareil pour ouvrir la session du compte saisi.';
-      setStatus('Prêt à vérifier');
-      placeholder?.classList.remove('d-none');
-      setFeedback('Saisissez votre e-mail puis validez avec la biométrie locale de cet appareil.', 'info');
+      switchToLoginMode();
     };
 
     const closeModal = () => {
@@ -433,48 +520,59 @@
       modal.classList.remove('is-open');
       modal.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('ft-face-modal-open');
-      retryButton?.classList.add('d-none');
+      setRetry('Reessayer', false);
       resetFeedback();
+    };
+
+    const runCurrentMode = async () => {
+      if (currentMode === 'enroll') {
+        await handleBiometricEnroll();
+        return;
+      }
+
+      await handleBiometricLogin();
+    };
+
+    const handleActionError = (error) => {
+      if (error?.code === 'no_registered_device') {
+        switchToEnrollMode();
+        return;
+      }
+
+      const normalized = normalizeBiometricError(error, currentMode);
+      setStatus(currentMode === 'enroll' ? 'Activation impossible' : 'Verification impossible');
+      setFeedback(normalized.message || 'La verification biometrique a echoue.', 'error');
+      setRetry(currentMode === 'enroll' ? 'Activer maintenant' : 'Reessayer', true);
     };
 
     retryButton?.addEventListener('click', async () => {
       resetFeedback();
-      retryButton?.classList.add('d-none');
+      setRetry('Reessayer', false);
 
       try {
-        if (currentMode === 'enroll') {
-          await handleBiometricEnroll();
-          return;
-        }
-
-        await handleBiometricLogin();
+        await runCurrentMode();
       } catch (error) {
-        setStatus('Verification impossible');
-        setFeedback(error.message || 'La verification biométrique a échoué.', 'error');
-        retryButton?.classList.remove('d-none');
+        handleActionError(error);
       }
     });
+
     closeButtons.forEach((button) => button.addEventListener('click', closeModal));
 
     openLoginButton?.addEventListener('click', async () => {
       openModal('login');
       try {
-        await handleBiometricLogin();
+        await runCurrentMode();
       } catch (error) {
-        setStatus('Verification impossible');
-        setFeedback(error.message || 'La verification biométrique a échoué.', 'error');
-        retryButton?.classList.remove('d-none');
+        handleActionError(error);
       }
     });
 
     openEnrollButton?.addEventListener('click', async () => {
       openModal('enroll');
       try {
-        await handleBiometricEnroll();
+        await runCurrentMode();
       } catch (error) {
-        setStatus('Activation impossible');
-        setFeedback(error.message || 'L activation biométrique a échoué.', 'error');
-        retryButton?.classList.remove('d-none');
+        handleActionError(error);
       }
     });
 
@@ -484,8 +582,7 @@
       }
     });
   })();
-</script>
-<style>
+</script><style>
   .ft-auth-divider {
     display: flex;
     align-items: center;
@@ -827,3 +924,6 @@
   }
 </style>
 {% endblock %}
+
+
+

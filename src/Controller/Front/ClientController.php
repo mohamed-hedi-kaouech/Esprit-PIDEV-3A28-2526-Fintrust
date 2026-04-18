@@ -10,6 +10,7 @@ use App\Repository\KycRepository;
 use App\Security\KycAccessChecker;
 use App\Security\RiskAccessChecker;
 use App\Service\BehavioralProfileService;
+use App\Service\AdvancedAnalyticsService;
 use App\Service\CaptchaService;
 use App\Service\EconomicDataService;
 use App\Service\FinancialNewsService;
@@ -71,6 +72,7 @@ class ClientController extends AbstractController
         private readonly FinancialNewsService $financialNewsService,
         private readonly EconomicDataService $economicDataService,
         private readonly MarketWatchService $marketWatchService,
+        private readonly AdvancedAnalyticsService $advancedAnalyticsService,
         private readonly KycVerificationCenterService $kycVerificationCenterService,
         private readonly KycAccessChecker $kycAccessChecker,
         private readonly RiskAccessChecker $riskAccessChecker,
@@ -91,8 +93,52 @@ class ClientController extends AbstractController
             'user' => $user,
             'kyc' => $kyc,
             'newsFeed' => $this->financialNewsService->getUserFeed($user, 3),
+            'analyticsNews' => $this->advancedAnalyticsService->getNewsRelevance($user, 3),
+            'recommendedAction' => $this->advancedAnalyticsService->getNextBestAction($user),
+            'dropoffRisk' => $this->advancedAnalyticsService->getDropoffRisk($user),
             'economyOverview' => $this->economicDataService->getOverview(),
             'watchlistHighlights' => $this->marketWatchService->getWatchlistHighlights(3),
+        ]);
+    }
+
+    #[Route('/actualites-pertinentes', name: 'relevant_news', methods: ['GET'])]
+    public function relevantNews(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        return $this->render('front/client/relevant_news.html.twig', [
+            'user' => $user,
+            'relevance' => $this->advancedAnalyticsService->getNewsRelevance($user, 6),
+        ]);
+    }
+
+    #[Route('/actions-recommandees', name: 'recommended_actions', methods: ['GET'])]
+    public function recommendedActions(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        return $this->render('front/client/recommended_actions.html.twig', [
+            'user' => $user,
+            'recommendation' => $this->advancedAnalyticsService->getNextBestAction($user),
+            'prioritySummary' => $this->advancedAnalyticsService->getActionPrioritySummary($user),
+            'dropoffRisk' => $this->advancedAnalyticsService->getDropoffRisk($user),
+        ]);
+    }
+
+    #[Route('/coherence-identitaire', name: 'identity_consistency', methods: ['GET'])]
+    public function identityConsistency(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        return $this->render('front/client/identity_consistency.html.twig', [
+            'user' => $user,
+            'identityConsistency' => $this->advancedAnalyticsService->getIdentityConsistency($user),
         ]);
     }
 

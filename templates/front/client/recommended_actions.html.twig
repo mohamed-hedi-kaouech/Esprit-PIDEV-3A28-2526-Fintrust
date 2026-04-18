@@ -1,0 +1,97 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Actions recommandees{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-action-hero {
+      border-radius: 2rem;
+      padding: 2rem;
+      background:
+        radial-gradient(circle at top left, rgba(34,197,94,.15), transparent 24%),
+        radial-gradient(circle at top right, rgba(59,130,246,.16), transparent 22%),
+        linear-gradient(135deg, rgba(255,255,255,.98), rgba(243,248,255,.95));
+      border: 1px solid rgba(191, 219, 254, .85);
+      box-shadow: 0 28px 55px rgba(15, 23, 42, .08);
+    }
+    .ft-action-card {
+      border-radius: 1.6rem;
+      padding: 1.45rem;
+      border: 1px solid rgba(203, 213, 225, .92);
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 16px 32px rgba(15,23,42,.05);
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <div class="ft-app-page">
+    <div class="container-fluid px-4 py-4">
+      <section class="ft-action-hero mb-4">
+        <div class="row g-4 align-items-center">
+          <div class="col-lg-8">
+            <div class="ft-dash-hero-kicker mb-3"><i class="bi bi-lightning-charge-fill"></i> Action recommandee</div>
+            <h1 class="ft-dash-hero-title mb-3">{{ recommendation.title }}</h1>
+            <p class="ft-dash-hero-subtitle mb-3">{{ recommendation.description }}</p>
+            <div class="small text-secondary-emphasis"><strong>Pourquoi maintenant :</strong> {{ recommendation.reason }}</div>
+          </div>
+          <div class="col-lg-4">
+            <div class="ft-action-card">
+              <div class="text-muted small">Priorite d action</div>
+              <div class="display-6 fw-bold text-primary">{{ recommendation.priorityScore }}/100</div>
+              <div class="d-flex gap-2 flex-wrap mt-2">
+                <span class="badge {{ recommendation.priorityLevel in ['HIGH', 'CRITICAL'] ? 'ft-badge-danger' : 'ft-badge-warning' }}">{{ recommendation.priorityLevel }}</span>
+                <span class="badge ft-badge-blue">{{ recommendation.actionType }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="ft-app-card h-100">
+            <div class="ft-app-card-header"><i class="bi bi-compass me-2 text-primary"></i>Explication de la priorisation</div>
+            <div class="ft-app-card-body">
+              <p class="mb-3">{{ prioritySummary.explanation }}</p>
+              <div class="row g-3">
+                {% for action in recommendation.secondaryActions %}
+                  <div class="col-md-6">
+                    <div class="ft-action-card h-100">
+                      <div class="small text-muted mb-2">{{ action.actionType }}</div>
+                      <div class="fw-semibold mb-2">{{ action.title }}</div>
+                      <span class="badge {{ action.priorityLevel == 'HIGH' ? 'ft-badge-warning' : 'ft-badge-blue' }}">{{ action.priorityLevel }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="ft-app-card h-100">
+            <div class="ft-app-card-header"><i class="bi bi-heart-pulse me-2 text-primary"></i>Risque de desengagement</div>
+            <div class="ft-app-card-body">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <div>
+                  <div class="small text-muted">Niveau actuel</div>
+                  <div class="fw-bold fs-4">{{ dropoffRisk.riskLevel }}</div>
+                </div>
+                <span class="ft-analytics-score">{{ dropoffRisk.dropoffRiskScore }}/100</span>
+              </div>
+              <ul class="mb-3">
+                {% for signal in dropoffRisk.topSignals %}
+                  <li>{{ signal }}</li>
+                {% endfor %}
+              </ul>
+              <div class="p-3 rounded-4" style="background:rgba(37,99,235,.06);border:1px solid rgba(191,219,254,.72);">
+                <div class="small text-muted">Intervention suggeree</div>
+                <div class="fw-semibold">{{ dropoffRisk.recommendedIntervention }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

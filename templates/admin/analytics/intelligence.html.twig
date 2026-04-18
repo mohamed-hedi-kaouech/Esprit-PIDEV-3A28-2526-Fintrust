@@ -1,0 +1,113 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Intelligence décisionnelle{% endblock %}
+
+{% block breadcrumb %}
+  <i class="bi bi-graph-up-arrow me-1 text-primary"></i>
+  <span class="fw-semibold">Intelligence décisionnelle</span>
+{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-admin-analytics-hero {
+      border-radius: 2rem;
+      padding: 2rem;
+      border: 1px solid rgba(191,219,254,.88);
+      background:
+        radial-gradient(circle at top right, rgba(56,189,248,.20), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(139,92,246,.14), transparent 24%),
+        linear-gradient(135deg, rgba(255,255,255,.98), rgba(241,247,255,.96));
+      box-shadow: 0 28px 58px rgba(15,23,42,.08);
+    }
+    .ft-admin-analytic-card {
+      border-radius: 1.5rem;
+      border: 1px solid rgba(203,213,225,.92);
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 14px 28px rgba(15,23,42,.05);
+    }
+  </style>
+{% endblock %}
+
+{% block admin_content %}
+  <section class="ft-admin-analytics-hero mb-4">
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+      <div>
+        <div class="ft-admin-hero-kicker mb-3"><i class="bi bi-stars"></i> FinTrust Advanced Analytics Bundle</div>
+        <h1 class="ft-admin-page-title mb-3">Pilotage analytique premium, explicable et actionnable</h1>
+        <p class="ft-admin-hero-subtitle mb-0">{{ advancedOverview.headline }}</p>
+      </div>
+      <a href="{{ path('admin_dashboard') }}" class="btn ft-btn-outline-primary">Retour au dashboard</a>
+    </div>
+  </section>
+
+  <div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-2">
+      <div class="ft-admin-card ft-admin-analytic-card h-100"><div class="ft-admin-card-body"><div class="small text-muted">Clients analyses</div><div class="fs-3 fw-bold text-primary">{{ advancedOverview.kpis.clientsAnalyses }}</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <div class="ft-admin-card ft-admin-analytic-card h-100"><div class="ft-admin-card-body"><div class="small text-muted">Utilisateurs a risque</div><div class="fs-3 fw-bold text-warning-emphasis">{{ advancedOverview.kpis.atRiskUsers }}</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <div class="ft-admin-card ft-admin-analytic-card h-100"><div class="ft-admin-card-body"><div class="small text-muted">Risques critiques</div><div class="fs-3 fw-bold text-danger">{{ advancedOverview.kpis.criticalRiskUsers }}</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <div class="ft-admin-card ft-admin-analytic-card h-100"><div class="ft-admin-card-body"><div class="small text-muted">KYC en attente</div><div class="fs-3 fw-bold text-primary">{{ advancedOverview.kpis.pendingKyc }}</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <div class="ft-admin-card ft-admin-analytic-card h-100"><div class="ft-admin-card-body"><div class="small text-muted">VIP suivis</div><div class="fs-3 fw-bold text-success">{{ advancedOverview.kpis.vipMonitored }}</div></div></div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-xl-7">
+      <div class="ft-admin-card ft-admin-analytic-card h-100">
+        <div class="ft-admin-card-header"><i class="bi bi-people me-2 text-primary"></i>Utilisateurs a risque de desengagement</div>
+        <div class="ft-admin-card-body">
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Score</th>
+                  <th>Signal</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in atRiskUsersAnalytics|slice(0, 8) %}
+                  <tr>
+                    <td>
+                      <div class="fw-semibold">{{ item.name }}</div>
+                      <div class="small text-muted">{{ item.segment }} · {{ item.kycStatus }}</div>
+                    </td>
+                    <td><span class="badge {{ item.dropoffRiskScore >= 80 ? 'ft-badge-danger' : 'ft-badge-warning' }}">{{ item.dropoffRiskScore }}/100</span></td>
+                    <td class="small text-muted">{{ item.mainSignal }}</td>
+                    <td class="small fw-semibold">{{ item.actionTitle }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-5">
+      <div class="ft-admin-card ft-admin-analytic-card h-100">
+        <div class="ft-admin-card-header"><i class="bi bi-grid-1x2 me-2 text-primary"></i>Signaux prioritaires</div>
+        <div class="ft-admin-card-body">
+          <div class="d-grid gap-3 mb-4">
+            {% for signal in advancedOverview.prioritySignals %}
+              <div class="p-3 rounded-4" style="background:rgba(248,250,252,.96);border:1px solid rgba(226,232,240,.95);">{{ signal }}</div>
+            {% endfor %}
+          </div>
+          <div class="p-3 rounded-4" style="background:linear-gradient(135deg,rgba(59,130,246,.10),rgba(14,165,233,.08));border:1px solid rgba(191,219,254,.9);">
+            <div class="small text-muted">Temps moyen de traitement support</div>
+            <div class="fw-bold fs-4">{{ supportInsightsAnalytics.averageResolutionTime }}</div>
+            <div class="small text-muted mt-2">{{ supportInsightsAnalytics.serviceNote }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

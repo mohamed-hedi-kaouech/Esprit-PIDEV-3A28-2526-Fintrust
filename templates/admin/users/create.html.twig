@@ -10,126 +10,163 @@
 {% endblock %}
 
 {% block admin_content %}
-<section class="ft-admin-create-hero mb-4">
-  <div class="ft-admin-create-hero-copy">
-    <span class="ft-admin-create-kicker">
-      <i class="bi bi-stars me-2"></i>Onboarding admin FinTrust
-    </span>
-    <h1 class="ft-admin-page-title mb-2">Ajouter un nouveau client</h1>
-    <p class="ft-admin-create-subtitle mb-0">
-      Creez un compte client complet avec une mise en route plus nette, plus rapide et plus premium pour l'equipe admin.
-    </p>
-  </div>
-
-  <div class="ft-admin-create-hero-side">
-    <a href="{{ path('admin_user_list') }}" class="btn ft-btn-outline-primary">
-      <i class="bi bi-arrow-left me-2"></i>Retour a la liste
-    </a>
+<section class="ft-admin-hero mb-4">
+  <div class="ft-admin-hero-grid">
+    <div>
+      <span class="ft-admin-hero-kicker">
+        <i class="bi bi-person-plus-fill me-1"></i>Onboarding admin
+      </span>
+      <h1 class="ft-admin-page-title mb-3">Ajouter un nouveau client</h1>
+      <p class="ft-admin-hero-subtitle mb-0">
+        Creez un compte client proprement, fixez son statut initial et preparez des le depart un parcours d activation clair.
+      </p>
+    </div>
+    <div class="ft-admin-hero-panel">
+      <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
+        <a href="{{ path('admin_user_list') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-arrow-left me-2"></i>Retour a la liste
+        </a>
+      </div>
+      <div class="ft-admin-meta justify-content-lg-end">
+        <span><i class="bi bi-shield-check"></i>Creation encadree par validation Symfony</span>
+        <span><i class="bi bi-lightning-charge"></i>Redirection directe vers la fiche client</span>
+      </div>
+    </div>
   </div>
 </section>
 
 <section class="row g-3 mb-4">
-  <div class="col-12 col-md-6 col-xl-3">
-    <article class="ft-admin-create-kpi tone-blue">
-      <div class="ft-admin-create-kpi-icon"><i class="bi bi-person-plus-fill"></i></div>
-      <div class="ft-admin-create-kpi-label">Creation rapide</div>
-      <div class="ft-admin-create-kpi-value">1 flux</div>
-      <div class="ft-admin-create-kpi-text">Le compte, le statut et le KYC initial sont configures dans la meme action.</div>
+  <div class="col-sm-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue">
+      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-person-vcard"></i></div>
+      <div class="ft-admin-kpi-mini-label">Identite client</div>
+      <div class="ft-admin-kpi-mini-value">Nom + prenom</div>
+      <div class="ft-admin-kpi-mini-text">Base du profil client et des communications futures.</div>
     </article>
   </div>
-  <div class="col-12 col-md-6 col-xl-3">
-    <article class="ft-admin-create-kpi tone-cyan">
-      <div class="ft-admin-create-kpi-icon"><i class="bi bi-shield-check"></i></div>
-      <div class="ft-admin-create-kpi-label">Conformite</div>
-      <div class="ft-admin-create-kpi-value">KYC</div>
-      <div class="ft-admin-create-kpi-text">Le dossier peut etre cadre des la creation pour fluidifier la suite du workflow.</div>
+  <div class="col-sm-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-green">
+      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-envelope-check"></i></div>
+      <div class="ft-admin-kpi-mini-label">Coordonnees</div>
+      <div class="ft-admin-kpi-mini-value">Email + tel</div>
+      <div class="ft-admin-kpi-mini-text">Permet les echanges et les validations du compte.</div>
     </article>
   </div>
-  <div class="col-12 col-md-6 col-xl-3">
-    <article class="ft-admin-create-kpi tone-violet">
-      <div class="ft-admin-create-kpi-icon"><i class="bi bi-lightning-charge-fill"></i></div>
-      <div class="ft-admin-create-kpi-label">Activation</div>
-      <div class="ft-admin-create-kpi-value">Immediat</div>
-      <div class="ft-admin-create-kpi-text">Le client peut etre rendu actif, en attente ou suspendu selon le contexte.</div>
+  <div class="col-sm-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-amber">
+      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-key"></i></div>
+      <div class="ft-admin-kpi-mini-label">Acces initial</div>
+      <div class="ft-admin-kpi-mini-value">Mot de passe</div>
+      <div class="ft-admin-kpi-mini-text">Un acces provisoire est defini des la creation.</div>
     </article>
   </div>
-  <div class="col-12 col-md-6 col-xl-3">
-    <article class="ft-admin-create-kpi tone-emerald">
-      <div class="ft-admin-create-kpi-icon"><i class="bi bi-arrow-up-right-circle-fill"></i></div>
-      <div class="ft-admin-create-kpi-label">Suivi</div>
-      <div class="ft-admin-create-kpi-value">Direct</div>
-      <div class="ft-admin-create-kpi-text">Apres validation, l'admin arrive directement sur la fiche detaillee du client.</div>
+  <div class="col-sm-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-red">
+      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-sliders"></i></div>
+      <div class="ft-admin-kpi-mini-label">Cadre de suivi</div>
+      <div class="ft-admin-kpi-mini-value">Statut + KYC</div>
+      <div class="ft-admin-kpi-mini-text">Vous donnez le ton du workflow des le premier ecran.</div>
     </article>
   </div>
 </section>
 
 <div class="row g-4">
-  <div class="col-lg-8">
-    <div class="ft-admin-card ft-admin-create-card">
-      <div class="ft-admin-card-header ft-admin-create-card-header">
-        <div class="d-flex align-items-center gap-2">
-          <span class="ft-admin-create-header-icon"><i class="bi bi-person-plus-fill"></i></span>
-          <span>Informations du client</span>
-        </div>
-        <span class="ft-admin-create-header-chip">Parcours admin guide</span>
+  <div class="col-xl-8">
+    <div class="ft-admin-card">
+      <div class="ft-admin-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-person-plus-fill me-2 text-primary"></i>Informations du client</span>
+        <span class="ft-admin-status-chip ft-admin-status-info">Creation guidee</span>
       </div>
-
       <div class="ft-admin-card-body">
-        {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
+        {{ form_start(form, {attr: {novalidate: 'novalidate', class: 'ft-user-create-form'}}) }}
           {{ form_errors(form) }}
 
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              {{ form_label(form.prenom, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
-              {{ form_widget(form.prenom, {attr: {class: 'form-control ft-input ft-admin-create-input', placeholder: 'Prenom du client'}}) }}
-              <div class="text-danger small mt-1">{{ form_errors(form.prenom) }}</div>
+          <div class="ft-user-create-section">
+            <div class="ft-user-create-section-head">
+              <div>
+                <h2 class="ft-user-create-section-title">Identite et contact</h2>
+                <p class="ft-user-create-section-text mb-0">Saisissez les informations qui serviront de base au profil public et aux interactions clients.</p>
+              </div>
             </div>
-            <div class="col-md-6">
-              {{ form_label(form.nom, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
-              {{ form_widget(form.nom, {attr: {class: 'form-control ft-input ft-admin-create-input', placeholder: 'Nom du client'}}) }}
-              <div class="text-danger small mt-1">{{ form_errors(form.nom) }}</div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                {{ form_label(form.prenom, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                {{ form_widget(form.prenom, {attr: {class: 'form-control ft-input', placeholder: 'Ex: Ines'}}) }}
+                <div class="form-text">Le prenom apparaitra sur la fiche client et dans les notifications.</div>
+                <div class="text-danger small mt-1">{{ form_errors(form.prenom) }}</div>
+              </div>
+              <div class="col-md-6">
+                {{ form_label(form.nom, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                {{ form_widget(form.nom, {attr: {class: 'form-control ft-input', placeholder: 'Ex: Ben Ali'}}) }}
+                <div class="form-text">Le nom complet servira pour le suivi back-office et les exports.</div>
+                <div class="text-danger small mt-1">{{ form_errors(form.nom) }}</div>
+              </div>
             </div>
-          </div>
 
-          <div class="mb-3">
-            {{ form_label(form.email, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
-            {{ form_widget(form.email, {attr: {class: 'form-control ft-input ft-admin-create-input', placeholder: 'client@fintrust.tn'}}) }}
-            <div class="text-danger small mt-1">{{ form_errors(form.email) }}</div>
-          </div>
+            <div class="mb-3">
+              {{ form_label(form.email, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+              {{ form_widget(form.email, {attr: {class: 'form-control ft-input', placeholder: 'client@fintrust.tn'}}) }}
+              <div class="form-text">Utilisez une adresse active pour faciliter la verification et les recuperations futures.</div>
+              <div class="text-danger small mt-1">{{ form_errors(form.email) }}</div>
+            </div>
 
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
+            <div class="mb-0">
               {{ form_label(form.numTel, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
-              {{ form_widget(form.numTel, {attr: {class: 'form-control ft-input ft-admin-create-input'}}) }}
+              {{ form_widget(form.numTel, {attr: {class: 'form-control ft-input', placeholder: '+216 12 345 678'}}) }}
+              <div class="form-text">Le numero permet un suivi plus rapide des echanges et du support client.</div>
               <div class="text-danger small mt-1">{{ form_errors(form.numTel) }}</div>
             </div>
-            <div class="col-md-6">
-              {{ form_label(form.plainPassword, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
-              {{ form_widget(form.plainPassword, {attr: {class: 'form-control ft-input ft-admin-create-input'}}) }}
-              <div class="form-text">Minimum 8 caracteres avec majuscule, minuscule et chiffre.</div>
-              <div class="text-danger small mt-1">{{ form_errors(form.plainPassword) }}</div>
+          </div>
+
+          <div class="ft-user-create-section">
+            <div class="ft-user-create-section-head">
+              <div>
+                <h2 class="ft-user-create-section-title">Acces et statut initial</h2>
+                <p class="ft-user-create-section-text mb-0">Cadrez l acces initial du client ainsi que son point de depart dans le workflow KYC.</p>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                {{ form_label(form.plainPassword, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                {{ form_widget(form.plainPassword, {attr: {class: 'form-control ft-input', placeholder: 'Minimum 8 caracteres'}}) }}
+                <div class="form-text">Choisissez un mot de passe provisoire que le client pourra modifier ensuite.</div>
+                <div class="text-danger small mt-1">{{ form_errors(form.plainPassword) }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="ft-user-create-password-note">
+                  <div class="ft-user-create-password-icon"><i class="bi bi-shield-lock"></i></div>
+                  <div>
+                    <strong>Bonne pratique</strong>
+                    <p class="mb-0">Combinez un mot de passe temporaire fiable avec une verification e-mail rapide apres creation.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-0">
+              <div class="col-md-6">
+                {{ form_label(form.status, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                {{ form_widget(form.status, {attr: {class: 'form-select ft-input'}}) }}
+                <div class="form-text">Definit la disponibilite immediate du compte apres creation.</div>
+                <div class="text-danger small mt-1">{{ form_errors(form.status) }}</div>
+              </div>
+              <div class="col-md-6">
+                {{ form_label(form.kycStatus, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                {{ form_widget(form.kycStatus, {attr: {class: 'form-select ft-input'}}) }}
+                <div class="form-text">Positionne le client dans le bon niveau de suivi KYC des le depart.</div>
+                <div class="text-danger small mt-1">{{ form_errors(form.kycStatus) }}</div>
+              </div>
             </div>
           </div>
 
-          <div class="row g-3 mb-4">
-            <div class="col-md-6">
-              {{ form_label(form.status, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
-              {{ form_widget(form.status, {attr: {class: 'form-select ft-input ft-admin-create-input'}}) }}
-              <div class="text-danger small mt-1">{{ form_errors(form.status) }}</div>
-            </div>
-            <div class="col-md-6">
-              {{ form_label(form.kycStatus, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
-              {{ form_widget(form.kycStatus, {attr: {class: 'form-select ft-input ft-admin-create-input'}}) }}
-              <div class="text-danger small mt-1">{{ form_errors(form.kycStatus) }}</div>
-            </div>
-          </div>
-
-          <div class="ft-admin-create-actions">
-            <button type="submit" class="btn ft-btn-primary ft-admin-create-submit">
+          <div class="ft-user-create-actions">
+            <button type="submit" class="btn ft-btn-primary">
               <i class="bi bi-check2-circle me-2"></i>Creer le client
             </button>
-            <a href="{{ path('admin_user_list') }}" class="btn ft-admin-create-secondary">
-              <i class="bi bi-arrow-left me-2"></i>Annuler et revenir
+            <a href="{{ path('admin_user_list') }}" class="btn ft-btn-outline-primary">
+              <i class="bi bi-arrow-left me-2"></i>Retour a la liste
             </a>
           </div>
         {{ form_end(form) }}
@@ -137,320 +174,227 @@
     </div>
   </div>
 
-  <div class="col-lg-4">
-    <div class="ft-admin-card ft-admin-create-side h-100">
-      <div class="ft-admin-card-header ft-admin-create-side-header">
-        <div class="d-flex align-items-center gap-2">
-          <span class="ft-admin-create-side-icon"><i class="bi bi-stars"></i></span>
-          <span>Ce que l'admin controle</span>
+  <div class="col-xl-4">
+    <div class="d-grid gap-4">
+      <div class="ft-admin-card">
+        <div class="ft-admin-card-header">
+          <i class="bi bi-stars me-2 text-primary"></i>Ce que l admin controle
+        </div>
+        <div class="ft-admin-card-body">
+          <div class="ft-admin-insight-list">
+            <div class="ft-admin-insight-item">
+              <strong>Activation immediate</strong>
+              <span>Le client peut etre cree directement actif, en attente ou suspendu selon le contexte.</span>
+            </div>
+            <div class="ft-admin-insight-item">
+              <strong>KYC prepare</strong>
+              <span>Vous pouvez definir un statut KYC initial pour cadrer le workflow des verifications.</span>
+            </div>
+            <div class="ft-admin-insight-item">
+              <strong>Suivi rapide</strong>
+              <span>Apres creation, vous arrivez directement sur la fiche complete du client pour poursuivre les actions.</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="ft-admin-card-body">
-        <div class="ft-admin-create-side-stack">
-          <article class="ft-admin-create-note tone-blue">
-            <div class="ft-admin-create-note-title">Activation immediate</div>
-            <p class="mb-0">Le client peut etre cree directement actif, en attente ou suspendu selon le niveau de validation deja disponible.</p>
-          </article>
-
-          <article class="ft-admin-create-note tone-cyan">
-            <div class="ft-admin-create-note-title">KYC prepare</div>
-            <p class="mb-0">Vous pouvez definir un statut KYC initial pour cadrer le workflow conformite des la creation.</p>
-          </article>
-
-          <article class="ft-admin-create-note tone-violet">
-            <div class="ft-admin-create-note-title">Suivi rapide</div>
-            <p class="mb-0">Apres creation, vous arrivez directement sur la fiche complete du client pour continuer le pilotage.</p>
-          </article>
-
-          <article class="ft-admin-create-note tone-emerald">
-            <div class="ft-admin-create-note-title">Bonne pratique FinTrust</div>
-            <p class="mb-0">Verifiez l'unicite de l'e-mail, choisissez un statut coherent et utilisez un mot de passe provisoire fiable.</p>
-          </article>
+      <div class="ft-admin-card">
+        <div class="ft-admin-card-header">
+          <i class="bi bi-check2-square me-2 text-primary"></i>Checklist avant creation
         </div>
+        <div class="ft-admin-card-body">
+          <ul class="ft-user-create-checklist mb-0">
+            <li>Verifier que l e-mail n existe pas deja dans la base clients.</li>
+            <li>Choisir un statut de compte coherent avec la situation du client.</li>
+            <li>Positionner le bon niveau KYC pour eviter les blocages de workflow.</li>
+            <li>Prevoir un mot de passe provisoire suffisamment fiable.</li>
+          </ul>
+        </div>
+      </div>
 
-        <div class="ft-admin-create-pulse mt-4">
-          <div class="ft-admin-create-pulse-icon"><i class="bi bi-lightning-charge-fill"></i></div>
-          <div>
-            <div class="ft-admin-create-pulse-title">Creation admin acceleree</div>
-            <div class="ft-admin-create-pulse-text">Un flux plus energique, mais toujours sobre et bancaire, pour une experience back-office plus distinctive.</div>
-          </div>
+      <div class="ft-admin-card ft-user-create-aside-card">
+        <div class="ft-admin-card-body">
+          <div class="ft-user-create-aside-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+          <h3 class="h5 fw-bold mb-2">Creation admin acceleree</h3>
+          <p class="text-muted mb-0">
+            Cette page est pensee pour un onboarding rapide sans sacrifier la qualite du suivi client dans FinTrust.
+          </p>
         </div>
       </div>
     </div>
   </div>
 </div>
-{% endblock %}
 
-{% block javascripts %}
-  {{ parent() }}
-  <style>
-    .ft-admin-create-hero {
-      display: flex;
-      justify-content: space-between;
-      gap: 1.25rem;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      padding: 1.8rem 1.9rem;
-      border-radius: 1.9rem;
-      background:
-        radial-gradient(circle at top right, rgba(34, 211, 238, 0.22), transparent 28%),
-        radial-gradient(circle at 18% 18%, rgba(37, 99, 235, 0.16), transparent 34%),
-        linear-gradient(135deg, #ffffff 0%, #f4f9ff 44%, #eaf4ff 100%);
-      border: 1px solid #d3e5fb;
-      box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
+<style>
+  .ft-user-create-form {
+    display: grid;
+    gap: 1.4rem;
+  }
+
+  .ft-user-create-section {
+    padding: 1.2rem;
+    border-radius: 22px;
+    border: 1px solid rgba(21, 96, 189, .08);
+    background:
+      radial-gradient(circle at top right, rgba(59, 130, 246, .16), transparent 30%),
+      radial-gradient(circle at bottom left, rgba(14, 165, 233, .08), transparent 28%),
+      linear-gradient(180deg, #ffffff, #f7fbff);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, .06);
+  }
+
+  .ft-user-create-section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .ft-user-create-section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f2f6b;
+    margin-bottom: .25rem;
+  }
+
+  .ft-user-create-section-text {
+    color: #64748b;
+    font-size: .94rem;
+  }
+
+  .ft-user-create-password-note {
+    height: 100%;
+    display: flex;
+    gap: .9rem;
+    align-items: flex-start;
+    padding: 1rem;
+    border-radius: 18px;
+    border: 1px solid rgba(37, 99, 235, .14);
+    background:
+      radial-gradient(circle at top right, rgba(59, 130, 246, .18), transparent 35%),
+      linear-gradient(135deg, #f8fbff, #edf4ff 58%, #e0efff);
+    color: #24456f;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+  }
+
+  .ft-user-create-password-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #dbeafe, #93c5fd 55%, #60a5fa);
+    color: #1e40af;
+    flex-shrink: 0;
+    box-shadow: 0 14px 26px rgba(37, 99, 235, .16);
+  }
+
+  .ft-user-create-actions {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .ft-user-create-checklist {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: .85rem;
+  }
+
+  .ft-user-create-checklist li {
+    position: relative;
+    padding-left: 1.7rem;
+    color: #475569;
+    line-height: 1.55;
+  }
+
+  .ft-user-create-checklist li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: .5rem;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #38bdf8);
+    box-shadow: 0 0 0 7px rgba(37, 99, 235, .1);
+  }
+
+  .ft-user-create-aside-card {
+    background:
+      radial-gradient(circle at top right, rgba(59,130,246,.2), transparent 34%),
+      radial-gradient(circle at bottom left, rgba(16,185,129,.14), transparent 26%),
+      linear-gradient(135deg, #ffffff, #eef5ff 55%, #e8f7f1);
+    border-color: rgba(37, 99, 235, .12);
+  }
+
+  .ft-user-create-aside-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #bfdbfe, #60a5fa 58%, #34d399);
+    color: #1e3a8a;
+    font-size: 1.35rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 16px 30px rgba(37, 99, 235, .18);
+  }
+
+  .ft-user-create-form .form-text {
+    color: #4f6686;
+  }
+
+  .ft-user-create-form .ft-input,
+  .ft-user-create-form .form-select {
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border-color: rgba(148, 163, 184, .34);
+  }
+
+  .ft-user-create-form .ft-input:focus,
+  .ft-user-create-form .form-select:focus {
+    border-color: #60a5fa;
+    box-shadow:
+      0 0 0 4px rgba(59, 130, 246, .12),
+      0 10px 24px rgba(37, 99, 235, .08);
+  }
+
+  .ft-user-create-actions .ft-btn-primary {
+    padding-inline: 1.4rem;
+    box-shadow: 0 14px 28px rgba(37, 99, 235, .2);
+  }
+
+  .ft-user-create-actions .ft-btn-outline-primary {
+    background: rgba(255,255,255,.72);
+  }
+
+  .ft-user-create-section:first-of-type {
+    background:
+      radial-gradient(circle at top right, rgba(59, 130, 246, .18), transparent 28%),
+      radial-gradient(circle at left bottom, rgba(168, 85, 247, .08), transparent 24%),
+      linear-gradient(180deg, #ffffff, #f7fbff);
+  }
+
+  .ft-user-create-section:last-of-type {
+    background:
+      radial-gradient(circle at top right, rgba(59, 130, 246, .14), transparent 30%),
+      radial-gradient(circle at bottom left, rgba(16, 185, 129, .12), transparent 24%),
+      linear-gradient(180deg, #ffffff, #f8fcff);
+  }
+
+  @media (max-width: 767.98px) {
+    .ft-user-create-section {
+      padding: 1rem;
+      border-radius: 18px;
     }
 
-    .ft-admin-create-kicker {
-      display: inline-flex;
-      align-items: center;
-      padding: .5rem .9rem;
-      border-radius: 999px;
-      background: rgba(37, 99, 235, 0.1);
-      color: #1d4ed8;
-      font-size: .82rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      margin-bottom: .8rem;
-    }
-
-    .ft-admin-create-subtitle {
-      max-width: 60ch;
-      color: #526581;
-      font-size: 1.02rem;
-    }
-
-    .ft-admin-create-kpi {
-      position: relative;
-      padding: 1.15rem 1.15rem 1.1rem;
-      border-radius: 1.35rem;
-      border: 1px solid #dbe7f7;
-      background: #fff;
-      min-height: 100%;
-      overflow: hidden;
-      box-shadow: 0 16px 30px rgba(15, 23, 42, 0.05);
-    }
-
-    .ft-admin-create-kpi::after {
-      content: "";
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 4px;
-      border-radius: 4px;
-      background: currentColor;
-      opacity: .9;
-    }
-
-    .ft-admin-create-kpi.tone-blue { color: #2563eb; }
-    .ft-admin-create-kpi.tone-cyan { color: #0891b2; }
-    .ft-admin-create-kpi.tone-violet { color: #7c3aed; }
-    .ft-admin-create-kpi.tone-emerald { color: #059669; }
-
-    .ft-admin-create-kpi-icon {
-      width: 48px;
-      height: 48px;
-      display: inline-flex;
-      align-items: center;
+    .ft-user-create-actions .btn {
+      width: 100%;
       justify-content: center;
-      border-radius: 1rem;
-      background: rgba(255, 255, 255, 0.8);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-      margin-bottom: .9rem;
-      font-size: 1.2rem;
     }
-
-    .ft-admin-create-kpi-label {
-      font-size: .78rem;
-      font-weight: 800;
-      letter-spacing: .05em;
-      text-transform: uppercase;
-      color: #64748b;
-      margin-bottom: .4rem;
-    }
-
-    .ft-admin-create-kpi-value {
-      font-size: 1.45rem;
-      font-weight: 800;
-      color: #0f172a;
-      margin-bottom: .35rem;
-    }
-
-    .ft-admin-create-kpi-text {
-      color: #53657f;
-      font-size: .9rem;
-      line-height: 1.5;
-    }
-
-    .ft-admin-create-card,
-    .ft-admin-create-side {
-      border-radius: 1.7rem;
-      overflow: hidden;
-      box-shadow: 0 20px 46px rgba(15, 23, 42, 0.07);
-    }
-
-    .ft-admin-create-card-header,
-    .ft-admin-create-side-header {
-      background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 247, 255, 0.94));
-      border-bottom: 1px solid #dce8f9;
-      font-weight: 800;
-    }
-
-    .ft-admin-create-header-icon,
-    .ft-admin-create-side-icon {
-      width: 34px;
-      height: 34px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: .9rem;
-      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-      color: #1d4ed8;
-      flex-shrink: 0;
-    }
-
-    .ft-admin-create-header-chip {
-      padding: .45rem .8rem;
-      border-radius: 999px;
-      background: rgba(34, 211, 238, 0.08);
-      color: #0f5f77;
-      font-weight: 700;
-      font-size: .78rem;
-      border: 1px solid rgba(34, 211, 238, 0.15);
-    }
-
-    .ft-admin-create-input {
-      min-height: 56px;
-      border-radius: 1.05rem;
-      border-color: #d7e5f8;
-      background: linear-gradient(180deg, #ffffff, #fdfefe);
-      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
-    }
-
-    .ft-admin-create-input:focus {
-      border-color: #60a5fa;
-      box-shadow: 0 0 0 .25rem rgba(59, 130, 246, 0.12);
-      transform: translateY(-1px);
-    }
-
-    .ft-admin-create-actions {
-      display: flex;
-      gap: .85rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .ft-admin-create-submit {
-      min-width: 220px;
-      min-height: 54px;
-      border-radius: 1rem;
-      box-shadow: 0 12px 26px rgba(37, 99, 235, 0.22);
-    }
-
-    .ft-admin-create-secondary {
-      min-height: 54px;
-      border-radius: 1rem;
-      padding: .8rem 1.1rem;
-      border: 1px solid #d6e3f5;
-      background: #fff;
-      color: #27446f;
-      font-weight: 700;
-      text-decoration: none;
-    }
-
-    .ft-admin-create-secondary:hover {
-      background: #f8fbff;
-      color: #123c8d;
-    }
-
-    .ft-admin-create-side-stack {
-      display: grid;
-      gap: 1rem;
-    }
-
-    .ft-admin-create-note {
-      position: relative;
-      padding: 1.15rem 1.1rem;
-      border-radius: 1.3rem;
-      border: 1px solid #d9e7f8;
-      background: linear-gradient(135deg, #ffffff, #f7fbff);
-      overflow: hidden;
-    }
-
-    .ft-admin-create-note::before {
-      content: "";
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 4px;
-      background: currentColor;
-      opacity: .9;
-    }
-
-    .ft-admin-create-note.tone-blue { color: #2563eb; }
-    .ft-admin-create-note.tone-cyan { color: #0891b2; }
-    .ft-admin-create-note.tone-violet { color: #7c3aed; }
-    .ft-admin-create-note.tone-emerald { color: #059669; }
-
-    .ft-admin-create-note-title {
-      color: #123c8d;
-      font-weight: 800;
-      font-size: 1rem;
-      margin-bottom: .45rem;
-    }
-
-    .ft-admin-create-note p {
-      color: #51637d;
-      line-height: 1.55;
-    }
-
-    .ft-admin-create-pulse {
-      display: flex;
-      gap: .9rem;
-      align-items: flex-start;
-      padding: 1.15rem 1.1rem;
-      border-radius: 1.35rem;
-      background:
-        radial-gradient(circle at top right, rgba(34, 211, 238, 0.18), transparent 42%),
-        linear-gradient(135deg, #edf6ff, #f7fbff);
-      border: 1px solid #d8e8fb;
-    }
-
-    .ft-admin-create-pulse-icon {
-      width: 50px;
-      height: 50px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 1rem;
-      color: #2563eb;
-      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-
-    .ft-admin-create-pulse-title {
-      color: #0f172a;
-      font-weight: 800;
-      margin-bottom: .25rem;
-    }
-
-    .ft-admin-create-pulse-text {
-      color: #53657f;
-      line-height: 1.5;
-      font-size: .92rem;
-    }
-
-    @media (max-width: 767px) {
-      .ft-admin-create-actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .ft-admin-create-submit,
-      .ft-admin-create-secondary {
-        width: 100%;
-      }
-    }
-  </style>
+  }
+</style>
 {% endblock %}

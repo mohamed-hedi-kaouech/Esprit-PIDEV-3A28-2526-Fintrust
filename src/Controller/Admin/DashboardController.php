@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\User\User;
 use App\Repository\KycRepository;
 use App\Repository\UserRepository;
+use App\Service\AdvancedAnalyticsService;
 use App\Service\ComplianceCopilotService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,6 +26,7 @@ class DashboardController extends AbstractController
         private readonly UserRepository $userRepository,
         private readonly KycRepository  $kycRepository,
         private readonly ComplianceCopilotService $complianceCopilotService,
+        private readonly AdvancedAnalyticsService $advancedAnalyticsService,
     ) {}
 
     /**
@@ -93,6 +95,25 @@ class DashboardController extends AbstractController
             'pendingKyc' => $pendingKyc,
             'complianceCases' => $complianceCases,
             'complianceSamples' => $this->complianceCopilotService->getSampleCases(),
+            'advancedOverview' => $this->advancedAnalyticsService->getAdminAnalyticsOverview($clients),
+            'atRiskUsersAnalytics' => $this->advancedAnalyticsService->getAtRiskUsers($clients),
+            'riskPatternsAnalytics' => $this->advancedAnalyticsService->getRiskPatterns($clients),
+            'supportInsightsAnalytics' => $this->advancedAnalyticsService->getSupportInsights(),
+            'kycTrendAnalytics' => $this->advancedAnalyticsService->getKycTrends(),
+        ]);
+    }
+
+    #[Route('/intelligence-decisionnelle', name: 'analytics_intelligence')]
+    public function intelligence(): Response
+    {
+        $clients = $this->userRepository->findBy(['role' => 'CLIENT'], ['createdAt' => 'DESC'], 120);
+
+        return $this->render('admin/analytics/intelligence.html.twig', [
+            'advancedOverview' => $this->advancedAnalyticsService->getAdminAnalyticsOverview($clients),
+            'atRiskUsersAnalytics' => $this->advancedAnalyticsService->getAtRiskUsers($clients, 12),
+            'riskPatternsAnalytics' => $this->advancedAnalyticsService->getRiskPatterns($clients),
+            'supportInsightsAnalytics' => $this->advancedAnalyticsService->getSupportInsights(),
+            'kycTrendAnalytics' => $this->advancedAnalyticsService->getKycTrends(),
         ]);
     }
 }

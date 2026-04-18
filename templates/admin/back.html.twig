@@ -91,6 +91,12 @@
           {% endif %}
         </a>
 
+        <a href="{{ path('admin_analytics_intelligence') }}"
+           class="ft-sidebar-link {% if app.request.attributes.get('_route') == 'admin_analytics_intelligence' %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i>
+          <span>Intelligence</span>
+        </a>
+
         <div class="ft-sidebar-section-label mt-3">Services</div>
 
         <a href="{{ path('admin_dashboard') }}#admin-wallet" class="ft-sidebar-link">

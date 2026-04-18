@@ -1050,6 +1050,69 @@
     </form>
   </div>
 </aside>
+
+<section class="row g-4 mt-1 mb-4">
+  <div class="col-xl-7">
+    <div class="ft-app-card ft-premium-card h-100">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-lightning-charge-fill me-2 text-primary"></i>Actualites pertinentes</span>
+        <a href="{{ path('front_relevant_news') }}" class="btn ft-btn-outline-primary btn-sm">Voir l'analyse</a>
+      </div>
+      <div class="ft-app-card-body">
+        <div class="row g-3">
+          {% for item in analyticsNews.items %}
+            <div class="col-md-4">
+              <div class="ft-news-mini-card h-100">
+                <div class="ft-news-mini-topline">
+                  <span class="badge {{ item.priority == 'HIGH' ? 'ft-badge-warning' : 'ft-badge-blue' }}">{{ item.category }}</span>
+                  <span class="ft-news-mini-date">{{ item.relevanceScore }}/100</span>
+                </div>
+                <h4>{{ item.title }}</h4>
+                <p>{{ item.impactReason }}</p>
+                <div class="ft-news-mini-meta">
+                  <span>{{ item.priority }}</span>
+                  <a href="{{ path('front_relevant_news') }}">Explorer</a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-5">
+    <div class="ft-app-card ft-premium-card h-100">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-stars me-2 text-primary"></i>Action recommandee</span>
+        <a href="{{ path('front_recommended_actions') }}" class="btn ft-btn-outline-primary btn-sm">Prioriser</a>
+      </div>
+      <div class="ft-app-card-body">
+        <div class="p-3 rounded-4 mb-3" style="background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(34,197,94,.08));border:1px solid rgba(191,219,254,.8);">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <div class="small text-muted">{{ recommendedAction.actionType }}</div>
+              <div class="fw-bold fs-5">{{ recommendedAction.title }}</div>
+            </div>
+            <span class="badge {{ recommendedAction.priorityLevel in ['HIGH', 'CRITICAL'] ? 'ft-badge-danger' : 'ft-badge-warning' }}">{{ recommendedAction.priorityLevel }}</span>
+          </div>
+          <div class="small text-muted mt-2">{{ recommendedAction.description }}</div>
+        </div>
+        <div class="mb-3">
+          <div class="small text-muted">Raison principale</div>
+          <div class="fw-semibold">{{ recommendedAction.reason }}</div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-muted">Risque de desengagement</div>
+            <div class="fw-semibold">{{ dropoffRisk.dropoffRiskScore }}/100 · {{ dropoffRisk.engagementLevel }}</div>
+          </div>
+          <a href="{{ path('front_identity_consistency') }}" class="btn ft-btn-soft btn-sm">Identite & cohérence</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
 
   {% block javascripts %}

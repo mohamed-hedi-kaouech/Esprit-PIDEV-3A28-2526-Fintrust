@@ -846,6 +846,67 @@
     </div>
   </div>
 </div>
+
+<div class="row g-4 mb-5">
+  <div class="col-xl-8">
+    <div class="ft-admin-card ft-admin-accent-card h-100">
+      <div class="ft-admin-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Advanced Analytics Bundle</span>
+        <a href="{{ path('admin_analytics_intelligence') }}" class="btn ft-btn-outline-primary btn-sm">Ouvrir l'intelligence</a>
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="ft-admin-insight-card ft-admin-insight-card-team">
+              <div class="ft-admin-insight-title">Clients analyses</div>
+              <div class="ft-admin-insight-value">{{ advancedOverview.kpis.clientsAnalyses }}</div>
+              <div class="ft-admin-insight-text">Base client consolidée avec signaux engagement, risque et KYC.</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-admin-insight-card ft-admin-insight-card-approved">
+              <div class="ft-admin-insight-title">A risque de depart</div>
+              <div class="ft-admin-insight-value">{{ advancedOverview.kpis.atRiskUsers }}</div>
+              <div class="ft-admin-insight-text">Utilisateurs a relancer en priorite pour eviter l abandon.</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-admin-insight-card ft-admin-insight-card-refused">
+              <div class="ft-admin-insight-title">Risques critiques</div>
+              <div class="ft-admin-insight-value">{{ advancedOverview.kpis.criticalRiskUsers }}</div>
+              <div class="ft-admin-insight-text">Profils imposant une surveillance ou une revue plus fine.</div>
+            </div>
+          </div>
+        </div>
+        <div class="d-grid gap-2 mt-4">
+          {% for signal in advancedOverview.prioritySignals %}
+            <div class="p-3 rounded-4" style="border:1px solid rgba(219,234,254,.9);background:rgba(248,250,252,.96);">{{ signal }}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header"><i class="bi bi-people-fill me-2 text-primary"></i>Utilisateurs a risque de desengagement</div>
+      <div class="ft-admin-card-body">
+        <div class="d-grid gap-3">
+          {% for item in atRiskUsersAnalytics|slice(0, 4) %}
+            <div class="p-3 rounded-4" style="border:1px solid rgba(226,232,240,.95);background:rgba(255,255,255,.96);">
+              <div class="d-flex justify-content-between gap-2">
+                <div class="fw-semibold">{{ item.name }}</div>
+                <span class="badge {{ item.dropoffRiskScore >= 80 ? 'ft-badge-danger' : 'ft-badge-warning' }}">{{ item.dropoffRiskScore }}/100</span>
+              </div>
+              <div class="small text-muted mt-1">{{ item.mainSignal }}</div>
+              <div class="small fw-semibold mt-2">{{ item.actionTitle }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block javascripts %}
