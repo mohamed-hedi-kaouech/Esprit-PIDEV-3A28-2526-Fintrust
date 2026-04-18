@@ -5,21 +5,240 @@
   {{ parent() }}
   <style>
     .ft-action-hero {
+      position: relative;
+      overflow: hidden;
       border-radius: 2rem;
-      padding: 2rem;
+      padding: 2.35rem;
       background:
-        radial-gradient(circle at top left, rgba(34,197,94,.15), transparent 24%),
-        radial-gradient(circle at top right, rgba(59,130,246,.16), transparent 22%),
-        linear-gradient(135deg, rgba(255,255,255,.98), rgba(243,248,255,.95));
-      border: 1px solid rgba(191, 219, 254, .85);
-      box-shadow: 0 28px 55px rgba(15, 23, 42, .08);
+        radial-gradient(circle at top left, rgba(34,197,94,.18), transparent 22%),
+        radial-gradient(circle at 82% 18%, rgba(59,130,246,.18), transparent 24%),
+        radial-gradient(circle at 50% 100%, rgba(14,165,233,.10), transparent 30%),
+        linear-gradient(135deg, rgba(255,255,255,.99), rgba(240,247,255,.97));
+      border: 1px solid rgba(191, 219, 254, .92);
+      box-shadow: 0 30px 60px rgba(15, 23, 42, .09);
     }
-    .ft-action-card {
-      border-radius: 1.6rem;
-      padding: 1.45rem;
-      border: 1px solid rgba(203, 213, 225, .92);
-      background: rgba(255,255,255,.96);
-      box-shadow: 0 16px 32px rgba(15,23,42,.05);
+    .ft-action-hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -8% -35% auto;
+      width: 24rem;
+      height: 24rem;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(37,99,235,.16), transparent 60%);
+      pointer-events: none;
+    }
+    .ft-action-hero-copy,
+    .ft-action-hero-side {
+      position: relative;
+      z-index: 1;
+    }
+    .ft-action-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      padding: .6rem 1rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.92);
+      color: #1450b8;
+      border: 1px solid rgba(191,219,254,.95);
+      box-shadow: 0 10px 22px rgba(37,99,235,.08);
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .ft-action-subcopy {
+      max-width: 58rem;
+      font-size: 1.04rem;
+      line-height: 1.8;
+      color: #47627f;
+    }
+    .ft-action-reason {
+      display: inline-flex;
+      align-items: flex-start;
+      gap: .75rem;
+      margin-top: 1.25rem;
+      padding: 1rem 1.15rem;
+      border-radius: 1.3rem;
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(219,234,254,.92);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+    .ft-action-reason i {
+      color: #1d4ed8;
+      font-size: 1rem;
+      margin-top: .15rem;
+    }
+    .ft-action-score-card {
+      border-radius: 1.7rem;
+      padding: 1.35rem 1.45rem;
+      border: 1px solid rgba(203,213,225,.92);
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,255,.96));
+      box-shadow: 0 18px 38px rgba(15,23,42,.07);
+    }
+    .ft-action-score-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .ft-action-score-value {
+      font-size: 3rem;
+      line-height: .95;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      color: #1560BD;
+    }
+    .ft-action-score-glow {
+      width: 3.4rem;
+      height: 3.4rem;
+      border-radius: 1.15rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      background: linear-gradient(135deg, #1560BD, #2aa0f5);
+      box-shadow: 0 16px 26px rgba(21,96,189,.25);
+    }
+    .ft-action-badge-row {
+      display: flex;
+      gap: .55rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .ft-action-mini-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .8rem;
+    }
+    .ft-action-mini-stat {
+      padding: .9rem 1rem;
+      border-radius: 1.15rem;
+      background: rgba(241,245,249,.78);
+      border: 1px solid rgba(226,232,240,.92);
+    }
+    .ft-action-mini-stat span {
+      display: block;
+      font-size: .78rem;
+      color: #64748b;
+      margin-bottom: .35rem;
+    }
+    .ft-action-mini-stat strong {
+      color: #0f172a;
+      font-size: 1rem;
+    }
+    .ft-action-panel {
+      height: 100%;
+      border-radius: 1.65rem;
+      overflow: hidden;
+      border: 1px solid rgba(203, 213, 225, .88);
+      box-shadow: 0 20px 40px rgba(15, 23, 42, .06);
+      background: rgba(255,255,255,.98);
+    }
+    .ft-action-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.1rem 1.25rem;
+      background: linear-gradient(180deg, rgba(248,250,255,.98), rgba(255,255,255,.92));
+      border-bottom: 1px solid rgba(226,232,240,.9);
+    }
+    .ft-action-panel-title {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      font-weight: 800;
+      color: #1f4076;
+    }
+    .ft-action-secondary-card {
+      height: 100%;
+      border-radius: 1.4rem;
+      padding: 1.1rem 1.15rem;
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.09), transparent 30%),
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,255,.95));
+      border: 1px solid rgba(219,234,254,.94);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .ft-action-secondary-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(96,165,250,.95);
+      box-shadow: 0 18px 34px rgba(37,99,235,.10);
+    }
+    .ft-action-secondary-code {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      font-size: .74rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: .7rem;
+    }
+    .ft-dropoff-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1rem;
+      padding: 1.2rem 1.25rem;
+      border-radius: 1.35rem;
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.10), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,249,255,.95));
+      border: 1px solid rgba(219,234,254,.94);
+    }
+    .ft-dropoff-level {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+      color: #0f172a;
+    }
+    .ft-dropoff-score {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 7rem;
+      padding: .85rem 1rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #1560BD, #2aa0f5);
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 12px 24px rgba(21,96,189,.20);
+    }
+    .ft-signal-list {
+      display: grid;
+      gap: .8rem;
+      margin: 1rem 0 1.1rem;
+      padding: 0;
+      list-style: none;
+    }
+    .ft-signal-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: .75rem;
+      padding: .95rem 1rem;
+      border-radius: 1.05rem;
+      background: rgba(248,250,252,.95);
+      border: 1px solid rgba(226,232,240,.96);
+    }
+    .ft-signal-list li i {
+      color: #f59e0b;
+      margin-top: .08rem;
+    }
+    .ft-dropoff-intervention {
+      padding: 1.1rem 1.15rem;
+      border-radius: 1.25rem;
+      background: linear-gradient(135deg, rgba(37,99,235,.08), rgba(125,211,252,.10));
+      border: 1px solid rgba(191,219,254,.84);
+    }
+    @media (max-width: 991.98px) {
+      .ft-action-score-value {
+        font-size: 2.5rem;
+      }
+      .ft-action-mini-stats {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 {% endblock %}
@@ -30,18 +249,42 @@
       <section class="ft-action-hero mb-4">
         <div class="row g-4 align-items-center">
           <div class="col-lg-8">
-            <div class="ft-dash-hero-kicker mb-3"><i class="bi bi-lightning-charge-fill"></i> Action recommandee</div>
-            <h1 class="ft-dash-hero-title mb-3">{{ recommendation.title }}</h1>
-            <p class="ft-dash-hero-subtitle mb-3">{{ recommendation.description }}</p>
-            <div class="small text-secondary-emphasis"><strong>Pourquoi maintenant :</strong> {{ recommendation.reason }}</div>
+            <div class="ft-action-hero-copy">
+              <div class="ft-action-kicker mb-3"><i class="bi bi-lightning-charge-fill"></i> Action recommandee</div>
+              <h1 class="ft-dash-hero-title mb-3">{{ recommendation.title }}</h1>
+              <p class="ft-action-subcopy mb-0">{{ recommendation.description }}</p>
+              <div class="ft-action-reason">
+                <i class="bi bi-stars"></i>
+                <div><strong>Pourquoi maintenant :</strong> {{ recommendation.reason }}</div>
+              </div>
+            </div>
           </div>
           <div class="col-lg-4">
-            <div class="ft-action-card">
-              <div class="text-muted small">Priorite d action</div>
-              <div class="display-6 fw-bold text-primary">{{ recommendation.priorityScore }}/100</div>
-              <div class="d-flex gap-2 flex-wrap mt-2">
-                <span class="badge {{ recommendation.priorityLevel in ['HIGH', 'CRITICAL'] ? 'ft-badge-danger' : 'ft-badge-warning' }}">{{ recommendation.priorityLevel }}</span>
-                <span class="badge ft-badge-blue">{{ recommendation.actionType }}</span>
+            <div class="ft-action-hero-side">
+              <div class="ft-action-score-card">
+                <div class="ft-action-score-top">
+                  <div>
+                    <div class="text-muted small mb-2">Priorite d action</div>
+                    <div class="ft-action-score-value">{{ recommendation.priorityScore }}/100</div>
+                  </div>
+                  <div class="ft-action-score-glow">
+                    <i class="bi bi-graph-up-arrow"></i>
+                  </div>
+                </div>
+                <div class="ft-action-badge-row">
+                  <span class="badge {{ recommendation.priorityLevel in ['HIGH', 'CRITICAL'] ? 'ft-badge-danger' : 'ft-badge-warning' }}">{{ recommendation.priorityLevel }}</span>
+                  <span class="badge ft-badge-blue">{{ recommendation.actionType }}</span>
+                </div>
+                <div class="ft-action-mini-stats">
+                  <div class="ft-action-mini-stat">
+                    <span>Fenetre ideale</span>
+                    <strong>Maintenant</strong>
+                  </div>
+                  <div class="ft-action-mini-stat">
+                    <span>Impact estime</span>
+                    <strong>Parcours plus fluide</strong>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -50,16 +293,20 @@
 
       <div class="row g-4">
         <div class="col-lg-7">
-          <div class="ft-app-card h-100">
-            <div class="ft-app-card-header"><i class="bi bi-compass me-2 text-primary"></i>Explication de la priorisation</div>
+          <div class="ft-action-panel">
+            <div class="ft-action-panel-head">
+              <div class="ft-action-panel-title"><i class="bi bi-compass"></i>Explication de la priorisation</div>
+              <span class="badge ft-badge-blue">{{ prioritySummary.priorityBand }}</span>
+            </div>
             <div class="ft-app-card-body">
               <p class="mb-3">{{ prioritySummary.explanation }}</p>
               <div class="row g-3">
                 {% for action in recommendation.secondaryActions %}
                   <div class="col-md-6">
-                    <div class="ft-action-card h-100">
-                      <div class="small text-muted mb-2">{{ action.actionType }}</div>
-                      <div class="fw-semibold mb-2">{{ action.title }}</div>
+                    <div class="ft-action-secondary-card">
+                      <div class="ft-action-secondary-code"><i class="bi bi-arrow-return-right"></i>{{ action.actionType }}</div>
+                      <div class="fw-semibold mb-2 fs-5">{{ action.title }}</div>
+                      <div class="small text-muted mb-3">Action secondaire mobilisable pour renforcer le parcours ou anticiper un futur blocage.</div>
                       <span class="badge {{ action.priorityLevel == 'HIGH' ? 'ft-badge-warning' : 'ft-badge-blue' }}">{{ action.priorityLevel }}</span>
                     </div>
                   </div>
@@ -68,25 +315,31 @@
             </div>
           </div>
         </div>
+
         <div class="col-lg-5">
-          <div class="ft-app-card h-100">
-            <div class="ft-app-card-header"><i class="bi bi-heart-pulse me-2 text-primary"></i>Risque de desengagement</div>
+          <div class="ft-action-panel">
+            <div class="ft-action-panel-head">
+              <div class="ft-action-panel-title"><i class="bi bi-heart-pulse"></i>Risque de desengagement</div>
+              <span class="badge ft-badge-warning">{{ dropoffRisk.engagementLevel }}</span>
+            </div>
             <div class="ft-app-card-body">
-              <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="ft-dropoff-top">
                 <div>
-                  <div class="small text-muted">Niveau actuel</div>
-                  <div class="fw-bold fs-4">{{ dropoffRisk.riskLevel }}</div>
+                  <div class="small text-muted mb-2">Niveau actuel</div>
+                  <div class="ft-dropoff-level">{{ dropoffRisk.riskLevel }}</div>
                 </div>
-                <span class="ft-analytics-score">{{ dropoffRisk.dropoffRiskScore }}/100</span>
+                <span class="ft-dropoff-score">{{ dropoffRisk.dropoffRiskScore }}/100</span>
               </div>
-              <ul class="mb-3">
+
+              <ul class="ft-signal-list">
                 {% for signal in dropoffRisk.topSignals %}
-                  <li>{{ signal }}</li>
+                  <li><i class="bi bi-dot"></i><span>{{ signal }}</span></li>
                 {% endfor %}
               </ul>
-              <div class="p-3 rounded-4" style="background:rgba(37,99,235,.06);border:1px solid rgba(191,219,254,.72);">
-                <div class="small text-muted">Intervention suggeree</div>
-                <div class="fw-semibold">{{ dropoffRisk.recommendedIntervention }}</div>
+
+              <div class="ft-dropoff-intervention">
+                <div class="small text-muted mb-2">Intervention suggeree</div>
+                <div class="fw-semibold fs-5">{{ dropoffRisk.recommendedIntervention }}</div>
               </div>
             </div>
           </div>
