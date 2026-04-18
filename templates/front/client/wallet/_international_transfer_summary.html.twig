@@ -1,0 +1,88 @@
+<div class="ft-app-card ft-premium-card h-100">
+  <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+    <span>
+      <i class="bi bi-globe2 me-2 text-primary"></i>
+      {% if mode == 'success' %}Recapitulatif enregistre{% else %}Recapitulatif avant confirmation{% endif %}
+    </span>
+    <span class="badge {% if mode == 'success' %}ft-badge-success{% else %}ft-badge-warning{% endif %}">
+      {% if mode == 'success' %}VALIDE{% else %}PREVIEW{% endif %}
+    </span>
+  </div>
+  <div class="ft-app-card-body">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="border rounded-3 p-3 h-100">
+          <div class="small text-muted mb-1">Wallet source</div>
+          <div class="fw-semibold">{{ transfer.source_wallet_label }}</div>
+          <div class="small text-muted mt-2">Beneficiaire</div>
+          <div class="fw-semibold">{{ transfer.beneficiary }}</div>
+          {% if transfer.reference %}
+            <div class="small text-muted mt-2">Reference client</div>
+            <div class="fw-semibold">{{ transfer.reference }}</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="border rounded-3 p-3 h-100 bg-light-subtle">
+          <div class="small text-muted mb-1">Source du taux</div>
+          <div class="fw-semibold">{{ transfer.provider }}</div>
+          <div class="small text-muted mt-2">Date du taux</div>
+          <div class="fw-semibold">{{ transfer.rate_date }}</div>
+          {% if transfer.reference_code is defined %}
+            <div class="small text-muted mt-2">Reference interne</div>
+            <div class="fw-semibold">{{ transfer.reference_code }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive mt-4">
+      <table class="table align-middle mb-0">
+        <tbody>
+          <tr>
+            <th class="text-muted fw-semibold">Montant source</th>
+            <td class="text-end">{{ transfer.amount|number_format(2, ',', ' ') }} {{ transfer.source_currency }}</td>
+          </tr>
+          <tr>
+            <th class="text-muted fw-semibold">Taux de change</th>
+            <td class="text-end">{{ transfer.rate|number_format(6, ',', ' ') }}</td>
+          </tr>
+          <tr>
+            <th class="text-muted fw-semibold">Montant converti</th>
+            <td class="text-end">{{ transfer.converted_amount|number_format(2, ',', ' ') }} {{ transfer.target_currency }}</td>
+          </tr>
+          <tr>
+            <th class="text-muted fw-semibold">Frais simules</th>
+            <td class="text-end">{{ transfer.fees|number_format(2, ',', ' ') }} {{ transfer.source_currency }}</td>
+          </tr>
+          <tr class="table-light">
+            <th class="fw-bold">Total debite</th>
+            <td class="text-end fw-bold">{{ transfer.total_debit|number_format(2, ',', ' ') }} {{ transfer.source_currency }}</td>
+          </tr>
+          {% if transfer.balance_before is defined %}
+            <tr>
+              <th class="text-muted fw-semibold">Solde avant</th>
+              <td class="text-end">{{ transfer.balance_before|number_format(2, ',', ' ') }} {{ transfer.source_currency }}</td>
+            </tr>
+            <tr>
+              <th class="text-muted fw-semibold">Solde apres</th>
+              <td class="text-end">{{ transfer.balance_after|number_format(2, ',', ' ') }} {{ transfer.source_currency }}</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if transfer.created_at is defined %}
+      <div class="alert alert-success mt-4 mb-0">
+        <i class="bi bi-check-circle me-2"></i>
+        Operation enregistree le {{ transfer.created_at|date('d/m/Y H:i') }} comme transaction locale <strong>transfert</strong> avec canal <strong>international</strong>.
+      </div>
+    {% else %}
+      <div class="alert alert-warning mt-4 mb-0">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Ce recapitulatif est calcule en temps reel. Cliquez sur <strong>Envoyer le code OTP</strong> puis validez le code pour executer le transfert.
+      </div>
+    {% endif %}
+  </div>
+</div>

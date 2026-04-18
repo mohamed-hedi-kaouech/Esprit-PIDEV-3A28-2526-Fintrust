@@ -6,8 +6,17 @@ use App\Entity\User\User;
 use App\Entity\Wallet\Cheque;
 use App\Entity\Wallet\Transaction;
 use App\Entity\Wallet\Wallet;
+use App\Service\AnomalyDetectionService;
 use App\Service\NotificationService;
+<<<<<<< Updated upstream
+=======
+use App\Service\OpenAIWalletAnalysisService;
+use App\Service\PredictionService;
+use App\Service\RiskScoringService;
+use App\Service\WalletAnalyticsService;
+>>>>>>> Stashed changes
 use App\Service\WalletAuditService;
+use App\Service\WalletClassificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,6 +33,15 @@ class AdminWalletController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly NotificationService $notificationService,
+<<<<<<< Updated upstream
+=======
+        private readonly OpenAIWalletAnalysisService $openAIWalletAnalysisService,
+        private readonly WalletAnalyticsService $walletAnalyticsService,
+        private readonly AnomalyDetectionService $anomalyDetectionService,
+        private readonly RiskScoringService $riskScoringService,
+        private readonly WalletClassificationService $walletClassificationService,
+        private readonly PredictionService $predictionService,
+>>>>>>> Stashed changes
         private readonly WalletAuditService $walletAuditService,
     ) {
     }
@@ -236,15 +254,64 @@ class AdminWalletController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        $analytics = $this->walletAnalyticsService->buildAnalytics($wallet);
+        $anomalyReport = $this->anomalyDetectionService->detectAnomalies($wallet, $analytics);
+        $riskAnalysis = $this->riskScoringService->scoreWallet($wallet, $analytics, $anomalyReport);
+        $classification = $this->walletClassificationService->classifyWallet($wallet, $riskAnalysis, $anomalyReport, $analytics);
+        $prediction = $this->predictionService->predictWallet($wallet, $analytics, $anomalyReport, $riskAnalysis);
+
         return $this->render('admin/wallet/show.html.twig', [
             'wallet' => $wallet,
             'latestTransactions' => $latestTransactions,
             'transactionStats' => $transactionStats,
             'latestCheques' => $latestCheques,
+            'analytics' => $analytics,
+            'anomalyReport' => $anomalyReport,
+            'riskAnalysis' => $riskAnalysis,
+            'classification' => $classification,
+            'prediction' => $prediction,
             'auditEntries' => $this->walletAuditService->getRecentEntries(20, $wallet->getIdUser()),
         ]);
     }
 
+<<<<<<< Updated upstream
+=======
+    #[Route('/{id}/analyse-ia', name: 'ai_analysis', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function aiAnalysis(int $id): Response
+    {
+        /** @var Wallet|null $wallet */
+        $wallet = $this->entityManager->getRepository(Wallet::class)->find($id);
+
+        if (!$wallet instanceof Wallet) {
+            throw $this->createNotFoundException('Wallet introuvable.');
+        }
+
+        $analysis = null;
+        $model = null;
+        $analysisSource = null;
+        $explanationSource = null;
+        $openAiAvailable = false;
+
+        $result = $this->openAIWalletAnalysisService->analyzeWalletBehaviorally($wallet);
+        $snapshot = $result['snapshot'];
+        $analysis = $result['analysis'];
+        $model = $result['model'];
+        $analysisSource = $result['source'];
+        $explanationSource = $result['explanation_source'] ?? 'local';
+        $openAiAvailable = (bool) ($result['openai_available'] ?? false);
+
+        return $this->render('admin/wallet/ai_analysis.html.twig', [
+            'wallet' => $wallet,
+            'snapshot' => $snapshot,
+            'analysis' => $analysis,
+            'model' => $model,
+            'analysisSource' => $analysisSource,
+            'explanationSource' => $explanationSource,
+            'openAiAvailable' => $openAiAvailable,
+        ]);
+    }
+
+>>>>>>> Stashed changes
     #[Route('/{id}/block', name: 'block', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function block(int $id, Request $request): Response
     {
