@@ -42,7 +42,7 @@ class Product
     private string $category = 'COMPTE_COURANT';
 
     #[ORM\Column(name: 'price', type: 'float')]
-    #[Assert\NotNull(message: 'Le prix est obligatoire.')]
+    #[Assert\NotBlank(message: 'Le prix est obligatoire.')]
     #[Assert\Positive(message: 'Le prix doit etre un nombre strictement positif.')]
     private float $price = 0.0;
 

@@ -207,6 +207,7 @@ class DashboardController extends AbstractController
                 ]
             );
 
+
             return $this->json([
                 'success' => true,
                 'status' => $response->getStatusCode(),
