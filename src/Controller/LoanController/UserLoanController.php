@@ -7,10 +7,12 @@ use App\Repository\Loan\LoanRepository;
 use App\Service\Loan\LoanService;
 use App\Service\Loan\RepaymentService;
 use App\Service\Loan\DocRaptorService;
+use App\Entity\Loan\Loan;
 use App\Service\Loan\RepaymentEmailService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Repository\User\UserRepository;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Twig\Environment;
@@ -21,16 +23,28 @@ class UserLoanController extends AbstractController
     public function __construct(
         private LoanService      $loanService,
         private RepaymentService $repaymentService,
+        private UserRepository $userRepository,
         private RepaymentEmailService $emailService,
         private string $testUserEmail,
     ) {}
 
+     
     #[Route('/my-loans', name: 'my_loans', methods: ['GET'])]
     public function myLoans(): Response
     {
-        $loans = $this->loanService->getAllLoans();
+        $user = $this->getUser();
+        
+        if (!$user) {
+            $this->addFlash('error', 'Veuillez vous connecter.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        // SIMPLE: Just get loans by user
+        $loans = $this->loanService->getLoansByUser($user);
+
         return $this->render('html/Loan/User/my_loans.html.twig', [
             'loans' => $loans,
+            'user' => $user,
         ]);
     }
 

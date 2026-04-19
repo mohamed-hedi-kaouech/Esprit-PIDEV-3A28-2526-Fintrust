@@ -2,7 +2,8 @@
 
 namespace App\Service\Loan;
 
-use App\Entity\Loan\Loan;;
+use App\Entity\Loan\Loan;
+use App\Entity\User\User;
 use App\Entity\Loan\Repayment;
 use App\Repository\Loan\LoanRepository;
 use App\Repository\Loan\RepaymentRepository;
@@ -42,6 +43,10 @@ class LoanService
         return $loan;
     }
 
+    public function getLoansByUser(User $user): array
+    {
+        return $this->loanRepository->findByUser($user);
+    }
     /**
      * Delete a loan (repayments will be cascade deleted)
      */

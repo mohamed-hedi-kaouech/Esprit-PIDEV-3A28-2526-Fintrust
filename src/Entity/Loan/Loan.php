@@ -40,12 +40,10 @@ class Loan
     #[ORM\Column(name: 'createdAt', type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
-    #[ORM\Column(name: 'id_user', type: 'integer', nullable: true)]
-    private int|null $idUser = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
-    private User|null $user = null;
+    private ?User $user = null;  // <-- Must be "$user", not "$userId"
 
     #[ORM\OneToMany(targetEntity: Repayment::class, mappedBy: 'loan')]
     private Collection $repayments;
@@ -137,23 +135,12 @@ class Loan
         return $this;
     }
 
-    public function getIdUser(): int|null
-    {
-        return $this->idUser;
-    }
-
-    public function setIdUser(int|null $idUser): static
-    {
-        $this->idUser = $idUser;
-        return $this;
-    }
-
-    public function getUser(): User|null
+    public function getUser(): ?User
     {
         return $this->user;
     }
 
-    public function setUser(User|null $user): static
+    public function setUser(?User $user): static
     {
         $this->user = $user;
         return $this;

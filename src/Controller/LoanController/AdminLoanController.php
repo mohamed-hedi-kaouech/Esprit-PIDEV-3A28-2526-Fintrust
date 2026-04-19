@@ -91,20 +91,20 @@ class AdminLoanController extends AbstractController
             new CsrfToken('approve_loan_' . $id, $request->request->get('_token'))
         )) {
             $this->addFlash('error', 'Invalid security token');
-            return $this->redirectToRoute('admin_dashboard');
+            return $this->redirectToRoute('admin_loan_dashboard');
         }
 
         $loan = $loanRepo->find($id);
 
         if (!$loan || $loan->getStatus() !== 'PENDING') {
             $this->addFlash('error', 'Loan not found or already processed');
-            return $this->redirectToRoute('admin_dashboard');
+            return $this->redirectToRoute('admin_loan_dashboard');
         }
 
         $this->loanService->approveLoan($loan->getLoanId());
 
         $this->addFlash('success', sprintf('Prêt #%d approuvé avec succès.', $id));
-        return $this->redirectToRoute('admin_dashboard');
+        return $this->redirectToRoute('admin_loan_dashboard');
     }
 
     #[Route('/loan/{id}/reject', name: 'admin_loan_reject', methods: ['POST'])]
@@ -114,21 +114,21 @@ class AdminLoanController extends AbstractController
             new CsrfToken('reject_loan_' . $id, $request->request->get('_token'))
         )) {
             $this->addFlash('error', 'Invalid security token');
-            return $this->redirectToRoute('admin_dashboard');
+            return $this->redirectToRoute('admin_loan_dashboard');
         }
 
         $loan = $loanRepo->find($id);
 
         if (!$loan || $loan->getStatus() !== 'PENDING') {
             $this->addFlash('error', 'Loan not found or already processed');
-            return $this->redirectToRoute('admin_dashboard');
+            return $this->redirectToRoute('admin_loan_dashboard');
         }
 
         $loan->setStatus('REJECTED');
         $this->loanService->rejectLoan($loan->getLoanId());
 
         $this->addFlash('success', 'Prêt rejeté.');
-        return $this->redirectToRoute('admin_dashboard');
+        return $this->redirectToRoute('admin_loan_dashboard');
     }
 
     // -------------------------------------------------------------------------

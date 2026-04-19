@@ -3,6 +3,7 @@
 namespace App\Repository\Loan;
 
 use App\Entity\Loan\Loan;
+use App\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -46,6 +47,18 @@ class LoanRepository extends ServiceEntityRepository
             ->orderBy('l.loanId', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+        public function findByUser(User $user): array
+    {
+        return $this->findBy(['user' => $user], ['createdAt' => 'DESC']);
+    }
+
+    /**
+     * Find by user and status - simple filter
+     */
+    public function findByUserAndStatus(User $user, string $status): array
+    {
+        return $this->findBy(['user' => $user, 'status' => $status], ['createdAt' => 'DESC']);
     }
 
     /**
