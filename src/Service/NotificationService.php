@@ -28,12 +28,18 @@ class NotificationService
      * @param string $type INFO | SUCCESS | WARNING | ERROR
      * @param string $channel INTERNE | EMAIL
      */
-    public function notify(User $user, string $message, string $type = 'INFO', string $channel = 'INTERNE'): void
+    public function notify(
+        User $user,
+        string $message,
+        string $type = 'INFO',
+        string $channel = 'INTERNE',
+        ?string $emailSubject = null,
+    ): void
     {
         $this->createInternalNotification($user, $message, $type);
 
         if (strtoupper($channel) === 'EMAIL') {
-            $this->sendEmailNotification($user, $message, $type);
+            $this->sendEmailNotification($user, $message, $type, $emailSubject);
         }
     }
 
@@ -125,22 +131,28 @@ class NotificationService
         $this->em->flush();
     }
 
-    private function sendEmailNotification(User $user, string $message, string $type): void
+    private function sendEmailNotification(User $user, string $message, string $type, ?string $emailSubject = null): void
     {
         if ($this->isMailerDisabled()) {
             throw new \RuntimeException('Le transport e-mail FinTrust est desactive. Configurez MAILER_DSN avec un SMTP reel.');
         }
 
+        $subject = trim((string) $emailSubject);
+        if ($subject === '') {
+            $subject = $this->buildSubject($type);
+        }
+
         $email = (new TemplatedEmail())
             ->from(new Address($this->fintrustMailerFrom, 'FinTrust'))
             ->to(new Address($user->getEmail(), $user->getFullName()))
-            ->subject($this->buildSubject($type))
+            ->subject($subject)
             ->htmlTemplate('emails/admin_notification.html.twig')
             ->context([
                 'user' => $user,
                 'message' => $message,
                 'type' => $type,
                 'typeLabel' => $this->buildTypeLabel($type),
+                'emailSubject' => $subject,
             ]);
 
         $this->mailer->send($email);

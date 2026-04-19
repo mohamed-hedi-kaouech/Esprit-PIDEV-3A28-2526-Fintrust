@@ -54,9 +54,6 @@ class VerifyAccountController extends AbstractController
             'verifyForm' => $form,
             'prefilledEmail' => $prefilledEmail,
             'mailDeliveryDisabled' => $accountVerificationMailer->isMailerDisabled(),
-            'verificationPreview' => $prefilledEmail !== ''
-                ? $accountVerificationMailer->getLatestPreviewForEmail($prefilledEmail)
-                : null,
         ]);
     }
 
@@ -91,8 +88,8 @@ class VerifyAccountController extends AbstractController
         try {
             $accountVerificationMailer->sendVerificationCode($user);
             $this->addFlash('success', 'Un nouveau code de verification a ete envoye a votre adresse e-mail.');
-        } catch (\Throwable) {
-            $this->addFlash('warning', 'Le code a bien ete regenere. L e-mail n a pas pu etre envoye sur cette machine, mais le code local est affiche sur cette page.');
+        } catch (\Throwable $exception) {
+            $this->addFlash('error', 'Le code a bien ete regenere, mais l e-mail n a pas pu etre envoye. Verifiez la configuration SMTP FinTrust puis reessayez.');
         }
 
         return $this->redirectToRoute('app_verify_account', ['email' => $email]);

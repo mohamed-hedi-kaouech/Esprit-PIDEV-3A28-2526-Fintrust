@@ -200,6 +200,7 @@ class UserController extends AbstractController
         }
 
         $message = trim((string) $request->request->get('message', ''));
+        $subject = trim((string) $request->request->get('subject', ''));
         $type = strtoupper((string) $request->request->get('type', 'INFO'));
         $channel = strtoupper((string) $request->request->get('channel', 'INTERNE'));
         $allowedTypes = ['INFO', 'SUCCESS', 'WARNING', 'ERROR'];
@@ -219,7 +220,7 @@ class UserController extends AbstractController
 
         if (count($errors) === 0) {
             try {
-                $this->notificationService->notify($user, $message, $type, $channel);
+                $this->notificationService->notify($user, $message, $type, $channel, $subject);
                 $this->addFlash('success', sprintf(
                     'Notification envoyee a %s via %s.',
                     $user->getFullName(),
@@ -246,6 +247,7 @@ class UserController extends AbstractController
 
         $userId = (int) $request->request->get('user_id');
         $message = trim((string) $request->request->get('message', ''));
+        $subject = trim((string) $request->request->get('subject', ''));
         $type = strtoupper((string) $request->request->get('type', 'INFO'));
         $channel = strtoupper((string) $request->request->get('channel', 'INTERNE'));
 
@@ -278,7 +280,7 @@ class UserController extends AbstractController
         }
 
         try {
-            $this->notificationService->notify($user, $message, $type, $channel);
+            $this->notificationService->notify($user, $message, $type, $channel, $subject);
             $this->addFlash('success', sprintf(
                 'Notification envoyee a %s via %s.',
                 $user->getFullName(),

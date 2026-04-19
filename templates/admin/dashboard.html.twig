@@ -703,10 +703,16 @@
             <div class="col-md-6">
               <label class="form-label fw-semibold small ft-admin-notify-label">Canal</label>
               <select class="form-select ft-input ft-admin-notify-input" id="adminNotifyChannel" name="channel">
-                <option value="INTERNE">Interne</option>
-                <option value="EMAIL">Email</option>
+                <option value="INTERNE">Notification interne</option>
+                <option value="EMAIL">E-mail + notification interne</option>
               </select>
             </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Sujet de l'e-mail</label>
+            <input type="text" name="subject" class="form-control ft-input ft-admin-notify-input" maxlength="140"
+                   placeholder="Ex: Mise a jour importante de votre compte FinTrust">
           </div>
 
           <div class="mb-3">
@@ -939,7 +945,7 @@
     };
 
     previewType.textContent = typeLabels[hiddenType.value] || 'Information';
-    previewChannel.textContent = channelSelect ? channelSelect.value : 'Interne';
+    previewChannel.textContent = channelSelect ? channelSelect.options[channelSelect.selectedIndex].text : 'Notification interne';
   }
 
   document.querySelectorAll('#adminNotifyTypeChips .ft-admin-choice-chip').forEach((chip) => {

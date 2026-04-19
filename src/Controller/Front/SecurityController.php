@@ -42,8 +42,8 @@ class SecurityController extends AbstractController
             try {
                 $accountVerificationMailer->sendVerificationCode($user);
                 $this->addFlash('success', 'Compte cree avec succes. Un code de verification a ete envoye a votre adresse e-mail.');
-            } catch (\Throwable) {
-                $this->addFlash('warning', 'Compte cree avec succes. L e-mail n a pas pu etre envoye sur cette machine, mais un code local est disponible sur l ecran de verification.');
+            } catch (\Throwable $exception) {
+                $this->addFlash('error', 'Compte cree avec succes, mais l e-mail de verification n a pas pu etre envoye. Verifiez la configuration SMTP FinTrust puis renvoyez un nouveau code.');
             }
 
             return $this->redirectToRoute('app_verify_account', [
