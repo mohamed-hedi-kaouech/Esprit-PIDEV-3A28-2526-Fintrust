@@ -195,6 +195,69 @@
             {% endif %}
           </div>
         </div>
+
+        <div class="ft-app-card mt-4 ft-profile-deactivation-card">
+          <div class="ft-app-card-header">
+            <i class="bi bi-shield-lock me-2 text-primary"></i>Controle de desactivation du compte
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-profile-deactivation-hero">
+              <div>
+                <div class="ft-profile-deactivation-kicker">Analyse de retention FinTrust</div>
+                <h3 class="ft-profile-deactivation-title">Demander une desactivation revue par l administration</h3>
+                <p class="ft-profile-deactivation-text mb-0">
+                  FinTrust analyse vos signaux d engagement avant toute fermeture et exige une justification detaillee pour garantir un traitement serieux, securise et traçable.
+                </p>
+              </div>
+              <div class="ft-profile-deactivation-score">
+                <span>Risque d abandon</span>
+                <strong>{{ dropoffRisk.dropoffRiskScore }}/100</strong>
+                <small>{{ dropoffRisk.riskLevel }}</small>
+              </div>
+            </div>
+
+            {% if deactivationRequest %}
+              <div class="ft-profile-request-state mt-3">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                  <div>
+                    <div class="fw-semibold text-dark">Statut actuel de votre demande</div>
+                    <div class="small text-muted">Soumise le {{ deactivationRequest.submittedAt|date('d/m/Y H:i') }}</div>
+                  </div>
+                  <span class="badge {{ deactivationRequest.status == 'PENDING' ? 'ft-badge-warning' : (deactivationRequest.status == 'APPROVED' ? 'ft-badge-danger' : 'ft-badge-blue') }}">
+                    {{ deactivationRequest.status == 'PENDING' ? 'En attente de revue' : (deactivationRequest.status == 'APPROVED' ? 'Approuvee' : 'Refusee') }}
+                  </span>
+                </div>
+                <p class="small text-muted mt-3 mb-2">{{ deactivationRequest.reason }}</p>
+                {% if deactivationRequest.adminNote %}
+                  <div class="ft-soft-panel mt-2">
+                    <div class="fw-semibold text-primary mb-1">Note admin</div>
+                    <div class="small text-muted">{{ deactivationRequest.adminNote }}</div>
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <form method="post" action="{{ path('front_profile_deactivation_request') }}" class="mt-3">
+              <input type="hidden" name="_token" value="{{ csrf_token('profile_deactivation_request') }}">
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">Justification de la demande</label>
+                <textarea name="reason" rows="4" class="form-control ft-input" placeholder="Expliquez pourquoi vous souhaitez desactiver votre compte FinTrust, les blocages rencontres ou votre besoin actuel." {% if deactivationRequest and deactivationRequest.status == 'PENDING' %}disabled{% endif %}></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">Impact attendu ou contexte complementaire</label>
+                <textarea name="impact_summary" rows="3" class="form-control ft-input" placeholder="Ex: compte temporairement inutilise, changement de situation, besoin de cloture complete..." {% if deactivationRequest and deactivationRequest.status == 'PENDING' %}disabled{% endif %}></textarea>
+              </div>
+              <div class="ft-profile-request-points mb-3">
+                <div class="ft-profile-request-pill"><span>Revue admin obligatoire</span><strong>Oui</strong></div>
+                <div class="ft-profile-request-pill"><span>Justification utilisateur</span><strong>Tracee</strong></div>
+                <div class="ft-profile-request-pill"><span>Securite</span><strong>Renforcee</strong></div>
+              </div>
+              <button type="submit" class="btn ft-btn-primary w-100" {% if deactivationRequest and deactivationRequest.status == 'PENDING' %}disabled{% endif %}>
+                <i class="bi bi-send-check me-2"></i>Transmettre ma demande de desactivation
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -461,9 +524,104 @@
     .ft-timeline-warning { background: #f59e0b; }
     .ft-timeline-danger { background: #ef4444; }
     .ft-timeline-info { background: #3b82f6; }
+    .ft-profile-deactivation-card {
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.10), transparent 28%),
+        linear-gradient(140deg, rgba(255,255,255,.99), rgba(246,250,255,.98));
+    }
+    .ft-profile-deactivation-hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      padding: 1rem 1.05rem;
+      border-radius: 1.2rem;
+      background: linear-gradient(135deg, rgba(239,246,255,.96), rgba(255,255,255,.95));
+      border: 1px solid rgba(191,219,254,.85);
+    }
+    .ft-profile-deactivation-kicker {
+      display: inline-flex;
+      align-items: center;
+      padding: .38rem .75rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.88);
+      border: 1px solid rgba(191,219,254,.85);
+      color: #1d4ed8;
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: .65rem;
+    }
+    .ft-profile-deactivation-title {
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: .4rem;
+    }
+    .ft-profile-deactivation-text {
+      color: #526581;
+      line-height: 1.7;
+    }
+    .ft-profile-deactivation-score {
+      min-width: 148px;
+      padding: .95rem 1rem;
+      border-radius: 1rem;
+      text-align: center;
+      background: rgba(255,255,255,.96);
+      border: 1px solid rgba(191,219,254,.88);
+      box-shadow: 0 14px 26px rgba(37,99,235,.06);
+    }
+    .ft-profile-deactivation-score span,
+    .ft-profile-deactivation-score small {
+      display: block;
+      color: #64748b;
+      font-weight: 700;
+    }
+    .ft-profile-deactivation-score strong {
+      display: block;
+      font-size: 1.7rem;
+      line-height: 1.1;
+      color: #1450b8;
+      margin: .35rem 0;
+    }
+    .ft-profile-request-state {
+      padding: 1rem 1.05rem;
+      border-radius: 1.1rem;
+      border: 1px solid rgba(226,232,240,.95);
+      background: rgba(255,255,255,.88);
+    }
+    .ft-profile-request-points {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .75rem;
+    }
+    .ft-profile-request-pill {
+      padding: .85rem .9rem;
+      border-radius: 1rem;
+      background: linear-gradient(135deg, rgba(248,250,252,.96), rgba(239,246,255,.92));
+      border: 1px solid rgba(219,234,254,.95);
+    }
+    .ft-profile-request-pill span {
+      display: block;
+      font-size: .72rem;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: .05em;
+    }
+    .ft-profile-request-pill strong {
+      display: block;
+      margin-top: .3rem;
+      color: #0f172a;
+    }
     .x-small { font-size: .74rem; }
     @media (max-width: 991px) {
       .ft-profile-hero {
+        grid-template-columns: 1fr;
+      }
+      .ft-profile-request-points {
         grid-template-columns: 1fr;
       }
     }

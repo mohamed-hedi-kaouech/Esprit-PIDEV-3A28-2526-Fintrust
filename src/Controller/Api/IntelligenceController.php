@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Entity\User\User;
 use App\Repository\UserRepository;
 use App\Service\AdvancedAnalyticsService;
+use App\Service\AccountDeactivationRequestService;
 use App\Service\ComplianceCopilotService;
 use App\Service\KycVerificationCenterService;
 use App\Service\UserIntelligenceService;
@@ -25,6 +26,7 @@ class IntelligenceController extends AbstractController
         private readonly KycVerificationCenterService $kycVerificationCenterService,
         private readonly ComplianceCopilotService $complianceCopilotService,
         private readonly AdvancedAnalyticsService $advancedAnalyticsService,
+        private readonly AccountDeactivationRequestService $accountDeactivationRequestService,
         private readonly ValidatorInterface $validator,
     ) {}
 
@@ -313,6 +315,30 @@ class IntelligenceController extends AbstractController
     public function analyticsSupportInsights(): JsonResponse
     {
         return $this->json($this->advancedAnalyticsService->getSupportInsights());
+    }
+
+    #[Route('/analytics/account-deactivation-insights', name: 'analytics_account_deactivation_insights', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function analyticsAccountDeactivationInsights(): JsonResponse
+    {
+        $clients = $this->userRepository->findBy(['role' => 'CLIENT'], ['createdAt' => 'DESC'], 120);
+        $pendingRequests = $this->accountDeactivationRequestService->getPendingForUsers($clients);
+        $pendingMap = [];
+
+        foreach ($pendingRequests as $request) {
+            $pendingMap[(int) $request['userId']] = $request;
+        }
+
+        return $this->json($this->advancedAnalyticsService->getAccountDeactivationInsights($clients, $pendingMap));
+    }
+
+    #[Route('/analytics/account-deactivation-requests', name: 'analytics_account_deactivation_requests', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function analyticsAccountDeactivationRequests(): JsonResponse
+    {
+        $clients = $this->userRepository->findBy(['role' => 'CLIENT'], ['createdAt' => 'DESC'], 120);
+
+        return $this->json($this->accountDeactivationRequestService->getPendingForUsers($clients));
     }
 
     /**

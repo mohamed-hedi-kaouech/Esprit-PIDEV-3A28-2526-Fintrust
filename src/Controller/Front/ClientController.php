@@ -11,6 +11,7 @@ use App\Security\KycAccessChecker;
 use App\Security\RiskAccessChecker;
 use App\Service\BehavioralProfileService;
 use App\Service\AdvancedAnalyticsService;
+use App\Service\AccountDeactivationRequestService;
 use App\Service\CaptchaService;
 use App\Service\EconomicDataService;
 use App\Service\FinancialNewsService;
@@ -73,6 +74,7 @@ class ClientController extends AbstractController
         private readonly EconomicDataService $economicDataService,
         private readonly MarketWatchService $marketWatchService,
         private readonly AdvancedAnalyticsService $advancedAnalyticsService,
+        private readonly AccountDeactivationRequestService $accountDeactivationRequestService,
         private readonly KycVerificationCenterService $kycVerificationCenterService,
         private readonly KycAccessChecker $kycAccessChecker,
         private readonly RiskAccessChecker $riskAccessChecker,
@@ -283,7 +285,52 @@ class ClientController extends AbstractController
             'riskProfile' => $this->userIntelligenceService->getRiskProfile($user),
             'financialBehavior' => $this->userIntelligenceService->getFinancialBehaviorSummary($user),
             'monitoringTimeline' => $this->userIntelligenceService->buildMonitoringTimeline($user),
+            'dropoffRisk' => $this->advancedAnalyticsService->getDropoffRisk($user),
+            'deactivationRequest' => $this->accountDeactivationRequestService->getLatestForUser($user),
         ]);
+    }
+
+    #[Route('/profil/desactivation', name: 'profile_deactivation_request', methods: ['POST'])]
+    public function requestDeactivation(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$this->isCsrfTokenValid('profile_deactivation_request', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'La demande de desactivation est invalide.');
+
+            return $this->redirectToRoute('front_profile');
+        }
+
+        $reason = trim((string) $request->request->get('reason', ''));
+        $impact = trim((string) $request->request->get('impact_summary', ''));
+
+        if (mb_strlen($reason) < 20) {
+            $this->addFlash('error', 'Precisez une justification plus detaillee pour votre demande de desactivation.');
+
+            return $this->redirectToRoute('front_profile');
+        }
+
+        try {
+            $requestData = $this->accountDeactivationRequestService->submit(
+                $user,
+                $reason,
+                $impact,
+                $this->advancedAnalyticsService->getDropoffRisk($user)
+            );
+
+            $this->notificationService->notify(
+                $user,
+                'Votre demande de desactivation de compte a bien ete enregistree. Notre equipe admin va l examiner avant toute fermeture.',
+                'WARNING'
+            );
+
+            $this->addFlash('success', 'Votre demande de desactivation a ete transmise pour revue admin.');
+        } catch (\RuntimeException $exception) {
+            $this->addFlash('error', $exception->getMessage());
+        }
+
+        return $this->redirectToRoute('front_profile');
     }
 
     #[Route('/preferences/theme/{mode}', name: 'theme_switch', methods: ['POST'])]

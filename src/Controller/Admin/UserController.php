@@ -9,6 +9,7 @@ use App\Repository\KycRepository;
 use App\Repository\UserRepository;
 use App\Service\ExportService;
 use App\Service\NotificationService;
+use App\Service\AccountDeactivationRequestService;
 use App\Service\QrCodeService;
 use App\Service\UserService;
 use Doctrine\ORM\Tools\Pagination\Paginator;
@@ -32,6 +33,7 @@ class UserController extends AbstractController
         private readonly UserService $userService,
         private readonly ExportService $exportService,
         private readonly NotificationService $notificationService,
+        private readonly AccountDeactivationRequestService $accountDeactivationRequestService,
         private readonly QrCodeService $qrCodeService,
         private readonly ValidatorInterface $validator,
     ) {}
@@ -291,6 +293,52 @@ class UserController extends AbstractController
         }
 
         return $this->redirectToRoute('admin_dashboard');
+    }
+
+    #[Route('/{id}/desactivation-decision', name: 'deactivation_decision', methods: ['POST'])]
+    public function handleDeactivationDecision(User $user, Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('deactivation_decision_' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'La demande de revue de desactivation est invalide.');
+
+            return $this->redirectToRoute('admin_analytics_intelligence');
+        }
+
+        /** @var User $admin */
+        $admin = $this->getUser();
+        $decision = strtoupper(trim((string) $request->request->get('decision', '')));
+        $adminNote = trim((string) $request->request->get('admin_note', ''));
+
+        try {
+            if ($decision === 'APPROVE') {
+                $requestData = $this->accountDeactivationRequestService->approve($user, $admin, $adminNote);
+                $this->userService->suspendUser($user);
+                $this->notificationService->notify(
+                    $user,
+                    'Votre demande de desactivation de compte FinTrust a ete approuvee. Votre acces a ete suspendu conformement a votre demande.',
+                    'WARNING',
+                    'EMAIL',
+                    'FinTrust - Demande de desactivation approuvee'
+                );
+                $this->addFlash('success', 'La desactivation du compte a ete approuvee et le compte a ete suspendu.');
+            } elseif ($decision === 'REJECT') {
+                $requestData = $this->accountDeactivationRequestService->reject($user, $admin, $adminNote);
+                $this->notificationService->notify(
+                    $user,
+                    'Votre demande de desactivation a ete examinee puis refusee. Consultez votre espace client pour lire la justification admin et les alternatives proposees.',
+                    'INFO',
+                    'EMAIL',
+                    'FinTrust - Demande de desactivation revue'
+                );
+                $this->addFlash('info', 'La demande de desactivation a ete refusee avec justification.');
+            } else {
+                $this->addFlash('error', 'Decision admin invalide.');
+            }
+        } catch (\RuntimeException $exception) {
+            $this->addFlash('error', $exception->getMessage());
+        }
+
+        return $this->redirectToRoute('admin_analytics_intelligence');
     }
 
     #[Route('/export/csv', name: 'export_csv', methods: ['GET'])]

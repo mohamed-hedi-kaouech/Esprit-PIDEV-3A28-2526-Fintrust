@@ -400,6 +400,61 @@ class AdvancedAnalyticsService
     }
 
     /**
+     * @param iterable<User> $users
+     * @param array<int, array<string, mixed>> $pendingRequests
+     * @return array<string, mixed>
+     */
+    public function getAccountDeactivationInsights(iterable $users, array $pendingRequests = []): array
+    {
+        $hypotheses = [];
+
+        foreach ($users as $user) {
+            if (!$user instanceof User || $user->isAdmin()) {
+                continue;
+            }
+
+            $dropoff = $this->getDropoffRisk($user);
+            $requestWeight = isset($pendingRequests[$user->getId()]) ? 16 : 0;
+            $volatilityWeight = $user->getRiskLevel() === User::RISK_HIGH || $user->getRiskLevel() === User::RISK_CRITICAL ? 10 : 0;
+            $kycWeight = !$user->isKycApproved() ? 12 : 0;
+            $frequencyPenalty = $user->getTransactionFrequency() < 0.08 ? 14 : ($user->getTransactionFrequency() < 0.14 ? 7 : 0);
+
+            $score = min(97, $dropoff['dropoffRiskScore'] + $requestWeight + $volatilityWeight + $kycWeight + $frequencyPenalty);
+            $hypotheses[] = [
+                'userId' => $user->getId(),
+                'name' => $user->getFullName(),
+                'email' => $user->getEmail(),
+                'deactivationProbability' => $score,
+                'deactivationBand' => $score >= 82 ? 'CRITIQUE' : ($score >= 66 ? 'ELEVE' : ($score >= 48 ? 'MODERE' : 'FAIBLE')),
+                'mainHypothesis' => $this->buildDeactivationHypothesis($user, $dropoff, isset($pendingRequests[$user->getId()])),
+                'segment' => $user->getClientSegment(),
+                'status' => $user->getStatus(),
+                'hasPendingRequest' => isset($pendingRequests[$user->getId()]),
+                'recommendedAction' => isset($pendingRequests[$user->getId()])
+                    ? 'Revoir la demande formelle et confirmer la fermeture selon la justification fournie.'
+                    : ($score >= 70
+                        ? 'Contacter le client, clarifier les blocages et proposer une retention contextualisee.'
+                        : 'Maintenir un suivi discret avec des actions de reassurance.'),
+            ];
+        }
+
+        usort($hypotheses, static fn (array $left, array $right): int => $right['deactivationProbability'] <=> $left['deactivationProbability']);
+
+        $criticalCount = count(array_filter($hypotheses, static fn (array $item): bool => $item['deactivationProbability'] >= 82));
+        $highCount = count(array_filter($hypotheses, static fn (array $item): bool => $item['deactivationProbability'] >= 66));
+
+        return [
+            'summary' => [
+                'pendingRequests' => count($pendingRequests),
+                'criticalHypotheses' => $criticalCount,
+                'highProbabilityUsers' => $highCount,
+                'headline' => 'FinTrust croise engagement, statut KYC, niveau de risque et demandes formelles pour anticiper les desactivations de compte.',
+            ],
+            'hypotheses' => array_slice($hypotheses, 0, 12),
+        ];
+    }
+
+    /**
      * @return array<int,string>
      */
     private function getUserThemes(User $user): array
@@ -431,6 +486,30 @@ class AdvancedAnalyticsService
             'REGULATION' => 'Les signaux de risque et de conformite donnent a cette actualite une portee plus forte pour ce profil.',
             default => 'Le matching combine votre segment, votre niveau de risque et les centres d interet implicites observes sur FinTrust.',
         };
+    }
+
+    /**
+     * @param array<string, mixed> $dropoff
+     */
+    private function buildDeactivationHypothesis(User $user, array $dropoff, bool $hasPendingRequest): string
+    {
+        if ($hasPendingRequest) {
+            return 'Le client a deja exprime une intention de fermeture de compte, ce qui augmente fortement la probabilite de desactivation.';
+        }
+
+        if (!$user->isKycApproved()) {
+            return 'Le dossier KYC incomplet fragilise l adoption et peut pousser le client a abandonner son compte.';
+        }
+
+        if ($user->getTransactionFrequency() < 0.08) {
+            return 'La faible activite recente suggere un desengagement progressif et une possible sortie du parcours FinTrust.';
+        }
+
+        if (($dropoff['riskLevel'] ?? 'LOW') === 'HIGH') {
+            return 'Les signaux combines de risque et de friction font emerger une hypothese de retrait ou de fermeture de compte.';
+        }
+
+        return 'Le profil reste globalement stable, mais certains signaux faibles invitent a une veille preventive.';
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Entity\User\User;
 use App\Repository\KycRepository;
 use App\Repository\UserRepository;
 use App\Service\AdvancedAnalyticsService;
+use App\Service\AccountDeactivationRequestService;
 use App\Service\ComplianceCopilotService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,6 +28,7 @@ class DashboardController extends AbstractController
         private readonly KycRepository  $kycRepository,
         private readonly ComplianceCopilotService $complianceCopilotService,
         private readonly AdvancedAnalyticsService $advancedAnalyticsService,
+        private readonly AccountDeactivationRequestService $accountDeactivationRequestService,
     ) {}
 
     /**
@@ -48,6 +50,11 @@ class DashboardController extends AbstractController
             ['createdAt' => 'DESC'],
             50
         );
+        $pendingDeactivationRequests = $this->accountDeactivationRequestService->getPendingForUsers($clients);
+        $pendingDeactivationMap = [];
+        foreach ($pendingDeactivationRequests as $request) {
+            $pendingDeactivationMap[(int) $request['userId']] = $request;
+        }
         $copilotUsers = [];
 
         foreach (array_slice($pendingKyc, 0, 3) as $kyc) {
@@ -98,6 +105,8 @@ class DashboardController extends AbstractController
             'advancedOverview' => $this->advancedAnalyticsService->getAdminAnalyticsOverview($clients),
             'atRiskUsersAnalytics' => $this->advancedAnalyticsService->getAtRiskUsers($clients),
             'riskPatternsAnalytics' => $this->advancedAnalyticsService->getRiskPatterns($clients),
+            'deactivationInsights' => $this->advancedAnalyticsService->getAccountDeactivationInsights($clients, $pendingDeactivationMap),
+            'pendingDeactivationRequests' => $pendingDeactivationRequests,
             'supportInsightsAnalytics' => $this->advancedAnalyticsService->getSupportInsights(),
             'kycTrendAnalytics' => $this->advancedAnalyticsService->getKycTrends(),
         ]);
@@ -107,11 +116,18 @@ class DashboardController extends AbstractController
     public function intelligence(): Response
     {
         $clients = $this->userRepository->findBy(['role' => 'CLIENT'], ['createdAt' => 'DESC'], 120);
+        $pendingDeactivationRequests = $this->accountDeactivationRequestService->getPendingForUsers($clients);
+        $pendingDeactivationMap = [];
+        foreach ($pendingDeactivationRequests as $request) {
+            $pendingDeactivationMap[(int) $request['userId']] = $request;
+        }
 
         return $this->render('admin/analytics/intelligence.html.twig', [
             'advancedOverview' => $this->advancedAnalyticsService->getAdminAnalyticsOverview($clients),
             'atRiskUsersAnalytics' => $this->advancedAnalyticsService->getAtRiskUsers($clients, 12),
             'riskPatternsAnalytics' => $this->advancedAnalyticsService->getRiskPatterns($clients),
+            'deactivationInsights' => $this->advancedAnalyticsService->getAccountDeactivationInsights($clients, $pendingDeactivationMap),
+            'pendingDeactivationRequests' => $pendingDeactivationRequests,
             'supportInsightsAnalytics' => $this->advancedAnalyticsService->getSupportInsights(),
             'kycTrendAnalytics' => $this->advancedAnalyticsService->getKycTrends(),
         ]);
