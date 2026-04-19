@@ -7,12 +7,15 @@ use App\Repository\Loan\LoanRepository;
 use App\Service\Loan\LoanService;
 use App\Service\Loan\RepaymentService;
 use App\Service\Loan\DocRaptorService;
+use App\Entity\Wallet\Wallet;
 use App\Entity\Loan\Loan;
 use App\Service\Loan\RepaymentEmailService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\User\UserRepository;
+use phpDocumentor\Reflection\Types\This;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Twig\Environment;
@@ -23,6 +26,7 @@ class UserLoanController extends AbstractController
     public function __construct(
         private LoanService      $loanService,
         private RepaymentService $repaymentService,
+        private EntityManagerInterface $em,     
         private UserRepository $userRepository,
         private RepaymentEmailService $emailService,
         private string $testUserEmail,
@@ -42,10 +46,23 @@ class UserLoanController extends AbstractController
         // SIMPLE: Just get loans by user
         $loans = $this->loanService->getLoansByUser($user);
 
-        return $this->render('html/Loan/User/my_loans.html.twig', [
-            'loans' => $loans,
-            'user' => $user,
-        ]);
+        $loansData = [];
+        foreach ($loans as $loan) {
+            $monthly = $this->loanService->calculateMonthlyPayment($loan);
+            $totalInt = $this->loanService->calculateTotalInterest($loan);
+            
+            $loansData[] = [
+                'Loan' => $loan,
+                'monthlyPayment' => $monthly,
+                'totalInterest' => $totalInt,
+            ];
+        }
+
+    return $this->render('html/Loan/User/my_loans.html.twig', [
+        'loansData' => $loansData,
+        'user' => $user,
+    ]);
+
     }
 
     #[Route('/{id}/details', name: 'user_details', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -83,10 +100,27 @@ class UserLoanController extends AbstractController
             if (!$repayment) {
                 throw new \Exception('Échéance introuvable.');
             }
-
+                    // ── Wallet ───────────────────────────────────────────
             $loan = $repayment->getLoan();
             $loanId = $loan->getLoanId();
+            $user = $this->getUser();
+        
+            if (!$user) {
+            $this->addFlash('error', 'Veuillez vous connecter.');
+                return $this->redirectToRoute('app_login');
+            }
 
+              $wallet = $this->em->getRepository(Wallet::class)
+            ->findOneBy(['idUser' => $user]);
+
+            if (!$wallet) {
+                $this->addFlash('error', 'Portefeuille introuvable. Veuillez contacter le support.');
+                return $this->redirectToRoute('loan_user_details', ['id' => $loanId]);
+            }
+            if ($wallet->getSolde() < $repayment->getMonthlyPayment()) {
+                $this->addFlash('error', 'Solde insuffisant pour effectuer ce paiement.');
+                return $this->redirectToRoute('loan_user_details', ['id' => $loanId]);
+            }
             // Mark as paid
             $this->repaymentService->markAsPaid($id);
 
@@ -95,6 +129,12 @@ class UserLoanController extends AbstractController
 
             $this->addFlash('success', 'Échéance payée avec succès. Un email de confirmation a été envoyé à ' . $this->testUserEmail);
             
+                        // ── Update wallet ────────────────────────────────────
+            $wallet->setSolde($wallet->getSolde() - $repayment->getMonthlyPayment());
+
+            $this->em->persist($wallet);
+            $this->em->persist($repayment);
+            $this->em->flush();
             return $this->redirectToRoute('loan_user_details', ['id' => $loanId]);
 
         } catch (\Exception $e) {

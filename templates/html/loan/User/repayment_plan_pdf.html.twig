@@ -192,9 +192,8 @@
                 </div>
             </div>
             <div class="info-cell">
-                <div class="info-label">Numéro de Prêt</div>
-                <div class="info-value">#{{ loan.loanId }}</div>
-            </div>
+                <div class="info-label">Date de Création</div>
+                <div class="info-value">{{ loan.createdAt|date('d/m/Y') }}</div>
         </div>
         <div class="info-row">
             <div class="info-cell">

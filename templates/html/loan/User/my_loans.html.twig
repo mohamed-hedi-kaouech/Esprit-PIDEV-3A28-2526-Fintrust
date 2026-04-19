@@ -34,30 +34,26 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    {% for loan in loans %}
+                    {% for loan in loansData  %}
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">{{ loan.loanType }}</td>
-                        <td class="px-6 py-4 font-medium">{{ loan.amount|number_format(3) }} TND</td>
+                        <td class="px-6 py-4">{{ loan.Loan.getLoanType() }}</td>
+                        <td class="px-6 py-4 font-medium">{{ loan.Loan.getAmount()|number_format(3) }} TND</td>
                         <td class="px-6 py-4 text-green-600 font-medium">
-                            {% if loan.status == 'ACTIVE' or loan.status == 'APPROVED' %}
-                                {{ (loan.amount * loan.interestRate / 100 / 12)|number_format(3) }} TND
-                            {% else %}
-                                -
-                            {% endif %}
+                            {{ loan.monthlyPayment|number_format(3) }} TND/mois
                         </td>
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 rounded text-xs font-bold 
-                                {{ loan.status == 'PENDING' ? 'bg-amber-100 text-amber-700' : 
-                                   loan.status == 'ACTIVE' ? 'bg-green-100 text-green-700' : 
-                                   loan.status == 'REJECTED' ? 'bg-red-100 text-red-700' : 
+                                {{ loan.Loan.getStatus() == 'PENDING' ? 'bg-amber-100 text-amber-700' : 
+                                   loan.Loan.getStatus() == 'ACTIVE' ? 'bg-green-100 text-green-700' : 
+                                   loan.Loan.getStatus() == 'REJECTED' ? 'bg-red-100 text-red-700' : 
                                    'bg-gray-100 text-gray-700' }}">
-                                {{ loan.status == 'PENDING' ? 'En attente' : 
-                                   loan.status == 'ACTIVE' ? 'Actif' : 
-                                   loan.status == 'REJECTED' ? 'Refusé' : loan.status }}
+                                {{ loan.Loan.getStatus() == 'PENDING' ? 'En attente' : 
+                                   loan.Loan.getStatus() == 'ACTIVE' ? 'Actif' : 
+                                   loan.Loan.getStatus() == 'REJECTED' ? 'Refusé' : loan.Loan.getStatus() }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <a href="{{ path('loan_user_details', {id: loan.loanId}) }}" class="text-green-700 hover:text-green-900 font-medium">
+                            <a href="{{ path('loan_user_details', {id: loan.Loan.getLoanId()}) }}" class="text-green-700 hover:text-green-900 font-medium">
                                 Voir détails →
                             </a>
                         </td>
