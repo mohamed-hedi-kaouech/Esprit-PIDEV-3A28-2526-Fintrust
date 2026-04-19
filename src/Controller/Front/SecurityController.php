@@ -41,7 +41,7 @@ class SecurityController extends AbstractController
 
             try {
                 $accountVerificationMailer->sendVerificationCode($user);
-                $this->addFlash('success', 'Compte cree avec succes. Un code de verification a ete envoye a votre adresse e-mail.');
+                $this->addFlash('success', 'Compte cree avec succes. Un code de verification a ete envoye par e-mail. Verifiez aussi les dossiers Spam et Promotions de Gmail.');
             } catch (\Throwable $exception) {
                 $this->addFlash('error', 'Compte cree avec succes, mais l e-mail de verification n a pas pu etre envoye. Verifiez la configuration SMTP FinTrust puis renvoyez un nouveau code.');
             }

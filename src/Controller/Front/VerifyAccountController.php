@@ -87,7 +87,7 @@ class VerifyAccountController extends AbstractController
 
         try {
             $accountVerificationMailer->sendVerificationCode($user);
-            $this->addFlash('success', 'Un nouveau code de verification a ete envoye a votre adresse e-mail.');
+            $this->addFlash('success', 'Un nouveau code de verification a ete envoye par e-mail. Verifiez aussi les dossiers Spam et Promotions si vous ne le voyez pas tout de suite.');
         } catch (\Throwable $exception) {
             $this->addFlash('error', 'Le code a bien ete regenere, mais l e-mail n a pas pu etre envoye. Verifiez la configuration SMTP FinTrust puis reessayez.');
         }
