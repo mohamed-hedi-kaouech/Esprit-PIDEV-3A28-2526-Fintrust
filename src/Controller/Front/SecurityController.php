@@ -10,6 +10,7 @@ use App\Service\CaptchaService;
 use App\Service\SelfieKycAuthService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -91,8 +92,9 @@ class SecurityController extends AbstractController
         $email = trim((string) ($payload['email'] ?? ''));
         $password = (string) ($payload['password'] ?? '');
         $selfie = (string) ($payload['selfie'] ?? '');
+        $fingerprint = (string) ($payload['fingerprint'] ?? '');
 
-        if ($email === '' || $password === '' || $selfie === '') {
+        if ($email === '' || $password === '' || $selfie === '' || $fingerprint === '') {
             return $this->json(['code' => 'missing_credentials', 'message' => 'Renseignez votre e-mail, votre mot de passe et capturez votre selfie pour activer ce mode de connexion.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -110,7 +112,7 @@ class SecurityController extends AbstractController
         }
 
         try {
-            $result = $selfieKycAuthService->storeReferenceSelfie($user, $selfie);
+            $result = $selfieKycAuthService->storeReferenceSelfie($user, $selfie, $fingerprint);
         } catch (\RuntimeException $exception) {
             return $this->json(['code' => 'enrollment_failed', 'message' => $exception->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -124,6 +126,7 @@ class SecurityController extends AbstractController
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
         SelfieKycAuthService $selfieKycAuthService,
+        Security $security,
     ): JsonResponse {
         $payload = $this->getJsonPayload($request);
 
@@ -133,9 +136,9 @@ class SecurityController extends AbstractController
 
         $email = trim((string) ($payload['email'] ?? ''));
         $password = (string) ($payload['password'] ?? '');
-        $selfie = (string) ($payload['selfie'] ?? '');
+        $fingerprint = (string) ($payload['fingerprint'] ?? '');
 
-        if ($email === '' || $password === '' || $selfie === '') {
+        if ($email === '' || $password === '' || $fingerprint === '') {
             return $this->json(['code' => 'missing_credentials', 'message' => 'Renseignez votre e-mail, votre mot de passe et capturez votre selfie pour continuer.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -157,7 +160,7 @@ class SecurityController extends AbstractController
         }
 
         try {
-            $result = $selfieKycAuthService->verifySelfie($user, $selfie);
+            $result = $selfieKycAuthService->verifySelfie($user, $fingerprint);
         } catch (\RuntimeException $exception) {
             return $this->json(['code' => 'selfie_unavailable', 'message' => $exception->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
@@ -171,7 +174,7 @@ class SecurityController extends AbstractController
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $this->loginUser($user, 'main');
+        $security->login($user, 'App\\Security\\AppAuthenticator', 'main');
 
         return $this->json([
             'message' => 'Selfie reconnu et mot de passe valide. Connexion en cours...',

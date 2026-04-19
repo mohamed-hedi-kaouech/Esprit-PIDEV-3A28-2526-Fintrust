@@ -28,7 +28,7 @@ class KycService
     /**
      * @param UploadedFile[] $uploadedFiles
      */
-    public function submitKyc(User $user, Kyc $kyc, array $uploadedFiles, string $signatureData, string $selfieData = ''): void
+    public function submitKyc(User $user, Kyc $kyc, array $uploadedFiles, string $signatureData, string $selfieData = '', string $selfieFingerprintData = ''): void
     {
         $kyc->setUser($user);
         $kyc->setStatut(Kyc::STATUT_EN_ATTENTE);
@@ -46,7 +46,7 @@ class KycService
             $this->em->persist($kycFile);
         }
 
-        $this->storeSelfieReference($kyc, $selfieData);
+        $this->storeSelfieReference($kyc, $selfieData, $selfieFingerprintData);
 
         $this->em->persist($kyc);
 
@@ -97,9 +97,13 @@ class KycService
         $kyc->setSignatureUploadedAt(new \DateTime());
     }
 
-    private function storeSelfieReference(Kyc $kyc, string $selfieData): void
+    private function storeSelfieReference(Kyc $kyc, string $selfieData, string $selfieFingerprintData): void
     {
         if (!preg_match('/^data:image\/(png|jpeg|jpg);base64,/', $selfieData)) {
+            return;
+        }
+
+        if ($selfieFingerprintData === '') {
             return;
         }
 
@@ -115,6 +119,7 @@ class KycService
 
         $filename = 'selfie_reference_' . bin2hex(random_bytes(8)) . '.png';
         file_put_contents($directory . '/' . $filename, $binary);
+        file_put_contents($directory . '/' . $filename . '.json', $selfieFingerprintData);
 
         $kycFile = new KycFile();
         $kycFile->setFileName($filename);

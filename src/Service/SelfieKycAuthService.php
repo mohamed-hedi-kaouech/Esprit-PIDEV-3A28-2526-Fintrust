@@ -12,9 +12,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 class SelfieKycAuthService
 {
     private const REFERENCE_PREFIX = 'selfie_reference_';
-    private const NORMALIZED_SIZE = 48;
-    private const HASH_SIZE = 16;
-    private const MIN_SIMILARITY_SCORE = 72;
+    private const MIN_SIMILARITY_SCORE = 74;
+    private const MAX_DESCRIPTOR_DISTANCE = 0.46;
 
     public function __construct(
         private readonly EntityManagerInterface $em,
@@ -33,7 +32,7 @@ class SelfieKycAuthService
     /**
      * @return array{message:string, filePath:string}
      */
-    public function storeReferenceSelfie(User $user, string $selfieData): array
+    public function storeReferenceSelfie(User $user, string $selfieData, string $fingerprintData): array
     {
         $kyc = $this->kycRepository->findLatestByUser($user);
         if (!$kyc instanceof Kyc) {
@@ -41,8 +40,7 @@ class SelfieKycAuthService
         }
 
         $binary = $this->decodeBase64Image($selfieData);
-        $this->assertImageEngineAvailable();
-        $this->createFingerprint($binary);
+        $fingerprint = $this->decodeFingerprint($fingerprintData);
 
         $this->removePreviousReferenceSelfies($kyc);
 
@@ -56,13 +54,14 @@ class SelfieKycAuthService
         }
 
         file_put_contents($absolutePath, $binary);
+        $this->storeFingerprintFile($absolutePath, $fingerprint);
 
         $kycFile = new KycFile();
         $kycFile->setFileName($filename);
         $kycFile->setFilePath($relativePath);
         $kycFile->setFileType('image/png');
         $kycFile->setFileSize(strlen($binary));
-        $kycFile->setUpdatedAt(new \DateTimeImmutable());
+        $kycFile->setUpdatedAt(new \DateTime());
         $kyc->addFile($kycFile);
 
         $this->em->persist($kycFile);
@@ -77,7 +76,7 @@ class SelfieKycAuthService
     /**
      * @return array{matched:bool, score:int, threshold:int, message:string}
      */
-    public function verifySelfie(User $user, string $selfieData): array
+    public function verifySelfie(User $user, string $fingerprintData): array
     {
         $kyc = $this->kycRepository->findLatestByUser($user);
         if (!$kyc instanceof Kyc) {
@@ -94,10 +93,8 @@ class SelfieKycAuthService
             throw new \RuntimeException('Le selfie KYC de reference est introuvable sur le serveur.');
         }
 
-        $this->assertImageEngineAvailable();
-
-        $referenceFingerprint = $this->createFingerprint((string) file_get_contents($absoluteReferencePath));
-        $candidateFingerprint = $this->createFingerprint($this->decodeBase64Image($selfieData));
+        $referenceFingerprint = $this->loadFingerprintFile($absoluteReferencePath);
+        $candidateFingerprint = $this->decodeFingerprint($fingerprintData);
         $score = $this->calculateSimilarityScore($referenceFingerprint, $candidateFingerprint);
         $matched = $score >= self::MIN_SIMILARITY_SCORE;
 
@@ -123,6 +120,11 @@ class SelfieKycAuthService
                 @unlink($absolutePath);
             }
 
+            $fingerprintPath = $this->getFingerprintPath($absolutePath);
+            if (is_file($fingerprintPath)) {
+                @unlink($fingerprintPath);
+            }
+
             $kyc->removeFile($file);
             $this->em->remove($file);
         }
@@ -144,13 +146,6 @@ class SelfieKycAuthService
         return str_starts_with(strtolower($file->getFileName()), self::REFERENCE_PREFIX);
     }
 
-    private function assertImageEngineAvailable(): void
-    {
-        if (!function_exists('imagecreatefromstring')) {
-            throw new \RuntimeException('Le traitement selfie requiert l extension GD de PHP sur ce serveur.');
-        }
-    }
-
     private function decodeBase64Image(string $imageData): string
     {
         if (!preg_match('/^data:image\/(png|jpeg|jpg);base64,/', $imageData)) {
@@ -166,129 +161,217 @@ class SelfieKycAuthService
     }
 
     /**
-     * @return array{hash:string, histogram:array<int,float>, mean:float, pixels:array<int,int>}
+     * @return array{
+     *   hash:string,
+     *   upperHash:string,
+     *   middleHash:string,
+     *   lowerHash:string,
+     *   descriptor:array<int,float>,
+     *   histogram:array<int,float>,
+     *   mean:float,
+     *   deviation:float
+     * }
      */
-    private function createFingerprint(string $binary): array
+    private function decodeFingerprint(string $fingerprintData): array
     {
-        $source = @imagecreatefromstring($binary);
-        if ($source === false) {
-            throw new \RuntimeException('Le selfie capture n est pas exploitable. Utilisez une image plus nette.');
+        $decoded = json_decode($fingerprintData, true);
+
+        if (
+            !is_array($decoded)
+            || !isset($decoded['hash'], $decoded['histogram'], $decoded['mean'])
+            || !is_array($decoded['histogram'])
+        ) {
+            throw new \RuntimeException('L empreinte selfie est invalide. Reprenez une capture plus nette.');
         }
 
-        $sourceWidth = imagesx($source);
-        $sourceHeight = imagesy($source);
-        $square = min($sourceWidth, $sourceHeight);
-        $srcX = (int) floor(($sourceWidth - $square) / 2);
-        $srcY = (int) floor(($sourceHeight - $square) / 2);
+        $globalHash = (string) $decoded['hash'];
+        $histogram = array_map(static fn ($value) => (float) $value, array_values($decoded['histogram']));
+        $descriptor = [];
 
-        $normalized = imagecreatetruecolor(self::NORMALIZED_SIZE, self::NORMALIZED_SIZE);
-        imagecopyresampled(
-            $normalized,
-            $source,
-            0,
-            0,
-            $srcX,
-            $srcY,
-            self::NORMALIZED_SIZE,
-            self::NORMALIZED_SIZE,
-            $square,
-            $square
-        );
-
-        $pixels = [];
-        $sum = 0.0;
-        $histogram = array_fill(0, 16, 0.0);
-
-        for ($y = 0; $y < self::NORMALIZED_SIZE; $y++) {
-            for ($x = 0; $x < self::NORMALIZED_SIZE; $x++) {
-                $rgb = imagecolorat($normalized, $x, $y);
-                $red = ($rgb >> 16) & 0xFF;
-                $green = ($rgb >> 8) & 0xFF;
-                $blue = $rgb & 0xFF;
-                $gray = (int) round(($red * 0.299) + ($green * 0.587) + ($blue * 0.114));
-
-                $pixels[] = $gray;
-                $sum += $gray;
-                $histogram[(int) floor($gray / 16)]++;
-            }
+        if (isset($decoded['descriptor']) && is_array($decoded['descriptor'])) {
+            $descriptor = array_values(array_map(static fn ($value) => (float) $value, $decoded['descriptor']));
         }
 
-        imagedestroy($normalized);
-        imagedestroy($source);
+        $upperHash = isset($decoded['upperHash']) ? (string) $decoded['upperHash'] : substr($globalHash, 0, (int) floor(strlen($globalHash) * 0.32));
+        $middleHash = isset($decoded['middleHash']) ? (string) $decoded['middleHash'] : substr($globalHash, (int) floor(strlen($globalHash) * 0.32), (int) floor(strlen($globalHash) * 0.36));
+        $lowerHash = isset($decoded['lowerHash']) ? (string) $decoded['lowerHash'] : substr($globalHash, (int) floor(strlen($globalHash) * 0.68));
 
-        $mean = $sum / count($pixels);
-        $hash = '';
-        $step = (int) (self::NORMALIZED_SIZE / self::HASH_SIZE);
-
-        for ($gridY = 0; $gridY < self::HASH_SIZE; $gridY++) {
-            for ($gridX = 0; $gridX < self::HASH_SIZE; $gridX++) {
-                $cellSum = 0;
-                $cellCount = 0;
-
-                for ($y = $gridY * $step; $y < ($gridY + 1) * $step; $y++) {
-                    for ($x = $gridX * $step; $x < ($gridX + 1) * $step; $x++) {
-                        $index = ($y * self::NORMALIZED_SIZE) + $x;
-                        $cellSum += $pixels[$index];
-                        $cellCount++;
-                    }
-                }
-
-                $cellAverage = $cellCount > 0 ? ($cellSum / $cellCount) : 0;
-                $hash .= $cellAverage >= $mean ? '1' : '0';
-            }
+        if ($upperHash === '') {
+            $upperHash = $globalHash;
         }
 
-        $totalPixels = (float) count($pixels);
-        foreach ($histogram as $index => $value) {
-            $histogram[$index] = $value / $totalPixels;
+        if ($middleHash === '') {
+            $middleHash = $globalHash;
+        }
+
+        if ($lowerHash === '') {
+            $lowerHash = $globalHash;
         }
 
         return [
-            'hash' => $hash,
+            'hash' => $globalHash,
+            'upperHash' => $upperHash,
+            'middleHash' => $middleHash,
+            'lowerHash' => $lowerHash,
+            'descriptor' => $descriptor,
             'histogram' => $histogram,
-            'mean' => $mean,
-            'pixels' => $pixels,
+            'mean' => (float) $decoded['mean'],
+            'deviation' => isset($decoded['deviation']) ? (float) $decoded['deviation'] : 32.0,
         ];
     }
 
     /**
-     * @param array{hash:string, histogram:array<int,float>, mean:float, pixels:array<int,int>} $reference
-     * @param array{hash:string, histogram:array<int,float>, mean:float, pixels:array<int,int>} $candidate
+     * @param array{
+     *   hash:string,
+     *   upperHash:string,
+     *   middleHash:string,
+     *   lowerHash:string,
+     *   descriptor:array<int,float>,
+     *   histogram:array<int,float>,
+     *   mean:float,
+     *   deviation:float
+     * } $fingerprint
+     */
+    private function storeFingerprintFile(string $absoluteImagePath, array $fingerprint): void
+    {
+        file_put_contents($this->getFingerprintPath($absoluteImagePath), json_encode($fingerprint, JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * @return array{
+     *   hash:string,
+     *   upperHash:string,
+     *   middleHash:string,
+     *   lowerHash:string,
+     *   descriptor:array<int,float>,
+     *   histogram:array<int,float>,
+     *   mean:float,
+     *   deviation:float
+     * }
+     */
+    private function loadFingerprintFile(string $absoluteImagePath): array
+    {
+        $fingerprintPath = $this->getFingerprintPath($absoluteImagePath);
+        if (!is_file($fingerprintPath)) {
+            throw new \RuntimeException('L empreinte du selfie KYC de reference est absente. Reprenez un selfie de reference depuis votre dossier KYC.');
+        }
+
+        $content = (string) file_get_contents($fingerprintPath);
+
+        return $this->decodeFingerprint($content);
+    }
+
+    private function getFingerprintPath(string $absoluteImagePath): string
+    {
+        return $absoluteImagePath . '.json';
+    }
+
+    /**
+     * @param array{
+     *   hash:string,
+     *   upperHash:string,
+     *   middleHash:string,
+     *   lowerHash:string,
+     *   descriptor:array<int,float>,
+     *   histogram:array<int,float>,
+     *   mean:float,
+     *   deviation:float
+     * } $reference
+     * @param array{
+     *   hash:string,
+     *   upperHash:string,
+     *   middleHash:string,
+     *   lowerHash:string,
+     *   descriptor:array<int,float>,
+     *   histogram:array<int,float>,
+     *   mean:float,
+     *   deviation:float
+     * } $candidate
      */
     private function calculateSimilarityScore(array $reference, array $candidate): int
     {
-        $hashLength = strlen($reference['hash']);
+        if ($reference['descriptor'] !== [] && $candidate['descriptor'] !== []) {
+            $distance = $this->calculateDescriptorDistance($reference['descriptor'], $candidate['descriptor']);
+            $score = (1 - min(1, $distance)) * 100;
+
+            if ($distance > self::MAX_DESCRIPTOR_DISTANCE) {
+                $score -= (($distance - self::MAX_DESCRIPTOR_DISTANCE) * 140);
+            }
+
+            return (int) max(0, min(100, round($score)));
+        }
+
+        $hashSimilarity = $this->calculateHashSimilarity($reference['hash'], $candidate['hash']);
+        $upperSimilarity = $this->calculateHashSimilarity($reference['upperHash'], $candidate['upperHash']);
+        $middleSimilarity = $this->calculateHashSimilarity($reference['middleHash'], $candidate['middleHash']);
+        $lowerSimilarity = $this->calculateHashSimilarity($reference['lowerHash'], $candidate['lowerHash']);
+
+        $histogramSimilarity = 0.0;
+        $referenceHistogram = $reference['histogram'];
+        $candidateHistogram = $candidate['histogram'];
+        $bucketCount = min(count($referenceHistogram), count($candidateHistogram));
+
+        for ($index = 0; $index < $bucketCount; $index++) {
+            $histogramSimilarity += min($referenceHistogram[$index], $candidateHistogram[$index]);
+        }
+
+        $brightnessSimilarity = 1 - (abs($reference['mean'] - $candidate['mean']) / 255);
+        $contrastSimilarity = 1 - (abs($reference['deviation'] - $candidate['deviation']) / max(1, max($reference['deviation'], $candidate['deviation'])));
+
+        $score = (
+            ($hashSimilarity * 0.16) +
+            ($upperSimilarity * 0.16) +
+            ($middleSimilarity * 0.28) +
+            ($lowerSimilarity * 0.14) +
+            ($histogramSimilarity * 0.16) +
+            ($brightnessSimilarity * 0.05) +
+            ($contrastSimilarity * 0.05)
+        ) * 100;
+
+        $hardMismatch =
+            $middleSimilarity < 0.68
+            || $upperSimilarity < 0.56
+            || $lowerSimilarity < 0.52
+            || $hashSimilarity < 0.60;
+
+        if ($hardMismatch) {
+            $score -= 18;
+        }
+
+        return (int) max(0, min(100, round($score)));
+    }
+
+    private function calculateHashSimilarity(string $referenceHash, string $candidateHash): float
+    {
+        $hashLength = min(strlen($referenceHash), strlen($candidateHash));
         $hammingDistance = 0;
 
         for ($index = 0; $index < $hashLength; $index++) {
-            if (($reference['hash'][$index] ?? '0') !== ($candidate['hash'][$index] ?? '0')) {
+            if (($referenceHash[$index] ?? '0') !== ($candidateHash[$index] ?? '0')) {
                 $hammingDistance++;
             }
         }
 
-        $hashSimilarity = 1 - ($hammingDistance / max(1, $hashLength));
+        return 1 - ($hammingDistance / max(1, $hashLength));
+    }
 
-        $histogramSimilarity = 0.0;
-        foreach ($reference['histogram'] as $index => $value) {
-            $histogramSimilarity += min($value, $candidate['histogram'][$index] ?? 0.0);
+    /**
+     * @param array<int,float> $referenceDescriptor
+     * @param array<int,float> $candidateDescriptor
+     */
+    private function calculateDescriptorDistance(array $referenceDescriptor, array $candidateDescriptor): float
+    {
+        $length = min(count($referenceDescriptor), count($candidateDescriptor));
+        if ($length === 0) {
+            return 1.0;
         }
 
-        $pixelDifference = 0.0;
-        $pixelCount = min(count($reference['pixels']), count($candidate['pixels']));
-        for ($index = 0; $index < $pixelCount; $index++) {
-            $pixelDifference += abs($reference['pixels'][$index] - $candidate['pixels'][$index]);
+        $sum = 0.0;
+        for ($index = 0; $index < $length; $index++) {
+            $diff = $referenceDescriptor[$index] - $candidateDescriptor[$index];
+            $sum += $diff * $diff;
         }
 
-        $pixelSimilarity = 1 - (($pixelDifference / max(1, $pixelCount)) / 255);
-        $brightnessSimilarity = 1 - (abs($reference['mean'] - $candidate['mean']) / 255);
-
-        $score = (
-            ($hashSimilarity * 0.42) +
-            ($pixelSimilarity * 0.33) +
-            ($histogramSimilarity * 0.17) +
-            ($brightnessSimilarity * 0.08)
-        ) * 100;
-
-        return (int) max(0, min(100, round($score)));
+        return sqrt($sum);
     }
 }

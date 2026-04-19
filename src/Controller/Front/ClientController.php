@@ -355,6 +355,7 @@ class ClientController extends AbstractController
             $files = is_array($rawFiles) ? array_values(array_filter($rawFiles)) : ($rawFiles ? [$rawFiles] : []);
             $signatureData = (string) ($payload['signatureData'] ?? $form->get('signatureData')->getData() ?? '');
             $selfieData = (string) ($payload['selfieData'] ?? $form->get('selfieData')->getData() ?? '');
+            $selfieFingerprintData = (string) ($payload['selfieFingerprintData'] ?? $form->get('selfieFingerprintData')->getData() ?? '');
 
             $entityErrors = $this->validator->validate($kyc);
 
@@ -371,6 +372,8 @@ class ClientController extends AbstractController
                 $this->addFlash('error', 'Veuillez joindre au moins un document justificatif.');
             } elseif ($selfieData === '') {
                 $this->addFlash('error', 'Ajoutez un selfie KYC de reference pour activer la connexion selfie sur votre compte.');
+            } elseif ($selfieFingerprintData === '') {
+                $this->addFlash('error', 'L empreinte du selfie KYC est absente. Reprenez votre selfie de reference.');
             } elseif (!$this->hasValidKycFiles($files)) {
                 $this->addFlash('error', 'Chaque justificatif doit etre en JPG, PNG ou PDF, avec une taille maximale de 5 Mo.');
             } elseif (!$captchaService->validateAnswer(
@@ -384,7 +387,7 @@ class ClientController extends AbstractController
                 $this->addFlash('error', 'Le CAPTCHA KYC est invalide. Veuillez recommencer.');
             } else {
                 try {
-                    $this->kycService->submitKyc($user, $kyc, $files, $signatureData, $selfieData);
+                    $this->kycService->submitKyc($user, $kyc, $files, $signatureData, $selfieData, $selfieFingerprintData);
                     $this->notificationService->notifyKycSubmitted($user);
                     $captchaService->clearChallenge($request->getSession(), 'kyc_submit');
 

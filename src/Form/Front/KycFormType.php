@@ -83,6 +83,10 @@ class KycFormType extends AbstractType
             ->add('selfieData', HiddenType::class, [
                 'mapped' => false,
                 'required' => false,
+            ])
+            ->add('selfieFingerprintData', HiddenType::class, [
+                'mapped' => false,
+                'required' => false,
             ]);
     }
 

@@ -38,8 +38,8 @@
                 <div class="ft-login-spotlight">
                   <div class="ft-login-spotlight__icon"><i class="bi bi-folder-check"></i></div>
                   <div>
-                    <strong>Sans nouvelle table</strong>
-                    <p>Le selfie de reference est conserve dans les fichiers KYC deja existants.</p>
+                    <strong>Securite 2FA FinTrust</strong>
+                    <p>FinTrust renforce chaque acces sensible avec des verifications supplementaires pour mieux proteger votre compte.</p>
                   </div>
                 </div>
               </div>
@@ -227,6 +227,33 @@
       </div>
     </div>
 
+    <div class="row g-3 mt-2 mb-3">
+      <div class="col-md-6">
+        <label for="selfieModalEmail" class="form-label fw-semibold">
+          <i class="bi bi-envelope me-1 text-primary"></i>Adresse e-mail
+        </label>
+        <input
+          type="email"
+          id="selfieModalEmail"
+          class="form-control ft-input"
+          placeholder="vous@exemple.com"
+          autocomplete="username"
+        />
+      </div>
+      <div class="col-md-6">
+        <label for="selfieModalPassword" class="form-label fw-semibold">
+          <i class="bi bi-lock me-1 text-primary"></i>Mot de passe
+        </label>
+        <input
+          type="password"
+          id="selfieModalPassword"
+          class="form-control ft-input"
+          placeholder="••••••••"
+          autocomplete="current-password"
+        />
+      </div>
+    </div>
+
     <div class="ft-face-state-list">
       <div class="ft-face-state-pill"><i class="bi bi-camera-video me-2"></i>Camera locale</div>
       <div class="ft-face-state-pill"><i class="bi bi-folder2-open me-2"></i>Reference KYC</div>
@@ -250,6 +277,7 @@
 
 {% block javascripts %}
 {{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <script>
   document.getElementById('togglePwd')?.addEventListener('click', function() {
     const pwd = document.getElementById('password');
@@ -274,6 +302,8 @@
     const feedback = document.getElementById('selfieFeedback');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
+    const modalEmailInput = document.getElementById('selfieModalEmail');
+    const modalPasswordInput = document.getElementById('selfieModalPassword');
     const captureButton = document.getElementById('captureSelfieBtn');
     const actionButton = document.getElementById('selfieActionBtn');
     const openLoginButton = document.getElementById('openSelfieLogin');
@@ -287,6 +317,25 @@
     let currentMode = 'login';
     let currentStream = null;
     let capturedSelfie = '';
+    let capturedFingerprint = '';
+    const faceApiModelUrl = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+    let faceApiReadyPromise = null;
+
+    const ensureFaceApiReady = async () => {
+      if (typeof faceapi === 'undefined') {
+        throw new Error('Le moteur de reconnaissance faciale FinTrust n a pas pu se charger. Rechargez la page puis recommencez.');
+      }
+
+      if (!faceApiReadyPromise) {
+        faceApiReadyPromise = Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(faceApiModelUrl),
+          faceapi.nets.faceLandmark68Net.loadFromUri(faceApiModelUrl),
+          faceapi.nets.faceRecognitionNet.loadFromUri(faceApiModelUrl)
+        ]);
+      }
+
+      await faceApiReadyPromise;
+    };
 
     const setStatus = (message) => {
       if (statusText) {
@@ -310,6 +359,123 @@
 
       feedback.className = 'ft-face-feedback d-none';
       feedback.textContent = '';
+    };
+
+    const buildSelfieFingerprint = async (sourceCanvas) => {
+      await ensureFaceApiReady();
+
+      const normalizedCanvas = document.createElement('canvas');
+      normalizedCanvas.width = 48;
+      normalizedCanvas.height = 48;
+      const normalizedContext = normalizedCanvas.getContext('2d', { willReadFrequently: true });
+      const cropWidth = sourceCanvas.width * 0.52;
+      const cropHeight = sourceCanvas.height * 0.7;
+      const cropX = (sourceCanvas.width - cropWidth) / 2;
+      const cropY = (sourceCanvas.height - cropHeight) / 2.8;
+
+      normalizedContext.drawImage(
+        sourceCanvas,
+        cropX,
+        cropY,
+        cropWidth,
+        cropHeight,
+        0,
+        0,
+        48,
+        48
+      );
+
+      const { data } = normalizedContext.getImageData(0, 0, 48, 48);
+      const pixels = [];
+      const histogram = new Array(16).fill(0);
+      let sum = 0;
+
+      for (let index = 0; index < data.length; index += 4) {
+        const gray = Math.round((data[index] * 0.299) + (data[index + 1] * 0.587) + (data[index + 2] * 0.114));
+        pixels.push(gray);
+        histogram[Math.min(15, Math.floor(gray / 16))] += 1;
+        sum += gray;
+      }
+
+      const mean = sum / pixels.length;
+      const variance = pixels.reduce((carry, value) => carry + ((value - mean) ** 2), 0) / pixels.length;
+      const deviation = Math.max(18, Math.sqrt(variance));
+      let hash = '';
+      let upperHash = '';
+      let middleHash = '';
+      let lowerHash = '';
+
+      const buildRegionHash = (startRow, endRow) => {
+        let regionHash = '';
+
+        for (let gridY = startRow; gridY < endRow; gridY += 1) {
+          for (let gridX = 0; gridX < 16; gridX += 1) {
+            let cellSum = 0;
+            let cellCount = 0;
+
+            for (let y = gridY * 3; y < (gridY + 1) * 3; y += 1) {
+              for (let x = gridX * 3; x < (gridX + 1) * 3; x += 1) {
+                const sampleX = Math.min(47, x);
+                const sampleY = Math.min(47, y);
+                const sampleIndex = (sampleY * 48) + sampleX;
+                const normalizedValue = Math.max(0, Math.min(255, (((pixels[sampleIndex] - mean) / deviation) * 42) + 128));
+                cellSum += normalizedValue;
+                cellCount += 1;
+              }
+            }
+
+            const cellAverage = cellCount > 0 ? (cellSum / cellCount) : 0;
+            regionHash += cellAverage >= 128 ? '1' : '0';
+          }
+        }
+
+        return regionHash;
+      };
+
+      for (let gridY = 0; gridY < 16; gridY += 1) {
+        for (let gridX = 0; gridX < 16; gridX += 1) {
+          let cellSum = 0;
+          let cellCount = 0;
+
+          for (let y = gridY * 3; y < (gridY + 1) * 3; y += 1) {
+            for (let x = gridX * 3; x < (gridX + 1) * 3; x += 1) {
+              const sampleX = Math.min(47, x);
+              const sampleY = Math.min(47, y);
+              const sampleIndex = (sampleY * 48) + sampleX;
+              const normalizedValue = Math.max(0, Math.min(255, (((pixels[sampleIndex] - mean) / deviation) * 42) + 128));
+              cellSum += normalizedValue;
+              cellCount += 1;
+            }
+          }
+
+          const cellAverage = cellCount > 0 ? (cellSum / cellCount) : 0;
+          hash += cellAverage >= mean ? '1' : '0';
+        }
+      }
+
+      upperHash = buildRegionHash(0, 5);
+      middleHash = buildRegionHash(5, 11);
+      lowerHash = buildRegionHash(11, 16);
+
+      const detection = await faceapi
+        .detectSingleFace(sourceCanvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.45 }))
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!detection?.descriptor) {
+        throw new Error('Aucun visage exploitable n a ete detecte. Regardez la camera bien de face et reprenez le selfie.');
+      }
+
+      return JSON.stringify({
+        hash,
+        upperHash,
+        middleHash,
+        lowerHash,
+        descriptor: Array.from(detection.descriptor, (value) => Number(value.toFixed(8))),
+        histogram: histogram.map((bucket) => Number((bucket / pixels.length).toFixed(6))),
+        mean: Number(mean.toFixed(4)),
+        deviation: Number(deviation.toFixed(4))
+      });
     };
 
     const setMode = (mode) => {
@@ -340,6 +506,26 @@
       }
     };
 
+    const syncModalCredentialsFromMain = () => {
+      if (modalEmailInput && emailInput && !modalEmailInput.value) {
+        modalEmailInput.value = emailInput.value || '';
+      }
+
+      if (modalPasswordInput && passwordInput && !modalPasswordInput.value) {
+        modalPasswordInput.value = passwordInput.value || '';
+      }
+    };
+
+    const syncMainCredentialsFromModal = () => {
+      if (modalEmailInput && emailInput) {
+        emailInput.value = modalEmailInput.value || '';
+      }
+
+      if (modalPasswordInput && passwordInput) {
+        passwordInput.value = modalPasswordInput.value || '';
+      }
+    };
+
     const startCamera = async () => {
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error('La camera n est pas disponible sur ce navigateur.');
@@ -360,7 +546,7 @@
       setStatus('Camera active');
     };
 
-    const captureSelfie = () => {
+    const captureSelfie = async () => {
       if (!video || !canvas || !video.videoWidth || !video.videoHeight) {
         throw new Error('La camera n est pas encore prete. Attendez une seconde puis recommencez.');
       }
@@ -370,6 +556,7 @@
       const context = canvas.getContext('2d');
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       capturedSelfie = canvas.toDataURL('image/png');
+      capturedFingerprint = await buildSelfieFingerprint(canvas);
 
       if (preview && previewWrap) {
         preview.src = capturedSelfie;
@@ -390,7 +577,15 @@
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const rawText = await response.text();
+      let data = null;
+
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch (error) {
+        throw new Error('Le serveur a renvoye une erreur technique inattendue. Rechargez la page puis recommencez.');
+      }
+
       if (!response.ok) {
         const error = new Error(data.message || 'Operation selfie impossible.');
         error.code = data.code || 'selfie_error';
@@ -403,8 +598,8 @@
     };
 
     const ensureCredentials = () => {
-      const email = emailInput?.value.trim() ?? '';
-      const password = passwordInput?.value ?? '';
+      const email = modalEmailInput?.value.trim() || emailInput?.value.trim() || '';
+      const password = modalPasswordInput?.value || passwordInput?.value || '';
 
       if (email === '' || password.trim() === '') {
         throw new Error('Renseignez votre e-mail et votre mot de passe avant d utiliser le selfie KYC.');
@@ -414,7 +609,13 @@
         throw new Error('Capturez d abord votre selfie pour continuer.');
       }
 
-      return { email, password, selfie: capturedSelfie, _token: csrfToken };
+      if (capturedFingerprint === '') {
+        throw new Error('L empreinte du selfie est absente. Reprenez votre capture.');
+      }
+
+      syncMainCredentialsFromModal();
+
+      return { email, password, selfie: capturedSelfie, fingerprint: capturedFingerprint, _token: csrfToken };
     };
 
     const runAction = async () => {
@@ -453,8 +654,10 @@
       modal.setAttribute('aria-hidden', 'false');
       document.body.classList.add('ft-face-modal-open');
       capturedSelfie = '';
+      capturedFingerprint = '';
       previewWrap?.classList.add('d-none');
       resetFeedback();
+      syncModalCredentialsFromMain();
       setMode(mode);
 
       try {
@@ -470,6 +673,7 @@
       modal?.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('ft-face-modal-open');
       capturedSelfie = '';
+      capturedFingerprint = '';
       resetFeedback();
       previewWrap?.classList.add('d-none');
       placeholder?.classList.remove('d-none');
@@ -477,9 +681,11 @@
 
     openLoginButton?.addEventListener('click', () => openModal('login'));
     openEnrollButton?.addEventListener('click', () => openModal('enroll'));
-    captureButton?.addEventListener('click', () => {
+    modalEmailInput?.addEventListener('input', syncMainCredentialsFromModal);
+    modalPasswordInput?.addEventListener('input', syncMainCredentialsFromModal);
+    captureButton?.addEventListener('click', async () => {
       try {
-        captureSelfie();
+        await captureSelfie();
       } catch (error) {
         handleError(error);
       }

@@ -156,6 +156,7 @@
 
               <div class="ft-selfie-status" id="kycSelfieStatus">Aucun selfie capture pour le moment.</div>
               {{ form_widget(form.selfieData, {attr: {id: 'selfieDataField'}}) }}
+              {{ form_widget(form.selfieFingerprintData, {attr: {id: 'selfieFingerprintDataField'}}) }}
             </div>
 
             <div class="col-lg-4">
@@ -208,6 +209,7 @@
 
 {% block javascripts %}
 {{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <script>
   const fileInput = document.getElementById('kycFiles');
   const fileList = document.getElementById('fileList');
@@ -220,6 +222,8 @@
   const selfieCanvas = document.getElementById('kycSelfieCanvas');
   const selfieField = document.getElementById('selfieDataField')
     || document.querySelector('input[name$="[selfieData]"]');
+  const selfieFingerprintField = document.getElementById('selfieFingerprintDataField')
+    || document.querySelector('input[name$="[selfieFingerprintData]"]');
   const selfieStatus = document.getElementById('kycSelfieStatus');
   const selfiePlaceholder = document.getElementById('kycSelfiePlaceholder');
   const selfiePreview = document.getElementById('kycSelfiePreview');
@@ -233,6 +237,24 @@
   let hasSignature = false;
   let selfieStream = null;
   let selfieReady = false;
+  const faceApiModelUrl = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+  let faceApiReadyPromise = null;
+
+  const ensureFaceApiReady = async () => {
+    if (typeof faceapi === 'undefined') {
+      throw new Error('Le moteur de reconnaissance faciale FinTrust n a pas pu se charger. Rechargez la page puis recommencez.');
+    }
+
+    if (!faceApiReadyPromise) {
+      faceApiReadyPromise = Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(faceApiModelUrl),
+        faceapi.nets.faceLandmark68Net.loadFromUri(faceApiModelUrl),
+        faceapi.nets.faceRecognitionNet.loadFromUri(faceApiModelUrl)
+      ]);
+    }
+
+    await faceApiReadyPromise;
+  };
 
   const waitForSelfieFrame = async () => {
     if (!selfieVideo) {
@@ -263,6 +285,123 @@
       window.setTimeout(() => {
         finish(selfieVideo.readyState >= 2);
       }, 1400);
+    });
+  };
+
+  const buildSelfieFingerprint = async (sourceCanvas) => {
+    await ensureFaceApiReady();
+
+    const normalizedCanvas = document.createElement('canvas');
+    normalizedCanvas.width = 48;
+    normalizedCanvas.height = 48;
+    const normalizedContext = normalizedCanvas.getContext('2d', { willReadFrequently: true });
+    const cropWidth = sourceCanvas.width * 0.52;
+    const cropHeight = sourceCanvas.height * 0.7;
+    const cropX = (sourceCanvas.width - cropWidth) / 2;
+    const cropY = (sourceCanvas.height - cropHeight) / 2.8;
+
+    normalizedContext.drawImage(
+      sourceCanvas,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      48,
+      48
+    );
+
+    const { data } = normalizedContext.getImageData(0, 0, 48, 48);
+    const pixels = [];
+    const histogram = new Array(16).fill(0);
+    let sum = 0;
+
+    for (let index = 0; index < data.length; index += 4) {
+      const gray = Math.round((data[index] * 0.299) + (data[index + 1] * 0.587) + (data[index + 2] * 0.114));
+      pixels.push(gray);
+      histogram[Math.min(15, Math.floor(gray / 16))] += 1;
+      sum += gray;
+    }
+
+    const mean = sum / pixels.length;
+    const variance = pixels.reduce((carry, value) => carry + ((value - mean) ** 2), 0) / pixels.length;
+    const deviation = Math.max(18, Math.sqrt(variance));
+    let hash = '';
+    let upperHash = '';
+    let middleHash = '';
+    let lowerHash = '';
+
+    const buildRegionHash = (startRow, endRow) => {
+      let regionHash = '';
+
+      for (let gridY = startRow; gridY < endRow; gridY += 1) {
+        for (let gridX = 0; gridX < 16; gridX += 1) {
+          let cellSum = 0;
+          let cellCount = 0;
+
+          for (let y = gridY * 3; y < (gridY + 1) * 3; y += 1) {
+            for (let x = gridX * 3; x < (gridX + 1) * 3; x += 1) {
+              const sampleX = Math.min(47, x);
+              const sampleY = Math.min(47, y);
+              const sampleIndex = (sampleY * 48) + sampleX;
+              const normalizedValue = Math.max(0, Math.min(255, (((pixels[sampleIndex] - mean) / deviation) * 42) + 128));
+              cellSum += normalizedValue;
+              cellCount += 1;
+            }
+          }
+
+          const cellAverage = cellCount > 0 ? (cellSum / cellCount) : 0;
+          regionHash += cellAverage >= 128 ? '1' : '0';
+        }
+      }
+
+      return regionHash;
+    };
+
+    for (let gridY = 0; gridY < 16; gridY += 1) {
+      for (let gridX = 0; gridX < 16; gridX += 1) {
+        let cellSum = 0;
+        let cellCount = 0;
+
+        for (let y = gridY * 3; y < (gridY + 1) * 3; y += 1) {
+          for (let x = gridX * 3; x < (gridX + 1) * 3; x += 1) {
+            const sampleX = Math.min(47, x);
+            const sampleY = Math.min(47, y);
+            const sampleIndex = (sampleY * 48) + sampleX;
+            const normalizedValue = Math.max(0, Math.min(255, (((pixels[sampleIndex] - mean) / deviation) * 42) + 128));
+            cellSum += normalizedValue;
+            cellCount += 1;
+          }
+        }
+
+        const cellAverage = cellCount > 0 ? (cellSum / cellCount) : 0;
+        hash += cellAverage >= mean ? '1' : '0';
+      }
+    }
+
+    upperHash = buildRegionHash(0, 5);
+    middleHash = buildRegionHash(5, 11);
+    lowerHash = buildRegionHash(11, 16);
+
+    const detection = await faceapi
+      .detectSingleFace(sourceCanvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.45 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (!detection?.descriptor) {
+      throw new Error('Aucun visage exploitable n a ete detecte. Regardez la camera bien de face et reprenez le selfie.');
+    }
+
+    return JSON.stringify({
+      hash,
+      upperHash,
+      middleHash,
+      lowerHash,
+      descriptor: Array.from(detection.descriptor, (value) => Number(value.toFixed(8))),
+      histogram: histogram.map((bucket) => Number((bucket / pixels.length).toFixed(6))),
+      mean: Number(mean.toFixed(4)),
+      deviation: Number(deviation.toFixed(4))
     });
   };
 
@@ -469,7 +608,7 @@
       return;
     }
 
-    if (!selfieField) {
+    if (!selfieField || !selfieFingerprintField) {
       selfieStatus.textContent = 'Le champ de stockage du selfie est introuvable sur la page.';
       return;
     }
@@ -538,6 +677,7 @@
       storageContext.drawImage(captureCanvas, 0, 0);
 
       selfieField.value = dataUrl;
+      selfieFingerprintField.value = await buildSelfieFingerprint(captureCanvas);
       selfiePreview.src = dataUrl;
       selfiePreview.classList.remove('d-none');
       selfiePreviewEmpty?.classList.add('d-none');
@@ -556,12 +696,13 @@
   };
 
   const resetSelfieReference = () => {
-    if (!selfieField) {
+    if (!selfieField || !selfieFingerprintField) {
       selfieStatus.textContent = 'Le champ de stockage du selfie est introuvable sur la page.';
       return;
     }
 
     selfieField.value = '';
+    selfieFingerprintField.value = '';
     selfiePreview.src = '';
     selfiePreview.classList.add('d-none');
     selfiePreviewEmpty?.classList.remove('d-none');
