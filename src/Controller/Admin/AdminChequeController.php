@@ -233,7 +233,7 @@ class AdminChequeController extends AbstractController
         }
 
         $cheque->setStatut('livre');
-        $cheque->setDatePresentation(new \DateTimeImmutable());
+        $cheque->setDatePresentation(new \DateTime());
         $this->entityManager->flush();
 
         if ($user = $this->resolveUserForCheque($cheque)) {

@@ -4,13 +4,12 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-<<<<<<< Updated upstream
     app.mailer_from_address: '%env(string:MAILER_FROM_ADDRESS)%'
     app.mailer_from_name: '%env(string:MAILER_FROM_NAME)%'
     app.brevo_api_key: '%env(string:BREVO_API_KEY)%'
-=======
-    fintrust.mailer_from: '%env(string:FINTRUST_SMTP_FROM)%'
-    fintrust.login_url: '%env(string:FINTRUST_LOGIN_URL)%'
+    fintrust.mailer_from: '%env(string:MAILER_FROM_ADDRESS)%'
+    fintrust.login_url_default: 'http://127.0.0.1:8000/login'
+    fintrust.login_url: '%env(default:fintrust.login_url_default:FINTRUST_LOGIN_URL)%'
     fintrust.openai_api_key_default: ''
     fintrust.openai_model_default: 'gpt-4.1-mini'
     fintrust.openai_api_key: '%env(default:fintrust.openai_api_key_default:OPENAI_API_KEY)%'
@@ -23,7 +22,6 @@ parameters:
     fintrust.twilio_auth_token: '%env(default:fintrust.twilio_auth_token_default:TWILIO_AUTH_TOKEN)%'
     fintrust.twilio_verify_service_sid: '%env(default:fintrust.twilio_verify_service_sid_default:TWILIO_VERIFY_SERVICE_SID)%'
     fintrust.twilio_verify_channel: '%env(default:fintrust.twilio_verify_channel_default:TWILIO_VERIFY_CHANNEL)%'
->>>>>>> Stashed changes
 
 services:
     # default configuration for services in *this* file
@@ -31,22 +29,15 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         bind:
-<<<<<<< Updated upstream
             string $brevoApiKey: '%app.brevo_api_key%'
             string $mailerFromAddress: '%app.mailer_from_address%'
             string $mailerFromName: '%app.mailer_from_name%'
-=======
-            string $appSecret: '%kernel.secret%'
-            string $kernelEnvironment: '%kernel.environment%'
-            string $fintrustMailerFrom: '%fintrust.mailer_from%'
-            string $fintrustLoginUrl: '%fintrust.login_url%'
             string $openAiApiKey: '%fintrust.openai_api_key%'
             string $openAiModel: '%fintrust.openai_model%'
             string $twilioAccountSid: '%fintrust.twilio_account_sid%'
             string $twilioAuthToken: '%fintrust.twilio_auth_token%'
             string $twilioVerifyServiceSid: '%fintrust.twilio_verify_service_sid%'
             string $twilioVerifyChannel: '%fintrust.twilio_verify_channel%'
->>>>>>> Stashed changes
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

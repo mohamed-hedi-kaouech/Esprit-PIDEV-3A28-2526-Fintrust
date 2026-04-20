@@ -8,17 +8,16 @@ use App\Entity\Wallet\Transaction;
 use App\Entity\Wallet\Wallet;
 use App\Service\AnomalyDetectionService;
 use App\Service\NotificationService;
-<<<<<<< Updated upstream
-=======
 use App\Service\OpenAIWalletAnalysisService;
 use App\Service\PredictionService;
 use App\Service\RiskScoringService;
 use App\Service\WalletAnalyticsService;
->>>>>>> Stashed changes
 use App\Service\WalletAuditService;
+use App\Service\WalletChartService;
 use App\Service\WalletClassificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use Knp\Snappy\Pdf;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,16 +32,15 @@ class AdminWalletController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly NotificationService $notificationService,
-<<<<<<< Updated upstream
-=======
         private readonly OpenAIWalletAnalysisService $openAIWalletAnalysisService,
         private readonly WalletAnalyticsService $walletAnalyticsService,
         private readonly AnomalyDetectionService $anomalyDetectionService,
         private readonly RiskScoringService $riskScoringService,
         private readonly WalletClassificationService $walletClassificationService,
         private readonly PredictionService $predictionService,
->>>>>>> Stashed changes
         private readonly WalletAuditService $walletAuditService,
+        private readonly WalletChartService $walletChartService,
+        private readonly Pdf $pdf,
     ) {
     }
 
@@ -201,117 +199,73 @@ class AdminWalletController extends AbstractController
         return $response;
     }
 
+    #[Route('/stats/{id}', name: 'stats_wallet', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function statsWallet(int $id): Response
+    {
+        $wallet = $this->findWalletOr404($id);
+        $context = $this->buildWalletAnalysisContext($wallet);
+
+        return $this->render('admin/wallet/stats_wallet.html.twig', [
+            'wallet' => $wallet,
+            'charts' => $this->walletChartService->buildWalletCharts($wallet, $context['analytics'], $context['riskAnalysis']),
+            ...$context,
+        ]);
+    }
+
+    #[Route('/{id}/report/pdf', name: 'report_pdf', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function reportPdf(int $id): Response
+    {
+        $wallet = $this->findWalletOr404($id);
+        $context = $this->buildWalletAnalysisContext($wallet);
+        $this->pdf->setBinary($this->resolveWkhtmltopdfBinary());
+        $html = $this->renderView('admin/wallet/report_pdf.html.twig', [
+            'wallet' => $wallet,
+            'generatedAt' => new \DateTimeImmutable(),
+            ...$context,
+        ]);
+
+        $output = $this->pdf->getOutputFromHtml($html, [
+            'enable-local-file-access' => true,
+            'print-media-type' => true,
+            'encoding' => 'UTF-8',
+            'footer-right' => '[page]/[topage]',
+        ]);
+
+        return new Response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => sprintf('attachment; filename="fintrust_wallet_report_%d.pdf"', $wallet->getIdWallet()),
+        ]);
+    }
+
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(int $id): Response
     {
-        /** @var Wallet|null $wallet */
-        $wallet = $this->entityManager->getRepository(Wallet::class)->find($id);
-
-        if (!$wallet) {
-            throw $this->createNotFoundException('Wallet introuvable.');
-        }
-
-        /** @var Transaction[] $latestTransactions */
-        $latestTransactions = $this->entityManager->getRepository(Transaction::class)
-            ->createQueryBuilder('t')
-            ->andWhere('t.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
-            ->orderBy('t.dateTransaction', 'DESC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
-
-        $transactionStats = [
-            'depotCount' => 0,
-            'retraitCount' => 0,
-            'transfertCount' => 0,
-            'depotAmount' => 0.0,
-            'retraitAmount' => 0.0,
-            'transfertAmount' => 0.0,
-        ];
-
-        foreach ($wallet->getTransactions() as $transaction) {
-            $type = mb_strtolower($transaction->getType());
-            if ($type === 'depot') {
-                $transactionStats['depotCount']++;
-                $transactionStats['depotAmount'] += $transaction->getMontant();
-            } elseif ($type === 'retrait') {
-                $transactionStats['retraitCount']++;
-                $transactionStats['retraitAmount'] += $transaction->getMontant();
-            } elseif ($type === 'transfert') {
-                $transactionStats['transfertCount']++;
-                $transactionStats['transfertAmount'] += $transaction->getMontant();
-            }
-        }
-
-        /** @var Cheque[] $latestCheques */
-        $latestCheques = $this->entityManager->getRepository(Cheque::class)
-            ->createQueryBuilder('c')
-            ->andWhere('c.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
-            ->orderBy('c.dateEmission', 'DESC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
-
-        $analytics = $this->walletAnalyticsService->buildAnalytics($wallet);
-        $anomalyReport = $this->anomalyDetectionService->detectAnomalies($wallet, $analytics);
-        $riskAnalysis = $this->riskScoringService->scoreWallet($wallet, $analytics, $anomalyReport);
-        $classification = $this->walletClassificationService->classifyWallet($wallet, $riskAnalysis, $anomalyReport, $analytics);
-        $prediction = $this->predictionService->predictWallet($wallet, $analytics, $anomalyReport, $riskAnalysis);
+        $wallet = $this->findWalletOr404($id);
 
         return $this->render('admin/wallet/show.html.twig', [
             'wallet' => $wallet,
-            'latestTransactions' => $latestTransactions,
-            'transactionStats' => $transactionStats,
-            'latestCheques' => $latestCheques,
-            'analytics' => $analytics,
-            'anomalyReport' => $anomalyReport,
-            'riskAnalysis' => $riskAnalysis,
-            'classification' => $classification,
-            'prediction' => $prediction,
-            'auditEntries' => $this->walletAuditService->getRecentEntries(20, $wallet->getIdUser()),
+            ...$this->buildWalletAnalysisContext($wallet),
         ]);
     }
 
-<<<<<<< Updated upstream
-=======
     #[Route('/{id}/analyse-ia', name: 'ai_analysis', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function aiAnalysis(int $id): Response
     {
-        /** @var Wallet|null $wallet */
-        $wallet = $this->entityManager->getRepository(Wallet::class)->find($id);
-
-        if (!$wallet instanceof Wallet) {
-            throw $this->createNotFoundException('Wallet introuvable.');
-        }
-
-        $analysis = null;
-        $model = null;
-        $analysisSource = null;
-        $explanationSource = null;
-        $openAiAvailable = false;
+        $wallet = $this->findWalletOr404($id);
 
         $result = $this->openAIWalletAnalysisService->analyzeWalletBehaviorally($wallet);
-        $snapshot = $result['snapshot'];
-        $analysis = $result['analysis'];
-        $model = $result['model'];
-        $analysisSource = $result['source'];
-        $explanationSource = $result['explanation_source'] ?? 'local';
-        $openAiAvailable = (bool) ($result['openai_available'] ?? false);
 
         return $this->render('admin/wallet/ai_analysis.html.twig', [
             'wallet' => $wallet,
-            'snapshot' => $snapshot,
-            'analysis' => $analysis,
-            'model' => $model,
-            'analysisSource' => $analysisSource,
-            'explanationSource' => $explanationSource,
-            'openAiAvailable' => $openAiAvailable,
+            'snapshot' => $result['snapshot'],
+            'analysis' => $result['analysis'],
+            'model' => $result['model'],
+            'analysisSource' => $result['source'],
+            'explanationSource' => $result['explanation_source'] ?? 'local',
+            'openAiAvailable' => (bool) ($result['openai_available'] ?? false),
         ]);
     }
 
->>>>>>> Stashed changes
     #[Route('/{id}/block', name: 'block', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function block(int $id, Request $request): Response
     {
@@ -369,12 +323,7 @@ class AdminWalletController extends AbstractController
     #[Route('/{id}/modifier', name: 'edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(int $id, Request $request): Response
     {
-        /** @var Wallet|null $wallet */
-        $wallet = $this->entityManager->getRepository(Wallet::class)->find($id);
-        if (!$wallet) {
-            throw $this->createNotFoundException('Wallet introuvable.');
-        }
-
+        $wallet = $this->findWalletOr404($id);
         $previousStatus = $wallet->getStatut();
 
         if ($request->isMethod('POST')) {
@@ -405,14 +354,11 @@ class AdminWalletController extends AbstractController
     #[Route('/{id}/supprimer', name: 'delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function delete(int $id, Request $request): Response
     {
-        /** @var Wallet|null $wallet */
-        $wallet = $this->entityManager->getRepository(Wallet::class)->find($id);
-        if (!$wallet) {
-            throw $this->createNotFoundException('Wallet introuvable.');
-        }
+        $wallet = $this->findWalletOr404($id);
 
         if (!$this->isCsrfTokenValid('wallet_delete_' . $wallet->getIdWallet(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+
             return $this->redirectToRoute('admin_wallet_index');
         }
 
@@ -574,14 +520,11 @@ class AdminWalletController extends AbstractController
 
     private function applyWalletStatus(int $id, Request $request, string $status, bool $active, bool $blocked, string $tokenPrefix): Response
     {
-        /** @var Wallet|null $wallet */
-        $wallet = $this->entityManager->getRepository(Wallet::class)->find($id);
-        if (!$wallet) {
-            throw $this->createNotFoundException('Wallet introuvable.');
-        }
+        $wallet = $this->findWalletOr404($id);
 
         if (!$this->isCsrfTokenValid($tokenPrefix . $wallet->getIdWallet(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+
             return $this->redirectToRoute('admin_wallet_index');
         }
 
@@ -609,5 +552,120 @@ class AdminWalletController extends AbstractController
         if ($user instanceof User) {
             $this->notificationService->notifyWalletStatusChanged($user, $wallet->getStatut());
         }
+    }
+
+    private function findWalletOr404(int $id): Wallet
+    {
+        /** @var Wallet|null $wallet */
+        $wallet = $this->entityManager->getRepository(Wallet::class)->find($id);
+
+        if (!$wallet instanceof Wallet) {
+            throw $this->createNotFoundException('Wallet introuvable.');
+        }
+
+        return $wallet;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildWalletAnalysisContext(Wallet $wallet): array
+    {
+        /** @var Transaction[] $latestTransactions */
+        $latestTransactions = $this->entityManager->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->andWhere('t.idWallet = :walletId')
+            ->setParameter('walletId', $wallet->getIdWallet())
+            ->orderBy('t.dateTransaction', 'DESC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+
+        $transactionStats = [
+            'depotCount' => 0,
+            'retraitCount' => 0,
+            'transfertCount' => 0,
+            'depotAmount' => 0.0,
+            'retraitAmount' => 0.0,
+            'transfertAmount' => 0.0,
+        ];
+
+        foreach ($wallet->getTransactions() as $transaction) {
+            $type = mb_strtolower($transaction->getType());
+            if ($type === 'depot') {
+                $transactionStats['depotCount']++;
+                $transactionStats['depotAmount'] += $transaction->getMontant();
+                continue;
+            }
+
+            if ($type === 'retrait') {
+                $transactionStats['retraitCount']++;
+                $transactionStats['retraitAmount'] += $transaction->getMontant();
+                continue;
+            }
+
+            if ($type === 'transfert') {
+                $transactionStats['transfertCount']++;
+                $transactionStats['transfertAmount'] += $transaction->getMontant();
+            }
+        }
+
+        /** @var Cheque[] $latestCheques */
+        $latestCheques = $this->entityManager->getRepository(Cheque::class)
+            ->createQueryBuilder('c')
+            ->andWhere('c.idWallet = :walletId')
+            ->setParameter('walletId', $wallet->getIdWallet())
+            ->orderBy('c.dateEmission', 'DESC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+
+        $analytics = $this->walletAnalyticsService->buildAnalytics($wallet);
+        $anomalyReport = $this->anomalyDetectionService->detectAnomalies($wallet, $analytics);
+        $riskAnalysis = $this->riskScoringService->scoreWallet($wallet, $analytics, $anomalyReport);
+        $classification = $this->walletClassificationService->classifyWallet($wallet, $riskAnalysis, $anomalyReport, $analytics);
+        $prediction = $this->predictionService->predictWallet($wallet, $analytics, $anomalyReport, $riskAnalysis);
+
+        return [
+            'latestTransactions' => $latestTransactions,
+            'transactionStats' => $transactionStats,
+            'latestCheques' => $latestCheques,
+            'analytics' => $analytics,
+            'anomalyReport' => $anomalyReport,
+            'riskAnalysis' => $riskAnalysis,
+            'classification' => $classification,
+            'prediction' => $prediction,
+            'auditEntries' => $this->walletAuditService->getRecentEntries(20, $wallet->getIdUser()),
+        ];
+    }
+
+    private function resolveWkhtmltopdfBinary(): string
+    {
+        $configuredBinary = (string) ($_ENV['WKHTMLTOPDF_PATH'] ?? $_SERVER['WKHTMLTOPDF_PATH'] ?? '');
+        $configuredBinary = trim(trim($configuredBinary), "\"'");
+
+        if ($configuredBinary === '') {
+            throw new \RuntimeException(
+                'WKHTMLTOPDF_PATH n est pas configure. Renseignez C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe dans .env.local.'
+            );
+        }
+
+        if (!is_file($configuredBinary)) {
+            throw new \RuntimeException(sprintf(
+                'Le binaire wkhtmltopdf est introuvable au chemin configure : %s. Verifiez WKHTMLTOPDF_PATH dans .env.local.',
+                $configuredBinary
+            ));
+        }
+
+        return $this->quoteWindowsBinary($configuredBinary);
+    }
+
+    private function quoteWindowsBinary(string $value): string
+    {
+        if (str_contains($value, ' ') && !str_starts_with($value, '"')) {
+            return '"' . $value . '"';
+        }
+
+        return $value;
     }
 }

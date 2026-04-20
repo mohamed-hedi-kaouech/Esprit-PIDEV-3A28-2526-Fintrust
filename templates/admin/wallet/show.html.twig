@@ -28,12 +28,15 @@
     <a href="{{ path('admin_wallet_index') }}" class="btn ft-btn-outline-primary">
       <i class="bi bi-arrow-left me-2"></i>Retour
     </a>
-<<<<<<< Updated upstream
-=======
+    <a href="{{ path('admin_wallet_stats_wallet', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-bar-chart-line me-2"></i>Statistiques wallet
+    </a>
+    <a href="{{ path('admin_wallet_report_pdf', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-file-earmark-pdf me-2"></i>Rapport PDF
+    </a>
     <a href="{{ path('admin_wallet_ai_analysis', {id: wallet.idWallet}) }}" class="btn ft-btn-primary">
       <i class="bi bi-stars me-2"></i>Explication IA optionnelle
     </a>
->>>>>>> Stashed changes
     <a href="{{ path('admin_cheque_index', {wallet: wallet.idWallet}) }}" class="btn btn-outline-secondary">
       <i class="bi bi-journal-check me-2"></i>Voir les cheques
     </a>
@@ -152,6 +155,14 @@
 
         <a href="{{ path('admin_wallet_edit', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
           <i class="bi bi-pencil-square me-2"></i>Modifier les informations
+        </a>
+
+        <a href="{{ path('admin_wallet_stats_wallet', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+          <i class="bi bi-graph-up me-2"></i>Ouvrir les graphiques
+        </a>
+
+        <a href="{{ path('admin_wallet_report_pdf', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+          <i class="bi bi-file-earmark-pdf me-2"></i>Telecharger rapport wallet PDF
         </a>
 
         <a href="{{ path('admin_cheque_index', {wallet: wallet.idWallet}) }}" class="btn btn-outline-secondary">
