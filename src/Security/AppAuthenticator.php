@@ -6,6 +6,7 @@ use App\Entity\User\User;
 use App\EventSubscriber\AuthSessionVersionSubscriber;
 use App\Repository\UserRepository;
 use App\Service\CaptchaService;
+use App\Service\LoginSecurityApiService;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +32,7 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly UserRepository $userRepository,
         private readonly CaptchaService $captchaService,
+        private readonly LoginSecurityApiService $loginSecurityApiService,
     ) {}
 
     public function authenticate(Request $request): Passport
@@ -90,6 +92,7 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
         $request->getSession()->set(AuthSessionVersionSubscriber::SESSION_KEY, $user->getAuthSessionVersion());
         $this->captchaService->resetLoginFailures($request->getSession());
         $this->captchaService->clearChallenge($request->getSession(), 'login');
+        $this->loginSecurityApiService->inspectSuccessfulLogin($user, $request);
 
         if ($user->getStatus() === User::STATUS_SUSPENDU) {
             throw new CustomUserMessageAuthenticationException(

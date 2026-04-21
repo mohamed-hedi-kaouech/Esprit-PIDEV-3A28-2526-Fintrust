@@ -118,6 +118,14 @@ class NotificationService
         return $updated;
     }
 
+    public function countUnreadForUser(User $user): int
+    {
+        return $this->em->getRepository(Notification::class)->count([
+            'user' => $user,
+            'isRead' => false,
+        ]);
+    }
+
     private function createInternalNotification(User $user, string $message, string $type): void
     {
         $notif = new Notification();
