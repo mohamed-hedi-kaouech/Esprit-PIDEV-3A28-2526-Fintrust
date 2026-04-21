@@ -268,6 +268,9 @@ class ClientController extends AbstractController
         $publicProfileUrl = $user->getQrToken()
             ? $this->qrCodeService->getPublicProfileUrl($user->getQrToken(), $baseUrl)
             : null;
+        $localProfileUrl = $user->getQrToken()
+            ? $this->generateUrl('front_qr_view', ['token' => $user->getQrToken()])
+            : null;
         $qrUrl = $user->getQrToken()
             ? $this->generateUrl('front_qr_code_image', ['token' => $user->getQrToken()])
             : null;
@@ -280,6 +283,7 @@ class ClientController extends AbstractController
             'user' => $user,
             'qrUrl' => $qrUrl,
             'publicProfileUrl' => $publicProfileUrl,
+            'localProfileUrl' => $localProfileUrl,
             'qrNeedsPublicUrl' => $qrNeedsPublicUrl,
             'intelligenceProfile' => $this->userIntelligenceService->buildProfileEnrichment($user),
             'riskProfile' => $this->userIntelligenceService->getRiskProfile($user),
@@ -427,7 +431,9 @@ class ClientController extends AbstractController
                 $request->getSession(),
                 'kyc_submit',
                 (string) $request->request->get('captcha_token', ''),
-                $request->request->getBoolean('captcha_confirm')
+                $request->request->getBoolean('captcha_confirm'),
+                (string) $request->request->get('recaptcha_token', ''),
+                $request->getClientIp()
             )) {
                 $captchaService->refreshChallenge($request->getSession(), 'kyc_submit');
                 $captcha = $captchaService->getOrCreateChallenge($request->getSession(), 'kyc_submit');

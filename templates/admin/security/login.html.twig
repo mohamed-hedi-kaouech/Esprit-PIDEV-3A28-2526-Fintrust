@@ -115,13 +115,22 @@
             <div class="mb-4">
               <label class="form-label">Verification anti-bot</label>
               <div class="ft-admin-auth-captcha">
-                <input type="hidden" name="captcha_token" value="{{ captcha.token }}"/>
-                <label class="ft-admin-auth-captcha-check" for="captcha_confirm">
-                  <input type="checkbox" id="captcha_confirm" name="captcha_confirm" value="1"/>
-                  <span class="ft-admin-auth-captcha-box"><i class="bi bi-check-lg"></i></span>
-                  <span class="ft-admin-auth-captcha-label">{{ captcha.label }}</span>
-                </label>
-                <div class="form-text mt-2">Le CAPTCHA s'active automatiquement apres plusieurs echecs de connexion.</div>
+                {% if captcha.externalEnabled %}
+                  <input type="hidden" name="recaptcha_token" data-recaptcha-token data-site-key="{{ captcha.siteKey }}" data-action="{{ captcha.action }}"/>
+                  <div class="ft-admin-auth-captcha-check">
+                    <span class="ft-admin-auth-captcha-box"><i class="bi bi-shield-check"></i></span>
+                    <span class="ft-admin-auth-captcha-label">Protection Google reCAPTCHA v3 activee</span>
+                  </div>
+                  <div class="form-text mt-2">Validation invisible via le bundle externe KarserRecaptcha3Bundle.</div>
+                {% else %}
+                  <input type="hidden" name="captcha_token" value="{{ captcha.token }}"/>
+                  <label class="ft-admin-auth-captcha-check" for="captcha_confirm">
+                    <input type="checkbox" id="captcha_confirm" name="captcha_confirm" value="1"/>
+                    <span class="ft-admin-auth-captcha-box"><i class="bi bi-check-lg"></i></span>
+                    <span class="ft-admin-auth-captcha-label">{{ captcha.label }}</span>
+                  </label>
+                  <div class="form-text mt-2">Le CAPTCHA local reste actif tant que les cles reCAPTCHA ne sont pas configurees.</div>
+                {% endif %}
               </div>
             </div>
           {% endif %}
@@ -137,5 +146,31 @@
       </div>
     </section>
   </div>
+  {% if captcha_required and captcha.externalEnabled %}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ captcha.siteKey }}"></script>
+    <script>
+      (() => {
+        const tokenInput = document.querySelector('[data-recaptcha-token]');
+        const form = tokenInput?.closest('form');
+        if (!tokenInput || !form || typeof grecaptcha === 'undefined') {
+          return;
+        }
+        let submitted = false;
+        form.addEventListener('submit', (event) => {
+          if (submitted) {
+            return;
+          }
+          event.preventDefault();
+          grecaptcha.ready(() => {
+            grecaptcha.execute(tokenInput.dataset.siteKey, { action: tokenInput.dataset.action || 'login' }).then((token) => {
+              tokenInput.value = token;
+              submitted = true;
+              form.submit();
+            });
+          });
+        });
+      })();
+    </script>
+  {% endif %}
 </body>
 </html>

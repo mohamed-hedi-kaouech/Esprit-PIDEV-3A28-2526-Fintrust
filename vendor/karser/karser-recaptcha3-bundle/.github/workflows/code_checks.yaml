@@ -1,0 +1,118 @@
+name: Code_Checks
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  schedule:
+    - cron: '0 0 1,16 * *'
+  workflow_dispatch: ~
+
+jobs:
+  phpstan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      APP_DEBUG: '1' # https://github.com/phpstan/phpstan-symfony/issues/37
+      SYMFONY_REQUIRE: '^7.0'
+      SYMFONY_PHPUNIT_VERSION: '9.5'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: flex
+          coverage: none # disable xdebug, pcov
+          ini-values: memory_limit=-1
+
+      - name: Update project dependencies
+        run: |
+          composer update --no-interaction --no-progress --ansi
+          composer require --dev "phpstan/phpstan:^2.1" "phpstan/phpstan-strict-rules:^2.0" "phpstan/phpstan-phpunit: ^2.0" "phpstan/phpstan-deprecation-rules:^2.0"
+
+      - name: Run PHPStan analysis
+        run: |
+          ./vendor/bin/phpstan --version
+          ./vendor/bin/phpstan analyse --no-interaction --no-progress --ansi
+
+  phpunit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4']
+        symfony: ['^6.0', '^7.0', '^8.0']
+        exclude:
+          - symfony: ^6.0
+            php: 7.4
+          - symfony: ^7.0
+            php: 7.4
+          - symfony: ^7.0
+            php: 8.0
+          - symfony: ^7.0
+            php: 8.1
+          - symfony: ^8.0
+            php: 8.1
+          - symfony: ^8.0
+            php: 8.2
+          - symfony: ^8.0
+            php: 8.3
+      fail-fast: false
+    name: PHPUnit (PHP ${{ matrix.php }}) (Symfony ${{ matrix.symfony }})
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: flex
+          coverage: none # disable xdebug, pcov
+
+      - name: Validate composer.json
+        run: composer validate --ansi --strict
+
+      - name: Install PHP dependencies
+        uses: ramsey/composer-install@v2
+        env:
+          SYMFONY_REQUIRE: ${{ matrix.symfony }}
+
+      # remove this after support for symfony 3 is dropped
+      - name: Remove PhpUnit 10 support for old Symfony Versions
+        if: matrix.symfony == '^3.4' || matrix.symfony == '^4.0'
+        run: composer require --no-update "phpunit/phpunit:^7|^8|^9"
+
+      - name: Run tests
+        run: vendor/bin/phpunit
+
+  code-coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      APP_DEBUG: '1' # https://github.com/phpstan/phpstan-symfony/issues/37
+      SYMFONY_REQUIRE: '^6.4'
+      SYMFONY_PHPUNIT_VERSION: '9.5'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: flex
+          coverage: xdebug
+          ini-values: memory_limit=-1
+
+      - name: Update project dependencies
+        run: |
+          composer update --no-interaction --no-progress --ansi
+
+      - name: Run code coverage
+        run: vendor/bin/phpunit --coverage-text

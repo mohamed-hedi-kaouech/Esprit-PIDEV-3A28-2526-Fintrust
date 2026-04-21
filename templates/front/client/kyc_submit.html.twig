@@ -186,13 +186,22 @@
           <label class="form-label fw-semibold mb-2">
             <i class="bi bi-shield-lock me-1 text-primary"></i>Verification finale
           </label>
-          <input type="hidden" name="captcha_token" value="{{ captcha.token }}">
-          <label class="ft-captcha-checkbox" for="captcha_confirm">
-            <input type="checkbox" id="captcha_confirm" name="captcha_confirm" value="1">
-            <span class="ft-captcha-box"><i class="bi bi-check-lg"></i></span>
-            <span class="ft-captcha-label">{{ captcha.label }}</span>
-          </label>
-          <div class="form-text">Ce CAPTCHA protege la soumission KYC contre les envois automatises.</div>
+          {% if captcha.externalEnabled %}
+            <input type="hidden" name="recaptcha_token" data-recaptcha-token data-site-key="{{ captcha.siteKey }}" data-action="{{ captcha.action }}">
+            <div class="ft-captcha-checkbox">
+              <span class="ft-captcha-box"><i class="bi bi-shield-check"></i></span>
+              <span class="ft-captcha-label">Protection Google reCAPTCHA v3 activee</span>
+            </div>
+            <div class="form-text">Ce controle utilise le bundle externe KarserRecaptcha3Bundle.</div>
+          {% else %}
+            <input type="hidden" name="captcha_token" value="{{ captcha.token }}">
+            <label class="ft-captcha-checkbox" for="captcha_confirm">
+              <input type="checkbox" id="captcha_confirm" name="captcha_confirm" value="1">
+              <span class="ft-captcha-box"><i class="bi bi-check-lg"></i></span>
+              <span class="ft-captcha-label">{{ captcha.label }}</span>
+            </label>
+            <div class="form-text">Le CAPTCHA local reste actif tant que les cles reCAPTCHA ne sont pas configurees.</div>
+          {% endif %}
         </div>
 
         <button type="submit" class="btn ft-btn-primary w-100 py-2 fw-semibold">
@@ -209,8 +218,33 @@
 
 {% block javascripts %}
 {{ parent() }}
+{% if captcha.externalEnabled %}
+  <script src="https://www.google.com/recaptcha/api.js?render={{ captcha.siteKey }}"></script>
+{% endif %}
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <script>
+  (() => {
+    const tokenInput = document.querySelector('[data-recaptcha-token]');
+    const form = tokenInput?.closest('form');
+    if (!tokenInput || !form || typeof grecaptcha === 'undefined') {
+      return;
+    }
+    let submitted = false;
+    form.addEventListener('submit', (event) => {
+      if (submitted) {
+        return;
+      }
+      event.preventDefault();
+      grecaptcha.ready(() => {
+        grecaptcha.execute(tokenInput.dataset.siteKey, { action: tokenInput.dataset.action || 'kyc_submit' }).then((token) => {
+          tokenInput.value = token;
+          submitted = true;
+          form.submit();
+        });
+      });
+    });
+  })();
+
   const fileInput = document.getElementById('kycFiles');
   const fileList = document.getElementById('fileList');
   const placeholder = document.getElementById('uploadPlaceholder');

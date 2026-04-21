@@ -95,6 +95,7 @@ return array(
     'Nucleos\\DompdfBundle\\' => array($vendorDir . '/nucleos/dompdf-bundle/src'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
     'Masterminds\\' => array($vendorDir . '/masterminds/html5/src'),
+    'Karser\\Recaptcha3Bundle\\' => array($vendorDir . '/karser/karser-recaptcha3-bundle'),
     'FontLib\\' => array($vendorDir . '/dompdf/php-font-lib/src/FontLib'),
     'Endroid\\QrCode\\' => array($vendorDir . '/endroid/qr-code/src'),
     'Endroid\\QrCodeBundle\\' => array($vendorDir . '/endroid/qr-code-bundle/src'),

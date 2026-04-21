@@ -44,7 +44,8 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
         if ($this->captchaService->requiresLoginCaptcha($session)) {
             $token = (string) $request->request->get('captcha_token', '');
             $confirmed = $request->request->getBoolean('captcha_confirm');
-            if (!$this->captchaService->validateAnswer($session, 'login', $token, $confirmed)) {
+            $recaptchaToken = (string) $request->request->get('recaptcha_token', '');
+            if (!$this->captchaService->validateAnswer($session, 'login', $token, $confirmed, $recaptchaToken, $request->getClientIp())) {
                 $this->captchaService->refreshChallenge($session, 'login');
                 throw new CustomUserMessageAuthenticationException('Le CAPTCHA de connexion est invalide.');
             }

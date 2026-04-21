@@ -215,16 +215,19 @@
                 <img src="{{ qrUrl }}" alt="QR Code {{ user.fullName }}" class="img-fluid rounded border bg-white p-2" style="max-width:240px"/>
               </div>
               <p class="text-muted small mt-3 mb-2">Scannez pour voir votre profil public</p>
-              {% if publicProfileUrl %}
-                <a href="{{ publicProfileUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+              {% if localProfileUrl %}
+                <a href="{{ localProfileUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
                   <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir le profil sur cet appareil
                 </a>
+              {% endif %}
+              {% if publicProfileUrl %}
+                <div class="text-muted small mt-2 mb-0">URL encodee dans le QR :</div>
                 <p class="text-muted small mt-2 mb-0 text-break">{{ publicProfileUrl }}</p>
               {% endif %}
               {% if qrNeedsPublicUrl %}
                 <div class="alert alert-warning small mt-3 mb-0 text-start">
-                  Le QR pointe actuellement vers une adresse locale. Pour le scanner depuis votre telephone,
-                  remplacez `FINTRUST_PUBLIC_URL` par l'URL publique ou l'adresse IP de votre machine.
+                  Le QR pointe actuellement vers une adresse locale configuree dans `FINTRUST_PUBLIC_URL`.
+                  Si `localhost:8080` demande une autorisation, videz cette variable ou remplacez-la par l'URL correcte de votre serveur Symfony.
                 </div>
               {% endif %}
             {% else %}

@@ -11,7 +11,7 @@ class QrCodeService
 {
     public function __construct(
         private readonly BuilderInterface $defaultQrCodeBuilder,
-        private readonly string $fintrustPublicUrl = '',
+        private readonly ?string $fintrustPublicUrl = '',
     ) {}
 
     /**
@@ -58,7 +58,7 @@ class QrCodeService
 
     private function resolveBaseUrl(string $baseUrl = ''): string
     {
-        $configuredBaseUrl = trim($this->fintrustPublicUrl);
+        $configuredBaseUrl = trim((string) $this->fintrustPublicUrl);
         if ($configuredBaseUrl !== '') {
             return rtrim($configuredBaseUrl, '/');
         }

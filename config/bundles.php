@@ -17,4 +17,5 @@ return [
     Nucleos\DompdfBundle\NucleosDompdfBundle::class => ['all' => true],
     Endroid\QrCodeBundle\EndroidQrCodeBundle::class => ['all' => true],
     CalendarBundle\CalendarBundle::class => ['all' => true],
+    Karser\Recaptcha3Bundle\KarserRecaptcha3Bundle::class => ['all' => true],
 ];
