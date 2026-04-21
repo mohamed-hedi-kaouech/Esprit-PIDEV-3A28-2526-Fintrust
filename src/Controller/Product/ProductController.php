@@ -118,6 +118,7 @@ final class ProductController extends AbstractController
             return $this->redirectToRoute('product_list', [
                 'swal' => 'success',
                 'msg'  => 'Produit créé avec succès',
+
             ]);
         }
 
