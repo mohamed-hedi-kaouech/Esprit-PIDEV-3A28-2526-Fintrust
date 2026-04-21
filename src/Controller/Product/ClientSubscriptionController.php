@@ -25,31 +25,11 @@ final class ClientSubscriptionController extends AbstractController
         $statusFilter = $request->query->get('status', '');
         $search       = trim($request->query->get('search', ''));
 
-        $qb = $subscriptionRepo->createQueryBuilder('s')
-            ->join('s.clientUser', 'c')
-            ->join('s.productObj', 'p');
-
-        if ($clientId > 0) {
-            $qb->andWhere('c.id = :clientId')
-                ->setParameter('clientId', $clientId);
-        }
-
-        if ($typeFilter !== '') {
-            $qb->andWhere('s.type = :type')
-                ->setParameter('type', $typeFilter);
-        }
-
-        if ($statusFilter !== '') {
-            $qb->andWhere('s.status = :status')
-                ->setParameter('status', $statusFilter);
-        }
-
-        if ($search !== '') {
-            $qb->andWhere('p.category LIKE :search OR c.nom LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
-        }
-
-        $subscriptions = $qb->getQuery()->getResult();
+        $subscriptions = $subscriptionRepo->findByFilters(
+            $typeFilter,
+            $statusFilter,
+            $search
+        );
 
         // Map to arrays for Twig
         $subscriptionsView = array_map(function ($s) {

@@ -129,7 +129,6 @@ class DashboardController extends AbstractController
             'revenueByCategory' => $revenueByCategory,
         ]);
     }
-
     #[Route('/send-report', name: 'send_report', methods: ['POST'])]
     public function sendEmailReport(): JsonResponse
     {
@@ -222,5 +221,29 @@ class DashboardController extends AbstractController
         }
     }
 
+    #[Route('send-report-financier', name: 'send_report-financier', methods: ['POST'])]
+    public function sendEmailReportfinancier(): JsonResponse
+    {
+        $client = HttpClient::create();
 
+        try {
+            $response = $client->request(
+                'GET',
+                'http://localhost:5680/webhook-test/Ai-Agent', // ✅ FIXED PORT
+            );
+
+
+            return $this->json([
+                'success' => true,
+                'status' => $response->getStatusCode(),
+                'message' => 'Rapport envoyé à n8n avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
