@@ -128,7 +128,7 @@ class UserController extends AbstractController
             ? $this->qrCodeService->getPublicProfileUrl($user->getQrToken(), $baseUrl)
             : null;
         $qrUrl = $user->getQrToken()
-            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $baseUrl)
+            ? $this->generateUrl('front_qr_code_image', ['token' => $user->getQrToken()])
             : null;
         $qrNeedsPublicUrl = $user->getQrToken()
             ? $this->qrCodeService->isLocalOnlyUrl($baseUrl)
@@ -360,7 +360,7 @@ class UserController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        return $this->exportService->exportUsersPdfHtml($users);
+        return $this->exportService->exportUsersPdf($users, $this->buildUserStats($users));
     }
 
     private function getFilters(Request $request): array

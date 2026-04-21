@@ -254,6 +254,48 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return $weekly;
     }
 
+    /**
+     * Retourne les inscriptions par jour sur une fenetre glissante.
+     *
+     * @return array<array{day: string, label: string, cnt: int}>
+     */
+    public function getDailyRegistrations(int $days = 14): array
+    {
+        $days = max(1, $days);
+        $start = (new \DateTimeImmutable('today'))->modify('-' . ($days - 1) . ' days');
+
+        /** @var User[] $users */
+        $users = $this->createQueryBuilder('u')
+            ->select('u')
+            ->where('u.createdAt >= :start')
+            ->setParameter('start', $start)
+            ->orderBy('u.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $counts = [];
+        $cursor = $start;
+
+        for ($i = 0; $i < $days; $i++) {
+            $key = $cursor->format('Y-m-d');
+            $counts[$key] = [
+                'day' => $key,
+                'label' => $cursor->format('d/m'),
+                'cnt' => 0,
+            ];
+            $cursor = $cursor->modify('+1 day');
+        }
+
+        foreach ($users as $user) {
+            $key = $user->getCreatedAt()->format('Y-m-d');
+            if (array_key_exists($key, $counts)) {
+                $counts[$key]['cnt']++;
+            }
+        }
+
+        return array_values($counts);
+    }
+
     // =========================================================================
     // HELPERS
     // =========================================================================

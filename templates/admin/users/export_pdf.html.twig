@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Export Utilisateurs - FinTrust</title>
+  <style>
+    @page { margin: 24px 20px; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "DejaVu Sans", Arial, sans-serif;
+      font-size: 11px;
+      color: #1e293b;
+      margin: 0;
+    }
+    .header {
+      border-bottom: 3px solid #1560bd;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+    .brand {
+      color: #1560bd;
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .subtitle {
+      color: #64748b;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+    .summary {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      color: #0f172a;
+      font-size: 14px;
+      margin: 16px 0 8px;
+      border-left: 4px solid #1560bd;
+      padding-left: 8px;
+    }
+    .kpi-table {
+      margin-bottom: 12px;
+    }
+    .kpi-table td {
+      width: 25%;
+      border: 1px solid #e2e8f0;
+      padding: 10px;
+      background: #f8fafc;
+    }
+    .kpi-label {
+      color: #64748b;
+      font-size: 9px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .kpi-value {
+      color: #0f172a;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .split-table {
+      margin-bottom: 12px;
+    }
+    .split-table td {
+      width: 33.33%;
+      border: 1px solid #e2e8f0;
+      padding: 9px;
+      vertical-align: top;
+    }
+    .mini-title {
+      color: #1560bd;
+      font-weight: 700;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+    .metric-line {
+      margin: 4px 0;
+      color: #334155;
+    }
+    .metric-line strong {
+      float: right;
+      color: #0f172a;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead th {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 8px 7px;
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    tbody td {
+      padding: 7px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    tbody tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    .badge {
+      display: inline-block;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 9px;
+      font-weight: 700;
+    }
+    .success { color: #166534; background: #dcfce7; }
+    .warning { color: #92400e; background: #fef3c7; }
+    .danger { color: #991b1b; background: #fee2e2; }
+    .neutral { color: #475569; background: #e2e8f0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="brand">FinTrust - Export Utilisateurs</h1>
+    <div class="subtitle">Document genere le {{ generatedAt|date('d/m/Y H:i') }}</div>
+  </div>
+
+  <div class="summary">
+    Nombre total exporte : <strong>{{ users|length }}</strong> utilisateur(s)
+  </div>
+
+  <h2 class="section-title">Statistiques utilisateurs</h2>
+
+  <table class="kpi-table">
+    <tr>
+      <td>
+        <div class="kpi-label">Total</div>
+        <div class="kpi-value">{{ stats.total|default(users|length) }}</div>
+      </td>
+      <td>
+        <div class="kpi-label">Comptes actifs</div>
+        <div class="kpi-value">{{ stats.active|default(0) }}</div>
+      </td>
+      <td>
+        <div class="kpi-label">KYC approuves</div>
+        <div class="kpi-value">{{ stats.kycApproved|default(0) }}</div>
+      </td>
+      <td>
+        <div class="kpi-label">Nouveaux ce mois</div>
+        <div class="kpi-value">{{ stats.newThisMonth|default(0) }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="split-table">
+    <tr>
+      <td>
+        <div class="mini-title">Repartition par role</div>
+        <div class="metric-line">Clients <strong>{{ stats.roleBreakdown.clients|default(0) }}</strong></div>
+        <div class="metric-line">Admins <strong>{{ stats.roleBreakdown.admins|default(0) }}</strong></div>
+      </td>
+      <td>
+        <div class="mini-title">Repartition par statut</div>
+        <div class="metric-line">Actifs <strong>{{ stats.statusBreakdown.active|default(0) }}</strong></div>
+        <div class="metric-line">En attente <strong>{{ stats.statusBreakdown.pending|default(0) }}</strong></div>
+        <div class="metric-line">Suspendus <strong>{{ stats.statusBreakdown.suspended|default(0) }}</strong></div>
+      </td>
+      <td>
+        <div class="mini-title">Repartition KYC</div>
+        <div class="metric-line">Approuves <strong>{{ stats.kycBreakdown.approved|default(0) }}</strong></div>
+        <div class="metric-line">En attente <strong>{{ stats.kycBreakdown.pending|default(0) }}</strong></div>
+        <div class="metric-line">Refuses <strong>{{ stats.kycBreakdown.refused|default(0) }}</strong></div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="kpi-table">
+    <tr>
+      <td>
+        <div class="kpi-label">Taux activation</div>
+        <div class="kpi-value">{{ stats.activationRate|default(0) }}%</div>
+      </td>
+      <td>
+        <div class="kpi-label">Taux approbation KYC</div>
+        <div class="kpi-value">{{ stats.approvalRate|default(0) }}%</div>
+      </td>
+      <td>
+        <div class="kpi-label">Croissance mensuelle</div>
+        <div class="kpi-value">{{ stats.growthRate|default(0) }}%</div>
+      </td>
+      <td>
+        <div class="kpi-label">Derniere inscription</div>
+        <div class="kpi-value" style="font-size: 13px;">{{ stats.latestSignup|default('-') }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <h2 class="section-title">Tableau des utilisateurs</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Prenom</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Statut</th>
+        <th>KYC</th>
+        <th>Inscrit le</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.nom }}</td>
+          <td>{{ user.prenom }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+          <td>
+            {% if user.status == 'ACTIF' %}
+              <span class="badge success">Actif</span>
+            {% elseif user.status == 'SUSPENDU' %}
+              <span class="badge danger">Suspendu</span>
+            {% else %}
+              <span class="badge warning">En attente</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if user.kycStatus == 'APPROUVE' %}
+              <span class="badge success">Approuve</span>
+            {% elseif user.kycStatus == 'EN_ATTENTE' %}
+              <span class="badge warning">En attente</span>
+            {% elseif user.kycStatus == 'REFUSE' %}
+              <span class="badge danger">Refuse</span>
+            {% else %}
+              <span class="badge neutral">Non soumis</span>
+            {% endif %}
+          </td>
+          <td>{{ user.createdAt|date('d/m/Y') }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="8">Aucun utilisateur trouve pour ces filtres.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

@@ -29,6 +29,7 @@ security:
         - { path: ^/register,          roles: PUBLIC_ACCESS }
         - { path: ^/verification-compte, roles: PUBLIC_ACCESS }
         - { path: ^/admin$,            roles: PUBLIC_ACCESS }
+        - { path: ^/espace-client/qr-code/, roles: PUBLIC_ACCESS }
         - { path: ^/espace-client/qr/, roles: PUBLIC_ACCESS }
         # Catégories et Items - pas de restriction pour développement
         - { path: ^/admin/(categorie|item), roles: PUBLIC_ACCESS }

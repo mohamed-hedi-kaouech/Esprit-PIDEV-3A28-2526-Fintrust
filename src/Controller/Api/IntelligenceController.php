@@ -363,12 +363,14 @@ class IntelligenceController extends AbstractController
         $errors = $this->validator->validate($payload, new Assert\Collection([
             'allowExtraFields' => true,
             'allowMissingFields' => true,
-            'transactionsCount30d' => new Assert\Optional([new Assert\Type('numeric')]),
-            'avgAmount30d' => new Assert\Optional([new Assert\Type('numeric')]),
-            'activityChangeRate' => new Assert\Optional([new Assert\Type('numeric')]),
-            'latePayments' => new Assert\Optional([new Assert\Type('numeric')]),
-            'deviceChanges' => new Assert\Optional([new Assert\Type('numeric')]),
-            'suspiciousFlags' => new Assert\Optional([new Assert\Type('numeric')]),
+            'fields' => [
+                'transactionsCount30d' => new Assert\Optional([new Assert\Type('numeric')]),
+                'avgAmount30d' => new Assert\Optional([new Assert\Type('numeric')]),
+                'activityChangeRate' => new Assert\Optional([new Assert\Type('numeric')]),
+                'latePayments' => new Assert\Optional([new Assert\Type('numeric')]),
+                'deviceChanges' => new Assert\Optional([new Assert\Type('numeric')]),
+                'suspiciousFlags' => new Assert\Optional([new Assert\Type('numeric')]),
+            ],
         ]));
 
         if (count($errors) > 0) {
@@ -386,14 +388,17 @@ class IntelligenceController extends AbstractController
         $errors = $this->validator->validate($payload, new Assert\Collection([
             'allowExtraFields' => true,
             'allowMissingFields' => true,
-            'userId' => new Assert\Optional([new Assert\Type('numeric')]),
-            'statutKyc' => new Assert\Optional([new Assert\Type('string')]),
-            'niveauRisque' => new Assert\Optional([new Assert\Type('string')]),
-            'profilClient' => new Assert\Optional([new Assert\Type('array')]),
-            'anomaliesDocumentaires' => new Assert\Optional([new Assert\Type('array')]),
-            'signauxTransactionnels' => new Assert\Optional([new Assert\Type('array')]),
-            'alertesExistantes' => new Assert\Optional([new Assert\Type('array')]),
-            'historiqueRecent' => new Assert\Optional([new Assert\Type('array')]),
+            'fields' => [
+                'userId' => new Assert\Optional([new Assert\Type('numeric')]),
+                'statutKyc' => new Assert\Optional([new Assert\Type('string')]),
+                'niveauRisque' => new Assert\Optional([new Assert\Type('string')]),
+                'profilClient' => new Assert\Optional([new Assert\Type('array')]),
+                'anomaliesDocumentaires' => new Assert\Optional([new Assert\Type('array')]),
+                'signauxTransactionnels' => new Assert\Optional([new Assert\Type('array')]),
+                'alertesExistantes' => new Assert\Optional([new Assert\Type('array')]),
+                'historiqueRecent' => new Assert\Optional([new Assert\Type('array')]),
+                'source' => new Assert\Optional([new Assert\Type('string')]),
+            ],
         ]));
 
         if (count($errors) > 0) {

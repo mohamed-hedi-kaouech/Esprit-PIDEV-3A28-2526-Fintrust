@@ -97,6 +97,12 @@
           <span>Intelligence</span>
         </a>
 
+        <a href="{{ path('admin_calendar_index') }}"
+           class="ft-sidebar-link {% if 'admin_calendar_' in app.request.attributes.get('_route') %}active{% endif %}">
+          <i class="bi bi-calendar-week"></i>
+          <span>Calendrier</span>
+        </a>
+
         <div class="ft-sidebar-section-label mt-3">Services</div>
 
         <a href="{{ path('admin_dashboard') }}#admin-wallet" class="ft-sidebar-link">

@@ -43,6 +43,7 @@ class DashboardController extends AbstractController
         $systemHealth = $this->userRepository->getSystemHealth();
         $monthly = $this->userRepository->getMonthlyRegistrations();
         $weekly = $this->userRepository->getWeeklyRegistrations();
+        $daily = $this->userRepository->getDailyRegistrations();
         $pendingKyc = $this->kycRepository->findPending();
         $kycBreakdown = $this->kycRepository->countByStatut();
         $clients = $this->userRepository->findBy(
@@ -94,6 +95,7 @@ class DashboardController extends AbstractController
             'stats'      => $stats,
             'monthly'    => $monthly,
             'weekly'     => $weekly,
+            'daily'      => $daily,
             'riskBreakdown' => $riskBreakdown,
             'topRiskUsers' => $topRiskUsers,
             'systemHealth' => $systemHealth,

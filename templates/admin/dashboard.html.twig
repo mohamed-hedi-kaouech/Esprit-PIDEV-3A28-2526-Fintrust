@@ -224,8 +224,135 @@
       line-height: 1.6;
       margin-bottom: .7rem;
     }
+    .ft-admin-copilot-main,
+    .ft-admin-copilot-side {
+      border-color: rgba(147,197,253,.95);
+      box-shadow: 0 24px 54px rgba(30,64,175,.1);
+      background: linear-gradient(135deg, rgba(239,246,255,.98), rgba(255,255,255,.98) 44%, rgba(240,249,255,.96));
+    }
+    .ft-admin-copilot-main::before,
+    .ft-admin-copilot-side::before {
+      background: linear-gradient(180deg, #1d4ed8, #0ea5e9, #38bdf8);
+    }
+    .ft-admin-copilot-intro {
+      border-radius: 1rem;
+      border-color: rgba(147,197,253,.92);
+      background: linear-gradient(135deg, rgba(219,234,254,.98), rgba(255,255,255,.97) 68%, rgba(224,242,254,.96));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.88);
+    }
+    .ft-admin-copilot-plugin-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-top: .95rem;
+    }
+    .ft-admin-copilot-plugin {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .42rem .7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(147,197,253,.95);
+      background: rgba(255,255,255,.78);
+      color: #1e40af;
+      font-size: .74rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .ft-admin-copilot-api-chip {
+      gap: .45rem;
+      background: rgba(37,99,235,.1);
+      color: #1d4ed8;
+      font-weight: 800;
+      border-color: rgba(147,197,253,.95);
+    }
+    .ft-admin-copilot-case {
+      border-radius: 1rem;
+      border-color: rgba(191,219,254,.95);
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 14px 30px rgba(37,99,235,.075);
+    }
+    .ft-admin-copilot-case.is-loading {
+      opacity: .68;
+      pointer-events: none;
+    }
+    .ft-admin-copilot-avatar {
+      border-radius: .85rem;
+      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    }
+    .ft-admin-copilot-ai-strip {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(130px, .5fr);
+      gap: .8rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: .85rem .95rem;
+      border-radius: .9rem;
+      border: 1px solid rgba(191,219,254,.94);
+      background: linear-gradient(135deg, rgba(239,246,255,.96), rgba(255,255,255,.94));
+    }
+    .ft-admin-copilot-ai-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+    }
+    .ft-admin-copilot-mini-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .3rem .55rem;
+      border-radius: 999px;
+      background: rgba(239,246,255,.92);
+      border: 1px solid rgba(191,219,254,.9);
+      color: #1e40af;
+      font-size: .72rem;
+      font-weight: 800;
+    }
+    .ft-admin-copilot-confidence-head {
+      display: flex;
+      justify-content: space-between;
+      color: #475569;
+      font-size: .72rem;
+      font-weight: 800;
+      margin-bottom: .4rem;
+    }
+    .ft-admin-copilot-confidence-bar {
+      height: .45rem;
+      border-radius: 999px;
+      background: #dbeafe;
+      overflow: hidden;
+    }
+    .ft-admin-copilot-confidence-bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2563eb, #0ea5e9);
+    }
+    .ft-admin-copilot-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: .5rem;
+      margin-top: .85rem;
+      flex-wrap: wrap;
+    }
+    .ft-admin-copilot-api-btn {
+      border: 1px solid rgba(37,99,235,.35);
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: .7rem;
+      padding: .42rem .75rem;
+      font-size: .78rem;
+      font-weight: 800;
+    }
+    .ft-admin-copilot-api-btn:hover {
+      background: #dbeafe;
+      color: #1e40af;
+    }
     @media (max-width: 991.98px) {
       .ft-admin-copilot-grid {
+        grid-template-columns: 1fr;
+      }
+      .ft-admin-copilot-ai-strip {
         grid-template-columns: 1fr;
       }
     }
@@ -513,12 +640,12 @@
   <div class="col-lg-6">
     <div class="ft-admin-card h-100">
       <div class="ft-admin-card-header">
-        <i class="bi bi-bar-chart-line me-2 text-primary"></i>Inscriptions mensuelles
-        <span class="text-muted small ms-2">(12 derniers mois)</span>
+        <i class="bi bi-bar-chart-line me-2 text-primary"></i>Inscriptions journalieres
+        <span class="text-muted small ms-2">(14 derniers jours)</span>
       </div>
       <div class="ft-admin-card-body">
         <div class="ft-chart-container ft-chart-container-medium">
-          <canvas id="monthlyChart"></canvas>
+          <canvas id="dailyChart"></canvas>
         </div>
       </div>
     </div>
@@ -577,8 +704,14 @@
             </div>
             <div class="ft-admin-copilot-intro-title">Analyses de conformite plus lisibles, plus rapides et plus credibles</div>
             <div class="ft-admin-copilot-intro-copy">Draft automatique, synthese des signaux, justification analytique et proposition de decision finale a partir des donnees deja presentes dans FinTrust.</div>
+            <div class="ft-admin-copilot-plugin-row">
+              <span class="ft-admin-copilot-plugin"><i class="bi bi-person-badge"></i>KYC analyzer</span>
+              <span class="ft-admin-copilot-plugin"><i class="bi bi-activity"></i>Risk scoring</span>
+              <span class="ft-admin-copilot-plugin"><i class="bi bi-graph-up-arrow"></i>Behavior signals</span>
+              <span class="ft-admin-copilot-plugin"><i class="bi bi-magic"></i>Decision draft</span>
+            </div>
           </div>
-          <span class="ft-admin-copilot-api-chip">API: POST /compliance/generate-review</span>
+          <span class="ft-admin-copilot-api-chip"><i class="bi bi-cpu"></i>API IA: POST /compliance/generate-review</span>
         </div>
 
         {% if complianceCases is empty %}
@@ -589,7 +722,7 @@
         {% else %}
           <div class="ft-admin-copilot-shell">
             {% for review in complianceCases %}
-              <article class="ft-admin-copilot-case">
+              <article class="ft-admin-copilot-case" data-copilot-case data-user-id="{{ review.userId ?: '' }}">
                 <div class="ft-admin-copilot-case-head">
                   <div class="ft-admin-copilot-user">
                     <div class="ft-admin-copilot-avatar">
@@ -608,6 +741,25 @@
 
                 <div class="ft-admin-copilot-summary">
                   <strong>Resume du dossier :</strong> {{ review.summary }}
+                </div>
+
+                <div class="ft-admin-copilot-ai-strip">
+                  <div class="ft-admin-copilot-ai-meta">
+                    <span class="ft-admin-copilot-mini-chip"><i class="bi bi-stars"></i>{{ review.aiProvider|default('FinTrust AI API') }}</span>
+                    <span class="ft-admin-copilot-mini-chip"><i class="bi bi-plug"></i>{{ review.generationMode|default('API interne + plugins metier') }}</span>
+                    {% for plugin in review.pluginStack|default([])|slice(0, 3) %}
+                      <span class="ft-admin-copilot-mini-chip">{{ plugin }}</span>
+                    {% endfor %}
+                  </div>
+                  <div class="ft-admin-copilot-confidence">
+                    <div class="ft-admin-copilot-confidence-head">
+                      <span>Confiance IA</span>
+                      <span data-copilot-confidence-label>{{ review.confidenceScore|default(72) }}%</span>
+                    </div>
+                    <div class="ft-admin-copilot-confidence-bar">
+                      <span data-copilot-confidence-bar style="width: {{ review.confidenceScore|default(72) }}%"></span>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="ft-admin-copilot-grid">
@@ -633,10 +785,17 @@
                   </div>
                 </div>
 
-                <div class="ft-admin-copilot-justification">
+                <div class="ft-admin-copilot-justification" data-copilot-justification>
                   <strong>Justification :</strong> {{ review.justification }}
                 </div>
-                <div class="ft-admin-copilot-review">{{ review.generatedReview }}</div>
+                <div class="ft-admin-copilot-review" data-copilot-review>{{ review.generatedReview }}</div>
+                <div class="ft-admin-copilot-actions">
+                  {% if review.userId %}
+                    <button type="button" class="ft-admin-copilot-api-btn" data-copilot-regenerate>
+                      <i class="bi bi-arrow-repeat me-1"></i>Regenerer via API IA
+                    </button>
+                  {% endif %}
+                </div>
               </article>
             {% endfor %}
           </div>
@@ -919,6 +1078,62 @@
 {{ parent() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+  document.querySelectorAll('[data-copilot-regenerate]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const card = button.closest('[data-copilot-case]');
+      const userId = card?.dataset.userId;
+      if (!card || !userId) {
+        return;
+      }
+
+      const originalText = button.innerHTML;
+      card.classList.add('is-loading');
+      button.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Generation IA...';
+
+      try {
+        const response = await fetch('{{ path('api_compliance_generate_review') }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ userId: Number(userId), source: 'admin_dashboard_plugin' })
+        });
+
+        if (!response.ok) {
+          throw new Error('API indisponible');
+        }
+
+        const review = await response.json();
+        const reviewNode = card.querySelector('[data-copilot-review]');
+        const justificationNode = card.querySelector('[data-copilot-justification]');
+        const confidenceLabel = card.querySelector('[data-copilot-confidence-label]');
+        const confidenceBar = card.querySelector('[data-copilot-confidence-bar]');
+        const generatedAt = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        if (reviewNode) {
+          reviewNode.textContent = `${review.generatedReview || reviewNode.textContent} Analyse regeneree via API IA a ${generatedAt}.`;
+        }
+        if (justificationNode) {
+          justificationNode.innerHTML = `<strong>Justification :</strong> ${review.justification || ''}`;
+        }
+        if (confidenceLabel && confidenceBar && review.confidenceScore) {
+          confidenceLabel.textContent = `${review.confidenceScore}%`;
+          confidenceBar.style.width = `${review.confidenceScore}%`;
+        }
+      } catch (error) {
+        button.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>API non disponible';
+        setTimeout(() => { button.innerHTML = originalText; }, 1800);
+        return;
+      } finally {
+        card.classList.remove('is-loading');
+      }
+
+      button.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Analyse mise a jour';
+      setTimeout(() => { button.innerHTML = originalText; }, 1600);
+    });
+  });
+
   const notifyMessage = document.querySelector('textarea[name="message"]');
   const notifyCount = document.getElementById('adminNotifyCount');
   const previewText = document.getElementById('adminPreviewText');
@@ -1047,19 +1262,20 @@
     });
   }
 
-  const monthlyCtx = document.getElementById('monthlyChart');
-  if (monthlyCtx) {
-    new Chart(monthlyCtx, {
+  const dailyCtx = document.getElementById('dailyChart');
+  if (dailyCtx) {
+    new Chart(dailyCtx, {
       type: 'bar',
       data: {
-        labels: {{ monthly|map(r => r.month)|json_encode|raw }},
+        labels: {{ daily|map(r => r.label)|json_encode|raw }},
         datasets: [{
           label: 'Inscriptions',
-          data: {{ monthly|map(r => r.cnt)|json_encode|raw }},
-          backgroundColor: ['rgba(59,130,246,0.88)','rgba(96,165,250,0.82)','rgba(34,211,238,0.75)','rgba(37,99,235,0.86)','rgba(56,189,248,0.76)','rgba(29,78,216,0.85)','rgba(14,165,233,0.8)','rgba(59,130,246,0.82)','rgba(96,165,250,0.8)','rgba(37,99,235,0.84)','rgba(14,165,233,0.78)','rgba(59,130,246,0.9)'],
-          borderRadius: 14,
+          data: {{ daily|map(r => r.cnt)|json_encode|raw }},
+          backgroundColor: 'rgba(37,99,235,0.86)',
+          hoverBackgroundColor: 'rgba(14,165,233,0.9)',
+          borderRadius: 10,
           borderSkipped: false,
-          maxBarThickness: 42,
+          maxBarThickness: 34,
         }]
       },
       options: {

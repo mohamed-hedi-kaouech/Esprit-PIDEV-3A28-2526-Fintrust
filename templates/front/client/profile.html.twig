@@ -4,8 +4,8 @@
 {% block body %}
 <div class="ft-app-page">
   <div class="container-fluid px-4 py-4" style="max-width:1100px">
-    <div class="d-flex align-items-center gap-3 mb-4">
-      <div class="ft-page-icon-lg"><i class="bi bi-person-circle"></i></div>
+    <div class="d-flex align-items-center gap-3 mb-4 ft-profile-page-intro">
+      <div class="ft-page-icon-lg ft-profile-page-icon"><i class="bi bi-person-circle"></i></div>
       <div>
         <h1 class="ft-page-title mb-0">Mon profil</h1>
         <p class="text-muted mb-0 small">Gerez vos informations personnelles et votre profil intelligent FinTrust.</p>
@@ -13,36 +13,66 @@
     </div>
 
     <section class="ft-profile-hero mb-4">
-      <div class="ft-profile-hero-main">
-        <span class="ft-profile-kicker">
-          <i class="bi bi-stars me-2"></i>Profil intelligent
-        </span>
-        <h2 class="ft-profile-hero-title">{{ user.fullName }}</h2>
-        <p class="ft-profile-hero-text mb-0">{{ intelligenceProfile.generatedSummary }}</p>
+      <div class="ft-profile-hero-orb ft-profile-hero-orb-one"></div>
+      <div class="ft-profile-hero-orb ft-profile-hero-orb-two"></div>
+      <div class="ft-profile-hero-particles" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
       </div>
-      <div class="ft-profile-hero-metrics">
-        <div class="ft-profile-metric-card">
-          <span class="ft-profile-metric-label">Score de confiance</span>
-          <strong>{{ intelligenceProfile.trustScore }}/100</strong>
+      <div class="ft-profile-hero-main">
+        <div class="ft-profile-hero-identity">
+          <div>
+            <h2 class="ft-profile-hero-title">{{ user.fullName }}</h2>
+            <p class="ft-profile-hero-text mb-0">{{ intelligenceProfile.generatedSummary }}</p>
+          </div>
         </div>
-        <div class="ft-profile-metric-card">
-          <span class="ft-profile-metric-label">Segment client</span>
-          <strong>{{ intelligenceProfile.segment }}</strong>
+      </div>
+      <div class="ft-profile-hero-summary">
+        <div class="ft-profile-trust-ring-card">
+          <div class="ft-profile-ring" style="--ft-ring-value: {{ intelligenceProfile.trustScore }};">
+            <div class="ft-profile-ring-inner">
+              <span>Trust</span>
+              <strong>{{ intelligenceProfile.trustScore }}</strong>
+              <small>/100</small>
+            </div>
+          </div>
+          <div class="ft-profile-ring-caption">
+            <strong>Indice premium FinTrust</strong>
+            <span>Evaluation transversale du profil, du risque et de la stabilite recente.</span>
+          </div>
         </div>
-        <div class="ft-profile-metric-card">
-          <span class="ft-profile-metric-label">Risque</span>
-          <strong>{{ riskProfile.riskLevel }}</strong>
-        </div>
-        <div class="ft-profile-metric-card">
-          <span class="ft-profile-metric-label">Stabilite</span>
-          <strong>{{ intelligenceProfile.stability }}</strong>
+        <div class="ft-profile-hero-note">
+          <strong>Lecture rapide</strong>
+          <span>{{ dropoffRisk.topSignals[0] ?? 'Votre profil reste coherent avec un parcours bancaire stable et bien securise.' }}</span>
         </div>
       </div>
     </section>
 
+    <section class="ft-profile-kpi-strip mb-4">
+      <div class="ft-profile-kpi-card">
+        <div class="ft-profile-kpi-icon"><i class="bi bi-shield-lock"></i></div>
+        <span>Score de confiance</span>
+        <strong>{{ intelligenceProfile.trustScore }}/100</strong>
+      </div>
+      <div class="ft-profile-kpi-card">
+        <div class="ft-profile-kpi-icon"><i class="bi bi-bar-chart-line"></i></div>
+        <span>Activite</span>
+        <strong>{{ intelligenceProfile.activityStatus }}</strong>
+      </div>
+      <div class="ft-profile-kpi-card">
+        <div class="ft-profile-kpi-icon"><i class="bi bi-patch-check"></i></div>
+        <span>KYC</span>
+        <strong>{{ user.kycStatus }}</strong>
+      </div>
+      <div class="ft-profile-kpi-card">
+        <div class="ft-profile-kpi-icon"><i class="bi bi-calendar3"></i></div>
+        <span>Membre depuis</span>
+        <strong>{{ user.createdAt|date('d/m/Y') }}</strong>
+      </div>
+    </section>
+
     <div class="row g-4">
-      <div class="col-lg-7">
-        <div class="ft-app-card">
+      <div class="col-lg-8">
+        <div class="ft-app-card ft-profile-glass-card">
           <div class="ft-app-card-header">
             <i class="bi bi-pencil-square me-2 text-primary"></i>Informations personnelles
           </div>
@@ -102,8 +132,8 @@
         </div>
       </div>
 
-      <div class="col-lg-5">
-        <div class="ft-app-card mb-4">
+      <div class="col-lg-4">
+        <div class="ft-app-card mb-4 ft-profile-glass-card">
           <div class="ft-app-card-header">
             <i class="bi bi-info-circle me-2 text-primary"></i>Informations du compte
           </div>
@@ -134,7 +164,7 @@
           </div>
         </div>
 
-        <div class="ft-app-card mb-4">
+        <div class="ft-app-card mb-4 ft-profile-glass-card">
           <div class="ft-app-card-header">
             <i class="bi bi-sliders me-2 text-primary"></i>Preferences et profil intelligent
           </div>
@@ -167,14 +197,23 @@
             </ul>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div class="ft-app-card text-center">
+    <div class="row g-4 mt-1">
+      <div class="col-lg-6">
+        <div class="ft-app-card text-center ft-profile-glass-card ft-profile-qr-card h-100">
           <div class="ft-app-card-header">
             <i class="bi bi-qr-code me-2 text-primary"></i>Mon QR Code
           </div>
           <div class="ft-app-card-body">
             {% if qrUrl %}
-              <img src="{{ qrUrl }}" alt="QR Code {{ user.fullName }}" class="img-fluid rounded border bg-white p-2" style="max-width:240px"/>
+              <div class="ft-profile-qr-kicker">Acces intelligent et partage securise</div>
+              <div class="ft-profile-qr-frame">
+                <div class="ft-profile-qr-scan"><i class="bi bi-upc-scan"></i></div>
+                <div class="ft-profile-qr-scanline"></div>
+                <img src="{{ qrUrl }}" alt="QR Code {{ user.fullName }}" class="img-fluid rounded border bg-white p-2" style="max-width:240px"/>
+              </div>
               <p class="text-muted small mt-3 mb-2">Scannez pour voir votre profil public</p>
               {% if publicProfileUrl %}
                 <a href="{{ publicProfileUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
@@ -196,7 +235,10 @@
           </div>
         </div>
 
-        <div class="ft-app-card mt-4 ft-profile-deactivation-card">
+      </div>
+
+      <div class="col-lg-6">
+        <div class="ft-app-card ft-profile-deactivation-card ft-profile-glass-card h-100">
           <div class="ft-app-card-header">
             <i class="bi bi-shield-lock me-2 text-primary"></i>Controle de desactivation du compte
           </div>
@@ -208,6 +250,10 @@
                 <p class="ft-profile-deactivation-text mb-0">
                   FinTrust analyse vos signaux d engagement avant toute fermeture et exige une justification detaillee pour garantir un traitement serieux, securise et traçable.
                 </p>
+                <div class="ft-profile-deactivation-badges">
+                  <span><i class="bi bi-shield-check"></i>Securite 2FA FinTrust</span>
+                  <span><i class="bi bi-person-gear"></i>Validation manuelle admin</span>
+                </div>
               </div>
               <div class="ft-profile-deactivation-score">
                 <span>Risque d abandon</span>
@@ -239,6 +285,11 @@
 
             <form method="post" action="{{ path('front_profile_deactivation_request') }}" class="mt-3">
               <input type="hidden" name="_token" value="{{ csrf_token('profile_deactivation_request') }}">
+              <div class="ft-profile-deactivation-steps mb-3">
+                <div class="ft-profile-step"><span>1</span><strong>Motif</strong></div>
+                <div class="ft-profile-step"><span>2</span><strong>Impact</strong></div>
+                <div class="ft-profile-step"><span>3</span><strong>Revue admin</strong></div>
+              </div>
               <div class="mb-3">
                 <label class="form-label fw-semibold small">Justification de la demande</label>
                 <textarea name="reason" rows="4" class="form-control ft-input" placeholder="Expliquez pourquoi vous souhaitez desactiver votre compte FinTrust, les blocages rencontres ou votre besoin actuel." {% if deactivationRequest and deactivationRequest.status == 'PENDING' %}disabled{% endif %}></textarea>
@@ -258,12 +309,11 @@
             </form>
           </div>
         </div>
-      </div>
-    </div>
 
-    <div class="row g-4 mt-1">
+      </div>
+
       <div class="col-lg-6">
-        <div class="ft-app-card h-100">
+        <div class="ft-app-card ft-profile-glass-card h-100">
           <div class="ft-app-card-header">
             <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Resume du profil
           </div>
@@ -286,7 +336,7 @@
                 <strong>{{ intelligenceProfile.lastKycStatus ?? 'Aucun depot' }}</strong>
               </div>
             </div>
-            <div class="ft-soft-panel mt-3">
+            <div class="ft-soft-panel mt-3 ft-profile-ai-panel">
               <div class="fw-semibold text-primary mb-2">Signaux de vigilance</div>
               {% if intelligenceProfile.monitoringFlags is empty %}
                 <div class="text-muted small">Aucun signal majeur detecte actuellement.</div>
@@ -300,10 +350,11 @@
             </div>
           </div>
         </div>
+
       </div>
 
       <div class="col-lg-6">
-        <div class="ft-app-card h-100">
+        <div class="ft-app-card ft-profile-glass-card h-100">
           <div class="ft-app-card-header">
             <i class="bi bi-shield-exclamation me-2 text-primary"></i>Profil de risque
           </div>
@@ -311,6 +362,14 @@
             <div class="ft-risk-score-wrap mb-3">
               <div class="ft-risk-score-value">{{ riskProfile.globalRiskScore|number_format(1, ',', ' ') }}/100</div>
               <div class="ft-risk-score-caption">Niveau {{ riskProfile.riskLevel|lower }}</div>
+            </div>
+            <div class="ft-risk-bar mb-3">
+              <div class="ft-risk-bar-fill ft-risk-{{ riskProfile.riskLevel|lower }}" style="width: {{ min(riskProfile.globalRiskScore, 100) }}%;"></div>
+            </div>
+            <div class="ft-risk-glow-stat mb-3">
+              <span>Evaluation dynamique</span>
+              <strong>{{ riskProfile.globalRiskScore|number_format(1, ',', ' ') }} / 100</strong>
+              <small>Actualise selon vos signaux comportementaux et la coherence du compte.</small>
             </div>
             <div class="ft-soft-panel">
               <div class="fw-semibold text-primary mb-2">Facteurs clefs</div>
@@ -321,7 +380,7 @@
               </ul>
             </div>
             {% if riskProfile.alerts is not empty %}
-              <div class="ft-soft-panel ft-soft-panel-warning mt-3">
+              <div class="ft-soft-panel ft-soft-panel-warning mt-3 ft-profile-alert-panel">
                 <div class="fw-semibold mb-2">Alertes</div>
                 <ul class="ft-list-clean mb-0">
                   {% for alert in riskProfile.alerts %}
@@ -333,9 +392,11 @@
           </div>
         </div>
       </div>
+    </div>
 
+    <div class="row g-4 mt-1">
       <div class="col-lg-6">
-        <div class="ft-app-card h-100">
+        <div class="ft-app-card h-100 ft-profile-glass-card">
           <div class="ft-app-card-header">
             <i class="bi bi-cash-coin me-2 text-primary"></i>Comportement financier
           </div>
@@ -358,13 +419,29 @@
                 <strong>{{ financialBehavior.stabilityScore }}/100</strong>
               </div>
             </div>
-            <p class="text-muted small mb-0 mt-3">{{ financialBehavior.summary }}</p>
+            <div class="ft-profile-sparkline mt-3" aria-hidden="true">
+              <span style="height: 28%"></span>
+              <span style="height: 44%"></span>
+              <span style="height: 32%"></span>
+              <span style="height: 63%"></span>
+              <span style="height: 56%"></span>
+              <span style="height: 78%"></span>
+              <span style="height: 70%"></span>
+              <span style="height: 84%"></span>
+            </div>
+            <div class="ft-profile-finance-panel mt-3">
+              <div class="ft-profile-finance-panel-icon"><i class="bi bi-graph-up-arrow"></i></div>
+              <div>
+                <div class="fw-semibold text-dark mb-1">Lecture comportementale</div>
+                <p class="text-muted small mb-0">{{ financialBehavior.summary }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="col-lg-6">
-        <div class="ft-app-card h-100">
+        <div class="ft-app-card h-100 ft-profile-glass-card">
           <div class="ft-app-card-header">
             <i class="bi bi-clock-history me-2 text-primary"></i>Historique et surveillance
           </div>
@@ -393,37 +470,152 @@
   {{ parent() }}
   <style>
     .ft-profile-hero {
+      position: relative;
       display: grid;
       grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
       gap: 1rem;
-      padding: 1.5rem;
-      border-radius: 1.6rem;
+      padding: 1.8rem;
+      border-radius: 2rem;
       background:
-        radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 40%),
-        linear-gradient(135deg, #ffffff 0%, #f6faff 54%, #edf5ff 100%);
-      border: 1px solid #dbe7f7;
-      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.28), transparent 34%),
+        radial-gradient(circle at 15% 15%, rgba(6, 182, 212, 0.18), transparent 22%),
+        linear-gradient(135deg, rgba(30,58,138,.96) 0%, rgba(37,99,235,.94) 56%, rgba(59,130,246,.88) 100%);
+      border: 1px solid rgba(255,255,255,.28);
+      box-shadow: 0 24px 60px rgba(30, 58, 138, 0.22);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
     }
+    .ft-profile-hero-orb {
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(8px);
+      opacity: .55;
+      pointer-events: none;
+    }
+    .ft-profile-hero-orb-one {
+      width: 220px;
+      height: 220px;
+      top: -70px;
+      right: -30px;
+      background: radial-gradient(circle, rgba(255,255,255,.34), rgba(255,255,255,0));
+    }
+    .ft-profile-hero-orb-two {
+      width: 180px;
+      height: 180px;
+      left: -40px;
+      bottom: -60px;
+      background: radial-gradient(circle, rgba(6,182,212,.24), rgba(6,182,212,0));
+    }
+    .ft-profile-hero-particles span {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.55);
+      box-shadow: 0 0 18px rgba(255,255,255,.32);
+      animation: ftProfileFloat 7s ease-in-out infinite;
+    }
+    .ft-profile-hero-particles span:nth-child(1) { top: 20%; left: 48%; animation-delay: .2s; }
+    .ft-profile-hero-particles span:nth-child(2) { top: 16%; right: 18%; width: 10px; height: 10px; animation-delay: 1s; }
+    .ft-profile-hero-particles span:nth-child(3) { bottom: 26%; left: 8%; animation-delay: 2s; }
+    .ft-profile-hero-particles span:nth-child(4) { bottom: 18%; right: 36%; width: 6px; height: 6px; animation-delay: 3s; }
     .ft-profile-kicker {
       display: inline-flex;
       align-items: center;
       padding: .45rem .85rem;
       border-radius: 999px;
-      background: rgba(37, 99, 235, 0.08);
-      color: #1d4ed8;
+      background: rgba(255, 255, 255, 0.14);
+      color: #eff6ff;
       font-weight: 700;
       font-size: .84rem;
       margin-bottom: .85rem;
+      border: 1px solid rgba(255,255,255,.22);
+      backdrop-filter: blur(10px);
+    }
+    .ft-profile-hero-main,
+    .ft-profile-hero-metrics {
+      position: relative;
+      z-index: 1;
+    }
+    .ft-profile-hero-identity {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .ft-profile-avatar-shell {
+      position: relative;
+      width: 88px;
+      height: 88px;
+      flex-shrink: 0;
+    }
+    .ft-profile-avatar-glow {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(125,211,252,.75), rgba(99,102,241,.45), rgba(255,255,255,.25));
+      filter: blur(10px);
+      opacity: .95;
+    }
+    .ft-profile-avatar-core {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #eff6ff;
+      background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(191,219,254,.16));
+      border: 1px solid rgba(255,255,255,.32);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
     }
     .ft-profile-hero-title {
       font-size: clamp(1.7rem, 3vw, 2.4rem);
       font-weight: 800;
-      color: #0f172a;
+      color: #ffffff;
       margin-bottom: .5rem;
     }
     .ft-profile-hero-text {
-      color: #526581;
+      color: rgba(239,246,255,.88);
       max-width: 60ch;
+    }
+    .ft-profile-ai-insight {
+      display: flex;
+      gap: .9rem;
+      align-items: flex-start;
+      padding: 1rem 1.05rem;
+      border-radius: 1.25rem;
+      background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.08));
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(12px);
+      max-width: 720px;
+    }
+    .ft-profile-ai-icon {
+      width: 2.6rem;
+      height: 2.6rem;
+      border-radius: .95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(6,182,212,.82), rgba(99,102,241,.76));
+      color: #fff;
+      box-shadow: 0 14px 24px rgba(15,23,42,.18);
+    }
+    .ft-profile-ai-label {
+      font-size: .76rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: rgba(224,231,255,.9);
+      font-weight: 800;
+      margin-bottom: .25rem;
+    }
+    .ft-profile-ai-copy {
+      color: #f8fafc;
+      font-weight: 600;
+      line-height: 1.65;
     }
     .ft-profile-hero-metrics,
     .ft-insight-grid {
@@ -434,9 +626,19 @@
     .ft-profile-metric-card,
     .ft-insight-pill {
       padding: 1rem;
-      border-radius: 1.15rem;
-      background: rgba(255, 255, 255, 0.86);
-      border: 1px solid rgba(191, 219, 254, 0.9);
+      border-radius: 1.25rem;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      backdrop-filter: blur(12px);
+      transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+    }
+    .ft-profile-metric-card:hover,
+    .ft-insight-pill:hover,
+    .ft-profile-glass-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 18px 34px rgba(37,99,235,.14);
+      border-color: rgba(96,165,250,.42);
     }
     .ft-profile-metric-card strong,
     .ft-insight-pill strong {
@@ -447,21 +649,87 @@
     }
     .ft-profile-metric-label,
     .ft-insight-pill span {
-      color: #64748b;
+      color: #5f7493;
       font-size: .78rem;
       text-transform: uppercase;
       letter-spacing: .04em;
       font-weight: 700;
     }
+    .ft-profile-trust-ring-card {
+      grid-column: span 2;
+      min-height: 182px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      border-radius: 1.35rem;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.16);
+      backdrop-filter: blur(14px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
+    }
+    .ft-profile-ring {
+      --ft-ring-angle: calc(var(--ft-ring-value) * 3.6deg);
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,.16) 50%, transparent 51%),
+        conic-gradient(#06b6d4 0deg, #3b82f6 calc(var(--ft-ring-angle) * .55), #6366f1 var(--ft-ring-angle), rgba(255,255,255,.12) var(--ft-ring-angle), rgba(255,255,255,.12) 360deg);
+      box-shadow: 0 16px 30px rgba(15,23,42,.16);
+      animation: ftProfilePulse 4s ease-in-out infinite;
+    }
+    .ft-profile-ring-inner {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(15,23,42,.72);
+      border: 1px solid rgba(255,255,255,.14);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+    .ft-profile-ring-inner span,
+    .ft-profile-ring-inner small {
+      color: rgba(226,232,240,.86);
+      text-transform: uppercase;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+    .ft-profile-ring-inner strong {
+      font-size: 2rem;
+      line-height: 1;
+      margin: .2rem 0;
+    }
+    .ft-profile-glass-card {
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.10), transparent 26%),
+        linear-gradient(135deg, rgba(255,255,255,.76), rgba(255,255,255,.62));
+      border: 1px solid rgba(255,255,255,.22);
+      backdrop-filter: blur(12px);
+      border-radius: 1.45rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+    }
     .ft-soft-panel {
       padding: 1rem 1.05rem;
-      border-radius: 1.1rem;
-      background: linear-gradient(135deg, #f8fbff, #eff6ff);
-      border: 1px solid #dbe7f7;
+      border-radius: 1.15rem;
+      background: linear-gradient(135deg, rgba(248,251,255,.94), rgba(239,246,255,.92));
+      border: 1px solid rgba(219,231,247,.95);
     }
     .ft-soft-panel-warning {
-      background: linear-gradient(135deg, #fffaf0, #fff3d9);
+      background: linear-gradient(135deg, rgba(255,248,240,.96), rgba(255,239,219,.94));
       border-color: #f7d8a8;
+      box-shadow: inset 4px 0 0 #f59e0b;
+    }
+    .ft-profile-ai-panel {
+      background: linear-gradient(135deg, rgba(239,246,255,.96), rgba(224,242,254,.94));
+      box-shadow: inset 4px 0 0 #3b82f6;
     }
     .ft-list-clean {
       list-style: none;
@@ -503,9 +771,65 @@
       color: #64748b;
       font-weight: 600;
     }
+    .ft-risk-bar {
+      position: relative;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(226,232,240,.9);
+      box-shadow: inset 0 1px 2px rgba(15,23,42,.08);
+    }
+    .ft-risk-bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      transition: width .9s ease;
+      animation: ftFillGrow 1.1s ease;
+    }
+    .ft-risk-low { background: linear-gradient(90deg, #10b981, #34d399); }
+    .ft-risk-medium { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .ft-risk-high,
+    .ft-risk-critical { background: linear-gradient(90deg, #ef4444, #f97316); }
+    .ft-profile-alert-panel {
+      box-shadow: inset 4px 0 0 #f59e0b;
+    }
+    .ft-profile-sparkline {
+      display: flex;
+      align-items: end;
+      gap: .45rem;
+      height: 72px;
+      padding: .85rem;
+      border-radius: 1.1rem;
+      background: linear-gradient(180deg, rgba(239,246,255,.86), rgba(255,255,255,.92));
+      border: 1px solid rgba(219,234,254,.9);
+    }
+    .ft-profile-sparkline span {
+      flex: 1;
+      border-radius: 999px 999px .4rem .4rem;
+      background: linear-gradient(180deg, #06b6d4, #3b82f6 58%, #1e3a8a);
+      box-shadow: 0 10px 16px rgba(37,99,235,.14);
+      animation: ftBarRise .8s ease both;
+    }
+    .ft-profile-sparkline span:nth-child(2) { animation-delay: .08s; }
+    .ft-profile-sparkline span:nth-child(3) { animation-delay: .16s; }
+    .ft-profile-sparkline span:nth-child(4) { animation-delay: .24s; }
+    .ft-profile-sparkline span:nth-child(5) { animation-delay: .32s; }
+    .ft-profile-sparkline span:nth-child(6) { animation-delay: .4s; }
+    .ft-profile-sparkline span:nth-child(7) { animation-delay: .48s; }
+    .ft-profile-sparkline span:nth-child(8) { animation-delay: .56s; }
     .ft-timeline {
       display: grid;
       gap: 1rem;
+      position: relative;
+      padding-left: .25rem;
+    }
+    .ft-timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(59,130,246,.18), rgba(6,182,212,.65), rgba(16,185,129,.18));
     }
     .ft-timeline-item {
       display: grid;
@@ -526,8 +850,8 @@
     .ft-timeline-info { background: #3b82f6; }
     .ft-profile-deactivation-card {
       background:
-        radial-gradient(circle at top right, rgba(59,130,246,.10), transparent 28%),
-        linear-gradient(140deg, rgba(255,255,255,.99), rgba(246,250,255,.98));
+        radial-gradient(circle at top right, rgba(239,68,68,.10), transparent 26%),
+        linear-gradient(140deg, rgba(255,255,255,.98), rgba(255,247,247,.96));
     }
     .ft-profile-deactivation-hero {
       display: flex;
@@ -537,8 +861,8 @@
       flex-wrap: wrap;
       padding: 1rem 1.05rem;
       border-radius: 1.2rem;
-      background: linear-gradient(135deg, rgba(239,246,255,.96), rgba(255,255,255,.95));
-      border: 1px solid rgba(191,219,254,.85);
+      background: linear-gradient(135deg, rgba(255,244,244,.96), rgba(255,255,255,.95));
+      border: 1px solid rgba(252,165,165,.46);
     }
     .ft-profile-deactivation-kicker {
       display: inline-flex;
@@ -547,7 +871,7 @@
       border-radius: 999px;
       background: rgba(255,255,255,.88);
       border: 1px solid rgba(191,219,254,.85);
-      color: #1d4ed8;
+      color: #b91c1c;
       font-size: .76rem;
       font-weight: 800;
       letter-spacing: .04em;
@@ -583,7 +907,7 @@
       display: block;
       font-size: 1.7rem;
       line-height: 1.1;
-      color: #1450b8;
+      color: #b91c1c;
       margin: .35rem 0;
     }
     .ft-profile-request-state {
@@ -596,6 +920,37 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: .75rem;
+    }
+    .ft-profile-deactivation-steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .75rem;
+    }
+    .ft-profile-step {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .85rem .9rem;
+      border-radius: 1rem;
+      background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(248,250,252,.92));
+      border: 1px solid rgba(254,202,202,.72);
+    }
+    .ft-profile-step span {
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .82rem;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      box-shadow: 0 10px 18px rgba(239,68,68,.18);
+    }
+    .ft-profile-step strong {
+      color: #7f1d1d;
+      font-size: .88rem;
     }
     .ft-profile-request-pill {
       padding: .85rem .9rem;
@@ -616,14 +971,702 @@
       margin-top: .3rem;
       color: #0f172a;
     }
+    .ft-profile-qr-card .ft-app-card-body {
+      position: relative;
+    }
+    .ft-profile-qr-frame {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.15rem;
+      border-radius: 1.6rem;
+      background: linear-gradient(135deg, rgba(239,246,255,.94), rgba(255,255,255,.95));
+      border: 1px solid rgba(147,197,253,.75);
+      box-shadow: 0 18px 32px rgba(37,99,235,.12);
+      overflow: hidden;
+    }
+    .ft-profile-qr-frame::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(59,130,246,.9), rgba(6,182,212,.85), rgba(99,102,241,.75));
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: ftNeonBorder 3.5s linear infinite;
+    }
+    .ft-profile-qr-scan {
+      position: absolute;
+      top: .85rem;
+      right: .85rem;
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: .85rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,.86);
+      color: #2563eb;
+      border: 1px solid rgba(191,219,254,.9);
+      z-index: 1;
+    }
     .x-small { font-size: .74rem; }
     @media (max-width: 991px) {
       .ft-profile-hero {
         grid-template-columns: 1fr;
       }
+      .ft-profile-trust-ring-card {
+        grid-column: span 1;
+      }
+      .ft-profile-hero-identity {
+        align-items: flex-start;
+      }
+      .ft-profile-deactivation-steps,
       .ft-profile-request-points {
         grid-template-columns: 1fr;
       }
+    }
+    @keyframes ftProfileFloat {
+      0%, 100% { transform: translateY(0); opacity: .35; }
+      50% { transform: translateY(-10px); opacity: .8; }
+    }
+    @keyframes ftProfilePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+    @keyframes ftFillGrow {
+      from { width: 0; }
+    }
+    @keyframes ftBarRise {
+      from { transform: scaleY(.2); transform-origin: bottom; opacity: .2; }
+      to { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+    }
+    @keyframes ftNeonBorder {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+  </style>
+  <style>
+    .ft-profile-hero {
+      align-items: stretch;
+    }
+    .ft-profile-hero-summary {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 1rem;
+      min-width: 0;
+    }
+    .ft-profile-trust-ring-card {
+      min-height: auto;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 1.15rem;
+    }
+    .ft-profile-summary-list {
+      display: grid;
+      gap: .75rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ft-profile-summary-item {
+      padding: .95rem 1rem;
+      border-radius: 1.15rem;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+      backdrop-filter: blur(12px);
+    }
+    .ft-profile-summary-item span {
+      display: block;
+      color: rgba(224,231,255,.84);
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+      margin-bottom: .32rem;
+    }
+    .ft-profile-summary-item strong {
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .ft-profile-kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .ft-profile-kpi-card {
+      position: relative;
+      padding: 1rem 1.05rem;
+      border-radius: 1.35rem;
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.12), transparent 34%),
+        linear-gradient(135deg, rgba(255,255,255,.78), rgba(255,255,255,.64));
+      border: 1px solid rgba(255,255,255,.48);
+      box-shadow:
+        0 18px 40px rgba(15,23,42,.08),
+        inset 0 1px 0 rgba(255,255,255,.6);
+      backdrop-filter: blur(12px);
+      transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+      overflow: hidden;
+    }
+    .ft-profile-kpi-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 48px rgba(37,99,235,.14);
+      border-color: rgba(96,165,250,.45);
+    }
+    .ft-profile-kpi-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: .9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: .85rem;
+      color: #2563eb;
+      background: linear-gradient(135deg, rgba(219,234,254,.96), rgba(191,219,254,.8));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.82);
+    }
+    .ft-profile-kpi-card span {
+      display: block;
+      color: #5f7493;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+      margin-bottom: .32rem;
+    }
+    .ft-profile-kpi-card strong {
+      display: block;
+      color: #0f172a;
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+    .ft-app-page {
+      position: relative;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(59,130,246,.14), transparent 26%),
+        radial-gradient(circle at top right, rgba(6,182,212,.10), transparent 24%),
+        linear-gradient(180deg, #f8fbff 0%, #f3f7fd 38%, #eef4fb 100%);
+    }
+    .ft-profile-page-icon {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb 58%, #3b82f6);
+      color: #fff;
+      box-shadow: 0 18px 36px rgba(37,99,235,.22);
+    }
+    .ft-profile-hero {
+      grid-template-columns: minmax(0, 1.72fr) minmax(320px, 1fr);
+      padding: 2.05rem;
+      border-radius: 2.2rem;
+      background:
+        radial-gradient(circle at 14% 18%, rgba(255,255,255,.36), transparent 20%),
+        radial-gradient(circle at 88% 12%, rgba(191,219,254,.55), transparent 24%),
+        radial-gradient(circle at 76% 80%, rgba(6,182,212,.18), transparent 24%),
+        linear-gradient(135deg, rgba(30,58,138,.98) 0%, rgba(37,99,235,.94) 46%, rgba(59,130,246,.9) 74%, rgba(96,165,250,.86) 100%);
+      box-shadow:
+        0 26px 70px rgba(30,58,138,.20),
+        inset 0 1px 0 rgba(255,255,255,.16);
+      isolation: isolate;
+    }
+    .ft-profile-hero::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255,255,255,.08), transparent 36%, rgba(255,255,255,.06));
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ft-profile-hero-orb-one {
+      width: 260px;
+      height: 260px;
+      top: -82px;
+      right: -26px;
+    }
+    .ft-profile-hero-orb-two {
+      width: 240px;
+      height: 240px;
+      left: -54px;
+      bottom: -94px;
+      background: radial-gradient(circle, rgba(6,182,212,.30), rgba(6,182,212,0));
+    }
+    .ft-profile-kicker {
+      padding: .55rem .92rem;
+      font-weight: 800;
+      letter-spacing: .03em;
+    }
+    .ft-profile-hero-title {
+      font-size: clamp(2rem, 3.8vw, 3rem);
+      line-height: 1.04;
+      letter-spacing: -.04em;
+    }
+    .ft-profile-hero-text {
+      font-size: 1rem;
+    }
+    .ft-profile-hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .6rem;
+      margin-top: 1rem;
+    }
+    .ft-profile-hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .55rem .85rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.20);
+      color: #eff6ff;
+      font-size: .78rem;
+      font-weight: 700;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
+    }
+    .ft-profile-avatar-shell {
+      width: 96px;
+      height: 96px;
+    }
+    .ft-profile-avatar-glow {
+      inset: -10px;
+      filter: blur(14px);
+    }
+    .ft-profile-avatar-core {
+      font-size: 1.7rem;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.24),
+        0 18px 28px rgba(15,23,42,.18);
+    }
+    .ft-profile-ai-insight {
+      margin-top: 1.15rem;
+      padding: 1.05rem 1.15rem;
+      border-radius: 1.4rem;
+      box-shadow: 0 20px 40px rgba(15,23,42,.08);
+    }
+    .ft-profile-ai-icon {
+      width: 2.9rem;
+      height: 2.9rem;
+    }
+    .ft-profile-ai-copy {
+      font-size: .96rem;
+      line-height: 1.7;
+    }
+    .ft-profile-hero-metrics,
+    .ft-insight-grid {
+      gap: .95rem;
+    }
+    .ft-profile-trust-ring-card {
+      min-height: 210px;
+      gap: 1.2rem;
+      border-radius: 1.6rem;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.14),
+        0 18px 40px rgba(15,23,42,.12);
+    }
+    .ft-profile-ring {
+      width: 144px;
+      height: 144px;
+      box-shadow: 0 22px 42px rgba(15,23,42,.18);
+    }
+    .ft-profile-ring-inner {
+      width: 100px;
+      height: 100px;
+      background: rgba(15,23,42,.76);
+    }
+    .ft-profile-ring-inner strong {
+      font-size: 2.1rem;
+    }
+    .ft-profile-ring-caption {
+      max-width: 180px;
+      color: #eff6ff;
+    }
+    .ft-profile-ring-caption strong {
+      display: block;
+      margin-bottom: .35rem;
+      font-size: 1rem;
+    }
+    .ft-profile-ring-caption span {
+      display: block;
+      color: rgba(224,231,255,.82);
+      font-size: .84rem;
+      line-height: 1.65;
+    }
+    .ft-profile-metric-card,
+    .ft-insight-pill,
+    .ft-profile-glass-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .ft-profile-metric-card::before,
+    .ft-insight-pill::before,
+    .ft-profile-glass-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(59,130,246,.12), transparent 36%);
+      pointer-events: none;
+    }
+    .ft-profile-metric-card,
+    .ft-insight-pill {
+      border-radius: 1.35rem;
+      box-shadow:
+        0 14px 34px rgba(15,23,42,.08),
+        inset 0 1px 0 rgba(255,255,255,.65);
+    }
+    .ft-profile-glass-card {
+      box-shadow:
+        0 18px 48px rgba(15,23,42,.08),
+        inset 0 1px 0 rgba(255,255,255,.52);
+    }
+    .ft-profile-metric-card:hover,
+    .ft-insight-pill:hover,
+    .ft-profile-glass-card:hover {
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: 0 24px 48px rgba(37,99,235,.14);
+    }
+    .ft-profile-metric-icon {
+      width: 2.55rem;
+      height: 2.55rem;
+      border-radius: .95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: .78rem;
+      color: #2563eb;
+      background: linear-gradient(135deg, rgba(219,234,254,.95), rgba(191,219,254,.78));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.78);
+    }
+    .ft-profile-metric-label,
+    .ft-insight-pill span {
+      letter-spacing: .08em;
+      font-weight: 800;
+    }
+    .ft-input {
+      border-radius: 1rem;
+      border: 1px solid rgba(191,219,254,.9);
+      background: rgba(255,255,255,.84);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+    .ft-input:focus {
+      border-color: rgba(59,130,246,.62);
+      box-shadow: 0 0 0 .18rem rgba(59,130,246,.12);
+    }
+    .ft-btn-primary {
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      border: none;
+      border-radius: 14px;
+      box-shadow: 0 16px 28px rgba(37,99,235,.18);
+      transition: transform .3s ease, box-shadow .3s ease;
+    }
+    .ft-btn-primary:hover,
+    .ft-btn-primary:focus {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 34px rgba(37,99,235,.24);
+    }
+    .ft-profile-qr-kicker {
+      display: inline-flex;
+      align-items: center;
+      padding: .42rem .8rem;
+      margin-bottom: .9rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(219,234,254,.9), rgba(224,242,254,.82));
+      color: #1d4ed8;
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .ft-profile-qr-frame {
+      padding: 1.3rem;
+      border-radius: 1.8rem;
+      box-shadow: 0 22px 52px rgba(59,130,246,.14);
+    }
+    .ft-profile-qr-frame img {
+      position: relative;
+      z-index: 2;
+      border-radius: 1rem !important;
+      box-shadow: 0 18px 38px rgba(15,23,42,.10);
+    }
+    .ft-profile-qr-scan {
+      top: 1rem;
+      right: 1rem;
+      z-index: 3;
+      width: 2.45rem;
+      height: 2.45rem;
+    }
+    .ft-profile-qr-scanline {
+      position: absolute;
+      left: 1rem;
+      right: 1rem;
+      top: 28%;
+      height: 3px;
+      border-radius: 999px;
+      z-index: 2;
+      background: linear-gradient(90deg, transparent, rgba(59,130,246,.95), rgba(6,182,212,.95), transparent);
+      box-shadow: 0 0 20px rgba(59,130,246,.36);
+      animation: ftQrScan 2.8s ease-in-out infinite;
+    }
+    .ft-profile-deactivation-card {
+      background:
+        radial-gradient(circle at top right, rgba(239,68,68,.12), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(59,130,246,.10), transparent 24%),
+        linear-gradient(140deg, rgba(255,255,255,.98), rgba(255,246,246,.96));
+    }
+    .ft-profile-deactivation-hero {
+      border-radius: 1.5rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.65);
+    }
+    .ft-profile-deactivation-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .55rem;
+      margin-top: .9rem;
+    }
+    .ft-profile-deactivation-badges span {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .5rem .8rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(252,165,165,.32);
+      color: #991b1b;
+      font-size: .76rem;
+      font-weight: 700;
+    }
+    .ft-profile-request-state {
+      box-shadow: 0 12px 26px rgba(15,23,42,.04);
+    }
+    .ft-profile-step,
+    .ft-profile-request-pill {
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.70);
+    }
+    .ft-risk-score-value {
+      font-size: clamp(2rem, 3.4vw, 2.9rem);
+      letter-spacing: -.04em;
+    }
+    .ft-risk-score-caption,
+    .ft-profile-request-pill span {
+      font-weight: 800;
+      letter-spacing: .09em;
+    }
+    .ft-risk-bar {
+      height: 16px;
+      box-shadow: inset 0 2px 4px rgba(15,23,42,.08);
+    }
+    .ft-risk-glow-stat {
+      padding: 1rem 1.05rem;
+      border-radius: 1.2rem;
+      background: linear-gradient(135deg, rgba(219,234,254,.88), rgba(239,246,255,.92));
+      border: 1px solid rgba(191,219,254,.9);
+      box-shadow: 0 14px 28px rgba(37,99,235,.08);
+    }
+    .ft-risk-glow-stat span,
+    .ft-risk-glow-stat small {
+      display: block;
+      color: #64748b;
+      font-size: .78rem;
+      line-height: 1.6;
+    }
+    .ft-risk-glow-stat span {
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+      margin-bottom: .35rem;
+    }
+    .ft-risk-glow-stat strong {
+      display: block;
+      font-size: 1.35rem;
+      color: #1e3a8a;
+      margin-bottom: .15rem;
+    }
+    .ft-profile-sparkline {
+      height: 96px;
+      border-radius: 1.3rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.75);
+    }
+    .ft-profile-finance-panel {
+      display: flex;
+      gap: .9rem;
+      align-items: flex-start;
+      padding: 1rem 1.05rem;
+      border-radius: 1.2rem;
+      background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(239,246,255,.92));
+      border: 1px solid rgba(191,219,254,.85);
+    }
+    .ft-profile-finance-panel-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: .9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(37,99,235,.18);
+      flex-shrink: 0;
+    }
+    .ft-timeline-item > div:last-child {
+      padding: .85rem 1rem;
+      border-radius: 1rem;
+      background: rgba(255,255,255,.74);
+      border: 1px solid rgba(219,234,254,.82);
+      box-shadow: 0 12px 24px rgba(15,23,42,.05);
+    }
+    @keyframes ftQrScan {
+      0%, 100% { transform: translateY(0); opacity: .65; }
+      50% { transform: translateY(128px); opacity: 1; }
+    }
+    @media (max-width: 991.98px) {
+      .ft-profile-hero {
+        grid-template-columns: 1fr;
+      }
+      .ft-profile-kpi-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .ft-profile-deactivation-hero {
+        flex-direction: column;
+      }
+    }
+    @media (max-width: 767.98px) {
+      .ft-profile-hero {
+        padding: 1.4rem;
+      }
+      .ft-profile-deactivation-badges {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .ft-insight-grid,
+      .ft-profile-kpi-strip,
+      .ft-profile-deactivation-steps,
+      .ft-profile-request-points {
+        grid-template-columns: 1fr;
+      }
+      .ft-profile-trust-ring-card {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+  <style>
+    .ft-profile-hero {
+      padding: 1.2rem 1.35rem !important;
+      min-height: auto !important;
+      gap: .8rem !important;
+      border-radius: 1.7rem !important;
+    }
+    .ft-profile-kicker {
+      padding: .42rem .72rem !important;
+      margin-bottom: .65rem !important;
+      font-size: .76rem !important;
+    }
+    .ft-profile-hero-title {
+      font-size: clamp(1.55rem, 2.6vw, 2.25rem) !important;
+      margin-bottom: .4rem !important;
+    }
+    .ft-profile-hero-text {
+      font-size: .9rem !important;
+      line-height: 1.55 !important;
+      max-width: 42ch !important;
+    }
+    .ft-profile-hero-summary {
+      gap: .7rem !important;
+      align-content: start;
+    }
+    .ft-profile-trust-ring-card {
+      padding: .9rem 1rem !important;
+      gap: .85rem !important;
+      border-radius: 1.2rem !important;
+    }
+    .ft-profile-ring {
+      width: 108px !important;
+      height: 108px !important;
+    }
+    .ft-profile-ring-inner {
+      width: 78px !important;
+      height: 78px !important;
+    }
+    .ft-profile-ring-inner strong {
+      font-size: 1.55rem !important;
+    }
+    .ft-profile-ring-caption {
+      max-width: 150px !important;
+    }
+    .ft-profile-ring-caption strong {
+      font-size: .92rem !important;
+      margin-bottom: .2rem !important;
+    }
+    .ft-profile-ring-caption span {
+      font-size: .78rem !important;
+      line-height: 1.45 !important;
+    }
+    .ft-profile-hero-note {
+      padding: .75rem .9rem !important;
+      border-radius: 1rem !important;
+    }
+    .ft-profile-hero-note strong {
+      font-size: .72rem !important;
+      margin-bottom: .2rem !important;
+    }
+    .ft-profile-hero-note span {
+      font-size: .82rem !important;
+      line-height: 1.45 !important;
+    }
+    .ft-profile-hero-orb-one {
+      width: 180px !important;
+      height: 180px !important;
+      top: -55px !important;
+    }
+    .ft-profile-hero-orb-two {
+      width: 150px !important;
+      height: 150px !important;
+      bottom: -60px !important;
+    }
+    .ft-profile-hero-particles span {
+      width: 7px !important;
+      height: 7px !important;
+    }
+    .ft-profile-hero-identity {
+      display: block !important;
+      margin-bottom: .8rem !important;
+    }
+    .ft-profile-avatar-shell,
+    .ft-profile-avatar-glow,
+    .ft-profile-avatar-core,
+    .ft-profile-ai-insight,
+    .ft-profile-summary-list,
+    .ft-profile-summary-item,
+    .ft-profile-hero-tags,
+    .ft-profile-hero-tag {
+      display: none !important;
+    }
+    .ft-profile-hero-note {
+      padding: .95rem 1rem;
+      border-radius: 1.15rem;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.16);
+      color: #eff6ff;
+      backdrop-filter: blur(12px);
+    }
+    .ft-profile-hero-note strong {
+      display: block;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: .35rem;
+      color: rgba(224,231,255,.88);
+    }
+    .ft-profile-hero-note span {
+      display: block;
+      font-size: .9rem;
+      line-height: 1.6;
+      color: #f8fafc;
     }
   </style>
 {% endblock %}

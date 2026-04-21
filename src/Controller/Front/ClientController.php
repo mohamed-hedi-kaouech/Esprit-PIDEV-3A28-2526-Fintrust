@@ -269,7 +269,7 @@ class ClientController extends AbstractController
             ? $this->qrCodeService->getPublicProfileUrl($user->getQrToken(), $baseUrl)
             : null;
         $qrUrl = $user->getQrToken()
-            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $baseUrl)
+            ? $this->generateUrl('front_qr_code_image', ['token' => $user->getQrToken()])
             : null;
         $qrNeedsPublicUrl = $user->getQrToken()
             ? $this->qrCodeService->isLocalOnlyUrl($baseUrl)

@@ -53,6 +53,15 @@ class ComplianceCopilotService
             'generatedReview' => $this->buildGeneratedReview($user, $recommendedDecision, $riskLevel, $kycCenter, $keySignals, $history),
             'history' => array_slice($history, 0, 4),
             'recommendedActions' => $this->buildRecommendedActions($recommendedDecision, $kycCenter, $documentIssues),
+            'confidenceScore' => $this->estimateConfidenceScore($recommendedDecision, $riskLevel, $keySignals, $documentIssues),
+            'aiProvider' => 'FinTrust AI API',
+            'generationMode' => 'API interne + plugins metier',
+            'pluginStack' => [
+                'KYC analyzer',
+                'Risk scoring',
+                'Behavior signals',
+                'Decision draft',
+            ],
             'generatedAt' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
         ];
     }
@@ -368,5 +377,27 @@ class ComplianceCopilotService
         }
 
         return 'cmp_' . substr(md5(json_encode($payload)), 0, 6);
+    }
+
+    /**
+     * @param list<string> $signals
+     * @param list<string> $documentIssues
+     */
+    private function estimateConfidenceScore(string $decision, string $riskLevel, array $signals, array $documentIssues): int
+    {
+        $score = match ($decision) {
+            'APPROVE' => 86,
+            'REJECT' => 82,
+            default => 74,
+        };
+
+        if (in_array($riskLevel, ['HIGH', 'CRITICAL'], true)) {
+            $score -= 6;
+        }
+
+        $score += min(8, count($signals) * 2);
+        $score -= min(10, count($documentIssues) * 2);
+
+        return max(55, min(96, $score));
     }
 }
