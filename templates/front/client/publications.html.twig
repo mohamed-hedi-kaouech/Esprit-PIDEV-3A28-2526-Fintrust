@@ -48,13 +48,13 @@
     </section>
 
     <section class="ft-publications-filter-card">
-      <form method="get" action="" class="row gx-3 gy-3 align-items-end" novalidate="novalidate">
+      <form method="get" action="" class="row gx-3 gy-3 align-items-end ft-publications-filter-form" novalidate="novalidate">
         <div class="col-lg-5">
           <label class="form-label small fw-semibold ft-publications-filter-label">
             <i class="bi bi-search me-2"></i>Recherche
           </label>
           <div class="ft-publications-input-wrap">
-            <input type="text" name="keyword" value="{{ searchTerm }}" class="form-control ft-publications-input" placeholder="Rechercher un titre, une analyse ou une astuce">
+            <input type="text" name="keyword" value="{{ searchTerm }}" class="form-control ft-publications-input" placeholder="Rechercher un titre, une analyse ou une astuce" autocomplete="off">
           </div>
         </div>
 
@@ -947,6 +947,54 @@
 {% block javascripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  const filterForm = document.querySelector('.ft-publications-filter-form');
+
+  if (filterForm) {
+    const keywordInput = filterForm.querySelector('input[name="keyword"]');
+    const categorySelect = filterForm.querySelector('select[name="category"]');
+    const sortSelect = filterForm.querySelector('select[name="sort"]');
+    const submitButton = filterForm.querySelector('.ft-publications-submit-btn');
+    let typingTimer;
+
+    const submitFilters = () => {
+      const formData = new FormData(filterForm);
+      const params = new URLSearchParams();
+
+      for (const [key, value] of formData.entries()) {
+        const normalizedValue = String(value).trim();
+
+        if (normalizedValue !== '') {
+          params.set(key, normalizedValue);
+        }
+      }
+
+      const targetUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+
+      if (targetUrl !== `${window.location.pathname}${window.location.search}`) {
+        window.location.assign(targetUrl);
+      }
+    };
+
+    const submitAfterTyping = (event) => {
+      if (event.isComposing) {
+        return;
+      }
+
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(submitFilters, 350);
+    };
+
+    keywordInput?.addEventListener('input', submitAfterTyping);
+    categorySelect?.addEventListener('change', submitFilters);
+    sortSelect?.addEventListener('change', submitFilters);
+
+    if (submitButton) {
+      submitButton.classList.add('ft-publications-submit-btn--fallback');
+      submitButton.setAttribute('title', 'Recherche automatique active');
+      submitButton.closest('.col-lg-1')?.classList.add('d-none');
+    }
+  }
+
   const cards = document.querySelectorAll('.ft-publication-card');
 
   cards.forEach((card) => {
