@@ -128,16 +128,17 @@ class InternationalTransferController extends AbstractController
             return $this->redirectToRoute('front_wallet_international_transfer_new');
         }
 
+        $destinationPhone = is_string($pendingTransfer['phone_number'] ?? null) ? $pendingTransfer['phone_number'] : null;
         $form = $this->createForm(InternationalTransferOtpType::class);
         $form->handleRequest($request);
         $completedTransfer = null;
 
         if ($form->isSubmitted() && $form->isValid()) {
             $otpCode = (string) $form->get('otp_code')->getData();
-            $destinationPhone = is_string($pendingTransfer['phone_number'] ?? null) ? $pendingTransfer['phone_number'] : null;
 
             try {
-                if (!$this->otpVerificationService->verifyCode($user, $otpCode, $destinationPhone)) {
+                $otpMode = is_string($pendingTransfer['otp_mode'] ?? null) ? $pendingTransfer['otp_mode'] : 'live';
+                if (!$this->otpVerificationService->verifyCode($user, $otpCode, $destinationPhone, $otpMode)) {
                     $this->addFlash('error', 'Le code OTP est incorrect ou n est plus valide. Veuillez reessayer.');
                 } else {
                     $transferData = $this->deserializeTransferData($pendingTransfer['transfer_data'] ?? []);
@@ -160,12 +161,16 @@ class InternationalTransferController extends AbstractController
             $this->addFlash('error', 'Le code OTP saisi est invalide.');
         }
 
+        $otpMode = is_string($pendingTransfer['otp_mode'] ?? null) ? $pendingTransfer['otp_mode'] : 'live';
+
         return $this->render('front/client/wallet/international_transfer_verify_otp.html.twig', [
             'form' => $form,
             'preview' => $pendingTransfer['preview'] ?? null,
-            'maskedPhone' => $this->otpVerificationService->getMaskedPhone($user, $destinationPhone),
+            'maskedPhone' => $this->resolveMaskedOtpDestination($user, $destinationPhone, $otpMode),
             'expiresAt' => isset($pendingTransfer['expires_at']) ? new \DateTimeImmutable((string) $pendingTransfer['expires_at']) : null,
-            'otpMode' => $pendingTransfer['otp_mode'] ?? 'live',
+            'otpMode' => $otpMode,
+            'demoCode' => $pendingTransfer['demo_code'] ?? null,
+            'otpTechnicalReason' => $pendingTransfer['technical_reason'] ?? null,
             'completedTransfer' => $completedTransfer,
         ]);
     }
@@ -188,6 +193,8 @@ class InternationalTransferController extends AbstractController
             $pendingTransfer['expires_at'] = (new \DateTimeImmutable('+' . self::OTP_TTL_SECONDS . ' seconds'))->format(\DateTimeInterface::ATOM);
             $pendingTransfer['otp_mode'] = $otpDispatch['mode'] ?? 'live';
             $pendingTransfer['phone_number'] = $otpDispatch['phone_number'] ?? $destinationPhone;
+            $pendingTransfer['demo_code'] = $otpDispatch['demo_code'] ?? null;
+            $pendingTransfer['technical_reason'] = $otpDispatch['technical_reason'] ?? null;
             $request->getSession()->set(self::OTP_SESSION_KEY, $pendingTransfer);
             $this->addFlash('success', (string) ($otpDispatch['user_message'] ?? 'Un nouveau code OTP a ete envoye.'));
         } catch (InternationalTransferException $exception) {
@@ -247,6 +254,8 @@ class InternationalTransferController extends AbstractController
             'preview' => $preview,
             'otp_mode' => $otpDispatch['mode'] ?? 'live',
             'phone_number' => $otpDispatch['phone_number'] ?? null,
+            'demo_code' => $otpDispatch['demo_code'] ?? null,
+            'technical_reason' => $otpDispatch['technical_reason'] ?? null,
         ]);
     }
 
@@ -303,6 +312,19 @@ class InternationalTransferController extends AbstractController
         }
 
         return $user->getNumTel();
+    }
+
+    private function resolveMaskedOtpDestination(User $user, ?string $destinationPhone, string $otpMode): string
+    {
+        try {
+            return $this->otpVerificationService->getMaskedPhone($user, $destinationPhone);
+        } catch (InternationalTransferException $exception) {
+            if ($otpMode === 'demo') {
+                return 'mode demo OTP';
+            }
+
+            throw $exception;
+        }
     }
 
     /**

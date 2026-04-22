@@ -535,4 +535,61 @@
     </div>
   </div>
 </section>
+
+{# ── Synthèse AML ─────────────────────────────────────────────────────── #}
+{% if amlAnalysis is defined %}
+<section class="ft-admin-card mt-4">
+  <div class="ft-admin-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><i class="bi bi-shield-lock me-2 text-primary"></i>Synthèse AML — Anti-Blanchiment</span>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge {{ amlAnalysis.level_badge }} fs-6">Score {{ amlAnalysis.score }}/100 — {{ amlAnalysis.level_label }}</span>
+      <a href="{{ path('admin_aml_wallet_detail', {id: wallet.idWallet}) }}" class="btn btn-sm ft-btn-primary">
+        <i class="bi bi-shield-lock me-1"></i>Analyse AML complète
+      </a>
+    </div>
+  </div>
+  <div class="ft-admin-card-body">
+    <div class="row g-3 align-items-start">
+
+      {# Profil + recommandation #}
+      <div class="col-12 col-lg-5">
+        <div class="d-flex gap-3 mb-2">
+          <i class="{{ amlAnalysis.profile.icon }} fs-3" style="color:{{ amlAnalysis.profile.color }}"></i>
+          <div>
+            <div class="fw-semibold">Profil : <span style="color:{{ amlAnalysis.profile.color }}">{{ amlAnalysis.profile.label }}</span></div>
+            <div class="small text-muted">{{ amlAnalysis.profile.description }}</div>
+          </div>
+        </div>
+        <div class="p-2 rounded small" style="background:rgba(37,99,235,.06);border-left:3px solid {{ amlAnalysis.profile.color }}">
+          <strong>Recommandation :</strong> {{ amlAnalysis.recommendation.label }}
+        </div>
+      </div>
+
+      {# Alertes résumé #}
+      <div class="col-12 col-lg-7">
+        {% if amlAnalysis.alerts is empty %}
+          <div class="text-muted small"><i class="bi bi-shield-check text-success me-1"></i>Aucune alerte AML détectée.</div>
+        {% else %}
+          <div class="d-flex flex-column gap-2">
+            {% for alert in amlAnalysis.alerts|slice(0, 4) %}
+              {% set aBadge = alert.severity == 'critical' ? 'ft-badge-danger' : (alert.severity == 'high' ? 'ft-badge-warning' : (alert.severity == 'medium' ? 'ft-badge-info' : 'ft-badge-neutral')) %}
+              <div class="d-flex align-items-start gap-2">
+                <span class="badge {{ aBadge }} mt-1 flex-shrink-0">{{ alert.severity|upper }}</span>
+                <div class="small"><strong>{{ alert.title }}</strong> — {{ alert.description|slice(0, 80) }}{% if alert.description|length > 80 %}…{% endif %}</div>
+              </div>
+            {% endfor %}
+            {% if amlAnalysis.alert_count > 4 %}
+              <a href="{{ path('admin_aml_wallet_detail', {id: wallet.idWallet}) }}" class="small text-primary">
+                +{{ amlAnalysis.alert_count - 4 }} alerte(s) supplémentaire(s) →
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endif %}
+
 {% endblock %}

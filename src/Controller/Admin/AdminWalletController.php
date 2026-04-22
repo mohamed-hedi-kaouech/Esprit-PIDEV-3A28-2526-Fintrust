@@ -6,7 +6,10 @@ use App\Entity\User\User;
 use App\Entity\Wallet\Cheque;
 use App\Entity\Wallet\Transaction;
 use App\Entity\Wallet\Wallet;
+use App\Service\AML\AMLDecisionEngineService;
 use App\Service\AnomalyDetectionService;
+use App\Service\AdminBankingCalendarService;
+use App\Service\AdminBankingChartService;
 use App\Service\NotificationService;
 use App\Service\OpenAIWalletAnalysisService;
 use App\Service\PredictionService;
@@ -18,7 +21,9 @@ use App\Service\WalletClassificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Knp\Snappy\Pdf;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -40,6 +45,10 @@ class AdminWalletController extends AbstractController
         private readonly PredictionService $predictionService,
         private readonly WalletAuditService $walletAuditService,
         private readonly WalletChartService $walletChartService,
+        private readonly AdminBankingCalendarService $adminBankingCalendarService,
+        private readonly AdminBankingChartService $adminBankingChartService,
+        private readonly AMLDecisionEngineService $amlDecisionEngineService,
+        private readonly LoggerInterface $logger,
         private readonly Pdf $pdf,
     ) {
     }
@@ -152,8 +161,58 @@ class AdminWalletController extends AbstractController
             'blockedWallets' => $blockedWallets,
             'topActiveWallets' => $topActiveWallets,
             'walletsByMonth' => array_values($monthlyMap),
+            'bankingCharts' => $this->adminBankingChartService->buildDashboardCharts(),
             'auditEntries' => $this->walletAuditService->getRecentEntries(12),
         ]);
+    }
+
+    #[Route('/calendar', name: 'calendar', methods: ['GET'])]
+    #[Route('/calendrier', name: 'calendar_fr', methods: ['GET'])]
+    public function calendar(Request $request): Response
+    {
+        $start = $this->parseCalendarDate((string) $request->query->get('start', 'first day of this month'));
+        $end = $this->parseCalendarDate((string) $request->query->get('end', 'first day of next month'));
+
+        try {
+            return $this->render('admin/wallet/calendar.html.twig', [
+                'dailyActivity' => $this->adminBankingCalendarService->buildDailyActivity($start, $end),
+            ]);
+        } catch (\Throwable $exception) {
+            $this->logger->error('Erreur lors du chargement du calendrier bancaire admin.', [
+                'start' => $start->format(\DateTimeInterface::ATOM),
+                'end' => $end->format(\DateTimeInterface::ATOM),
+                'message' => $exception->getMessage(),
+                'exception' => $exception,
+            ]);
+
+            $this->addFlash('error', 'Le calendrier bancaire est temporairement indisponible.');
+
+            return $this->redirectToRoute('admin_wallet_index');
+        }
+    }
+
+    #[Route('/calendar/events', name: 'calendar_events', methods: ['GET'])]
+    #[Route('/calendrier/events', name: 'calendar_events_fr', methods: ['GET'])]
+    public function calendarEvents(Request $request): JsonResponse
+    {
+        $start = $this->parseCalendarDate((string) $request->query->get('start', 'first day of this month'));
+        $end = $this->parseCalendarDate((string) $request->query->get('end', 'first day of next month'));
+
+        try {
+            return $this->json($this->adminBankingCalendarService->buildEvents($start, $end));
+        } catch (\Throwable $exception) {
+            $this->logger->error('Erreur lors de la generation JSON du calendrier bancaire admin.', [
+                'start' => $start->format(\DateTimeInterface::ATOM),
+                'end' => $end->format(\DateTimeInterface::ATOM),
+                'message' => $exception->getMessage(),
+                'exception' => $exception,
+            ]);
+
+            return $this->json([
+                'error' => 'calendar_unavailable',
+                'message' => 'Le calendrier bancaire est temporairement indisponible.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     #[Route('/audit', name: 'audit', methods: ['GET'])]
@@ -625,6 +684,7 @@ class AdminWalletController extends AbstractController
         $riskAnalysis = $this->riskScoringService->scoreWallet($wallet, $analytics, $anomalyReport);
         $classification = $this->walletClassificationService->classifyWallet($wallet, $riskAnalysis, $anomalyReport, $analytics);
         $prediction = $this->predictionService->predictWallet($wallet, $analytics, $anomalyReport, $riskAnalysis);
+        $amlAnalysis = $this->amlDecisionEngineService->analyzeWallet($wallet, $analytics, $anomalyReport, $riskAnalysis);
 
         return [
             'latestTransactions' => $latestTransactions,
@@ -635,6 +695,7 @@ class AdminWalletController extends AbstractController
             'riskAnalysis' => $riskAnalysis,
             'classification' => $classification,
             'prediction' => $prediction,
+            'amlAnalysis' => $amlAnalysis,
             'auditEntries' => $this->walletAuditService->getRecentEntries(20, $wallet->getIdUser()),
         ];
     }
@@ -667,5 +728,14 @@ class AdminWalletController extends AbstractController
         }
 
         return $value;
+    }
+
+    private function parseCalendarDate(string $value): \DateTimeImmutable
+    {
+        try {
+            return new \DateTimeImmutable($value);
+        } catch (\Exception) {
+            return new \DateTimeImmutable('today');
+        }
     }
 }

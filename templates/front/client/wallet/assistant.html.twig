@@ -1,0 +1,100 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Assistant wallet{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="ft-page-icon-lg"><i class="bi bi-stars"></i></div>
+        <div>
+          <h1 class="ft-page-title mb-0">Assistant wallet</h1>
+          <p class="text-muted mb-0 small">Reponses personnalisees a partir de vos donnees wallet et de votre profil bancaire.</p>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('front_wallet_dashboard') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-house-door me-1"></i>Dashboard
+        </a>
+        <a href="{{ path('front_wallet_transactions') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-arrow-left-right me-1"></i>Transactions
+        </a>
+      </div>
+    </div>
+
+    <section class="row g-4">
+      <div class="col-xl-4">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-chat-dots me-2 text-primary"></i>Questions rapides
+          </div>
+          <div class="ft-app-card-body">
+            <form method="post" class="d-grid gap-2">
+              {% set choices = {
+                balance: ['bi-cash-stack', 'Mon solde'],
+                transactions: ['bi-clock-history', 'Dernieres transactions'],
+                status: ['bi-shield-check', 'Etat du wallet'],
+                profile: ['bi-activity', 'Analyse de mon profil'],
+                loan: ['bi-bank', 'Conseil demande de pret']
+              } %}
+              {% for key, item in choices %}
+                <button type="submit" name="intent" value="{{ key }}" class="btn {{ intent == key ? 'ft-btn-primary' : 'ft-btn-outline-primary' }} text-start">
+                  <i class="bi {{ item[0] }} me-2"></i>{{ item[1] }}
+                </button>
+              {% endfor %}
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-8">
+        <div class="ft-app-card ft-premium-card mb-4">
+          <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-magic me-2 text-primary"></i>{{ assistantAnswer.title }}</span>
+            <span class="badge ft-badge-blue">Wallet #{{ wallet.idWallet }}</span>
+          </div>
+          <div class="ft-app-card-body">
+            <p class="fs-5 fw-semibold mb-3">{{ assistantAnswer.message }}</p>
+            {% if assistantAnswer.details is not empty %}
+              <div class="list-group list-group-flush">
+                {% for detail in assistantAnswer.details %}
+                  <div class="list-group-item px-0">
+                    <i class="bi bi-check2-circle text-primary me-2"></i>{{ detail }}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% set loan = assistantAnswer.loanAdvice %}
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="ft-dash-card ft-dash-card-soft h-100">
+              <div class="ft-dash-card-icon {{ loan.decision == 'favorable' ? 'ft-dash-icon-green' : (loan.decision == 'moyen' ? 'ft-dash-icon-orange' : 'ft-dash-icon-red') }}">
+                <i class="bi bi-bank"></i>
+              </div>
+              <div class="ft-dash-card-label">Avis pret</div>
+              <div class="ft-dash-card-value">{{ loan.decision|upper }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-dash-card ft-dash-card-soft h-100">
+              <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-speedometer2"></i></div>
+              <div class="ft-dash-card-label">Score</div>
+              <div class="ft-dash-card-value">{{ loan.score }}/100</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-dash-card ft-dash-card-soft h-100">
+              <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-lightbulb"></i></div>
+              <div class="ft-dash-card-label">Recommandation</div>
+              <div class="small fw-semibold">{{ loan.recommendation }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -5,10 +5,13 @@ namespace App\Controller\Admin;
 use App\Entity\User\User;
 use App\Entity\Wallet\Cheque;
 use App\Form\Admin\ChequeRejectType;
+use App\Service\ChequeSignatureService;
 use App\Service\NotificationService;
 use App\Service\WalletAuditService;
+use App\Service\YousignService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +27,9 @@ class AdminChequeController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly NotificationService $notificationService,
         private readonly WalletAuditService $walletAuditService,
+        private readonly ChequeSignatureService $chequeSignatureService,
+        private readonly YousignService $yousignService,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -132,7 +138,34 @@ class AdminChequeController extends AbstractController
 
         return $this->render('admin/cheque/show.html.twig', [
             'cheque' => $cheque,
+            'signature' => $this->chequeSignatureService->verify($cheque),
+            'yousignConfigured' => $this->yousignService->isConfigured(),
         ]);
+    }
+
+    #[Route('/{id}/signer', name: 'sign', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function sign(int $id, Request $request): Response
+    {
+        /** @var Cheque|null $cheque */
+        $cheque = $this->entityManager->getRepository(Cheque::class)->find($id);
+
+        if (!$cheque) {
+            throw $this->createNotFoundException('Cheque introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('sign_cheque_' . $cheque->getIdCheque(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+
+            return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
+        }
+
+        /** @var User $admin */
+        $admin = $this->getUser();
+        $signature = $this->chequeSignatureService->sign($cheque, $admin);
+
+        $this->addFlash('success', 'Validation signee generee. Empreinte: ' . substr($signature, 0, 16));
+
+        return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
     }
 
     #[Route('/{id}/approve', name: 'approve', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -152,6 +185,13 @@ class AdminChequeController extends AbstractController
 
         if ($cheque->getWallet()->getEstBloque()) {
             $this->addFlash('error', 'Impossible d approuver ce cheque car le wallet associe est bloque.');
+            return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
+        }
+
+        $signature = $this->chequeSignatureService->verify($cheque);
+        if (!$signature['signed'] || !$signature['valid']) {
+            $this->addFlash('warning', 'Une signature admin valide est requise avant approbation du cheque.');
+
             return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
         }
 
@@ -217,6 +257,95 @@ class AdminChequeController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/initiate-yousign', name: 'initiate_yousign', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function initiateYousign(int $id, Request $request): Response
+    {
+        /** @var Cheque|null $cheque */
+        $cheque = $this->entityManager->getRepository(Cheque::class)->find($id);
+
+        if (!$cheque) {
+            throw $this->createNotFoundException('Cheque introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('yousign_cheque_' . $cheque->getIdCheque(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
+        }
+
+        if ($cheque->getYousignStatus() === 'signed') {
+            $this->addFlash('warning', 'Ce cheque a deja ete signe electroniquement via Yousign.');
+            return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
+        }
+
+        $user = $this->resolveUserForCheque($cheque);
+        if (!$user) {
+            $this->addFlash('error', 'Impossible de trouver le client associe a ce cheque.');
+            return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
+        }
+        if (!filter_var($user->getEmail(), FILTER_VALIDATE_EMAIL)) {
+            $this->addFlash('error', 'Le client associe n a pas d adresse email valide pour Yousign.');
+
+            return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
+        }
+
+        try {
+            $this->logger->info('Yousign: demande de signature declenchee depuis l admin.', [
+                'cheque_id' => $cheque->getIdCheque(),
+                'wallet_id' => $cheque->getWallet()->getIdWallet(),
+                'user_id' => $user->getId(),
+                'signer_email' => $user->getEmail(),
+            ]);
+
+            $result = $this->yousignService->initiateSignature(
+                $cheque,
+                $user->getEmail(),
+                $user->getPrenom(),
+                $user->getNom()
+            );
+
+            $cheque->setYousignProcedureId($result['procedure_id']);
+            $cheque->setYousignStatus('pending');
+            $cheque->setYousignSigningLink($result['signing_link']);
+            $cheque->setYousignSignedAt(null);
+            $this->entityManager->flush();
+
+            $this->logger->info('Yousign: cheque mis en attente de signature.', [
+                'cheque_id' => $cheque->getIdCheque(),
+                'procedure_id' => $result['procedure_id'],
+                'status' => $cheque->getYousignStatus(),
+                'signing_link_saved' => $result['signing_link'] !== '',
+            ]);
+
+            $this->walletAuditService->logChequeAction(
+                'wallet.cheque.yousign_initiated',
+                $cheque->getIdCheque(),
+                $cheque->getWallet()->getIdWallet(),
+                $user->getId(),
+                'yousign_pending'
+            );
+
+            $this->addFlash(
+                'success',
+                sprintf(
+                    'Demande Yousign envoyee a %s. Statut: en attente de signature. ID Yousign: %s.',
+                    $user->getEmail(),
+                    $result['procedure_id']
+                )
+            );
+        } catch (\Throwable $e) {
+            $this->logger->error('Erreur lors de l initialisation Yousign cheque.', [
+                'cheque_id' => $cheque->getIdCheque(),
+                'wallet_id' => $cheque->getWallet()->getIdWallet(),
+                'user_id' => $user->getId(),
+                'exception' => $e::class,
+                'error' => $e->getMessage(),
+            ]);
+            $this->addFlash('error', 'Erreur Yousign : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
+    }
+
     #[Route('/{id}/deliver', name: 'deliver', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function deliver(int $id, Request $request): Response
     {
@@ -229,6 +358,13 @@ class AdminChequeController extends AbstractController
 
         if (!$this->isCsrfTokenValid('deliver_cheque_' . $cheque->getIdCheque(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
+        }
+
+        $signature = $this->chequeSignatureService->verify($cheque);
+        if (!$signature['signed']) {
+            $this->addFlash('warning', 'Le cheque doit posseder une validation signee avant livraison.');
+
             return $this->redirectToRoute('admin_cheque_show', ['id' => $cheque->getIdCheque()]);
         }
 

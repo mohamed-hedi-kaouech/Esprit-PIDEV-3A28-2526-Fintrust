@@ -18,10 +18,26 @@ parameters:
     fintrust.twilio_auth_token_default: ''
     fintrust.twilio_verify_service_sid_default: ''
     fintrust.twilio_verify_channel_default: 'sms'
+    fintrust.twilio_test_verified_phone_default: ''
+    fintrust.otp_demo_code_default: '123456'
     fintrust.twilio_account_sid: '%env(default:fintrust.twilio_account_sid_default:TWILIO_ACCOUNT_SID)%'
     fintrust.twilio_auth_token: '%env(default:fintrust.twilio_auth_token_default:TWILIO_AUTH_TOKEN)%'
     fintrust.twilio_verify_service_sid: '%env(default:fintrust.twilio_verify_service_sid_default:TWILIO_VERIFY_SERVICE_SID)%'
     fintrust.twilio_verify_channel: '%env(default:fintrust.twilio_verify_channel_default:TWILIO_VERIFY_CHANNEL)%'
+    fintrust.twilio_test_verified_phone: '%env(default:fintrust.twilio_test_verified_phone_default:TWILIO_TEST_VERIFIED_PHONE)%'
+    fintrust.otp_demo_code: '%env(default:fintrust.otp_demo_code_default:OTP_DEMO_CODE)%'
+    fintrust.exchange_rate_api_key_default: ''
+    fintrust.exchange_rate_api_base_url_default: 'https://v6.exchangerate-api.com/v6'
+    fintrust.exchange_rate_api_key: '%env(default:fintrust.exchange_rate_api_key_default:EXCHANGE_RATE_API_KEY)%'
+    fintrust.exchange_rate_api_base_url: '%env(default:fintrust.exchange_rate_api_base_url_default:EXCHANGE_RATE_API_BASE_URL)%'
+    fintrust.yousign_api_key_default: ''
+    fintrust.yousign_base_url_default: 'https://api-sandbox.yousign.app/v3'
+    fintrust.yousign_webhook_secret_default: ''
+    fintrust.app_url_default: 'http://127.0.0.1:8000'
+    fintrust.yousign_api_key: '%env(default:fintrust.yousign_api_key_default:YOUSIGN_API_KEY)%'
+    fintrust.yousign_base_url: '%env(default:fintrust.yousign_base_url_default:YOUSIGN_BASE_URL)%'
+    fintrust.yousign_webhook_secret: '%env(default:fintrust.yousign_webhook_secret_default:YOUSIGN_WEBHOOK_SECRET)%'
+    fintrust.app_url: '%env(default:fintrust.app_url_default:APP_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -38,6 +54,14 @@ services:
             string $twilioAuthToken: '%fintrust.twilio_auth_token%'
             string $twilioVerifyServiceSid: '%fintrust.twilio_verify_service_sid%'
             string $twilioVerifyChannel: '%fintrust.twilio_verify_channel%'
+            string $twilioTestVerifiedPhone: '%fintrust.twilio_test_verified_phone%'
+            string $otpDemoCode: '%fintrust.otp_demo_code%'
+            string $exchangeRateApiKey: '%fintrust.exchange_rate_api_key%'
+            string $exchangeRateApiBaseUrl: '%fintrust.exchange_rate_api_base_url%'
+            string $yousignApiKey: '%fintrust.yousign_api_key%'
+            string $yousignBaseUrl: '%fintrust.yousign_base_url%'
+            string $yousignWebhookSecret: '%fintrust.yousign_webhook_secret%'
+            string $appUrl: '%fintrust.app_url%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

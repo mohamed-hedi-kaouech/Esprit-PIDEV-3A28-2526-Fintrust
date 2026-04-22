@@ -106,7 +106,14 @@ class InternationalTransferService
         }
 
         $reference = trim((string) $data->getReference());
-        $rateData = $this->exchangeRateApiService->getLatestRate($sourceCurrency, $targetCurrency);
+        try {
+            $rateData = $this->exchangeRateApiService->getLatestRate($sourceCurrency, $targetCurrency);
+        } catch (\Throwable $throwable) {
+            throw new InternationalTransferException(
+                'Impossible de calculer le taux de change pour ce transfert: ' . $throwable->getMessage(),
+                previous: $throwable
+            );
+        }
         $convertedAmount = round($amount * (float) $rateData['rate'], 2);
         $fees = $this->calculateSimulatedFees($amount, $sourceCurrency, $targetCurrency);
         $totalDebit = round($amount + $fees, 2);

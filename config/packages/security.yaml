@@ -29,6 +29,7 @@ security:
         - { path: ^/register,          roles: PUBLIC_ACCESS }
         - { path: ^/admin$,            roles: PUBLIC_ACCESS }
         - { path: ^/espace-client/qr/, roles: PUBLIC_ACCESS }
+        - { path: ^/webhook/,          roles: PUBLIC_ACCESS }
         # Admin — accès restreint ROLE_ADMIN
         - { path: ^/admin,             roles: ROLE_ADMIN }
         # Client — accès restreint ROLE_CLIENT (garde KYC dans les contrôleurs)

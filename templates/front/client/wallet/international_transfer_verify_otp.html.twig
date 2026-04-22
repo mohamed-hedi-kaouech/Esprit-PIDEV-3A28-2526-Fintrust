@@ -28,11 +28,26 @@
           <div class="ft-app-card-body">
             <div class="alert alert-light border">
               <div class="fw-semibold">Canal de verification</div>
-              <div class="small text-muted">Un code OTP a ete envoye par SMS sur {{ maskedPhone }}.</div>
+              {% if otpMode == 'demo' %}
+                <div class="badge ft-badge-warning mb-2">MODE DEMO OTP</div>
+                <div class="small text-muted">Twilio n a pas pu envoyer le SMS. Pour la soutenance, utilisez le code de demo affiche ci-dessous.</div>
+                {% if otpTechnicalReason %}
+                  <div class="small text-muted mt-1">Raison technique : {{ otpTechnicalReason }}</div>
+                {% endif %}
+              {% else %}
+                <div class="small text-muted">Un code OTP a ete envoye par SMS sur {{ maskedPhone }}.</div>
+              {% endif %}
               {% if expiresAt %}
                 <div class="small text-muted mt-1">Expiration : {{ expiresAt|date('d/m/Y H:i') }}</div>
               {% endif %}
             </div>
+
+            {% if otpMode == 'demo' and demoCode %}
+              <div class="alert alert-warning border-warning">
+                <div class="fw-semibold"><i class="bi bi-key me-1"></i>Code de demo</div>
+                <div class="display-6 fw-bold mb-0">{{ demoCode }}</div>
+              </div>
+            {% endif %}
 
             {{ form_start(form) }}
               <div class="mb-3">

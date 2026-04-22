@@ -19,6 +19,8 @@ class OtpVerificationService
         private readonly string $twilioAuthToken,
         private readonly string $twilioVerifyServiceSid,
         private readonly string $twilioVerifyChannel,
+        private readonly string $twilioTestVerifiedPhone,
+        private readonly string $otpDemoCode,
     ) {
     }
 
@@ -27,8 +29,12 @@ class OtpVerificationService
      */
     public function sendCode(User $user, ?string $destinationPhone = null): array
     {
-        $phoneNumber = $this->resolvePhoneNumber($user, $destinationPhone);
-        $this->assertConfiguration();
+        try {
+            $phoneNumber = $this->resolvePhoneNumber($user, $destinationPhone);
+            $this->assertConfiguration();
+        } catch (InternationalTransferException $exception) {
+            return $this->buildDemoDispatch($user, null, $exception->getMessage());
+        }
 
         try {
             $response = $this->httpClient->request('POST', $this->buildTwilioUrl('/Verifications'), [
@@ -56,8 +62,15 @@ class OtpVerificationService
                     'diagnosis' => $diagnosis,
                 ]);
 
-                throw new InternationalTransferException($diagnosis['user_message']);
+                return $this->buildDemoDispatch($user, $phoneNumber, $diagnosis['technical_reason']);
             }
+
+            $this->logger->info('OTP Twilio envoye pour transfert international.', [
+                'user_id' => $user->getId(),
+                'phone_number' => $this->maskPhone($phoneNumber),
+                'channel' => $this->twilioVerifyChannel,
+                'twilio_status' => $payload['status'] ?? 'unknown',
+            ]);
 
             return [
                 'mode' => 'live',
@@ -76,14 +89,24 @@ class OtpVerificationService
                 'exception' => $exception,
             ]);
 
-            throw new InternationalTransferException('Le service OTP est temporairement indisponible. Veuillez reessayer dans quelques instants.', previous: $exception);
+            return $this->buildDemoDispatch($user, $phoneNumber, 'Erreur reseau Twilio Verify: ' . $exception->getMessage());
         }
     }
 
-    public function verifyCode(User $user, string $code, ?string $destinationPhone = null): bool
+    public function verifyCode(User $user, string $code, ?string $destinationPhone = null, string $mode = 'live'): bool
     {
-        $phoneNumber = $this->resolvePhoneNumber($user, $destinationPhone);
         $trimmedCode = trim($code);
+        if ($mode === 'demo') {
+            $approved = hash_equals($this->getDemoCode(), $trimmedCode);
+            $this->logger->log($approved ? 'info' : 'warning', 'Verification OTP demo pour transfert international.', [
+                'user_id' => $user->getId(),
+                'approved' => $approved,
+            ]);
+
+            return $approved;
+        }
+
+        $phoneNumber = $this->resolvePhoneNumber($user, $destinationPhone);
         $this->assertConfiguration();
 
         try {
@@ -114,7 +137,15 @@ class OtpVerificationService
                 return false;
             }
 
-            return ($payload['status'] ?? null) === 'approved';
+            $approved = ($payload['status'] ?? null) === 'approved';
+            $this->logger->log($approved ? 'info' : 'warning', 'Verification OTP Twilio pour transfert international.', [
+                'user_id' => $user->getId(),
+                'phone_number' => $this->maskPhone($phoneNumber),
+                'twilio_status' => $payload['status'] ?? 'unknown',
+                'approved' => $approved,
+            ]);
+
+            return $approved;
         } catch (TransportExceptionInterface $exception) {
             $this->logger->error('Erreur reseau Twilio Verify lors de la verification OTP.', [
                 'user_id' => $user->getId(),
@@ -129,6 +160,16 @@ class OtpVerificationService
     public function getMaskedPhone(User $user, ?string $destinationPhone = null): string
     {
         return $this->maskPhone($this->resolvePhoneNumber($user, $destinationPhone));
+    }
+
+    public function getDemoCode(): string
+    {
+        $code = preg_replace('/\D/', '', trim($this->otpDemoCode));
+        if (!is_string($code) || $code === '') {
+            return '123456';
+        }
+
+        return substr($code, 0, 10);
     }
 
     private function assertConfiguration(): void
@@ -158,15 +199,58 @@ class OtpVerificationService
     private function resolvePhoneNumber(User $user, ?string $destinationPhone = null): string
     {
         $rawPhone = trim($destinationPhone ?? '');
+        $source = 'wallet';
         if ($rawPhone === '') {
             $rawPhone = trim((string) $user->getNumTel());
+            $source = 'user';
         }
 
         if ($rawPhone === '') {
             throw new InternationalTransferException('Aucun numero de telephone n est disponible pour recevoir le code OTP du transfert.');
         }
 
-        $normalized = preg_replace('/[\s\-()]/', '', $rawPhone);
+        $normalized = $this->normalizePhoneNumber($rawPhone);
+
+        if (!preg_match('/^\+[1-9][0-9]{7,14}$/', $normalized)) {
+            $this->logger->warning('Numero OTP invalide avant appel Twilio.', [
+                'user_id' => $user->getId(),
+                'source' => $source,
+                'raw_phone' => $rawPhone,
+                'normalized_phone' => $normalized,
+            ]);
+
+            throw new InternationalTransferException('Le numero de telephone doit etre au format international E.164, par exemple +216XXXXXXXX.');
+        }
+
+        $testPhone = trim($this->twilioTestVerifiedPhone);
+        if ($testPhone !== '') {
+            $normalizedTestPhone = $this->normalizePhoneNumber($testPhone);
+            if (!preg_match('/^\+[1-9][0-9]{7,14}$/', $normalizedTestPhone)) {
+                throw new InternationalTransferException('Le numero Twilio de test doit etre au format international E.164, par exemple +216XXXXXXXX.');
+            }
+
+            $this->logger->warning('OTP Twilio envoye vers un numero de test verifie.', [
+                'user_id' => $user->getId(),
+                'original_source' => $source,
+                'original_phone' => $this->maskPhone($normalized),
+                'twilio_test_phone' => $this->maskPhone($normalizedTestPhone),
+            ]);
+
+            return $normalizedTestPhone;
+        }
+
+        $this->logger->info('Numero OTP normalise pour Twilio.', [
+            'user_id' => $user->getId(),
+            'source' => $source,
+            'phone_number' => $normalized,
+        ]);
+
+        return $normalized;
+    }
+
+    private function normalizePhoneNumber(string $rawPhone): string
+    {
+        $normalized = preg_replace('/[\s\-().]/', '', trim($rawPhone));
         if (!is_string($normalized) || $normalized === '') {
             throw new InternationalTransferException('Le numero de telephone utilise pour la verification OTP est invalide.');
         }
@@ -175,8 +259,12 @@ class OtpVerificationService
             $normalized = '+' . substr($normalized, 2);
         }
 
-        if (!preg_match('/^\+[1-9][0-9]{7,14}$/', $normalized)) {
-            throw new InternationalTransferException('Le numero de telephone doit etre au format international E.164, par exemple +216XXXXXXXX.');
+        if (preg_match('/^[24579][0-9]{7}$/', $normalized)) {
+            $normalized = '+216' . $normalized;
+        }
+
+        if (preg_match('/^216[24579][0-9]{7}$/', $normalized)) {
+            $normalized = '+' . $normalized;
         }
 
         return $normalized;
@@ -199,6 +287,31 @@ class OtpVerificationService
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    private function buildDemoDispatch(User $user, ?string $phoneNumber, string $technicalReason): array
+    {
+        $this->logger->warning('Bascule OTP demo pour transfert international.', [
+            'user_id' => $user->getId(),
+            'phone_number' => $phoneNumber !== null ? $this->maskPhone($phoneNumber) : null,
+            'reason' => $technicalReason,
+            'demo_code' => $this->getDemoCode(),
+        ]);
+
+        return [
+            'mode' => 'demo',
+            'phone_number' => $phoneNumber,
+            'channel' => 'demo',
+            'demo_code' => $this->getDemoCode(),
+            'technical_reason' => $technicalReason,
+            'user_message' => sprintf(
+                'Mode demo OTP active: Twilio est indisponible pour ce numero. Utilisez le code %s pour finaliser le test.',
+                $this->getDemoCode()
+            ),
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $payload
      * @return array<string, string>
      */
@@ -211,6 +324,7 @@ class OtpVerificationService
         $technicalReason = match (true) {
             $statusCode === 401 || $code === '20003' => 'Authentification Twilio invalide: TWILIO_ACCOUNT_SID ou TWILIO_AUTH_TOKEN incorrect.',
             $statusCode === 404 => 'Verify Service SID introuvable: TWILIO_VERIFY_SERVICE_SID incorrect.',
+            $code === '21608' => 'Compte Twilio trial: le numero destinataire doit etre verifie dans Twilio avant envoi.',
             str_contains($normalized, 'channel') => 'Canal Twilio Verify non supporte ou mal configure.',
             str_contains($normalized, 'phone') || str_contains($normalized, 'to') => 'Numero destinataire invalide ou non supporte par Twilio Verify.',
             str_contains($normalized, 'service sid') => 'Verify Service SID invalide.',
@@ -220,6 +334,7 @@ class OtpVerificationService
         $userMessage = match (true) {
             $statusCode === 401 || $code === '20003' => 'La verification OTP bancaire est indisponible car la configuration Twilio est invalide.',
             $statusCode === 404 => 'Le service OTP bancaire est mal configure. Veuillez contacter l administration technique.',
+            $code === '21608' => 'Votre compte Twilio est en mode trial: le numero destinataire doit etre verifie dans Twilio avant de recevoir un SMS OTP.',
             str_contains($normalized, 'phone') || str_contains($normalized, 'to') => 'Le numero de telephone de votre profil n est pas compatible avec la verification OTP.',
             str_contains($normalized, 'channel') => 'Le canal OTP configure n est pas supporte pour le moment.',
             default => 'Le service OTP est temporairement indisponible. Veuillez reessayer dans quelques instants.',

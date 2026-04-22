@@ -14,9 +14,9 @@ namespace Symfony\UX\Chartjs\DependencyInjection;
 use Symfony\Component\AssetMapper\AssetMapperInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\UX\Chartjs\Builder\ChartBuilder;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Twig\ChartExtension;
@@ -28,7 +28,7 @@ use Symfony\UX\Chartjs\Twig\ChartExtension;
  */
 class ChartjsExtension extends Extension implements PrependExtensionInterface
 {
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $container
             ->setDefinition('chartjs.builder', new Definition(ChartBuilder::class))
@@ -48,7 +48,7 @@ class ChartjsExtension extends Extension implements PrependExtensionInterface
         ;
     }
 
-    public function prepend(ContainerBuilder $container)
+    public function prepend(ContainerBuilder $container): void
     {
         if (!$this->isAssetMapperAvailable($container)) {
             return;

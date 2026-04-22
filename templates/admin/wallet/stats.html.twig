@@ -26,6 +26,9 @@
         <a href="{{ path('admin_wallet_index') }}" class="btn ft-btn-outline-primary">
           <i class="bi bi-wallet2 me-2"></i>Retour Wallets
         </a>
+        <a href="{{ path('admin_wallet_calendar') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-calendar3 me-2"></i>Calendrier bancaire
+        </a>
         <a href="{{ path('admin_cheque_index') }}" class="btn ft-btn-primary">
           <i class="bi bi-journal-check me-2"></i>Gerer les cheques
         </a>
@@ -104,6 +107,87 @@
       <div class="ft-admin-kpi-mini-label">Cheques refuses</div>
       <div class="ft-admin-kpi-mini-value">{{ stats.chequesRefused }}</div>
       <div class="ft-admin-kpi-mini-text">Demandes rejetees avec motif admin.</div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4 mb-4">
+  <div class="col-xl-8">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Transactions par jour
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-medium">
+          {{ render_chart(bankingCharts.transactionsByDay) }}
+        </div>
+      </div>
+    </article>
+  </div>
+  <div class="col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-pie-chart me-2 text-primary"></i>Repartition par type
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-medium">
+          {{ render_chart(bankingCharts.transactionTypes) }}
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4 mb-4">
+  <div class="col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-arrow-down-up me-2 text-primary"></i>Depot vs retrait
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-medium">
+          {{ render_chart(bankingCharts.depositWithdrawal) }}
+        </div>
+      </div>
+    </article>
+  </div>
+  <div class="col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-shield-exclamation me-2 text-primary"></i>Risque 7 jours
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-medium">
+          {{ render_chart(bankingCharts.riskTrend) }}
+        </div>
+      </div>
+    </article>
+  </div>
+  <div class="col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-journal-x me-2 text-primary"></i>Taux de refus cheques
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-medium">
+          {{ render_chart(bankingCharts.chequeRefusalRate) }}
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4 mb-4">
+  <div class="col-12">
+    <article class="ft-admin-card">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-cash-coin me-2 text-primary"></i>Evolution du solde total
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-medium">
+          {{ render_chart(bankingCharts.balanceEvolution) }}
+        </div>
+      </div>
     </article>
   </div>
 </section>
@@ -272,6 +356,17 @@
 {% block javascripts %}
   {{ parent() }}
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('canvas[data-controller="symfony--ux-chartjs--chart"]').forEach(function (canvas) {
+        var attr = canvas.getAttribute('data-symfony--ux-chartjs--chart-view-value');
+        if (!attr) return;
+        var cfg = JSON.parse(attr);
+        if (Array.isArray(cfg.options)) cfg.options = {};
+        new Chart(canvas, cfg);
+      });
+    });
+  </script>
   <script>
     const walletMonthlyCtx = document.getElementById('walletMonthlyChart');
     if (walletMonthlyCtx) {

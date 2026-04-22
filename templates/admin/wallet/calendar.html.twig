@@ -1,0 +1,198 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Calendrier bancaire{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+  <style>
+    .ft-calendar-shell { min-height: 720px; }
+    .ft-calendar-legend { display: grid; gap: .75rem; }
+    .ft-calendar-legend-dot { width: .8rem; height: .8rem; border-radius: 999px; display: inline-block; flex: 0 0 auto; }
+    .ft-calendar-detail-list { display: grid; gap: .75rem; }
+    .ft-calendar-detail-item { display: flex; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid rgba(148, 163, 184, .18); }
+    .ft-calendar-detail-item:last-child { border-bottom: 0; }
+    .ft-calendar-wallet-list { display: grid; gap: .5rem; }
+    .ft-calendar-wallet-item { display: flex; justify-content: space-between; gap: .75rem; padding: .65rem .75rem; border-radius: .5rem; background: #f8fafc; }
+    .fc .fc-daygrid-event { border-radius: 6px; padding: 2px 5px; font-weight: 700; }
+    .fc .fc-toolbar-title { font-size: 1.25rem; font-weight: 800; color: #0f172a; }
+  </style>
+{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_wallet_index') }}" class="text-muted small text-decoration-none">Pilotage Wallet</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Calendrier bancaire</span>
+{% endblock %}
+
+{% block admin_content %}
+<section class="ft-admin-hero mb-4">
+  <div class="ft-admin-hero-grid">
+    <div>
+      <span class="ft-admin-hero-kicker">
+        <i class="bi bi-calendar3 me-1"></i>Activite bancaire
+      </span>
+      <h1 class="ft-admin-page-title mb-3">Calendrier bancaire</h1>
+      <p class="ft-admin-hero-subtitle mb-0">
+        Lecture jour par jour des transactions, volumes, anomalies, wallets bloques et demandes de cheques.
+      </p>
+    </div>
+    <div class="ft-admin-hero-panel">
+      <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+        <a href="{{ path('admin_wallet_stats') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-bar-chart-line me-2"></i>Dashboard analytique
+        </a>
+        <a href="{{ path('admin_cheque_index') }}" class="btn ft-btn-primary">
+          <i class="bi bi-journal-check me-2"></i>Cheques
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="row g-4">
+  <div class="col-xl-8">
+    <article class="ft-admin-card ft-calendar-shell">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-calendar-week me-2 text-primary"></i>Activite quotidienne
+      </div>
+      <div class="ft-admin-card-body">
+        <div id="bankingCalendar"></div>
+      </div>
+    </article>
+  </div>
+  <div class="col-xl-4">
+    <article class="ft-admin-card">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-search me-2 text-primary"></i>Detail du jour
+      </div>
+      <div class="ft-admin-card-body">
+        <h5 class="fw-bold mb-3" id="calendarDetailTitle">Selectionnez un jour</h5>
+        <div class="ft-calendar-detail-list" id="calendarDetail">
+          <div class="text-muted">Cliquez sur une case du calendrier pour afficher les indicateurs bancaires.</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="ft-admin-card mt-4">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-exclamation-triangle me-2 text-primary"></i>Jours a risque
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-insight-list">
+          <div class="ft-admin-insight-item"><strong><span class="ft-calendar-legend-dot me-2" style="background:#16a34a"></span>Vert</strong><span>Activite normale</span></div>
+          <div class="ft-admin-insight-item"><strong><span class="ft-calendar-legend-dot me-2" style="background:#eab308"></span>Jaune</strong><span>Activite elevee ou pic</span></div>
+          <div class="ft-admin-insight-item"><strong><span class="ft-calendar-legend-dot me-2" style="background:#f97316"></span>Orange</strong><span>Anomalie a verifier</span></div>
+          <div class="ft-admin-insight-item"><strong><span class="ft-calendar-legend-dot me-2" style="background:#dc2626"></span>Rouge</strong><span>Risque eleve ou cheque refuse</span></div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script>
+    const calendarEl = document.getElementById('bankingCalendar');
+    const detailTitle = document.getElementById('calendarDetailTitle');
+    const detailEl = document.getElementById('calendarDetail');
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function detailRow(label, value) {
+      return `<div class="ft-calendar-detail-item"><span class="text-muted">${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+    }
+
+    function money(value) {
+      return Number(value || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function renderTopWallets(wallets) {
+      if (!Array.isArray(wallets) || wallets.length === 0) {
+        return '<div class="text-muted small">Aucun wallet actif ce jour.</div>';
+      }
+
+      return `<div class="mt-3">
+        <div class="fw-bold small text-uppercase text-muted mb-2">Wallets les plus actifs</div>
+        <div class="ft-calendar-wallet-list">
+          ${wallets.map(wallet => `
+            <div class="ft-calendar-wallet-item">
+              <span>${escapeHtml(wallet.label)}</span>
+              <strong>${escapeHtml(wallet.transaction_count)} tx | ${money(wallet.total_volume)}</strong>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    }
+
+    function renderDetails(props) {
+      detailTitle.textContent = props.label || props.date;
+      const notes = Array.isArray(props.anomaly_notes) && props.anomaly_notes.length > 0
+        ? `<div class="alert alert-warning mb-0">${props.anomaly_notes.slice(0, 4).map(escapeHtml).join('<br>')}</div>`
+        : '<div class="text-muted small">Aucune anomalie detaillee.</div>';
+      const riskBadge = props.risk_level === 'high'
+        ? 'ft-badge-danger'
+        : (props.risk_level === 'anomaly' ? 'ft-badge-warning' : (props.risk_level === 'elevated' ? 'ft-badge-warning' : 'ft-badge-success'));
+
+      detailEl.innerHTML = [
+        `<div><span class="badge ${riskBadge}">${escapeHtml(props.risk_label || 'Activite normale')}</span></div>`,
+        detailRow('Transactions', props.transaction_count || 0),
+        detailRow('Volume total', money(props.total_volume)),
+        detailRow('Total depots', money(props.deposit_total)),
+        detailRow('Total retraits', money(props.withdrawal_total)),
+        detailRow('Total transferts', money(props.transfer_total)),
+        detailRow('Type dominant', (props.dominant_type || 'aucun').toUpperCase()),
+        detailRow('Pic d activite', props.is_peak_activity ? 'Oui' : 'Non'),
+        detailRow('Anomalies', props.anomalies || 0),
+        detailRow('Wallets bloques', props.wallets_blocked || 0),
+        detailRow('Demandes de cheques', props.cheque_requests || 0),
+        detailRow('Refus de cheques', props.cheque_refusals || 0),
+        notes,
+        renderTopWallets(props.top_wallets)
+      ].join('');
+    }
+
+    if (calendarEl) {
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'fr',
+        height: 670,
+        firstDay: 1,
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek'
+        },
+        buttonText: {
+          today: 'Aujourd hui',
+          month: 'Mois',
+          week: 'Semaine'
+        },
+        events: '{{ path('admin_wallet_calendar_events') }}',
+        eventClick(info) {
+          renderDetails(info.event.extendedProps || {});
+        },
+        dateClick(info) {
+          fetch('{{ path('admin_wallet_calendar_events') }}?start=' + info.dateStr + '&end=' + info.dateStr + 'T23:59:59')
+            .then(response => response.json())
+            .then(events => {
+              if (events[0]) {
+                renderDetails(events[0].extendedProps || {});
+              }
+            });
+        }
+      });
+      calendar.render();
+    }
+  </script>
+{% endblock %}
