@@ -36,6 +36,8 @@ class Item
     #[ORM\JoinColumn(name: 'idCategorie', referencedColumnName: 'idCategorie')]
     private Categorie $categorieRel;
 
+    private \DateTimeInterface|null $dateCreation = null;
+
     public function getIdItem(): int
     {
         return $this->idItem;
@@ -93,6 +95,17 @@ class Item
     public function setCategorieRel(Categorie $categorieRel): static
     {
         $this->categorieRel = $categorieRel;
+        return $this;
+    }
+
+    public function getDateCreation(): \DateTimeInterface|null
+    {
+        return $this->dateCreation;
+    }
+
+    public function setDateCreation(\DateTimeInterface|null $dateCreation): static
+    {
+        $this->dateCreation = $dateCreation;
         return $this;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\User\Client\Kyc;
 use App\Entity\User\Client\KycFile;
 use App\Entity\User\User;
+use App\Entity\Wallet\Wallet;
 use App\Repository\KycRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -104,6 +105,8 @@ class KycService
         $user->setKycStatus(User::KYC_APPROUVE);
         $user->setStatus(User::STATUS_ACTIF);
 
+        $this->ensureWalletExistsForUser($user);
+
         $this->em->flush();
     }
 
@@ -121,5 +124,68 @@ class KycService
     public function getPublicFilePath(KycFile $file): string
     {
         return $file->getFilePath();
+    }
+
+    public function synchronizeApprovedUserWallet(User $user, bool $flush = true): ?Wallet
+    {
+        if ($user->getKycStatus() !== User::KYC_APPROUVE) {
+            return null;
+        }
+
+        $user->setStatus(User::STATUS_ACTIF);
+
+        $wallet = $this->ensureWalletExistsForUser($user);
+
+        if ($flush) {
+            $this->em->flush();
+        }
+
+        return $wallet;
+    }
+
+    private function ensureWalletExistsForUser(User $user): Wallet
+    {
+        /** @var Wallet|null $existingWallet */
+        $existingWallet = $this->em->getRepository(Wallet::class)->createQueryBuilder('w')
+            ->andWhere('w.user = :user OR w.idUser = :userId')
+            ->setParameter('user', $user)
+            ->setParameter('userId', $user->getId())
+            ->orderBy('w.dateCreation', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if ($existingWallet instanceof Wallet) {
+            if ($existingWallet->getUser() === null) {
+                $existingWallet->setUser($user);
+            }
+            if ($existingWallet->getIdUser() !== $user->getId()) {
+                $existingWallet->setIdUser($user->getId());
+            }
+
+            return $existingWallet;
+        }
+
+        $wallet = new Wallet();
+        $wallet
+            ->setUser($user)
+            ->setIdUser($user->getId())
+            ->setNomProprietaire($user->getFullName())
+            ->setTelephone($user->getNumTel())
+            ->setEmail($user->getEmail())
+            ->setCodeAcces(str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT))
+            ->setEstActif(true)
+            ->setSolde('0.00')
+            ->setPlafondDecouvert('0.00')
+            ->setDevise('TND')
+            ->setStatut('actif')
+            ->setDateCreation(new \DateTime())
+            ->setTentativesEchouees(0)
+            ->setDateDerniereTentative(null)
+            ->setEstBloque(false);
+
+        $this->em->persist($wallet);
+
+        return $wallet;
     }
 }

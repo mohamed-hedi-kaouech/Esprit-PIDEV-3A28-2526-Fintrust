@@ -1,0 +1,148 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}List Produit{% endblock %}
+
+{% block body %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<div class="min-h-screen bg-gray-100 py-8">
+    <div class="max-w-5xl mx-auto px-4">
+        
+        {# Back Button #}
+        <a href="{{ path('loan_my_loans') }}" class="text-gray-600 hover:text-gray-800 mb-4 inline-flex items-center gap-1">
+            ← Retour à mes prêts
+        </a>
+
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            {# Header #}
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Prêt</h1>
+                        <p class="text-gray-500">{{ loan.loanType }} - {{ loan.createdAt|date('d/m/Y') }}</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-sm font-bold 
+                        {{ loan.status == 'PENDING' ? 'bg-amber-100 text-amber-700' : 
+                           loan.status == 'ACTIVE' ? 'bg-green-100 text-green-700' : 
+                           'bg-gray-100 text-gray-700' }}">
+                        {{ loan.status == 'PENDING' ? 'En attente d\'approbation' : 
+                           loan.status == 'ACTIVE' ? 'En cours de remboursement' : loan.status }}
+                    </span>
+                </div>
+            </div>
+
+            {% if loan.status == 'ACTIVE' %}
+            {# Progress Stats #}
+            <div class="p-6 bg-green-50 border-b">
+                <div class="grid grid-cols-4 gap-4 text-center">
+                    <div>
+                        <p class="text-2xl font-bold text-green-700">{{ stats.paidCount }}</p>
+                        <p class="text-xs text-gray-600 uppercase">Mensualités payées</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-amber-600">{{ stats.unpaidCount }}</p>
+                        <p class="text-xs text-gray-600 uppercase">Restantes</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-blue-700">{{ stats.totalPaid|number_format(3) }}</p>
+                        <p class="text-xs text-gray-600 uppercase">Total payé (TND)</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-gray-700">{{ stats.progress }}%</p>
+                        <p class="text-xs text-gray-600 uppercase">Complété</p>
+                    </div>
+                </div>
+                
+                {# Progress Bar #}
+                <div class="mt-4">
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-green-600 h-3 rounded-full transition-all" style="width: {{ stats.progress }}%"></div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Repayment Table #}
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Plan de remboursement</h3>
+                
+                <div class="overflow-x-auto rounded-lg border">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-3">Mois</th>
+                                <th class="px-4 py-3">Mensualité</th>
+                                <th class="px-4 py-3">Principal</th>
+                                <th class="px-4 py-3">Intérêts</th>
+                                <th class="px-4 py-3">Reste dû</th>
+                                <th class="px-4 py-3">Statut</th>
+                                {% if canPay %}<th class="px-4 py-3">Action</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for repayment in loan.repayments %}
+                            <tr class="{{ repayment.status == 'PAID' ? 'bg-green-50' : '' }}">
+                                <td class="px-4 py-3 font-medium">{{ repayment.month }}</td>
+                                <td class="px-4 py-3 font-bold">{{ repayment.monthlyPayment|number_format(3) }} TND</td>
+                                <td class="px-4 py-3 text-green-600">{{ repayment.capitalPart|number_format(3) }}</td>
+                                <td class="px-4 py-3 text-amber-600">{{ repayment.interestPart|number_format(3) }}</td>
+                                <td class="px-4 py-3">{{ repayment.remainingBalance|number_format(3) }}</td>
+                                <td class="px-4 py-3">
+                                    {% if repayment.status == 'PAID' %}
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">PAYÉ</span>
+                                    {% else %}
+                                        <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold">EN ATTENTE</span>
+                                    {% endif %}
+                                </td>
+                                {% if canPay %}
+                                <td class="px-4 py-3">
+                                    {% if repayment.status == 'UNPAID' and repayment == nextUnpaid %}
+                                        <form action="{{ path('loan_repayment_pay', {id: repayment.repayId}) }}" method="POST" class="inline">
+                                            <input type="hidden" name="loan_id" value="{{ loan.loanId }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('pay_repayment_' ~ repayment.repayId) }}">
+                                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold" onclick="return confirm('Confirmer le paiement de {{ repayment.monthlyPayment|number_format(3) }} TND?')">
+                                                PAYER
+                                            </button>
+                                        </form>
+                                    {% elseif repayment.status == 'UNPAID' %}
+                                        <span class="text-gray-400 text-xs">Verrouillé</span>
+                                    {% else %}
+                                        <span class="text-green-600 text-xs">✓</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if nextUnpaid and canPay %}
+                <div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg flex justify-between items-center">
+                    <div>
+                        <p class="text-amber-800 font-bold">Prochain paiement: Mois {{ nextUnpaid.month }}</p>
+                        <p class="text-amber-600 text-sm">Montant: {{ nextUnpaid.monthlyPayment|number_format(3) }} TND</p>
+                    </div>
+                    <form action="{{ path('loan_repayment_pay', {id: nextUnpaid.repayId}) }}" method="POST">
+                        <input type="hidden" name="loan_id" value="{{ loan.loanId }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('pay_repayment_' ~ nextUnpaid.repayId) }}">
+                        <button type="submit" class="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg font-bold" onclick="return confirm('Confirmer le paiement?')">
+                            Payer maintenant
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

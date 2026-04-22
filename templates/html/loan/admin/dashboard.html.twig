@@ -1,0 +1,293 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Dashboard Produits & Subscriptions{% endblock %}
+
+{% block admin_content %}
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Inter', sans-serif; }
+        </style>
+    </head>
+<div class="min-h-screen bg-slate-50">
+    {# Main Content #}
+    <main class="ml-64 p-8">
+        {# Filter Cards #}
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <a href="{{ path('admin_dashboard', {status: 'all'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'all' ? 'border-emerald-500' : 'border-transparent' }} hover:shadow-md transition-all">
+                <p class="text-slate-500 text-xs font-medium uppercase">All</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ counts.all }}</h3>
+            </a>
+            
+            <a href="{{ path('admin_dashboard', {status: 'pending'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'pending' ? 'border-amber-500' : 'border-transparent' }} hover:shadow-md transition-all">
+                <p class="text-amber-600 text-xs font-medium uppercase">Pending</p>
+                <h3 class="text-2xl font-bold text-amber-600 mt-1">{{ counts.pending }}</h3>
+            </a>
+            
+            <a href="{{ path('admin_dashboard', {status: 'active'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'active' ? 'border-emerald-500' : 'border-transparent' }} hover:shadow-md transition-all">
+                <p class="text-emerald-600 text-xs font-medium uppercase">Active</p>
+                <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ counts.active }}</h3>
+            </a>
+            
+            <a href="{{ path('admin_dashboard', {status: 'completed'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'completed' ? 'border-purple-500' : 'border-transparent' }} hover:shadow-md transition-all">
+                <p class="text-purple-600 text-xs font-medium uppercase">Completed</p>
+                <h3 class="text-2xl font-bold text-purple-600 mt-1">{{ counts.completed }}</h3>
+            </a>
+            
+            <a href="{{ path('admin_dashboard', {status: 'rejected'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'rejected' ? 'border-red-500' : 'border-transparent' }} hover:shadow-md transition-all">
+                <p class="text-red-600 text-xs font-medium uppercase">Rejected</p>
+                <h3 class="text-2xl font-bold text-red-600 mt-1">{{ counts.rejected }}</h3>
+            </a>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+    <h2 class="text-xl font-bold text-slate-800 mb-4">Risk Analytics</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Chart -->
+        <div>
+            <canvas id="riskChart"></canvas>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex flex-col justify-center space-y-4">
+
+            <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                <span class="text-green-700 font-medium">Low Risk</span>
+                <span class="text-green-700 font-bold text-lg">{{ riskCounts.LOW }}</span>
+            </div>
+
+            <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+                <span class="text-yellow-700 font-medium">Medium Risk</span>
+                <span class="text-yellow-700 font-bold text-lg">{{ riskCounts.MEDIUM }}</span>
+            </div>
+
+            <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                <span class="text-red-700 font-medium">High Risk</span>
+                <span class="text-red-700 font-bold text-lg">{{ riskCounts.HIGH }}</span>
+            </div>
+
+        </div>
+
+    </div>
+    </div>
+        {# Flash Messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 rounded-lg {% if label == 'success' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% else %}bg-red-100 text-red-800 border border-red-200{% endif %} flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center">
+
+    <!-- Search -->
+        <input type="text" id="searchInput"
+            placeholder="Search loans..."
+            class="border px-3 py-2 rounded-lg w-64">
+
+        <!-- Status Filter -->
+        <select id="statusFilter" class="border px-3 py-2 rounded-lg">
+            <option value="">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="ACTIVE">Active</option>
+            <option value="APPROVED">Approved</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="REJECTED">Rejected</option>
+        </select>
+
+        <!-- Risk Filter -->
+        <select id="riskFilter" class="border px-3 py-2 rounded-lg">
+            <option value="">All Risk</option>
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+        </select>
+
+    </div>
+        {# Loans Table #}
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                <h2 class="text-lg font-bold text-slate-800">{{ currentFilter|capitalize }} Loans</h2>
+                <span class="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1 rounded-full">{{ loans|length }} loans</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold">ID</th>
+                            <th class="px-6 py-3 text-left font-semibold">Type</th>
+                            <th class="px-6 py-3 text-left font-semibold">Amount</th>
+                            <th class="px-6 py-3 text-left font-semibold">Duration</th>
+                            <th class="px-6 py-3 text-left font-semibold">Rate</th>
+                            <th class="px-6 py-3 text-left font-semibold">Status</th>
+                            <th class="px-6 py-3 text-left font-semibold">Date</th>
+                            <th class="px-6 py-3 text-center font-semibold">Actions</th>
+                        </tr>
+                        
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for loan in loans %}
+                            {% set risk = loanRisks[loan.loanId] ?? null %}
+
+                            <tr 
+                                class="hover:bg-slate-50 transition-colors"
+                                data-status="{{ loan.status|upper|trim }}"
+                                data-risk="{{ risk ? risk.level|upper|trim : 'UNKNOWN' }}"
+                            >                            
+                            <td class="px-6 py-4 font-mono text-slate-600">#{{ loan.loanId }}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium">{{ loan.loanType }}</span>
+                            </td>
+                            <td class="px-6 py-4 font-bold text-slate-800">${{ loan.amount|number_format(2) }}</td>
+                            <td class="px-6 py-4 text-slate-600">{{ loan.duration }} months</td>
+                            <td class="px-6 py-4 text-slate-600">{{ loan.interestRate }}%</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 rounded text-xs font-bold 
+                                    {{ loan.status == 'PENDING' ? 'bg-amber-100 text-amber-700' : 
+                                       loan.status == 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 
+                                       loan.status == 'APPROVED' ? 'bg-blue-100 text-blue-700' : 
+                                       loan.status == 'COMPLETED' ? 'bg-purple-100 text-purple-700' : 
+                                       'bg-red-100 text-red-700' }}">
+                                    {{ loan.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-slate-500 text-sm">{{ loan.createdAt|date('M d, Y') }}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex gap-2 justify-center">
+                                    <a href="{{ path('admin_loan_review', {id: loan.loanId}) }}" class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        {{ loan.status == 'PENDING' ? 'Review' : 'View' }}
+                                    </a>
+                                    
+                                    {% if loan.status == 'PENDING' %}
+                                        <form action="{{ path('admin_loan_approve', {id: loan.loanId}) }}" method="POST" class="inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('approve_loan_' ~ loan.loanId) }}">
+                                            <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1.5 rounded-lg text-sm transition-colors" onclick="return confirm('Approve this loan?')" title="Approve">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            </button>
+                                        </form>
+                                        <form action="{{ path('admin_loan_reject', {id: loan.loanId}) }}" method="POST" class="inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('reject_loan_' ~ loan.loanId) }}">
+                                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1.5 rounded-lg text-sm transition-colors" onclick="return confirm('Reject this loan?')" title="Reject">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    
+                                    {% if loan.status in ['ACTIVE', 'APPROVED', 'COMPLETED'] %}
+                                        <a href="{{ path('admin_loan_repayments', {id: loan.loanId}) }}" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
+                                            Payments
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="px-6 py-12 text-center text-slate-400">
+                                <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                No {{ currentFilter }} loans found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const ctx = document.getElementById('riskChart');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+            datasets: [{
+                label: 'Risk Distribution',
+                data: [
+                    {{ riskCounts.LOW }},
+                    {{ riskCounts.MEDIUM }},
+                    {{ riskCounts.HIGH }}
+                ],
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true
+                }
+            }
+        }
+    });
+
+});
+</script>
+
+
+
+<script>
+$(document).ready(function () {
+
+    function filterTable() {
+        let search = $('#searchInput').val().toLowerCase().trim();
+        let status = $('#statusFilter').val().toUpperCase().trim();
+        let risk = $('#riskFilter').val().toUpperCase().trim();
+
+        $('tbody tr').each(function () {
+
+            let row = $(this);
+
+            let text = row.text().toLowerCase();
+            let rowStatus = (row.data('status') + '').toUpperCase().trim();
+            let rowRisk = (row.data('risk') + '').toUpperCase().trim();
+
+            let matchSearch = text.includes(search);
+            let matchStatus = !status || rowStatus === status;
+            let matchRisk = !risk || rowRisk === risk;
+
+            if (matchSearch && matchStatus && matchRisk) {
+                row.show();
+            } else {
+                row.hide();
+            }
+
+        });
+    }
+
+    $('#searchInput').on('keyup', filterTable);
+    $('#statusFilter').on('change', filterTable);
+    $('#riskFilter').on('change', filterTable);
+
+});
+</script>
+{% endblock %}
+

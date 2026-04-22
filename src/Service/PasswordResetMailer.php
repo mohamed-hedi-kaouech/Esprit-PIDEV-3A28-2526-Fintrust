@@ -15,7 +15,8 @@ class PasswordResetMailer
         private readonly MailerInterface $mailer,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly string $fintrustMailerFrom,
-    ) {}
+    ) {
+    }
 
     public function sendResetLink(User $user, PasswordResetRequest $resetRequest, string $rawToken): void
     {

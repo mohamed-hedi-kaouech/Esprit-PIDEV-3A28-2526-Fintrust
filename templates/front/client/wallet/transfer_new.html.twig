@@ -1,0 +1,103 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Nouveau transfert{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="ft-page-icon-lg"><i class="bi bi-send"></i></div>
+        <div>
+          <h1 class="ft-page-title mb-0">Transfert entre wallets</h1>
+          <p class="text-muted mb-0 small">Envoyez de l argent a un autre client via son email ou son wallet.</p>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('front_wallet_transfer_history') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-clock-history me-1"></i>Historique
+        </a>
+        <a href="{{ path('front_wallet_dashboard') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-house-door me-1"></i>Dashboard
+        </a>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-xl-7">
+        <div class="ft-app-card ft-premium-card">
+          <div class="ft-app-card-header">
+            <i class="bi bi-arrow-left-right me-2 text-primary"></i>Formulaire de transfert
+          </div>
+          <div class="ft-app-card-body">
+            {{ form_start(form) }}
+              <div class="row g-3">
+                <div class="col-12">
+                  {{ form_label(form.recipient, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                  {{ form_widget(form.recipient, {'attr': {'class': 'form-control ft-input'}}) }}
+                  {{ form_errors(form.recipient) }}
+                  <div class="form-text">Entrez un email client ou un numero de wallet.</div>
+                </div>
+                <div class="col-md-6">
+                  {{ form_label(form.amount, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                  {{ form_widget(form.amount, {'attr': {'class': 'form-control ft-input'}}) }}
+                  {{ form_errors(form.amount) }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Devise</label>
+                  <input type="text" class="form-control ft-input" value="{{ wallet.devise }}" disabled>
+                </div>
+                <div class="col-12">
+                  {{ form_label(form.label, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                  {{ form_widget(form.label, {'attr': {'class': 'form-control ft-input'}}) }}
+                  {{ form_errors(form.label) }}
+                </div>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 mt-4">
+                <button type="submit" class="btn ft-btn-primary">
+                  <i class="bi bi-send-check me-1"></i>Valider le transfert
+                </button>
+                <a href="{{ path('front_wallet_transfer_history') }}" class="btn ft-btn-outline-primary">Annuler</a>
+              </div>
+            {{ form_end(form) }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-5">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-wallet2 me-2 text-primary"></i>Wallet source
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-history-card mb-3">
+              <span class="ft-history-icon blue"><i class="bi bi-hash"></i></span>
+              <div>
+                <strong>Wallet</strong>
+                <p class="mb-0">#{{ wallet.idWallet }}</p>
+              </div>
+            </div>
+            <div class="ft-history-card mb-3">
+              <span class="ft-history-icon green"><i class="bi bi-person"></i></span>
+              <div>
+                <strong>Proprietaire</strong>
+                <p class="mb-0">{{ wallet.nomProprietaire }}</p>
+              </div>
+            </div>
+            <div class="ft-history-card mb-3">
+              <span class="ft-history-icon orange"><i class="bi bi-cash-stack"></i></span>
+              <div>
+                <strong>Solde disponible</strong>
+                <p class="mb-0">{{ wallet.solde|number_format(2, ',', ' ') }} {{ wallet.devise }}</p>
+              </div>
+            </div>
+            <div class="alert alert-light border mb-0">
+              Les controles de saisie reposent sur HTML5 et la validation Symfony cote serveur.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

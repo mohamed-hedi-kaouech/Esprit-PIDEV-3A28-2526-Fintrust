@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Export cheques wallet</title>
+  <style>
+    body { font-family: Arial, sans-serif; color: #1f2937; margin: 24px; }
+    h1 { color: #1d4ed8; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #dbe3ef; padding: 8px; text-align: left; }
+    th { background: #eff6ff; }
+    .toolbar { margin-bottom: 16px; }
+    @media print { .toolbar { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="toolbar"><button onclick="window.print()">Imprimer / PDF</button></div>
+  <h1>Demandes de cheques wallet #{{ wallet.idWallet }}</h1>
+  <p>Genere le {{ "now"|date("d/m/Y H:i") }}</p>
+  <table>
+    <thead>
+      <tr><th>Numero</th><th>Beneficiaire</th><th>Montant</th><th>Statut</th><th>Date</th><th>Motif rejet</th></tr>
+    </thead>
+    <tbody>
+      {% for cheque in cheques %}
+        <tr>
+          <td>{{ cheque.numeroCheque }}</td>
+          <td>{{ cheque.beneficiaire ?: '-' }}</td>
+          <td>{{ cheque.montant|number_format(2, ',', ' ') }} {{ wallet.devise }}</td>
+          <td>{{ cheque.statut|replace({'_': ' '})|title }}</td>
+          <td>{{ cheque.dateEmission|date('d/m/Y H:i') }}</td>
+          <td>{{ cheque.motifRejet ?: '-' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6">Aucune demande.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

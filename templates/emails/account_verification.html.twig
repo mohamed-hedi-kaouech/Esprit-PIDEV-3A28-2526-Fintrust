@@ -2,61 +2,55 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Verification de votre compte FinTrust</title>
+  <title>Code de verification FinTrust</title>
 </head>
-<body style="margin:0;padding:0;background:#f3f7fc;font-family:Arial,Helvetica,sans-serif;color:#1e293b;">
-  <div style="padding:32px 16px;">
-    <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 20px 45px rgba(30,58,138,.12);border:1px solid #dbeafe;">
-      <div style="padding:28px 32px;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#ffffff;">
-        <div style="display:inline-block;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;">
-          FinTrust - Verification d inscription
-        </div>
-        <h1 style="margin:18px 0 10px;font-size:30px;line-height:1.2;">Confirmez votre adresse e-mail</h1>
-        <p style="margin:0;font-size:15px;line-height:1.7;color:rgba(255,255,255,.9);">
-          Bonjour {{ user.prenom }}, votre compte FinTrust a bien ete cree. Utilisez le code ci-dessous pour finaliser votre inscription.
-        </p>
-      </div>
+<body style="margin:0;padding:0;background:#f4f8ff;font-family:Arial,sans-serif;color:#0f172a;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f8ff;padding:32px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 18px 40px rgba(21,96,189,.12);">
+          <tr>
+            <td style="padding:32px 40px;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#ffffff;">
+              <h1 style="margin:0;font-size:28px;line-height:1.2;font-weight:800;">FinTrust</h1>
+              <p style="margin:10px 0 0;font-size:15px;line-height:1.7;opacity:.92;">Verification securisee de votre adresse e-mail</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:36px 40px;">
+              <p style="margin:0 0 18px;font-size:16px;line-height:1.7;">Bonjour {{ user.getFullName() }},</p>
+              <p style="margin:0 0 18px;font-size:16px;line-height:1.7;">
+                Votre compte FinTrust a bien ete cree. Utilisez le code suivant pour finaliser votre inscription :
+              </p>
 
-      <div style="padding:32px;">
-        <div style="padding:22px;border-radius:20px;background:#eff6ff;border:1px solid #bfdbfe;text-align:center;">
-          <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.08em;">Code de verification</p>
-          <div style="font-size:40px;letter-spacing:10px;font-weight:800;color:#0f172a;">{{ code }}</div>
-          <p style="margin:14px 0 0;font-size:14px;color:#475569;">
-            Ce code expire le {{ expiresAt|date('d/m/Y') }} a {{ expiresAt|date('H:i') }}.
-          </p>
-        </div>
+              <div style="margin:0 0 24px;padding:18px 22px;border-radius:16px;background:#eff6ff;border:1px solid #bfdbfe;text-align:center;">
+                <div style="font-size:13px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">
+                  Code de verification
+                </div>
+                <div style="font-size:36px;letter-spacing:8px;font-weight:800;color:#0f172a;">{{ code }}</div>
+              </div>
 
-        <div style="margin-top:28px;">
-          <p style="margin:0 0 12px;font-size:15px;line-height:1.75;color:#334155;">
-            Pour proteger votre acces, ce code reste valide <strong>10 minutes</strong>. Si vous n etes pas a l origine de cette inscription, ignorez simplement cet e-mail.
-          </p>
-          <p style="margin:0;font-size:15px;line-height:1.75;color:#334155;">
-            Besoin d aide ? Notre equipe reste disponible pour vous accompagner sur votre demarrage FinTrust.
-          </p>
-        </div>
+              <p style="margin:0 0 18px;font-size:15px;line-height:1.7;color:#475569;">
+                Ce code expire le {{ expiresAt|date('d/m/Y') }} a {{ expiresAt|date('H:i') }}.
+              </p>
 
-        <div style="margin-top:28px;text-align:center;">
-          <a href="{{ loginUrl }}" style="display:inline-block;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#ffffff;text-decoration:none;font-weight:700;">
-            Acceder a FinTrust
-          </a>
-        </div>
+              <p style="margin:0 0 28px;text-align:center;">
+                <a href="{{ loginUrl }}" style="display:inline-block;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;">
+                  Acceder a FinTrust
+                </a>
+              </p>
 
-        <div style="margin-top:30px;padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid #e2e8f0;">
-          <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#0f172a;">Conseil securite FinTrust</p>
-          <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
-            Ne partagez jamais ce code avec un tiers. FinTrust ne vous demandera jamais votre code de verification par telephone.
-          </p>
-        </div>
-      </div>
+              <p style="margin:0 0 18px;font-size:15px;line-height:1.7;color:#475569;">
+                Si vous n etes pas a l origine de cette inscription, ignorez simplement cet e-mail.
+              </p>
 
-      <div style="padding:20px 32px;background:#f8fbff;border-top:1px solid #e2e8f0;">
-        <p style="margin:0;font-size:13px;color:#64748b;line-height:1.7;">
-          FinTrust<br>
-          Plateforme bancaire digitale securisee<br>
-          Cet e-mail a ete envoye automatiquement, merci de ne pas y repondre.
-        </p>
-      </div>
-    </div>
-  </div>
+              <p style="margin:0;font-size:15px;line-height:1.7;color:#0f172a;">
+                L equipe FinTrust
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>

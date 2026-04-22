@@ -1,0 +1,239 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Dashboard Produits & Subscriptions{% endblock %}
+
+{% block admin_content %}
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Inter', sans-serif; }
+        </style>
+    </head>
+<div class="min-h-screen bg-slate-50">
+    {# Main Content #}
+    <main class="ml-64 p-8">
+        {# Breadcrumb #}
+        <div class="mb-6 flex items-center gap-2 text-sm">
+            <a href="{{ path('admin_dashboard') }}" class="text-slate-500 hover:text-emerald-600 flex items-center gap-1 font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Dashboard
+            </a>
+            <span class="text-slate-400">/</span>
+            <span class="text-slate-800 font-semibold">{{ isPending ? 'Review' : 'View' }} Loan Num{{ loan.loanId }}</span>
+        </div>
+
+        {# Status Banner #}
+        {% set statusConfig = {
+            'PENDING': { color: 'amber', text: 'Pending Review - Awaiting Approval' },
+            'ACTIVE': { color: 'emerald', text: 'Active - Loan In Progress' },
+            'APPROVED': { color: 'blue', text: 'Approved - Ready for Activation' },
+            'COMPLETED': { color: 'purple', text: 'Completed - Fully Repaid' },
+            'REJECTED': { color: 'red', text: 'Rejected' }
+        } %}
+        {% set config = statusConfig[loan.status] %}
+
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border-l-4 border-{{ config.color }}-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <h1 class="text-3xl font-bold text-slate-800">Loan Num{{ loan.loanId }}</h1>
+                        <span class="px-3 py-1 bg-{{ config.color }}-100 text-{{ config.color }}-800 rounded-full text-sm font-bold uppercase tracking-wide">
+                            {{ loan.status }}
+                        </span>
+                    </div>
+                    <p class="text-slate-500">Submitted on {{ loan.createdAt|date('F d, Y at H:i') }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-slate-500">Request Age</p>
+                    <p class="text-lg font-semibold text-slate-700">{{ loan.createdAt|date('d/m/Y H:i') }} ago</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {# Client Info #}
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+{#                        {{ loan.user ? loan.user.email|first|upper : '?' }}#}
+                    </div>
+                    Client Information
+                </h2>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-semibold">Email</p>
+{#                        <p class="text-slate-800 font-medium">{{ loan.user ? loan.user.email : 'Unknown' }}</p>#}
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-semibold">User ID</p>
+{#                        <p class="text-slate-800 font-medium">#{{ loan.user ? loan.user.id : 'N/A' }}</p>#}
+                    </div>
+                </div>
+            </div>
+
+            {# Loan Details #}
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-lg font-bold text-slate-800 mb-4">Loan Details</h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Type</span>
+                        <span class="font-medium">{{ loan.loanType }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Principal</span>
+                        <span class="font-bold text-lg">${{ loan.amount|number_format(2) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Duration</span>
+                        <span class="font-medium">{{ loan.duration }} months</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Interest Rate</span>
+                        <span class="font-medium">{{ loan.interestRate }}%</span>
+                    </div>
+                    {% if not isPending %}
+                    <div class="flex justify-between pt-3 border-t">
+                        <span class="text-slate-500">Remaining</span>
+                        <span class="font-bold {{ loan.remainingPrincipal > 0 ? 'text-amber-600' : 'text-emerald-600' }}">
+                            ${{ loan.remainingPrincipal|number_format(2) }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Financial Summary #}
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-sm p-6 text-white">
+                <h2 class="text-lg font-bold mb-4">Financial Summary</h2>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-emerald-100 text-xs uppercase font-semibold">Monthly Payment</p>
+                        <p class="text-3xl font-bold">${{ calculator.monthlyPayment|number_format(2) }}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-emerald-400/30">
+                        <div>
+                            <p class="text-emerald-100 text-xs uppercase font-semibold">Total Interest</p>
+                            <p class="text-lg font-semibold">${{ calculator.totalInterest|number_format(2) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-emerald-100 text-xs uppercase font-semibold">Total Cost</p>
+                            <p class="text-lg font-semibold">${{ calculator.totalCost|number_format(2) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Repayment Progress (for active/completed) #}
+        {% if not isPending and not isRejected %}
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Repayment Progress</h3>
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-medium text-slate-700">{{ stats.paidCount }} of {{ stats.paidCount + stats.unpaidCount }} installments paid</span>
+                <span class="text-sm font-bold text-emerald-600">{{ stats.progressPercent }}%</span>
+            </div>
+            <div class="w-full h-4 bg-slate-200 rounded-full overflow-hidden mb-4">
+                <div class="h-full bg-emerald-500 rounded-full" style="width: {{ stats.progressPercent }}%"></div>
+            </div>
+            <div class="grid grid-cols-4 gap-4 text-center">
+                <div>
+                    <p class="text-2xl font-bold text-emerald-600">{{ stats.paidCount }}</p>
+                    <p class="text-xs text-slate-500 uppercase">Paid</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-amber-600">{{ stats.unpaidCount }}</p>
+                    <p class="text-xs text-slate-500 uppercase">Remaining</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-blue-600">${{ stats.totalPaid|number_format(2) }}</p>
+                    <p class="text-xs text-slate-500 uppercase">Total Paid</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-red-600">${{ stats.totalUnpaid|number_format(2) }}</p>
+                    <p class="text-xs text-slate-500 uppercase">Remaining Due</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Repayment Schedule #}
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                <h2 class="text-lg font-bold text-slate-800">Repayment Schedule</h2>
+                <span class="text-sm text-slate-500">{{ loan.repayments|length }} installments</span>
+            </div>
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="w-full">
+                    <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider sticky top-0">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold">Month</th>
+                            <th class="px-6 py-3 text-left font-semibold">Starting Balance</th>
+                            <th class="px-6 py-3 text-left font-semibold">Payment</th>
+                            <th class="px-6 py-3 text-left font-semibold">Principal</th>
+                            <th class="px-6 py-3 text-left font-semibold">Interest</th>
+                            <th class="px-6 py-3 text-left font-semibold">Remaining</th>
+                            <th class="px-6 py-3 text-center font-semibold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for repayment in loan.repayments %}
+                        <tr class="hover:bg-slate-50 {{ repayment.status == 'PAID' ? 'bg-emerald-50/30' : '' }}">
+                            <td class="px-6 py-3 font-medium">{{ repayment.month }}</td>
+                            <td class="px-6 py-3 text-slate-600">${{ repayment.startingBalance|number_format(2) }}</td>
+                            <td class="px-6 py-3 font-bold">${{ repayment.monthlyPayment|number_format(2) }}</td>
+                            <td class="px-6 py-3 text-emerald-600">${{ repayment.capitalPart|number_format(2) }}</td>
+                            <td class="px-6 py-3 text-amber-600">${{ repayment.interestPart|number_format(2) }}</td>
+                            <td class="px-6 py-3 text-slate-600">${{ repayment.remainingBalance|number_format(2) }}</td>
+                            <td class="px-6 py-3 text-center">
+                                {% if repayment.status == 'PAID' %}
+                                    <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold">PAID</span>
+                                {% else %}
+                                    <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold">UNPAID</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# Action Buttons - Only for Pending #}
+        {% if isPending %}
+        <div class="bg-white rounded-xl shadow-sm p-6 border-2 border-slate-200">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">Decision</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <form action="{{ path('admin_loan_approve', {id: loan.loanId}) }}" method="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token('approve_loan_' ~ loan.loanId) }}">
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2" onclick="return confirm('Approve this loan?')">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        APPROVE
+                    </button>
+                </form>
+                <form action="{{ path('admin_loan_reject', {id: loan.loanId}) }}" method="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reject_loan_' ~ loan.loanId) }}">
+                    <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2" onclick="return confirm('Reject this loan?')">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        REJECT
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-slate-100 rounded-xl p-6 text-center">
+            <p class="text-slate-600">This loan is <strong>{{ loan.status }}</strong>. No further action available.</p>
+            {% if loan.status in ['ACTIVE', 'APPROVED', 'COMPLETED'] %}
+            <a href="{{ path('admin_loan_repayments', {id: loan.loanId}) }}" class="inline-flex items-center gap-2 mt-4 text-indigo-600 hover:text-indigo-800 font-medium">
+                View Full Repayment History →
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

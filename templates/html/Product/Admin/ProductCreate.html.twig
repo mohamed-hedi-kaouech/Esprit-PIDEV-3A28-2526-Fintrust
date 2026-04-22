@@ -1,0 +1,134 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Creation du Produit{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('product_list') }}" class="text-muted small text-decoration-none">Produits</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Creation</span>
+{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('css/Product/StyleEditProduct.css') }}">
+{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="ft-admin-page-title mb-1">
+      <i class="bi bi-box-seam me-2 text-primary"></i>Creation du produit
+    </h1>
+    <p class="text-muted mb-0">
+      Ajoutez une nouvelle offre bancaire avec une presentation plus premium et un formulaire admin plus fiable.
+    </p>
+  </div>
+  <a href="{{ path('product_list') }}" class="btn ft-btn-outline-primary">
+    <i class="bi bi-arrow-left me-2"></i>Retour a la liste
+  </a>
+</div>
+
+<section class="row g-4">
+  <div class="col-12 col-xl-8">
+    <article class="ft-admin-card product-admin-card">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-plus-circle me-2 text-primary"></i>Nouveau produit
+      </div>
+      <div class="ft-admin-card-body">
+        <form method="POST" action="{{ path('CreateProduct') }}" class="row g-3" novalidate>
+          <input type="hidden" name="_token" value="{{ csrf_token('create_product') }}">
+
+          <div class="col-12">
+            <label for="category" class="form-label fw-semibold">Categorie</label>
+            <select id="category" name="category" class="form-select ft-input product-admin-input">
+              <option value="">Selectionner une categorie</option>
+              {% for cat in categories %}
+                <option value="{{ cat }}" {{ formData.category == cat ? 'selected' : '' }}>
+                  {{ cat|replace({'_': ' '})|title }}
+                </option>
+              {% endfor %}
+            </select>
+            <div class="ft-filter-help">Choisissez un type de produit coherent avec l offre FinTrust.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="price" class="form-label fw-semibold">Prix (DT)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white text-primary"><i class="bi bi-cash-stack"></i></span>
+              <input
+                type="text"
+                id="price"
+                name="price"
+                class="form-control ft-input product-admin-input border-start-0"
+                placeholder="Ex: 149.90"
+                value="{{ formData.price }}"
+              >
+              <span class="input-group-text bg-white text-primary fw-semibold">DT</span>
+            </div>
+            <div class="ft-filter-help">Saisissez un montant strictement positif.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="createdAtPreview" class="form-label fw-semibold">Date de creation</label>
+            <input
+              type="text"
+              id="createdAtPreview"
+              class="form-control ft-input product-admin-input"
+              value="{{ 'now'|date('d/m/Y') }}"
+              disabled
+            >
+            <div class="ft-filter-help">La date du jour sera appliquee automatiquement a l enregistrement.</div>
+          </div>
+
+          <div class="col-12">
+            <label for="description" class="form-label fw-semibold">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              class="form-control ft-input product-admin-input product-admin-textarea"
+              placeholder="Decrivez clairement le produit, ses avantages et son positionnement."
+              rows="6"
+            >{{ formData.description }}</textarea>
+            <div class="ft-filter-help">La description doit etre claire, concise et utile pour la souscription.</div>
+          </div>
+
+          <div class="col-12 d-flex flex-wrap gap-2 pt-2">
+            <button type="submit" class="btn ft-btn-primary">
+              <i class="bi bi-check2-circle me-2"></i>Ajouter le produit
+            </button>
+            <a href="{{ path('product_list') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle me-2"></i>Annuler
+            </a>
+          </div>
+        </form>
+      </div>
+    </article>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <article class="ft-admin-card mb-4 product-admin-sidecard">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-stars me-2 text-primary"></i>Guide de creation
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-insight-list">
+          <div class="ft-admin-insight-item">
+            <strong>Categorie claire</strong>
+            <span>Choisissez une famille de produit explicite pour garder un catalogue propre et lisible.</span>
+          </div>
+          <div class="ft-admin-insight-item">
+            <strong>Prix premium</strong>
+            <span>Affichez un tarif juste et positif pour eviter les erreurs de souscription en front.</span>
+          </div>
+          <div class="ft-admin-insight-item">
+            <strong>Description utile</strong>
+            <span>Une bonne description augmente la comprehension et la conversion des utilisateurs.</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}

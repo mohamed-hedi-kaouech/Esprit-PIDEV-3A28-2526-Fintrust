@@ -12,6 +12,7 @@ use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use TCPDF;
 
 #[Route('/admin/item', name: 'admin_item_')]
 class ItemController extends AbstractController
@@ -78,11 +79,19 @@ class ItemController extends AbstractController
 
         $items = $queryBuilder->orderBy('i.idItem', 'DESC')->getQuery()->getResult();
 
+        // Group items by category
+        $groupedItems = [];
+        foreach ($items as $item) {
+            $catName = $item->getCategorieRel()->getNomCategorie();
+            $groupedItems[$catName][] = $item;
+        }
+
         // Get categories for filter dropdown
         $categories = $this->entityManager->getRepository(\App\Entity\Categorie\Categorie::class)->findAll();
 
         return $this->render('admin/item/list.html.twig', [
             'items' => $items,
+            'groupedItems' => $groupedItems,
             'categories' => $categories,
             'search' => $search,
             'categorieId' => $categorieId,
@@ -141,8 +150,8 @@ class ItemController extends AbstractController
 
             if ($newTotal > $categorie->getBudgetPrevu()) {
                 $form->get('montant')->addError(new FormError('La somme des montants des items de cette catégorie dépasse le budget prévu de la catégorie.'));
-            } else {createAlerteIfThresholdReached($item, $existingTotal, $newTotal);
-                $this->
+            } else {
+                $this->createAlerteIfThresholdReached($item, $existingTotal, $newTotal);
                 $this->entityManager->flush();
 
                 $this->addFlash('success', 'Item modifié avec succès!');
@@ -234,22 +243,42 @@ class ItemController extends AbstractController
 
         $items = $queryBuilder->orderBy('i.idItem', 'DESC')->getQuery()->getResult();
 
-        $csvContent = "ID,Libellé,Catégorie,Montant,Date de création\n";
+        // Créer le PDF
+        $pdf = new TCPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('helvetica', '', 10);
 
+        // Titre
+        $pdf->Cell(0, 10, 'Liste des Items', 0, 1, 'C');
+        $pdf->Ln(5);
+
+        // En-têtes du tableau
+        $pdf->Cell(15, 10, 'ID', 1, 0, 'C');
+        $pdf->Cell(50, 10, 'Libellé', 1, 0, 'C');
+        $pdf->Cell(40, 10, 'Catégorie', 1, 0, 'C');
+        $pdf->Cell(30, 10, 'Montant', 1, 0, 'C');
+        $pdf->Cell(40, 10, 'Date création', 1, 1, 'C');
+
+        // Données
         foreach ($items as $item) {
-            $csvContent .= sprintf(
-                "%d,\"%s\",\"%s\",%.2f,\"%s\"\n",
-                $item->getIdItem(),
-                str_replace('"', '""', $item->getLibelle()),
-                str_replace('"', '""', $item->getCategorieRel()->getNomCategorie()),
-                $item->getMontant(),
-                $item->getDateCreation()->format('Y-m-d H:i:s')
-            );
+            $categorieName = $item->getCategorieRel() ? $item->getCategorieRel()->getNomCategorie() : 'N/A';
+            $libelle = $item->getLibelle() ?? 'N/A';
+            $montant = $item->getMontant() ?? 0.00;
+            $dateCreation = $item->getDateCreation() ? $item->getDateCreation()->format('Y-m-d H:i:s') : 'N/A';
+
+            $pdf->Cell(15, 10, $item->getIdItem(), 1, 0, 'C');
+            $pdf->Cell(50, 10, $libelle, 1, 0, 'L');
+            $pdf->Cell(40, 10, $categorieName, 1, 0, 'L');
+            $pdf->Cell(30, 10, number_format($montant, 2), 1, 0, 'R');
+            $pdf->Cell(40, 10, $dateCreation, 1, 1, 'C');
         }
 
-        $response = new Response($csvContent);
-        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
-        $response->headers->set('Content-Disposition', 'attachment; filename="items_' . date('Y-m-d_H-i-s') . '.csv"');
+        // Générer le PDF
+        $pdfContent = $pdf->Output('', 'S');
+
+        $response = new Response($pdfContent);
+        $response->headers->set('Content-Type', 'application/pdf');
+        $response->headers->set('Content-Disposition', 'attachment; filename="items_' . date('Y-m-d_H-i-s') . '.pdf"');
 
         return $response;
     }

@@ -1,0 +1,134 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}List Subscription{% endblock %}
+
+{% block admin_content %}
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="{{ asset('css/Product/StyleListSubscription.css') }}">
+    <style>
+        {% for i in 1..50 %}.sl-card:nth-child({{ i }}) { animation-delay: {{ (i - 1) * 0.04 }}s; }{% endfor %}
+    </style>
+
+    {% set strips = ['strip-blue','strip-green','strip-amber','strip-purple','strip-coral'] %}
+    {% set icons  = ['icon-blue','icon-green','icon-amber','icon-purple','icon-coral'] %}
+    {% set badges = ['badge-blue','badge-green','badge-amber','badge-purple','badge-coral'] %}
+    {% set statusMap = { 'ACTIVE': 's-active', 'DRAFT': 's-draft', 'SUSPENDED': 's-suspended', 'CLOSED': 's-closed' } %}
+    {% set statusLabel = { 'ACTIVE': 'Actif', 'DRAFT': 'Brouillon', 'SUSPENDED': 'Suspendu', 'CLOSED': 'Fermé' } %}
+
+    <div class="sl-page">
+
+        <div class="sl-header">
+            <h1 class="sl-title">Abonnements</h1>
+            <div class="sl-count">{{ subscriptions|length }}&nbsp;abonnement{{ subscriptions|length != 1 ? 's' : '' }}</div>
+        </div>
+
+        <div class="stat-pills">
+            <div class="stat-pill stat-pill--total"><span class="stat-dot"></span><strong>{{ totalSubscriptions }}</strong>&nbsp;Total</div>
+            <div class="stat-pill stat-pill--active"><span class="stat-dot"></span><strong>{{ activeSubscriptions }}</strong>&nbsp;Actifs</div>
+            <div class="stat-pill stat-pill--draft"><span class="stat-dot"></span><strong>{{ draftSubscriptions }}</strong>&nbsp;Brouillon</div>
+            <div class="stat-pill stat-pill--warning"><span class="stat-dot"></span><strong>{{ expiringSoon }}</strong>&nbsp;Expire &lt;30j</div>
+        </div>
+
+        <form method="GET" action="{{ path('subscription_list') }}">
+            <div class="sl-controls">
+                <input class="sl-input" type="text" name="search" value="{{ search }}" placeholder="🔍 Rechercher un produit, client..." />
+                <div class="sl-divider"></div>
+                <span class="sl-filter-label">Type</span>
+                <select name="type" class="sl-select" onchange="this.form.submit()">
+                    <option value=""            {{ typeFilter == ''            ? 'selected' : '' }}>Tous</option>
+                    <option value="MONTHLY"     {{ typeFilter == 'MONTHLY'     ? 'selected' : '' }}>Mensuel</option>
+                    <option value="ANNUAL"      {{ typeFilter == 'ANNUAL'      ? 'selected' : '' }}>Annuel</option>
+                    <option value="TRANSACTION" {{ typeFilter == 'TRANSACTION' ? 'selected' : '' }}>Transaction</option>
+                    <option value="ONE_TIME"    {{ typeFilter == 'ONE_TIME'    ? 'selected' : '' }}>Unique</option>
+                </select>
+                <span class="sl-filter-label">Statut</span>
+                <select name="status" class="sl-select" onchange="this.form.submit()">
+                    <option value=""          {{ statusFilter == ''          ? 'selected' : '' }}>Tous</option>
+                    <option value="ACTIVE"    {{ statusFilter == 'ACTIVE'    ? 'selected' : '' }}>Actif</option>
+                    <option value="DRAFT"     {{ statusFilter == 'DRAFT'     ? 'selected' : '' }}>Brouillon</option>
+                    <option value="SUSPENDED" {{ statusFilter == 'SUSPENDED' ? 'selected' : '' }}>Suspendu</option>
+                    <option value="CLOSED"    {{ statusFilter == 'CLOSED'    ? 'selected' : '' }}>Fermé</option>
+                </select>
+                <button type="submit" class="sl-btn sl-btn-primary" style="margin-left:auto">Rechercher</button>
+                <a href="{{ path('subscription_list') }}" class="sl-btn">✕ Réinitialiser</a>
+            </div>
+        </form>
+
+        {% if search or typeFilter or statusFilter %}
+            <div class="active-bar">
+                🔎 Résultats filtrés
+                {% if search %} — recherche : <strong>"{{ search }}"</strong>{% endif %}
+                {% if typeFilter %} — type : <strong>{{ typeFilter }}</strong>{% endif %}
+                {% if statusFilter %} — statut : <strong>{{ statusFilter }}</strong>{% endif %}
+            </div>
+        {% endif %}
+
+        <div class="sl-grid">
+            {% if subscriptions is empty %}
+                <div class="sl-empty">
+                    <div class="sl-empty-icon">📭</div>
+                    <div class="sl-empty-text">Aucun abonnement trouvé. <a href="{{ path('subscription_list') }}">Réinitialiser les filtres</a></div>
+                </div>
+            {% else %}
+                {% for subscription in subscriptions %}
+                    {% set idx = loop.index0 % 5 %}
+                    <div class="sl-card">
+                        <div class="card-strip {{ strips[idx] }}"></div>
+                        <div class="card-body">
+                            <div class="card-icon-row">
+                                <div class="card-icon {{ icons[idx] }}">
+                                    {{ subscription.productCategory|slice(0,2)|upper }}
+                                </div>
+                                <div style="text-align:right">
+                                    <span class="card-badge {{ badges[idx] }}">{{ subscription.productCategory }}</span>
+                                    <div class="card-date">Souscrit le {{ subscription.subscriptionDate|date('d/m/Y') }}</div>
+                                </div>
+                            </div>
+                            <div class="card-product">{{ subscription.productCategory }}</div>
+                            <div class="card-dates">
+                                <div>
+                                    <span>Expiration</span>
+                                    {{ subscription.expirationDate|date('d/m/Y') }}
+                                    {% if subscription.daysUntilExpiration is defined and subscription.daysUntilExpiration <= 30 and subscription.status == 'ACTIVE' %}
+                                        <span class="exp-flag" title="Expire dans {{ subscription.daysUntilExpiration }} jours">!</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div style="display:flex;flex-direction:column;gap:6px">
+                                <span class="type-tag">{{ subscription.type }}</span>
+                                <span class="status-badge {{ statusMap[subscription.status] ?? 's-draft' }}">
+                  {{ statusLabel[subscription.status] ?? subscription.status }}
+                </span>
+                            </div>
+                            <td class="td-action">
+                                <div class="action-group">
+                                    <a href="{{ path('subscription_update', {id: subscription.subscriptionId}) }}" class="btn-edit">
+                                        Modifier
+                                    </a>
+                                </div>
+                            </td>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="footer-bar">
+            <div class="footer-stat"><span class="footer-label">Total</span><span class="footer-value">{{ totalSubscriptions }}</span></div>
+            <div class="footer-stat"><span class="footer-label">Actifs</span><span class="footer-value footer-value--success">{{ activeSubscriptions }}</span></div>
+            <div class="footer-stat"><span class="footer-label">Suspendus</span><span class="footer-value footer-value--warning">{{ suspendedSubscriptions }}</span></div>
+            <div class="footer-stat"><span class="footer-label">Fermés</span><span class="footer-value footer-value--danger">{{ closedSubscriptions }}</span></div>
+        </div>
+
+    </div>
+
+    {% for msg in app.flashes('success') %}
+        <script>
+            Swal.fire({ icon: 'success', title: '{{ msg }}', showConfirmButton: false, timer: 2500, timerProgressBar: true, background: '#151820', color: '#f0f2f8', iconColor: '#22c97a' });
+        </script>
+    {% endfor %}
+
+{% endblock %}

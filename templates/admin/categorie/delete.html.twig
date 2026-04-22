@@ -59,7 +59,7 @@
 
             <div class="d-flex gap-2 mt-4">
                 {% if categorie.items|length == 0 %}
-                    <form method="post" class="d-inline">
+                    <form method="post" action="{{ path('admin_categorie_delete', {'idCategorie': categorie.idCategorie}) }}" class="d-inline">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ categorie.idCategorie) }}">
                         <button type="submit" class="btn btn-danger">
                             <i class="fas fa-trash"></i> Oui, supprimer définitivement

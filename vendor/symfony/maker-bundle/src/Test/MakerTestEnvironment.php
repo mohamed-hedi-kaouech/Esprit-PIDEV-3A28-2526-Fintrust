@@ -103,11 +103,6 @@ final class MakerTestEnvironment
                 'replace' => '"'.$rootNamespace.'\\\\": "src/"',
             ],
             [
-                'filename' => 'src/Kernel.php',
-                'find' => 'namespace App',
-                'replace' => 'namespace '.$rootNamespace,
-            ],
-            [
                 'filename' => 'bin/console',
                 'find' => 'use App\\Kernel',
                 'replace' => 'use '.$rootNamespace.'\\Kernel',

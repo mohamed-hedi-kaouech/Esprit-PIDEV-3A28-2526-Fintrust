@@ -13,7 +13,7 @@
       </span>
       <h1 class="ft-page-title mb-2">Mes notifications</h1>
       <p class="ft-notif-hero-text mb-0">
-        Suivez ici les mises a jour importantes de votre compte, de votre KYC et des actions liees a votre espace FinTrust.
+        Suivez ici les mises a jour importantes de votre compte, de votre KYC et des interactions recentes autour des publications.
       </p>
     </div>
     <div class="ft-notif-hero-side">
@@ -34,6 +34,11 @@
         <div class="ft-notif-stat-unread">
           {{ unreadCount }} non lue{{ unreadCount > 1 ? 's' : '' }}
         </div>
+        {% if dynamicCount > 0 %}
+          <div class="ft-notif-stat-unread mt-2">
+            {{ dynamicCount }} dynamique{{ dynamicCount > 1 ? 's' : '' }}
+          </div>
+        {% endif %}
       </div>
     </div>
   </section>
@@ -70,35 +75,34 @@
           <div class="ft-notif-card-body">
             <div class="ft-notif-card-top">
               <span class="ft-notif-type-badge ft-notif-type-{{ notifType }}">
-                {% if notif.type == 'SUCCESS' %}
-                  Confirmation
-                {% elseif notif.type == 'ERROR' %}
-                  Incident
-                {% elseif notif.type == 'WARNING' %}
-                  Vigilance
-                {% else %}
-                  Information
-                {% endif %}
+                {{ notif.title }}
               </span>
 
-              <time class="ft-notif-date" datetime="{{ notif.createdAt|date('c') }}">
+              <time class="ft-notif-date" datetime="{{ notif.date|date('c') }}">
                 <i class="bi bi-clock-history"></i>
-                {{ notif.createdAt|date('d/m/Y a H:i') }}
+                {{ notif.date|date('d/m/Y a H:i') }}
               </time>
             </div>
 
             <p class="ft-notif-message mb-0">{{ notif.message }}</p>
+            {% if notif.actionUrl %}
+              <a href="{{ notif.actionUrl }}" class="ft-inline-link mt-2 d-inline-flex align-items-center">
+                {{ notif.actionLabel ?: 'Voir plus' }}
+              </a>
+            {% endif %}
           </div>
 
           <div class="ft-notif-card-status">
             {% if not notif.read %}
-              <span class="ft-notif-pill ft-notif-pill-live">Non lue</span>
-              <form method="post" action="{{ path('front_notifications_read', {id: notif.id}) }}" class="ft-notif-read-form">
-                <input type="hidden" name="_token" value="{{ csrf_token('read_notification_' ~ notif.id) }}">
-                <button type="submit" class="btn ft-notif-read-btn">
-                  <i class="bi bi-check2 me-1"></i>Marquer comme lue
-                </button>
-              </form>
+              <span class="ft-notif-pill ft-notif-pill-live">{{ notif.source == 'dynamic' ? 'Nouveau' : 'Non lue' }}</span>
+              {% if notif.source == 'native' and notif.nativeId is defined %}
+                <form method="post" action="{{ path('front_notifications_read', {id: notif.nativeId}) }}" class="ft-notif-read-form">
+                  <input type="hidden" name="_token" value="{{ csrf_token('read_notification_' ~ notif.nativeId) }}">
+                  <button type="submit" class="btn ft-notif-read-btn">
+                    <i class="bi bi-check2 me-1"></i>Marquer comme lue
+                  </button>
+                </form>
+              {% endif %}
             {% else %}
               <span class="ft-notif-pill ft-notif-pill-muted">Lue</span>
             {% endif %}

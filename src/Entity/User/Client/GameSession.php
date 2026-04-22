@@ -2,6 +2,7 @@
 
 namespace App\Entity\User\Client;
 
+use App\Entity\User\User;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

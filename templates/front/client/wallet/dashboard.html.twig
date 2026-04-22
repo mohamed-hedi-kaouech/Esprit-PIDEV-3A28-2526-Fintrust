@@ -1,0 +1,431 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Mon wallet{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="ft-page-icon-lg"><i class="bi bi-wallet2"></i></div>
+        <div>
+          <h1 class="ft-page-title mb-0">Dashboard wallet</h1>
+          <p class="text-muted mb-0 small">Vue claire de votre wallet, de vos transactions et de vos demandes de cheque.</p>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('front_wallet_show') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-eye me-1"></i>Voir le detail
+        </a>
+        <a href="{{ path('front_wallet_transactions') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-arrow-left-right me-1"></i>Transactions
+        </a>
+        <a href="{{ path('front_wallet_transfer_history') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-send me-1"></i>Transferts
+        </a>
+        <a href="{{ path('front_wallet_cheques') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-receipt me-1"></i>Cheques
+        </a>
+        <a href="{{ path('front_wallet_cheque_request') }}" class="btn ft-btn-primary{% if wallet and wallet.estBloque %} disabled{% endif %}">
+          <i class="bi bi-journal-plus me-1"></i>Demander un chequier
+        </a>
+      </div>
+    </div>
+
+    {% if wallet is null %}
+      <div class="ft-app-card ft-premium-card">
+        <div class="ft-app-card-body text-center py-5">
+          <div class="ft-page-icon-lg mx-auto mb-3"><i class="bi bi-wallet2"></i></div>
+          <h2 class="h4 mb-2">Aucun wallet disponible</h2>
+          <p class="text-muted mb-0">Votre wallet sera visible ici des qu il sera cree et rattache a votre compte.</p>
+        </div>
+      </div>
+    {% else %}
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-xl-3">
+          <div class="ft-dash-card ft-dash-card-soft h-100">
+            <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-cash-stack"></i></div>
+            <div class="ft-dash-card-label">Solde</div>
+            <div class="ft-dash-card-value">{{ wallet.solde|number_format(2, ',', ' ') }} {{ wallet.devise }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="ft-dash-card ft-dash-card-soft h-100">
+            <div class="ft-dash-card-icon ft-dash-icon-green"><i class="bi bi-arrow-left-right"></i></div>
+            <div class="ft-dash-card-label">Transactions</div>
+            <div class="ft-dash-card-value">{{ transactionCount }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="ft-dash-card ft-dash-card-soft h-100">
+            <div class="ft-dash-card-icon ft-dash-icon-orange"><i class="bi bi-journal-check"></i></div>
+            <div class="ft-dash-card-label">Demandes de cheque</div>
+            <div class="ft-dash-card-value">{{ chequeCount }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="ft-dash-card ft-dash-card-soft h-100">
+            <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-shield-lock"></i></div>
+            <div class="ft-dash-card-label">Etat</div>
+            <div class="ft-dash-card-value">
+              {% if wallet.estBloque %}
+                <span class="badge ft-badge-danger">Bloque</span>
+              {% elseif wallet.estActif %}
+                <span class="badge ft-badge-success">Actif</span>
+              {% else %}
+                <span class="badge ft-badge-warning">{{ wallet.statut|title }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <div class="ft-dash-card ft-dash-card-soft h-100">
+            <div class="ft-dash-card-icon ft-dash-icon-orange"><i class="bi bi-hourglass-split"></i></div>
+            <div class="ft-dash-card-label">Cheques en attente</div>
+            <div class="ft-dash-card-value">{{ walletStats.pendingCheques }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="ft-dash-card ft-dash-card-soft h-100">
+            <div class="ft-dash-card-icon ft-dash-icon-green"><i class="bi bi-patch-check"></i></div>
+            <div class="ft-dash-card-label">Cheques acceptes</div>
+            <div class="ft-dash-card-value">{{ walletStats.acceptedCheques }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="ft-dash-card ft-dash-card-soft h-100">
+            <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-truck"></i></div>
+            <div class="ft-dash-card-label">Cheques livres</div>
+            <div class="ft-dash-card-value">{{ walletStats.deliveredCheques }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="ft-dash-card ft-dash-card-soft h-100">
+            <div class="ft-dash-card-icon ft-dash-icon-red"><i class="bi bi-bell"></i></div>
+            <div class="ft-dash-card-label">Notifications wallet</div>
+            <div class="ft-dash-card-value">{{ walletNotifications|length }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-xl-8">
+          <div class="ft-app-card ft-premium-card h-100">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-credit-card-2-front me-2 text-primary"></i>Resume du wallet</span>
+              <span class="badge ft-badge-blue">#{{ wallet.idWallet }}</span>
+            </div>
+            <div class="ft-app-card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="ft-history-card h-100">
+                    <span class="ft-history-icon blue"><i class="bi bi-person-vcard"></i></span>
+                    <div>
+                      <strong>Proprietaire</strong>
+                      <p class="mb-1">{{ wallet.nomProprietaire }}</p>
+                      <p class="mb-0">{{ wallet.email ?: 'Email non renseigne' }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="ft-history-card h-100">
+                    <span class="ft-history-icon green"><i class="bi bi-telephone"></i></span>
+                    <div>
+                      <strong>Contact</strong>
+                      <p class="mb-1">{{ wallet.telephone ?: 'Telephone non renseigne' }}</p>
+                      <p class="mb-0">Creation: {{ wallet.dateCreation|date('d/m/Y H:i') }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="ft-finance-metric">
+                    <span class="ft-finance-label">Devise</span>
+                    <strong>{{ wallet.devise }}</strong>
+                    <small>Compte principal du client</small>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="ft-finance-metric ft-finance-metric-soft">
+                    <span class="ft-finance-label">Statut</span>
+                    <strong>{{ wallet.statut|title }}</strong>
+                    <small>{{ wallet.estActif ? 'Operationnel' : 'Sous surveillance' }}</small>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="ft-finance-metric ft-finance-metric-accent">
+                    <span class="ft-finance-label">Blocage</span>
+                    <strong>{{ wallet.estBloque ? 'Oui' : 'Non' }}</strong>
+                    <small>{{ wallet.estBloque ? 'Actions limitees' : 'Aucune restriction' }}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-4">
+          <div class="ft-app-card ft-premium-card h-100">
+            <div class="ft-app-card-header">
+              <i class="bi bi-lightning-charge me-2 text-primary"></i>Acces rapides
+            </div>
+            <div class="ft-app-card-body">
+              <div class="ft-shortcuts-grid">
+                <a href="{{ path('front_wallet_show') }}" class="ft-shortcut-tile">
+                  <i class="bi bi-eye"></i>
+                  <span>Detail wallet</span>
+                </a>
+                <a href="{{ path('front_wallet_transactions') }}" class="ft-shortcut-tile">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>Historique</span>
+                </a>
+                <a href="{{ path('front_wallet_transfer_new') }}" class="ft-shortcut-tile">
+                  <i class="bi bi-send"></i>
+                  <span>Transferer</span>
+                </a>
+                <a href="{{ path('front_wallet_cheques') }}" class="ft-shortcut-tile">
+                  <i class="bi bi-journal-text"></i>
+                  <span>Mes cheques</span>
+                </a>
+                <a href="{{ path('front_wallet_transfer_history') }}" class="ft-shortcut-tile">
+                  <i class="bi bi-clock-history"></i>
+                  <span>Transferts</span>
+                </a>
+                <a href="{{ path('front_wallet_cheque_request') }}" class="ft-shortcut-tile">
+                  <i class="bi bi-journal-plus"></i>
+                  <span>Nouvelle demande</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-xl-7">
+          <div class="ft-app-card ft-premium-card h-100">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Tendance recente</span>
+              <span class="badge ft-badge-blue">{{ walletStats.statusLabel }}</span>
+            </div>
+            <div class="ft-app-card-body">
+              <div style="height: 280px;">
+                <canvas id="walletFlowChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-5">
+          <div class="ft-app-card ft-premium-card h-100">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-shield-check me-2 text-primary"></i>Audit recent</span>
+              <a href="{{ path('front_notifications') }}" class="ft-inline-link">Centre de notifications</a>
+            </div>
+            <div class="ft-app-card-body p-0">
+              {% if auditEntries is empty %}
+                <div class="p-4 text-muted">Aucune action sensible recente a afficher.</div>
+              {% else %}
+                <div class="list-group list-group-flush">
+                  {% for entry in auditEntries %}
+                    <div class="list-group-item px-4 py-3">
+                      <div class="fw-semibold small">{{ entry.action }}</div>
+                      <div class="text-muted small">{{ entry.timestamp|date('d/m/Y H:i') }}</div>
+                      {% if entry.reference is defined and entry.reference %}
+                        <div class="small mt-1">Reference: {{ entry.reference }}</div>
+                      {% endif %}
+                      {% if entry.status is defined and entry.status %}
+                        <div class="small">Statut: {{ entry.status }}</div>
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-xl-7">
+          <div class="ft-app-card ft-premium-card h-100">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-clock-history me-2 text-primary"></i>5 dernieres transactions</span>
+              <a href="{{ path('front_wallet_transactions') }}" class="ft-inline-link">Voir tout</a>
+            </div>
+            <div class="ft-app-card-body p-0">
+              {% if latestTransactions is empty %}
+                <div class="p-4 text-muted">Aucune transaction disponible pour le moment.</div>
+              {% else %}
+                <div class="table-responsive">
+                  <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>Montant</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for transaction in latestTransactions %}
+                        {% set type = transaction.type|lower %}
+                        <tr>
+                          <td class="fw-semibold">#{{ transaction.idTransaction }}</td>
+                          <td>
+                            <span class="badge {{ type == 'depot' ? 'ft-badge-success' : (type == 'retrait' ? 'ft-badge-warning' : 'ft-badge-blue') }}">
+                              {{ transaction.type|title }}
+                            </span>
+                          </td>
+                          <td>{{ transaction.montant|number_format(2, ',', ' ') }} {{ wallet.devise }}</td>
+                          <td>{{ transaction.description ?: 'Sans description' }}</td>
+                          <td>{{ transaction.dateTransaction|date('d/m/Y H:i') }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-5">
+          <div class="ft-app-card ft-premium-card mb-4">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-bell me-2 text-primary"></i>Transferts recus</span>
+              <a href="{{ path('front_notifications') }}" class="ft-inline-link">Notifications</a>
+            </div>
+            <div class="ft-app-card-body p-0">
+              {% if transferNotifications is empty %}
+                <div class="p-4 text-muted">Aucune notification de transfert recue pour le moment.</div>
+              {% else %}
+                <div class="list-group list-group-flush">
+                  {% for notification in transferNotifications %}
+                    <div class="list-group-item px-4 py-3">
+                      <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                          <div class="fw-semibold mb-1">Transfert recu</div>
+                          <div class="text-muted small">{{ notification.message }}</div>
+                        </div>
+                        <div class="text-end">
+                          <span class="badge {{ notification.read ? 'ft-badge-neutral' : 'ft-badge-success' }}">
+                            {{ notification.read ? 'Lue' : 'Non lue' }}
+                          </span>
+                          <div class="text-muted small mt-2">{{ notification.createdAt|date('d/m/Y H:i') }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            {% if transferNotificationCount > 0 %}
+              <div class="ft-app-card-body border-top py-3">
+                <span class="badge ft-badge-blue">{{ transferNotificationCount }} non lue{{ transferNotificationCount > 1 ? 's' : '' }}</span>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="ft-app-card ft-premium-card mb-4">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-megaphone me-2 text-primary"></i>Notifications wallet</span>
+              <a href="{{ path('front_notifications') }}" class="ft-inline-link">Voir tout</a>
+            </div>
+            <div class="ft-app-card-body p-0">
+              {% if walletNotifications is empty %}
+                <div class="p-4 text-muted">Aucune notification wallet pour le moment.</div>
+              {% else %}
+                <div class="list-group list-group-flush">
+                  {% for notification in walletNotifications %}
+                    <div class="list-group-item px-4 py-3">
+                      <div class="fw-semibold small">{{ notification.type }}</div>
+                      <div class="text-muted small">{{ notification.message }}</div>
+                      <div class="text-muted small mt-2">{{ notification.createdAt|date('d/m/Y H:i') }}</div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="ft-app-card ft-premium-card h-100">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-journal-check me-2 text-primary"></i>5 derniers cheques</span>
+              <a href="{{ path('front_wallet_cheques') }}" class="ft-inline-link">Voir tout</a>
+            </div>
+            <div class="ft-app-card-body p-0">
+              {% if latestCheques is empty %}
+                <div class="p-4 text-muted">Aucune demande de cheque enregistree.</div>
+              {% else %}
+                <div class="table-responsive">
+                  <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Numero</th>
+                        <th>Beneficiaire</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for cheque in latestCheques %}
+                        {% set statut = cheque.statut|lower %}
+                        <tr>
+                          <td class="fw-semibold">{{ cheque.numeroCheque }}</td>
+                          <td>{{ cheque.beneficiaire ?: 'Non renseigne' }}</td>
+                          <td>
+                            <span class="badge {{ statut == 'accepte' ? 'ft-badge-success' : (statut == 'refuse' ? 'ft-badge-danger' : 'ft-badge-warning') }}">
+                              {{ cheque.statut|replace({'_': ' '})|title }}
+                            </span>
+                          </td>
+                          <td>{{ cheque.dateEmission|date('d/m/Y H:i') }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    const walletFlowCanvas = document.getElementById('walletFlowChart');
+    if (walletFlowCanvas) {
+      new Chart(walletFlowCanvas, {
+        type: 'line',
+        data: {
+          labels: {{ walletChart.labels|json_encode|raw }},
+          datasets: [{
+            label: 'Flux',
+            data: {{ walletChart.values|json_encode|raw }},
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37,99,235,0.12)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(148,163,184,.15)' } },
+            x: { ticks: { color: '#64748b' }, grid: { display: false } }
+          }
+        }
+      });
+    }
+  </script>
+{% endblock %}

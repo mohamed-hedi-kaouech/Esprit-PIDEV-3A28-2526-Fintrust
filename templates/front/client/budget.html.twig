@@ -1,0 +1,281 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}{{ module.title }}{% endblock %}
+
+{% block body %}
+<div class="ft-app-page ft-budget-page">
+  <div class="container-fluid px-4 py-4" style="max-width: 1320px;">
+    <section class="ft-budget-hero mb-4">
+      <div class="ft-budget-hero-copy">
+        <span class="ft-budget-kicker">
+          <i class="bi bi-stars"></i>
+          Budget intelligence
+        </span>
+        <h1 class="ft-page-title mb-2">{{ module.title }}</h1>
+        <p class="ft-budget-subtitle mb-0">
+          Centralisez vos categories, surveillez vos depenses et detectez les signaux sensibles
+          depuis un cockpit budgetaire plus utile et plus lisible.
+        </p>
+      </div>
+
+      <div class="ft-budget-hero-panel">
+        <span class="ft-budget-hero-panel-label">Vue globale</span>
+        <strong>{{ totalBudget|number_format(2, ',', ' ') }} TND</strong>
+        <span>{{ trackedCategories }} categorie(s) suivie(s) • {{ activeAlerts }} alerte(s) active(s)</span>
+      </div>
+    </section>
+
+    <section class="row g-3 mb-4">
+      <div class="col-6 col-xl-3">
+        <div class="ft-dash-card ft-dash-card-soft h-100">
+          <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-wallet2"></i></div>
+          <div class="ft-dash-card-label">Budget total</div>
+          <div class="ft-dash-card-value">{{ totalBudget|number_format(2, ',', ' ') }} TND</div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="ft-dash-card ft-dash-card-soft h-100">
+          <div class="ft-dash-card-icon ft-dash-icon-orange"><i class="bi bi-graph-up-arrow"></i></div>
+          <div class="ft-dash-card-label">Depenses cumulees</div>
+          <div class="ft-dash-card-value">{{ totalSpent|number_format(2, ',', ' ') }} TND</div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="ft-dash-card ft-dash-card-soft h-100">
+          <div class="ft-dash-card-icon ft-dash-icon-green"><i class="bi bi-piggy-bank"></i></div>
+          <div class="ft-dash-card-label">Reste disponible</div>
+          <div class="ft-dash-card-value">{{ remainingBudget|number_format(2, ',', ' ') }} TND</div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="ft-dash-card ft-dash-card-soft h-100">
+          <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-bell"></i></div>
+          <div class="ft-dash-card-label">Alertes actives</div>
+          <div class="ft-dash-card-value">{{ activeAlerts }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="row g-4 mb-4">
+      <div class="col-xl-8">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><i class="bi bi-bar-chart-line me-2 text-primary"></i>Performance budgetaire</span>
+            <span class="badge ft-badge-blue">{{ globalUsage|round(1) }}% utilise</span>
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-budget-progress-shell mb-4">
+              <div class="ft-budget-progress-meta">
+                <div>
+                  <span class="ft-budget-progress-label">Consommation globale</span>
+                  <strong>{{ totalSpent|number_format(2, ',', ' ') }} / {{ totalBudget|number_format(2, ',', ' ') }} TND</strong>
+                </div>
+                <span class="ft-budget-progress-percent">{{ globalUsage|round(1) }}%</span>
+              </div>
+              <div class="ft-budget-progress-track">
+                <div class="ft-budget-progress-value" style="width: {{ globalUsage > 100 ? 100 : globalUsage }}%;"></div>
+              </div>
+            </div>
+
+            <div class="row g-3">
+              {% for stat in topCategories %}
+                <div class="col-md-4">
+                  <article class="ft-budget-focus-card h-100">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                      <div>
+                        <h3 class="h6 mb-1">{{ stat.categorie.nomCategorie }}</h3>
+                        <p class="text-muted small mb-0">{{ stat.itemCount }} item(s) • {{ stat.alertCount }} alerte(s)</p>
+                      </div>
+                      <span class="badge {% if stat.status == 'danger' %}ft-badge-danger{% elseif stat.status == 'warning' %}ft-badge-warning{% else %}ft-badge-success{% endif %}">
+                        {{ stat.statusLabel }}
+                      </span>
+                    </div>
+                    <div class="ft-budget-mini-metric">
+                      <span>Depenses</span>
+                      <strong>{{ stat.spent|number_format(2, ',', ' ') }} TND</strong>
+                    </div>
+                    <div class="ft-budget-mini-metric">
+                      <span>Budget</span>
+                      <strong>{{ stat.budget|number_format(2, ',', ' ') }} TND</strong>
+                    </div>
+                    <div class="ft-budget-mini-bar mt-3">
+                      <div class="ft-budget-mini-bar__value {% if stat.status == 'danger' %}is-danger{% elseif stat.status == 'warning' %}is-warning{% else %}is-ok{% endif %}" style="width: {{ stat.usage > 100 ? 100 : stat.usage }}%;"></div>
+                    </div>
+                    <div class="text-muted small mt-2">{{ stat.usage|round(1) }}% du budget utilise</div>
+                  </article>
+                </div>
+              {% else %}
+                <div class="col-12">
+                  <div class="ft-budget-empty-inline">
+                    <i class="bi bi-pie-chart"></i>
+                    <span>Aucune categorie budgetaire disponible pour le moment.</span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-4">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-lightbulb me-2 text-primary"></i>Insight FinTrust
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-budget-insight-card mb-3">
+              <span class="ft-budget-insight-kicker">Lecture intelligente</span>
+              <p class="mb-0">{{ insight }}</p>
+            </div>
+
+            <div class="ft-budget-side-metrics">
+              <div class="ft-budget-side-metric">
+                <span>Categories suivies</span>
+                <strong>{{ trackedCategories }}</strong>
+              </div>
+              <div class="ft-budget-side-metric">
+                <span>Items references</span>
+                <strong>{{ totalItems }}</strong>
+              </div>
+              <div class="ft-budget-side-metric">
+                <span>Alertes actives</span>
+                <strong>{{ activeAlerts }}</strong>
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-4">
+              <a href="{{ path('front_dashboard') }}" class="btn ft-btn-outline-primary">
+                <i class="bi bi-grid me-2"></i>Retour dashboard
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="row g-4 mb-4">
+      <div class="col-xl-7">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-calendar-week me-2 text-primary"></i>Activite hebdomadaire des alertes</span>
+            <span class="badge ft-badge-blue">{{ weeklyActivity|length }} jours</span>
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-budget-weekly-chart">
+              {% set maxWeekly = 1 %}
+              {% for count in weeklyActivity %}
+                {% if count > maxWeekly %}
+                  {% set maxWeekly = count %}
+                {% endif %}
+              {% endfor %}
+
+              {% for day, count in weeklyActivity %}
+                <div class="ft-budget-weekly-row">
+                  <span class="ft-budget-weekly-label">{{ day }}</span>
+                  <div class="ft-budget-weekly-bar">
+                    <div class="ft-budget-weekly-bar__value" style="width: {{ maxWeekly > 0 ? (count / maxWeekly) * 100 : 0 }}%;"></div>
+                  </div>
+                  <strong class="ft-budget-weekly-count">{{ count }}</strong>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-5">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-exclamation-triangle me-2 text-primary"></i>Alertes recentes</span>
+            <span class="badge ft-badge-warning">{{ latestAlerts|length }}</span>
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-budget-alert-feed">
+              {% for alerte in latestAlerts %}
+                <article class="ft-budget-alert-item">
+                  <div class="ft-budget-alert-item__icon">
+                    <i class="bi bi-bell-fill"></i>
+                  </div>
+                  <div class="ft-budget-alert-item__content">
+                    <strong>{{ alerte.categorie.nomCategorie }}</strong>
+                    <p class="mb-1">{{ alerte.message }}</p>
+                    <span>{{ alerte.createdAt|date('d/m/Y H:i') }} • seuil {{ alerte.seuil|number_format(2, ',', ' ') }} TND</span>
+                  </div>
+                </article>
+              {% else %}
+                <div class="ft-budget-empty-inline">
+                  <i class="bi bi-check2-circle"></i>
+                  <span>Aucune alerte recente. Votre suivi budgetaire est stable.</span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ft-app-card ft-premium-card">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Categories budgetaires</span>
+        <span class="badge ft-badge-blue">{{ budgetStats|length }} categorie(s)</span>
+      </div>
+      <div class="ft-app-card-body">
+        {% if budgetStats is empty %}
+          <div class="ft-budget-empty-state">
+            <div class="ft-page-icon-lg mx-auto mb-3"><i class="bi bi-calculator"></i></div>
+            <h2 class="h4 mb-2">Aucune donnee budgetaire disponible</h2>
+            <p class="text-muted mb-0">Les categories et depenses apparaitront ici des que le module budget sera alimente.</p>
+          </div>
+        {% else %}
+          <div class="row g-3">
+            {% for stat in budgetStats %}
+              <div class="col-12 col-lg-6">
+                <article class="ft-budget-category-card h-100">
+                  <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                      <h3 class="h5 mb-1">{{ stat.categorie.nomCategorie }}</h3>
+                      <p class="text-muted small mb-0">{{ stat.itemCount }} item(s) • {{ stat.alertCount }} alerte(s) active(s)</p>
+                    </div>
+                    <span class="badge {% if stat.status == 'danger' %}ft-badge-danger{% elseif stat.status == 'warning' %}ft-badge-warning{% else %}ft-badge-success{% endif %}">
+                      {{ stat.statusLabel }}
+                    </span>
+                  </div>
+
+                  <div class="row g-3 mb-3">
+                    <div class="col-4">
+                      <div class="ft-budget-metric-box">
+                        <span>Budget</span>
+                        <strong>{{ stat.budget|number_format(2, ',', ' ') }}</strong>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="ft-budget-metric-box">
+                        <span>Depenses</span>
+                        <strong>{{ stat.spent|number_format(2, ',', ' ') }}</strong>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="ft-budget-metric-box">
+                        <span>Reste</span>
+                        <strong>{{ stat.remaining|number_format(2, ',', ' ') }}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ft-budget-progress-track mb-2">
+                    <div class="ft-budget-progress-value {% if stat.status == 'danger' %}is-danger{% elseif stat.status == 'warning' %}is-warning{% endif %}" style="width: {{ stat.usage > 100 ? 100 : stat.usage }}%;"></div>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center text-muted small">
+                    <span>{{ stat.usage|round(1) }}% utilise</span>
+                    <span>Seuil d alerte : {{ stat.categorie.seuilAlerte|number_format(2, ',', ' ') }} TND</span>
+                  </div>
+                </article>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -3,63 +3,421 @@
 {% block title %}Détails de l'Item{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="h3 mb-0 text-gray-800">{{ item.libelle }}</h1>
+<div class="container-fluid mt-5">
+    <!-- Header avec navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('admin_dashboard') }}" class="text-decoration-none">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('admin_item_list') }}" class="text-decoration-none">Items</a>
+                    </li>
+                    <li class="breadcrumb-item active">{{ item.libelle }}</li>
+                </ol>
+            </nav>
+            <h1 class="h2 fw-bold text-dark mb-2">
+                <i class="fas fa-tag text-primary me-3"></i>
+                {{ item.libelle }}
+            </h1>
+            <p class="text-muted">Détails complets de l'article budgétaire</p>
         </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" class="btn btn-warning">
-                <i class="fas fa-edit"></i> Modifier
+        <div class="d-flex gap-3">
+            <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" class="btn btn-warning btn-lg">
+                <i class="fas fa-edit me-2"></i>Modifier
             </a>
-            <a href="{{ path('admin_item_list') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Retour
+            <a href="{{ path('admin_item_list') }}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
             </a>
         </div>
     </div>
 
-    <div class="card shadow">
-        <div class="card-header bg-primary">
-            <h5 class="text-white mb-0">Informations Item</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <table class="table table-borderless">
-                        <tr>
-                            <td><strong>ID :</strong></td>
-                            <td>{{ item.idItem }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Libellé :</strong></td>
-                            <td>{{ item.libelle }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Montant :</strong></td>
-                            <td>{{ item.montant|number_format(2, ',', ' ') }} €</td>
-                        </tr>
-                    </table>
+    <div class="row g-4">
+        <!-- Carte principale des informations -->
+        <div class="col-lg-8">
+            <div class="item-detail-card">
+                <div class="card-header-custom">
+                    <div class="card-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Informations générales</h5>
+                        <small class="text-muted">Détails de l'article budgétaire</small>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <table class="table table-borderless">
-                        <tr>
-                            <td><strong>Catégorie :</strong></td>
-                            <td>
-                                <span class="badge bg-info">{{ item.categorieRel.nomCategorie }}</span>
-                                <a href="{{ path('admin_categorie_show', {'idCategorie': item.categorieRel.idCategorie}) }}" 
-                                   class="btn btn-sm btn-outline-info ms-2">
-                                    Voir la catégorie
-                                </a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>ID Catégorie :</strong></td>
-                            <td>{{ item.categorieRel.idCategorie }}</td>
-                        </tr>
-                    </table>
+
+                <div class="card-body-custom">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-hashtag text-primary me-2"></i>ID de l'item
+                            </div>
+                            <div class="info-value">{{ item.idItem }}</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-tag text-primary me-2"></i>Libellé
+                            </div>
+                            <div class="info-value">{{ item.libelle }}</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-euro-sign text-success me-2"></i>Montant
+                            </div>
+                            <div class="info-value amount-highlight">{{ item.montant|number_format(2, ',', ' ') }} €</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte de la catégorie -->
+        <div class="col-lg-4">
+            <div class="category-card">
+                <div class="card-header-custom">
+                    <div class="card-icon">
+                        <i class="fas fa-folder"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Catégorie associée</h5>
+                        <small class="text-muted">Contexte budgétaire</small>
+                    </div>
+                </div>
+
+                <div class="card-body-custom">
+                    <div class="category-info">
+                        <div class="category-name">{{ item.categorieRel.nomCategorie }}</div>
+                        <div class="category-id">ID: {{ item.categorieRel.idCategorie }}</div>
+
+                        <div class="category-details mt-3">
+                            <div class="detail-row">
+                                <span class="detail-label">Budget prévu:</span>
+                                <span class="detail-value">{{ item.categorieRel.budgetPrevu|number_format(2, ',', ' ') }} €</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Seuil d'alerte:</span>
+                                <span class="detail-value text-warning">{{ item.categorieRel.seuilAlerte|number_format(2, ',', ' ') }} €</span>
+                            </div>
+                        </div>
+
+                        <a href="{{ path('admin_categorie_show', {'idCategorie': item.categorieRel.idCategorie}) }}"
+                           class="btn btn-outline-primary btn-sm w-100 mt-3">
+                            <i class="fas fa-external-link-alt me-2"></i>Voir la catégorie complète
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carte des statistiques -->
+            <div class="stats-card mt-4">
+                <div class="card-header-custom">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Impact budgétaire</h5>
+                        <small class="text-muted">Contribution à la catégorie</small>
+                    </div>
+                </div>
+
+                <div class="card-body-custom">
+                    {% set categoryTotal = 0 %}
+                    {% for catItem in item.categorieRel.items %}
+                        {% set categoryTotal = categoryTotal + catItem.montant %}
+                    {% endfor %}
+                    {% set percentage = categoryTotal > 0 ? (item.montant / categoryTotal * 100) : 0 %}
+
+                    <div class="impact-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Votre contribution</div>
+                            <div class="stat-value">{{ percentage|number_format(1) }}%</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total catégorie</div>
+                            <div class="stat-value">{{ categoryTotal|number_format(2, ',', ' ') }} €</div>
+                        </div>
+                    </div>
+
+                    <div class="progress mt-3">
+                        <div class="progress-bar bg-primary"
+                             role="progressbar"
+                             style="width: {{ percentage }}%"
+                             aria-valuenow="{{ percentage }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section des actions rapides -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="quick-actions-card">
+                <div class="card-header-custom">
+                    <div class="card-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Actions rapides</h5>
+                        <small class="text-muted">Opérations courantes sur cet item</small>
+                    </div>
+                </div>
+
+                <div class="card-body-custom">
+                    <div class="action-buttons">
+                        <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" class="action-btn btn-edit">
+                            <i class="fas fa-edit"></i>
+                            <span>Modifier l'item</span>
+                        </a>
+                        <a href="{{ path('admin_item_create') }}?categorie={{ item.categorieRel.idCategorie }}" class="action-btn btn-create">
+                            <i class="fas fa-plus"></i>
+                            <span>Ajouter un item similaire</span>
+                        </a>
+                        <a href="{{ path('admin_categorie_edit', {'idCategorie': item.categorieRel.idCategorie}) }}" class="action-btn btn-category">
+                            <i class="fas fa-folder-edit"></i>
+                            <span>Modifier la catégorie</span>
+                        </a>
+                        <a href="{{ path('admin_item_list') }}?categorie={{ item.categorieRel.idCategorie }}" class="action-btn btn-list">
+                            <i class="fas fa-list"></i>
+                            <span>Voir tous les items de cette catégorie</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.card-header-custom {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: rgba(248, 250, 252, 0.8);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.card-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #3b82f6, #1f6feb);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    margin-right: 1rem;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.card-body-custom {
+    padding: 1.5rem;
+}
+
+.item-detail-card,
+.category-card,
+.stats-card,
+.quick-actions-card {
+    background: white;
+    border: 1px solid rgba(167, 180, 248, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 1.5rem;
+}
+
+.item-detail-card:hover,
+.category-card:hover,
+.stats-card:hover,
+.quick-actions-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.12);
+}
+
+.info-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.info-item {
+    padding: 1rem;
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.info-label {
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.info-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.amount-highlight {
+    color: #059669 !important;
+    font-size: 1.5rem !important;
+}
+
+.category-info {
+    text-align: center;
+}
+
+.category-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.category-id {
+    color: #64748b;
+    font-size: 0.875rem;
+}
+
+.category-details {
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #64748b;
+}
+
+.detail-value {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.impact-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: 12px;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.progress {
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #3b82f6, #1f6feb);
+    transition: width 0.3s ease;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: 2px solid;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border-color: #d97706;
+}
+
+.btn-create {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border-color: #059669;
+}
+
+.btn-category {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    border-color: #7c3aed;
+}
+
+.btn-list {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    color: white;
+    border-color: #0891b2;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.breadcrumb-item a {
+    color: #64748b;
+}
+
+.breadcrumb-item.active {
+    color: #1e293b;
+    font-weight: 600;
+}
+</style>
 {% endblock %}

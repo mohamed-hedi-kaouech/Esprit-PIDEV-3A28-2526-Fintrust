@@ -1,4 +1,4 @@
-php bin/console doctrine:query:sql "SELECT table_name, column_name, data_type, character_maximum_length, is_nullable, column_key, extra, column_default FROM 
+yrphp bin/console doctrine:query:sql "SELECT table_name, column_name, data_type, character_maximum_length, is_nullable, column_key, extra, column_default FROM 
 information_schema.columns WHERE table_schema = DATABASE() ORDER BY table_name, ordinal_position" ///tables + champ
 
 php bin/console doctrine:query:sql "SELECT table_name, column_name, referenced_table_name, referenced_column_name FROM information_schema.key_column_usage 

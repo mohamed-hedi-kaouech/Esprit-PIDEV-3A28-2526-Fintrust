@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class PasswordResetService
 {
@@ -29,6 +30,8 @@ class PasswordResetService
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly PasswordResetMailer $passwordResetMailer,
         private readonly string $appSecret,
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly string $kernelEnvironment,
     ) {}
 
     /**
@@ -63,7 +66,10 @@ class PasswordResetService
         ];
     }
 
-    public function dispatchEmail(array $flow, Request $request): ?PasswordResetRequest
+    /**
+     * @return array{sent:bool,request:?PasswordResetRequest,debug_reset_url:?string}
+     */
+    public function dispatchEmail(array $flow, Request $request): array
     {
         $requestIp = $this->resolveRequestIp($request);
         $channel = PasswordResetRequest::CHANNEL_EMAIL;
@@ -78,7 +84,11 @@ class PasswordResetService
                 ['reason' => 'request_window_limit']
             );
 
-            return null;
+            return [
+                'sent' => false,
+                'request' => null,
+                'debug_reset_url' => null,
+            ];
         }
 
         $user = $this->getFlowUser($flow);
@@ -92,7 +102,11 @@ class PasswordResetService
                 ['delivery' => 'generic_no_user']
             );
 
-            return null;
+            return [
+                'sent' => false,
+                'request' => null,
+                'debug_reset_url' => null,
+            ];
         }
 
         $this->invalidateActiveRequestsForUser($user);
@@ -114,6 +128,13 @@ class PasswordResetService
         $this->entityManager->persist($passwordResetRequest);
         $this->entityManager->flush();
 
+        $debugResetUrl = $this->kernelEnvironment === 'dev'
+            ? $this->urlGenerator->generate('app_password_reset_email_verify', [
+                'publicId' => $passwordResetRequest->getPublicId(),
+                'token' => $secret,
+            ], UrlGeneratorInterface::ABSOLUTE_URL)
+            : null;
+
         try {
             $this->sendThroughChannel($passwordResetRequest, $user, $secret);
         } catch (\Throwable $exception) {
@@ -128,7 +149,11 @@ class PasswordResetService
                 ['delivery' => 'failed', 'message' => $exception->getMessage()]
             );
 
-            return null;
+            return [
+                'sent' => false,
+                'request' => $passwordResetRequest,
+                'debug_reset_url' => $debugResetUrl,
+            ];
         }
 
         $this->logEvent(
@@ -140,7 +165,11 @@ class PasswordResetService
             ['delivery' => 'sent']
         );
 
-        return $passwordResetRequest;
+        return [
+            'sent' => true,
+            'request' => $passwordResetRequest,
+            'debug_reset_url' => null,
+        ];
     }
 
     public function verifyEmailToken(string $publicId, string $token, Request $request): ?PasswordResetRequest

@@ -7,13 +7,13 @@ use App\Form\Front\RegistrationFormType;
 use App\Service\AccountVerificationMailer;
 use App\Service\CaptchaService;
 use App\Service\UserService;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Psr\Log\LoggerInterface;
 
 class SecurityController extends AbstractController
 {
@@ -35,17 +35,18 @@ class SecurityController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $plainPassword = (string) $form->get('plainPassword')->getData();
             $userService->registerClient($user, $plainPassword);
-            
+
             try {
                 $accountVerificationMailer->sendVerificationCode($user);
-                $this->addFlash('success', 'Compte créé avec succès. Un code de vérification a été envoyé à votre adresse e-mail.');
-                $logger->info('Email de vérification envoyé avec succès', [
+                $this->addFlash('success', 'Compte cree avec succes. Un code de verification a ete envoye a votre adresse e-mail.');
+                $logger->info('Email de verification envoye avec succes', [
                     'user_email' => $user->getEmail(),
                     'verification_code' => $user->getEmailVerificationCode(),
                 ]);
             } catch (\Throwable $e) {
-                $this->addFlash('warning', 'Compte créé avec succès. L\'envoi de l\'e-mail a échoué pour le moment, mais vous pouvez demander un nouveau code.');
-                $logger->error('Erreur lors de l\'envoi du code de vérification', [
+                $this->addFlash('warning', 'Compte cree avec succes. L envoi de l e-mail a echoue pour le moment, mais vous pouvez demander un nouveau code.');
+                $this->addVerificationCodeFallbackFlash($user);
+                $logger->error('Erreur lors de l envoi du code de verification', [
                     'user_email' => $user->getEmail(),
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
@@ -86,6 +87,23 @@ class SecurityController extends AbstractController
     public function logout(): never
     {
         throw new \LogicException('Intercepte par le firewall Symfony.');
+    }
+
+    private function addVerificationCodeFallbackFlash(User $user): void
+    {
+        if ($this->getParameter('kernel.environment') !== 'dev') {
+            return;
+        }
+
+        $code = $user->getEmailVerificationCode();
+        if (!is_string($code) || $code === '') {
+            return;
+        }
+
+        $this->addFlash(
+            'info',
+            sprintf('Mode dev: e-mail indisponible sur cette machine. Utilisez ce code de verification: %s', $code)
+        );
     }
 
     private function redirectAuthenticatedUser(): ?RedirectResponse

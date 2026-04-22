@@ -6,11 +6,15 @@
 <div class="container-fluid mt-4">
     {% set totalAlertes = alertes|length %}
     {% set activeAlertes = 0 %}
+    {% set unreadAlertes = 0 %}
     {% set categoriesSurveillees = [] %}
 
     {% for alerte in alertes %}
         {% if alerte.active %}
             {% set activeAlertes = activeAlertes + 1 %}
+        {% endif %}
+        {% if not alerte.read %}
+            {% set unreadAlertes = unreadAlertes + 1 %}
         {% endif %}
         {% if alerte.categorie and alerte.categorie.idCategorie not in categoriesSurveillees %}
             {% set categoriesSurveillees = categoriesSurveillees|merge([alerte.categorie.idCategorie]) %}
@@ -18,6 +22,7 @@
     {% endfor %}
 
     {% set inactiveAlertes = totalAlertes - activeAlertes %}
+    {% set readAlertes = totalAlertes - unreadAlertes %}
 
     <section class="ft-budget-alert-hero mb-4">
         <div class="ft-budget-alert-hero-copy">
@@ -117,6 +122,8 @@
                 <div class="ft-budget-alert-table-summary">
                     <span class="ft-badge-warning">{{ activeAlertes }} actives</span>
                     <span class="ft-badge-neutral">{{ inactiveAlertes }} inactives</span>
+                    <span class="ft-badge-info">{{ unreadAlertes }} non lues</span>
+                    <span class="ft-badge-success">{{ readAlertes }} lues</span>
                 </div>
             </div>
 
@@ -130,11 +137,13 @@
                             <th>Seuil</th>
                             <th>Creee le</th>
                             <th>Statut</th>
+                            <th>Lecture</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for alerte in alertes %}
-                            <tr>
+                            <tr class="{{ alerte.read ? 'ft-alert-row-read' : 'ft-alert-row-unread' }}">
                                 <td>#{{ alerte.idAlerte }}</td>
                                 <td>
                                     <div class="ft-budget-alert-category">
@@ -162,6 +171,43 @@
                                             <i class="fa-solid fa-check"></i>Inactif
                                         </span>
                                     {% endif %}
+                                </td>
+                                <td>
+                                    {% if alerte.read %}
+                                        <span class="ft-admin-status-chip ft-admin-status-success">
+                                            <i class="fa-solid fa-envelope-open"></i>Lue
+                                        </span>
+                                    {% else %}
+                                        <span class="ft-admin-status-chip ft-admin-status-info">
+                                            <i class="fa-solid fa-envelope"></i>Non lue
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="ft-alert-actions">
+                                        {% if alerte.read %}
+                                            <form method="post" action="{{ path('admin_alerte_mark_unread', {'idAlerte': alerte.idAlerte}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('mark_unread' ~ alerte.idAlerte) }}">
+                                                <button type="submit" class="btn ft-btn-outline-primary ft-alert-action-btn">
+                                                    <i class="fa-solid fa-envelope me-2"></i>Marquer non lue
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form method="post" action="{{ path('admin_alerte_mark_read', {'idAlerte': alerte.idAlerte}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('mark_read' ~ alerte.idAlerte) }}">
+                                                <button type="submit" class="btn ft-btn-primary ft-alert-action-btn">
+                                                    <i class="fa-solid fa-envelope-open me-2"></i>Marquer lue
+                                                </button>
+                                            </form>
+                                        {% endif %}
+
+                                        <form method="post" action="{{ path('admin_alerte_delete', {'idAlerte': alerte.idAlerte}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ alerte.idAlerte) }}">
+                                            <button type="submit" class="btn ft-alert-delete-btn">
+                                                <i class="fa-solid fa-trash me-2"></i>Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         {% endfor %}

@@ -288,13 +288,27 @@
 {% block javascripts %}
     {{ parent() }}
     {% if stats is not empty %}
+        {% set chartLabels = [] %}
+        {% set chartDonutValues = [] %}
+        {% set chartBudgetValues = [] %}
+        {% set chartDepenseValues = [] %}
+        {% set chartUsageValues = [] %}
+
+        {% for stat in stats %}
+            {% set chartLabels = chartLabels|merge([stat.categorie.nomCategorie]) %}
+            {% set chartDonutValues = chartDonutValues|merge([stat.totalAmount]) %}
+            {% set chartBudgetValues = chartBudgetValues|merge([stat.categorie.budgetPrevu]) %}
+            {% set chartDepenseValues = chartDepenseValues|merge([stat.totalAmount]) %}
+            {% set chartUsageValues = chartUsageValues|merge([(stat.budgetUsage > 100 ? 100 : stat.budgetUsage)|round(1)]) %}
+        {% endfor %}
+
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <script>
-            const categoryLabels = {{ usageLabels|json_encode|raw }};
-            const donutValues = {{ donutValues|json_encode|raw }};
-            const budgetValues = {{ barBudgets|json_encode|raw }};
-            const depenseValues = {{ barDepenses|json_encode|raw }};
-            const usageValues = {{ lineValues|json_encode|raw }};
+            const categoryLabels = {{ chartLabels|json_encode|raw }};
+            const donutValues = {{ chartDonutValues|json_encode|raw }};
+            const budgetValues = {{ chartBudgetValues|json_encode|raw }};
+            const depenseValues = {{ chartDepenseValues|json_encode|raw }};
+            const usageValues = {{ chartUsageValues|json_encode|raw }};
 
             const palette = ['#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa', '#22c55e', '#f59e0b', '#ef4444', '#7c3aed'];
 

@@ -3,10 +3,14 @@
 namespace App\Controller\Front;
 
 use App\Entity\User\Client\Kyc;
+use App\Entity\Categorie\Alerte;
+use App\Repository\CategorieRepository;
+use App\Repository\ItemRepository;
 use App\Entity\User\User;
 use App\Form\Front\KycFormType;
 use App\Form\Front\ProfileFormType;
 use App\Entity\Publication\Publication;
+use App\Entity\User\Feedback;
 use App\Form\Front\PublicationCommentType;
 use App\Repository\KycRepository;
 use App\Repository\PublicationRepository;
@@ -14,12 +18,15 @@ use App\Security\KycAccessChecker;
 use App\Security\RiskAccessChecker;
 use App\Service\BehavioralProfileService;
 use App\Service\CaptchaService;
+use App\Service\CommentModerationService;
+use App\Service\DynamicClientNotificationService;
 use App\Service\KycService;
 use App\Service\NotificationService;
 use App\Service\QrCodeService;
 use App\Service\UserService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -65,12 +72,16 @@ class ClientController extends AbstractController
         private readonly KycService $kycService,
         private readonly UserService $userService,
         private readonly NotificationService $notificationService,
+        private readonly CommentModerationService $commentModerationService,
+        private readonly DynamicClientNotificationService $dynamicNotificationService,
         private readonly QrCodeService $qrCodeService,
         private readonly KycAccessChecker $kycAccessChecker,
         private readonly RiskAccessChecker $riskAccessChecker,
         private readonly ValidatorInterface $validator,
         private readonly BehavioralProfileService $behavioralProfileService,
         private readonly PublicationRepository $publicationRepository,
+        private readonly CategorieRepository $categorieRepository,
+        private readonly ItemRepository $itemRepository,
         private readonly EntityManagerInterface $em,
     ) {}
 
@@ -297,6 +308,10 @@ class ClientController extends AbstractController
             return $redirect;
         }
 
+        if ($slug === 'wallet') {
+            return $this->redirectToRoute('front_wallet_dashboard');
+        }
+
         if ($slug === 'publications') {
             $search = trim((string) $request->query->get('keyword', ''));
             $category = trim((string) $request->query->get('category', '')) ?: null;
@@ -320,6 +335,106 @@ class ClientController extends AbstractController
             ]);
         }
 
+        if ($slug === 'budget') {
+            $categories = $this->categorieRepository->findBy([], ['nomCategorie' => 'ASC']);
+            $budgetStats = [];
+            $totalBudget = 0.0;
+            $totalSpent = 0.0;
+            $activeAlerts = 0;
+            $totalItems = 0;
+
+            $weeklyLabels = [
+                1 => 'Lun',
+                2 => 'Mar',
+                3 => 'Mer',
+                4 => 'Jeu',
+                5 => 'Ven',
+                6 => 'Sam',
+                7 => 'Dim',
+            ];
+            $weeklyActivity = array_fill_keys(array_values($weeklyLabels), 0);
+
+            foreach ($categories as $categorie) {
+                $spent = $this->itemRepository->getTotalMontantByCategorie($categorie->getIdCategorie());
+                $itemCount = $categorie->getItems()->count();
+                $alerts = array_values(array_filter(
+                    $categorie->getAlertes()->toArray(),
+                    static fn (Alerte $alerte): bool => (bool) $alerte->getActive()
+                ));
+
+                foreach ($alerts as $alerte) {
+                    $dayIndex = (int) $alerte->getCreatedAt()->format('N');
+                    if (isset($weeklyLabels[$dayIndex])) {
+                        $weeklyActivity[$weeklyLabels[$dayIndex]]++;
+                    }
+                }
+
+                $budget = $categorie->getBudgetPrevu();
+                $usage = $budget > 0 ? ($spent / $budget) * 100 : 0;
+                $remaining = $budget - $spent;
+                $alertCount = count($alerts);
+
+                if ($usage >= 100 || $alertCount > 0) {
+                    $status = 'danger';
+                    $statusLabel = 'Depassement';
+                } elseif ($usage >= 80) {
+                    $status = 'warning';
+                    $statusLabel = 'Alerte proche';
+                } else {
+                    $status = 'ok';
+                    $statusLabel = 'Sous controle';
+                }
+
+                $budgetStats[] = [
+                    'categorie' => $categorie,
+                    'spent' => $spent,
+                    'budget' => $budget,
+                    'usage' => $usage,
+                    'remaining' => $remaining,
+                    'itemCount' => $itemCount,
+                    'alertCount' => $alertCount,
+                    'status' => $status,
+                    'statusLabel' => $statusLabel,
+                ];
+
+                $totalBudget += $budget;
+                $totalSpent += $spent;
+                $activeAlerts += $alertCount;
+                $totalItems += $itemCount;
+            }
+
+            usort($budgetStats, static fn (array $left, array $right): int => $right['usage'] <=> $left['usage']);
+
+            $globalUsage = $totalBudget > 0 ? ($totalSpent / $totalBudget) * 100 : 0;
+            $remainingBudget = $totalBudget - $totalSpent;
+            $topCategories = array_slice($budgetStats, 0, 3);
+            $latestAlerts = $this->em->getRepository(Alerte::class)->findBy([], ['createdAt' => 'DESC'], 5);
+
+            $insight = $topCategories !== []
+                ? sprintf(
+                    'La categorie %s concentre actuellement %.1f%% du budget utilise. Gardez un oeil prioritaire sur ce poste.',
+                    $topCategories[0]['categorie']->getNomCategorie(),
+                    $topCategories[0]['usage']
+                )
+                : 'Commencez par definir des categories et des depenses pour activer votre centre de pilotage budgetaire.';
+
+            return $this->render('front/client/budget.html.twig', [
+                'module' => self::FRONT_MODULES[$slug],
+                'budgetStats' => $budgetStats,
+                'topCategories' => $topCategories,
+                'latestAlerts' => $latestAlerts,
+                'weeklyActivity' => $weeklyActivity,
+                'totalBudget' => $totalBudget,
+                'totalSpent' => $totalSpent,
+                'remainingBudget' => $remainingBudget,
+                'globalUsage' => $globalUsage,
+                'activeAlerts' => $activeAlerts,
+                'trackedCategories' => count($categories),
+                'totalItems' => $totalItems,
+                'insight' => $insight,
+            ]);
+        }
+
         return $this->render('front/client/module.html.twig', [
             'module' => self::FRONT_MODULES[$slug],
         ]);
@@ -328,7 +443,10 @@ class ClientController extends AbstractController
     #[Route('/publications/{id}', name: 'publications_view', methods: ['GET', 'POST'])]
     public function viewPublication(Publication $publication, Request $request): Response
     {
-        $comment = new \App\Entity\User\Feedback();
+        $commentNotice = $request->getSession()->get('publication_comment_notice');
+        $request->getSession()->remove('publication_comment_notice');
+
+        $comment = new Feedback();
         $commentForm = $this->createForm(PublicationCommentType::class, $comment, [
             'action' => $this->generateUrl('front_publications_view', ['id' => $publication->getId()]),
         ]);
@@ -336,6 +454,34 @@ class ClientController extends AbstractController
 
         if ($commentForm->isSubmitted() && $commentForm->isValid()) {
             $rating = (int) $commentForm->get('rating')->getData();
+            $commentText = trim((string) $comment->getCommentaire());
+
+            $analysis = $this->commentModerationService->handleDecision(
+                $commentText,
+                $this->getUser(),
+                'Publication #' . $publication->getId()
+            );
+
+            if ($analysis['decision'] === 'reject') {
+                $this->addFlash('error', 'Votre commentaire ne peut pas etre publie, car il contient des propos inappropries, agressifs ou des gros mots. Merci de reformuler votre message avec un langage respectueux et professionnel.');
+                $request->getSession()->set('publication_comment_notice', [
+                    'type' => 'danger',
+                    'message' => 'Votre commentaire ne respecte pas les regles de la plateforme.',
+                ]);
+
+                return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+            }
+
+            if ($analysis['decision'] === 'moderate') {
+                $this->addFlash('warning', 'Votre commentaire contient un langage juge sensible ou inapproprie. Il a ete bloque pour verification avant publication.');
+                $request->getSession()->set('publication_comment_notice', [
+                    'type' => 'warning',
+                    'message' => 'Votre commentaire ne respecte pas totalement les regles de la plateforme. Il a ete envoye en verification.',
+                ]);
+
+                return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+            }
+
             $comment->setPublication($publication)
                 ->setUser($this->getUser())
                 ->setDateFeedback(new \DateTime())
@@ -357,7 +503,7 @@ class ClientController extends AbstractController
             array_filter($feedbacks, static fn($feedback) => str_starts_with((string) $feedback->getTypeReaction(), 'RATING_'))
         );
         $averageRating = $ratings ? round(array_sum($ratings) / count($ratings), 1) : null;
-        $comments = array_filter($feedbacks, static fn($feedback) => $feedback->getCommentaire() !== null && $feedback->getCommentaire() !== '');
+        $comments = array_values(array_filter($feedbacks, static fn($feedback) => $feedback->getCommentaire() !== null && trim((string) $feedback->getCommentaire()) !== ''));
 
         return $this->render('front/client/publication_detail.html.twig', [
             'module' => self::FRONT_MODULES['publications'],
@@ -367,6 +513,7 @@ class ClientController extends AbstractController
             'dislikes' => $dislikes,
             'averageRating' => $averageRating,
             'comments' => $comments,
+            'commentNotice' => $commentNotice,
         ]);
     }
 
@@ -400,17 +547,161 @@ class ClientController extends AbstractController
         return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
     }
 
+    #[Route('/publications/{id}/comments/{feedbackId}/edit', name: 'publications_comment_edit', methods: ['POST'])]
+    public function editPublicationComment(Publication $publication, int $feedbackId, Request $request): Response
+    {
+        $feedback = $this->em->getRepository(Feedback::class)->find($feedbackId);
+
+        if (!$feedback || $feedback->getPublication()->getId() !== $publication->getId()) {
+            throw $this->createNotFoundException('Commentaire introuvable.');
+        }
+
+        if ($feedback->getUser()->getId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException('Vous ne pouvez modifier que votre propre commentaire.');
+        }
+
+        if (!$this->isCsrfTokenValid('edit_comment_' . $feedback->getIdFeedback(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action invalide.');
+
+            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+        }
+
+        $commentaire = trim((string) $request->request->get('commentaire', ''));
+        $rating = (int) $request->request->get('rating', 0);
+
+        if ($commentaire === '') {
+            $this->addFlash('error', 'Le commentaire ne peut pas etre vide.');
+
+            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+        }
+
+        if ($rating < 1 || $rating > 5) {
+            $this->addFlash('error', 'La note doit etre comprise entre 1 et 5.');
+
+            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+        }
+
+        $analysis = $this->commentModerationService->handleDecision(
+            $commentaire,
+            $this->getUser(),
+            'Edition commentaire publication #' . $publication->getId()
+        );
+
+        if ($analysis['decision'] === 'reject') {
+            $this->addFlash('error', 'Votre commentaire ne peut pas etre publie, car il contient des propos inappropries, agressifs ou des gros mots. Merci de reformuler votre message avec un langage respectueux et professionnel.');
+            $request->getSession()->set('publication_comment_notice', [
+                'type' => 'danger',
+                'message' => 'Votre commentaire ne respecte pas les regles de la plateforme.',
+            ]);
+
+            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+        }
+
+        if ($analysis['decision'] === 'moderate') {
+            $this->addFlash('warning', 'Votre commentaire modifie contient un langage juge sensible ou inapproprie. Il a ete bloque pour verification avant publication.');
+            $request->getSession()->set('publication_comment_notice', [
+                'type' => 'warning',
+                'message' => 'Votre commentaire modifie ne respecte pas totalement les regles de la plateforme. Il a ete envoye en verification.',
+            ]);
+
+            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+        }
+
+        $feedback
+            ->setCommentaire($commentaire)
+            ->setTypeReaction('RATING_' . $rating)
+            ->setDateFeedback(new \DateTime());
+
+        $this->em->flush();
+        $this->addFlash('success', 'Votre commentaire a bien ete modifie.');
+
+        return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+    }
+
+    #[Route('/publications/{id}/comments/{feedbackId}/delete', name: 'publications_comment_delete', methods: ['POST'])]
+    public function deletePublicationComment(Publication $publication, int $feedbackId, Request $request): Response
+    {
+        $feedback = $this->em->getRepository(Feedback::class)->find($feedbackId);
+
+        if (!$feedback || $feedback->getPublication()->getId() !== $publication->getId()) {
+            throw $this->createNotFoundException('Commentaire introuvable.');
+        }
+
+        if ($feedback->getUser()->getId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException('Vous ne pouvez supprimer que votre propre commentaire.');
+        }
+
+        if (!$this->isCsrfTokenValid('delete_comment_' . $feedback->getIdFeedback(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action invalide.');
+
+            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+        }
+
+        $this->em->remove($feedback);
+        $this->em->flush();
+        $this->addFlash('success', 'Votre commentaire a bien ete supprime.');
+
+        return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+    }
+
     #[Route('/notifications', name: 'notifications')]
-    public function notifications(): Response
+    public function notifications(Request $request): Response
     {
         /** @var User $user */
         $user = $this->getUser();
-        $notifs = $this->userService->getNotifications($user);
-        $unreadCount = count(array_filter($notifs, static fn ($notif) => !$notif->isRead()));
+
+        $session = $request->getSession();
+        $lastVisit = $this->dynamicNotificationService->getLastCheck($session);
+        $dynamicNotifications = $this->dynamicNotificationService->getNotifications($user, $lastVisit);
+        $this->dynamicNotificationService->markChecked($session);
+
+        $nativeNotifications = array_map(
+            static fn ($notif): array => [
+                'id' => 'native-' . $notif->getId(),
+                'source' => 'native',
+                'type' => strtoupper((string) $notif->getType()),
+                'title' => match (strtoupper((string) $notif->getType())) {
+                    'SUCCESS' => 'Confirmation',
+                    'ERROR' => 'Incident',
+                    'WARNING' => 'Vigilance',
+                    default => 'Information',
+                },
+                'message' => (string) $notif->getMessage(),
+                'date' => $notif->getCreatedAt(),
+                'read' => $notif->isRead(),
+                'nativeId' => $notif->getId(),
+                'actionUrl' => null,
+                'actionLabel' => null,
+            ],
+            $this->userService->getNotifications($user)
+        );
+
+        $notifications = array_merge($dynamicNotifications, $nativeNotifications);
+        usort(
+            $notifications,
+            static fn (array $left, array $right): int => $right['date'] <=> $left['date']
+        );
+
+        $unreadCount = count(array_filter($notifications, static fn (array $notif): bool => !$notif['read']));
 
         return $this->render('front/client/notifications.html.twig', [
-            'notifications' => $notifs,
+            'notifications' => $notifications,
             'unreadCount' => $unreadCount,
+            'dynamicCount' => count($dynamicNotifications),
+        ]);
+    }
+
+    #[Route('/notifications/count', name: 'notifications_count', methods: ['GET'])]
+    public function notificationCount(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $dynamicCount = $this->dynamicNotificationService->getUnreadCount($user, $request->getSession());
+        $nativeCount = $this->notificationService->getUnreadCountForUser($user);
+
+        return $this->json([
+            'count' => $dynamicCount + $nativeCount,
         ]);
     }
 
@@ -450,9 +741,12 @@ class ClientController extends AbstractController
         }
 
         $updated = $this->notificationService->markAllAsReadForUser($user);
+        $dynamicUpdated = $this->dynamicNotificationService->getUnreadCount($user, $request->getSession());
+        $this->dynamicNotificationService->markChecked($request->getSession());
 
-        if ($updated > 0) {
-            $this->addFlash('success', $updated > 1 ? 'Toutes les notifications ont ete marquees comme lues.' : 'La notification a ete marquee comme lue.');
+        if ($updated > 0 || $dynamicUpdated > 0) {
+            $totalUpdated = $updated + $dynamicUpdated;
+            $this->addFlash('success', $totalUpdated > 1 ? 'Toutes les notifications ont ete marquees comme lues.' : 'La notification a ete marquee comme lue.');
         } else {
             $this->addFlash('info', 'Aucune notification non lue a mettre a jour.');
         }

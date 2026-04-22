@@ -1,0 +1,115 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Demande de chequier{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4" style="max-width:1100px">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="ft-page-icon-lg"><i class="bi bi-journal-plus"></i></div>
+        <div>
+          <h1 class="ft-page-title mb-0">Demander un chequier</h1>
+          <p class="text-muted mb-0 small">Soumettez une nouvelle demande associee a votre wallet.</p>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('front_wallet_dashboard') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-house-door me-1"></i>Dashboard
+        </a>
+        <a href="{{ path('front_wallet_cheques') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-journal-text me-1"></i>Mes demandes
+        </a>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="ft-app-card ft-premium-card">
+          <div class="ft-app-card-header">
+            <i class="bi bi-pencil-square me-2 text-primary"></i>Formulaire de demande
+          </div>
+          <div class="ft-app-card-body">
+            {{ form_start(form) }}
+              <div class="row g-3">
+                <div class="col-12">
+                  {{ form_label(form.beneficiaire, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                  {{ form_widget(form.beneficiaire, {attr: {class: 'form-control ft-input'}}) }}
+                  {% if form.beneficiaire.vars.errors|length > 0 %}
+                    <div class="text-danger small mt-1">{{ form_errors(form.beneficiaire) }}</div>
+                  {% endif %}
+                </div>
+                <div class="col-12">
+                  {{ form_label(form.montant, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                  {{ form_widget(form.montant, {attr: {class: 'form-control ft-input'}}) }}
+                  {% if form.montant.vars.errors|length > 0 %}
+                    <div class="text-danger small mt-1">{{ form_errors(form.montant) }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 mt-4">
+                <button type="submit" class="btn ft-btn-primary">
+                  <i class="bi bi-check-circle me-1"></i>Envoyer ma demande
+                </button>
+                <a href="{{ path('front_wallet_cheques') }}" class="btn ft-btn-outline-primary">Annuler</a>
+              </div>
+            {{ form_end(form) }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="ft-app-card ft-premium-card mb-4">
+          <div class="ft-app-card-header">
+            <i class="bi bi-wallet2 me-2 text-primary"></i>Wallet source
+          </div>
+          <div class="ft-app-card-body p-0">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Wallet</span>
+                <span class="fw-semibold">#{{ wallet.idWallet }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Proprietaire</span>
+                <span class="fw-semibold">{{ wallet.nomProprietaire }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Solde</span>
+                <span class="fw-semibold">{{ wallet.solde|number_format(2, ',', ' ') }} {{ wallet.devise }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Etat</span>
+                <span class="badge {{ wallet.estBloque ? 'ft-badge-danger' : 'ft-badge-success' }}">
+                  {{ wallet.estBloque ? 'Bloque' : 'Operationnel' }}
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ft-app-card ft-premium-card">
+          <div class="ft-app-card-header">
+            <i class="bi bi-info-circle me-2 text-primary"></i>Bon a savoir
+          </div>
+          <div class="ft-app-card-body">
+            <div class="ft-simple-list">
+              <div class="ft-simple-item">
+                <i class="bi bi-hourglass-split"></i>
+                <span>Chaque demande est enregistree avec le statut initial <strong>en attente</strong>.</span>
+              </div>
+              <div class="ft-simple-item">
+                <i class="bi bi-shield-exclamation"></i>
+                <span>Une demande n est pas autorisee si le wallet est bloque.</span>
+              </div>
+              <div class="ft-simple-item">
+                <i class="bi bi-journal-check"></i>
+                <span>Les doublons en attente sont bloques pour eviter les demandes inutiles.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

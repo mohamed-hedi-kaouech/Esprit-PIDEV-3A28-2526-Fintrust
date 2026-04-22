@@ -1,0 +1,193 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}{{ isEdit ? 'Modifier un wallet' : 'Creer un wallet' }}{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_wallet_index') }}" class="text-muted small text-decoration-none">Pilotage Wallet</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">{{ isEdit ? 'Modification' : 'Creation' }}</span>
+{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="ft-admin-page-title mb-1">
+      <i class="bi bi-wallet2 me-2 text-primary"></i>{{ isEdit ? 'Modifier le wallet' : 'Creer un wallet' }}
+    </h1>
+    <p class="text-muted mb-0">
+      {{ isEdit ? 'Mettez a jour les informations du wallet et sa liaison client.' : 'Ajoutez un nouveau wallet en conservant le design du back-office FinTrust.' }}
+    </p>
+  </div>
+  <a href="{{ path('admin_wallet_index') }}" class="btn ft-btn-outline-primary">
+    <i class="bi bi-arrow-left me-2"></i>Retour a la liste
+  </a>
+</div>
+
+<section class="row g-4">
+  <div class="col-12 col-xl-8">
+    <article class="ft-admin-card">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-pencil-square me-2 text-primary"></i>Formulaire wallet
+      </div>
+      <div class="ft-admin-card-body">
+        <form method="post" class="row g-3" id="walletForm">
+          <div class="col-12">
+            <label for="id_user" class="form-label fw-semibold">Client a associer</label>
+            <select id="id_user" name="id_user" class="form-select ft-input">
+              <option value="">Aucun client lie</option>
+              {% for client in clients %}
+                <option
+                  value="{{ client.id }}"
+                  data-full-name="{{ client.fullName }}"
+                  data-email="{{ client.email }}"
+                  data-phone="{{ client.numTel ?: '' }}"
+                  {{ selectedUserId == client.id ? 'selected' : '' }}
+                >
+                  #{{ client.id }} - {{ client.fullName }} - {{ client.email }}
+                </option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Si vous selectionnez un client, les coordonnees peuvent etre pre-remplies automatiquement.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="nomProprietaire" class="form-label fw-semibold">Nom proprietaire</label>
+            <input type="text" id="nomProprietaire" name="nomProprietaire" class="form-control ft-input" value="{{ wallet.nomProprietaire ?? '' }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label for="email" class="form-label fw-semibold">Email</label>
+            <input type="email" id="email" name="email" class="form-control ft-input" value="{{ wallet.email ?? '' }}">
+          </div>
+
+          <div class="col-md-6">
+            <label for="telephone" class="form-label fw-semibold">Telephone</label>
+            <input type="text" id="telephone" name="telephone" class="form-control ft-input" value="{{ wallet.telephone ?? '' }}">
+          </div>
+
+          <div class="col-md-6">
+            <label for="codeAcces" class="form-label fw-semibold">Code acces</label>
+            <input type="text" id="codeAcces" name="codeAcces" class="form-control ft-input" value="{{ wallet.codeAcces ?? '' }}">
+          </div>
+
+          <div class="col-md-4">
+            <label for="solde" class="form-label fw-semibold">Solde</label>
+            <input type="text" id="solde" name="solde" class="form-control ft-input" value="{{ wallet.solde ?? '0.00' }}">
+          </div>
+
+          <div class="col-md-4">
+            <label for="plafondDecouvert" class="form-label fw-semibold">Plafond decouvert</label>
+            <input type="text" id="plafondDecouvert" name="plafondDecouvert" class="form-control ft-input" value="{{ wallet.plafondDecouvert ?? '' }}">
+          </div>
+
+          <div class="col-md-4">
+            <label for="devise" class="form-label fw-semibold">Devise</label>
+            <select id="devise" name="devise" class="form-select ft-input">
+              {% set currentDevise = wallet.devise ?? 'TND' %}
+              {% for item in ['TND', 'EUR', 'USD'] %}
+                <option value="{{ item }}" {{ currentDevise == item ? 'selected' : '' }}>{{ item }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="statut" class="form-label fw-semibold">Statut</label>
+            <select id="statut" name="statut" class="form-select ft-input">
+              {% set currentStatut = wallet.statut ?? 'actif' %}
+              {% for item in ['actif', 'bloque', 'inactif'] %}
+                <option value="{{ item }}" {{ currentStatut == item ? 'selected' : '' }}>{{ item|upper }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="tentativesEchouees" class="form-label fw-semibold">Tentatives echouees</label>
+            <input type="number" min="0" id="tentativesEchouees" name="tentativesEchouees" class="form-control ft-input" value="{{ wallet.tentativesEchouees ?? 0 }}">
+          </div>
+
+          <div class="col-md-4 d-flex align-items-end">
+            <div class="d-flex flex-wrap gap-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="estActif" name="estActif" value="1" {{ wallet.estActif ? 'checked' : '' }}>
+                <label class="form-check-label fw-semibold" for="estActif">Wallet actif</label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="estBloque" name="estBloque" value="1" {{ wallet.estBloque ? 'checked' : '' }}>
+                <label class="form-check-label fw-semibold" for="estBloque">Wallet bloque</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 d-flex flex-wrap gap-2 pt-2">
+            <button type="submit" class="btn ft-btn-primary">
+              <i class="bi bi-check2-circle me-2"></i>{{ isEdit ? 'Enregistrer les modifications' : 'Creer le wallet' }}
+            </button>
+            <a href="{{ path('admin_wallet_index') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle me-2"></i>Annuler
+            </a>
+          </div>
+        </form>
+      </div>
+    </article>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <article class="ft-admin-card mb-4">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-stars me-2 text-primary"></i>Conseils de gestion
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-insight-list">
+          <div class="ft-admin-insight-item">
+            <strong>Liaison client</strong>
+            <span>Associer un wallet a un client simplifie le suivi admin et les automatismes apres KYC.</span>
+          </div>
+          <div class="ft-admin-insight-item">
+            <strong>Statut et blocage</strong>
+            <span>Un wallet bloque est automatiquement rendu inactif pour eviter tout usage accidentel.</span>
+          </div>
+          <div class="ft-admin-insight-item">
+            <strong>Valeurs par defaut</strong>
+            <span>Le module initialise les nouveaux wallets avec un solde a 0.00 et une devise `TND`.</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    (function () {
+      const userSelect = document.getElementById('id_user');
+      if (!userSelect) {
+        return;
+      }
+
+      const ownerInput = document.getElementById('nomProprietaire');
+      const emailInput = document.getElementById('email');
+      const phoneInput = document.getElementById('telephone');
+
+      userSelect.addEventListener('change', function () {
+        const selected = this.options[this.selectedIndex];
+        if (!selected || !selected.value) {
+          return;
+        }
+
+        if (ownerInput && ownerInput.value.trim() === '') {
+          ownerInput.value = selected.dataset.fullName || '';
+        }
+        if (emailInput && emailInput.value.trim() === '') {
+          emailInput.value = selected.dataset.email || '';
+        }
+        if (phoneInput && phoneInput.value.trim() === '') {
+          phoneInput.value = selected.dataset.phone || '';
+        }
+      });
+    })();
+  </script>
+{% endblock %}

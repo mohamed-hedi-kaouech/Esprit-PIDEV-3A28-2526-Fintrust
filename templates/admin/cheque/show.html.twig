@@ -1,0 +1,134 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Cheque #{{ cheque.idCheque }}{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_cheque_index') }}" class="text-muted small text-decoration-none">Cheques</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Cheque #{{ cheque.idCheque }}</span>
+{% endblock %}
+
+{% block admin_content %}
+{% set chequeStatus = cheque.statut|lower %}
+{% set chequeBadge = chequeStatus == 'accepte' ? 'ft-badge-success' : (chequeStatus == 'refuse' ? 'ft-badge-danger' : (chequeStatus == 'livre' ? 'ft-badge-blue' : 'ft-badge-warning')) %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="ft-admin-page-title mb-1">
+      <i class="bi bi-journal-richtext me-2 text-primary"></i>Detail du cheque #{{ cheque.idCheque }}
+    </h1>
+    <p class="text-muted mb-0">Visualisez les informations du cheque, du wallet associe et appliquez les actions admin appropriees.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{{ path('admin_cheque_index') }}" class="btn ft-btn-outline-primary">
+      <i class="bi bi-arrow-left me-2"></i>Retour
+    </a>
+    <a href="{{ path('admin_wallet_show', {id: cheque.wallet.idWallet}) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-wallet2 me-2"></i>Voir le wallet
+    </a>
+  </div>
+</div>
+
+<section class="row g-4">
+  <div class="col-12 col-xl-8">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-info-circle me-2 text-primary"></i>Informations du cheque
+      </div>
+      <div class="ft-admin-card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted">ID cheque</dt>
+          <dd class="col-sm-8 fw-semibold">#{{ cheque.idCheque }}</dd>
+
+          <dt class="col-sm-4 text-muted">Numero cheque</dt>
+          <dd class="col-sm-8">{{ cheque.numeroCheque }}</dd>
+
+          <dt class="col-sm-4 text-muted">Beneficiaire</dt>
+          <dd class="col-sm-8">{{ cheque.beneficiaire ?: '-' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Montant</dt>
+          <dd class="col-sm-8 fw-semibold">{{ cheque.montant }}</dd>
+
+          <dt class="col-sm-4 text-muted">Statut</dt>
+          <dd class="col-sm-8"><span class="badge {{ chequeBadge }}">{{ cheque.statut|upper }}</span></dd>
+
+          <dt class="col-sm-4 text-muted">Date emission</dt>
+          <dd class="col-sm-8">{{ cheque.dateEmission|date('d/m/Y H:i') }}</dd>
+
+          <dt class="col-sm-4 text-muted">Date presentation</dt>
+          <dd class="col-sm-8">{{ cheque.datePresentation ? cheque.datePresentation|date('d/m/Y H:i') : '-' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Motif de rejet</dt>
+          <dd class="col-sm-8">{{ cheque.motifRejet ?: '-' }}</dd>
+        </dl>
+      </div>
+    </article>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <article class="ft-admin-card mb-4">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-wallet2 me-2 text-primary"></i>Wallet associe
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-insight-list">
+          <div class="ft-admin-insight-item">
+            <strong>Wallet</strong>
+            <span>#{{ cheque.wallet.idWallet }} - {{ cheque.wallet.nomProprietaire }}</span>
+          </div>
+          <div class="ft-admin-insight-item">
+            <strong>Email</strong>
+            <span>{{ cheque.wallet.email ?: '-' }}</span>
+          </div>
+          <div class="ft-admin-insight-item">
+            <strong>Etat du wallet</strong>
+            <span>
+              <span class="badge {{ cheque.wallet.estBloque ? 'ft-badge-danger' : 'ft-badge-success' }}">
+                {{ cheque.wallet.estBloque ? 'Bloque' : 'Disponible' }}
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="ft-admin-card">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-lightning-charge me-2 text-primary"></i>Actions admin
+      </div>
+      <div class="ft-admin-card-body d-grid gap-2">
+        {% if chequeStatus == 'en_attente' %}
+          {% if cheque.wallet.estBloque %}
+            <button type="button" class="btn btn-outline-secondary" disabled>
+              <i class="bi bi-lock me-2"></i>Approbation impossible : wallet bloque
+            </button>
+          {% else %}
+            <form method="post" action="{{ path('admin_cheque_approve', {id: cheque.idCheque}) }}">
+              <input type="hidden" name="_token" value="{{ csrf_token('approve_cheque_' ~ cheque.idCheque) }}">
+              <button type="submit" class="btn btn-success w-100">
+                <i class="bi bi-check2-circle me-2"></i>Approuver le cheque
+              </button>
+            </form>
+          {% endif %}
+
+          <a href="{{ path('admin_cheque_reject', {id: cheque.idCheque}) }}" class="btn btn-danger">
+            <i class="bi bi-x-circle me-2"></i>Refuser le cheque
+          </a>
+        {% elseif chequeStatus == 'accepte' %}
+          <form method="post" action="{{ path('admin_cheque_deliver', {id: cheque.idCheque}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('deliver_cheque_' ~ cheque.idCheque) }}">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-truck me-2"></i>Marquer comme livre
+            </button>
+          </form>
+        {% else %}
+          <div class="alert alert-light border mb-0">
+            Ce cheque a deja ete traite.
+          </div>
+        {% endif %}
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}

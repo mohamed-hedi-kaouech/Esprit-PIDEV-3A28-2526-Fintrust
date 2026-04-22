@@ -85,9 +85,9 @@
               </button>
             {{ form_end(verifyForm) }}
 
-            <form method="post" action="{{ path('app_verify_account_resend') }}" class="mt-3">
+            <form method="post" action="{{ path('app_verify_account_resend') }}" class="mt-3" id="resend-verification-form">
               <input type="hidden" name="_token" value="{{ csrf_token('resend_verification_code') }}">
-              <input type="hidden" name="email" value="{{ prefilledEmail ?: verifyForm.email.vars.value }}">
+              <input type="hidden" name="email" id="resend-verification-email" value="{{ prefilledEmail ?: verifyForm.email.vars.value }}">
               <button type="submit" class="btn ft-btn-outline-primary w-100">
                 <i class="bi bi-arrow-repeat me-2"></i>Renvoyer un nouveau code
               </button>
@@ -105,4 +105,28 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    (function () {
+      const emailInput = document.getElementById('{{ verifyForm.email.vars.id }}');
+      const resendEmailInput = document.getElementById('resend-verification-email');
+      const resendForm = document.getElementById('resend-verification-form');
+
+      if (!emailInput || !resendEmailInput || !resendForm) {
+        return;
+      }
+
+      const syncEmail = () => {
+        resendEmailInput.value = emailInput.value.trim();
+      };
+
+      emailInput.addEventListener('input', syncEmail);
+      emailInput.addEventListener('change', syncEmail);
+      resendForm.addEventListener('submit', syncEmail);
+      syncEmail();
+    })();
+  </script>
 {% endblock %}

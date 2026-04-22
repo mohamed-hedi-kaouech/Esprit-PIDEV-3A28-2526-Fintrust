@@ -1,0 +1,299 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Pilotage Wallet{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Pilotage Wallet</span>
+{% endblock %}
+
+{% block admin_content %}
+<section class="ft-admin-hero mb-4">
+  <div class="ft-admin-hero-grid">
+    <div>
+      <span class="ft-admin-hero-kicker">
+        <i class="bi bi-wallet2 me-1"></i>Module Wallet back-office
+      </span>
+      <h1 class="ft-admin-page-title mb-3">Pilotage Wallet</h1>
+      <p class="ft-admin-hero-subtitle mb-0">
+        Supervisez les wallets clients depuis une interface claire, fluide et coherente avec tout l espace d administration FinTrust.
+      </p>
+    </div>
+
+    <div class="ft-admin-hero-panel">
+      <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
+        <span class="ft-admin-status-chip ft-admin-status-info">
+          <i class="bi bi-diagram-3"></i>
+          {{ overview.linked }} wallet(s) lies a un client
+        </span>
+        <span class="ft-admin-status-chip ft-admin-status-warning">
+          <i class="bi bi-shield-lock"></i>
+          {{ overview.blocked }} wallet(s) bloques
+        </span>
+      </div>
+      <div class="ft-admin-meta justify-content-lg-end">
+        <span><i class="bi bi-wallet2"></i> {{ overview.total }} wallet(s) au total</span>
+        <span><i class="bi bi-check2-circle"></i> {{ overview.active }} actif(s)</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="row g-3 mb-4">
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-wallet2"></i></span>
+      <div class="ft-admin-kpi-mini-label">Wallets existants</div>
+      <div class="ft-admin-kpi-mini-value">{{ overview.total }}</div>
+      <div class="ft-admin-kpi-mini-text">Vue consolidee de tous les comptes wallet disponibles.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-green">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-check2-circle"></i></span>
+      <div class="ft-admin-kpi-mini-label">Actifs</div>
+      <div class="ft-admin-kpi-mini-value">{{ overview.active }}</div>
+      <div class="ft-admin-kpi-mini-text">Wallets operationnels et non bloques.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-amber">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-link-45deg"></i></span>
+      <div class="ft-admin-kpi-mini-label">Associes a un client</div>
+      <div class="ft-admin-kpi-mini-value">{{ overview.linked }}</div>
+      <div class="ft-admin-kpi-mini-text">Wallets relies a un utilisateur via `id_user`.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-red">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-lock"></i></span>
+      <div class="ft-admin-kpi-mini-label">Bloques</div>
+      <div class="ft-admin-kpi-mini-value">{{ overview.blocked }}</div>
+      <div class="ft-admin-kpi-mini-text">Wallets suspendus par precaution ou decision admin.</div>
+    </article>
+  </div>
+</section>
+
+<section class="ft-admin-card mb-4">
+  <div class="ft-admin-card-header d-flex flex-wrap gap-3 justify-content-between align-items-center">
+    <div>
+      <h2 class="h5 fw-bold mb-1">Recherche dynamique et filtres</h2>
+      <p class="text-muted small mb-0">La liste se met a jour automatiquement pendant la saisie ou quand un filtre change.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ path('admin_cheque_index') }}" class="btn ft-btn-outline-primary">
+        <i class="bi bi-journal-check me-2"></i>Gerer les cheques
+      </a>
+      <a href="{{ path('admin_wallet_stats') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-bar-chart-line me-2"></i>Statistiques
+      </a>
+      <a href="{{ path('admin_wallet_export_csv', {
+        search: filters.search,
+        statut: filters.statut,
+        blocked: filters.blocked,
+        devise: filters.devise
+      }) }}" class="btn btn-outline-dark">
+        <i class="bi bi-download me-2"></i>Exporter CSV
+      </a>
+      <a href="{{ path('admin_wallet_new') }}" class="btn ft-btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Creer un wallet
+      </a>
+    </div>
+  </div>
+  <div class="ft-admin-card-body">
+    <form method="get" action="{{ path('admin_wallet_index') }}" class="ft-admin-filters-form" id="walletFiltersForm">
+      <div class="row g-3">
+        <div class="col-12 col-xl-4">
+          <label for="search" class="form-label fw-semibold">Recherche</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white text-primary"><i class="bi bi-search"></i></span>
+            <input
+              type="text"
+              id="search"
+              name="search"
+              class="form-control ft-input border-start-0 js-wallet-autosubmit"
+              placeholder="Nom proprietaire ou email"
+              value="{{ filters.search }}"
+              autocomplete="off"
+            >
+          </div>
+          <div class="ft-filter-help">Recherche instantanee par proprietaire ou email.</div>
+        </div>
+
+        <div class="col-12 col-md-4 col-xl-2">
+          <label for="statut" class="form-label fw-semibold">Statut</label>
+          <select id="statut" name="statut" class="form-select ft-input js-wallet-autosubmit">
+            <option value="">Tous</option>
+            <option value="actif" {{ filters.statut == 'actif' ? 'selected' : '' }}>Actif</option>
+            <option value="bloque" {{ filters.statut == 'bloque' ? 'selected' : '' }}>Bloque</option>
+            <option value="inactif" {{ filters.statut == 'inactif' ? 'selected' : '' }}>Inactif</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-4 col-xl-2">
+          <label for="blocked" class="form-label fw-semibold">Blocage</label>
+          <select id="blocked" name="blocked" class="form-select ft-input js-wallet-autosubmit">
+            <option value="">Tous</option>
+            <option value="1" {{ filters.blocked == '1' ? 'selected' : '' }}>Bloques</option>
+            <option value="0" {{ filters.blocked == '0' ? 'selected' : '' }}>Non bloques</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-4 col-xl-2">
+          <label for="devise" class="form-label fw-semibold">Devise</label>
+          <select id="devise" name="devise" class="form-select ft-input js-wallet-autosubmit">
+            <option value="">Toutes</option>
+            {% for item in devises %}
+              <option value="{{ item }}" {{ filters.devise == item ? 'selected' : '' }}>{{ item }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12 col-xl-2 d-flex gap-2">
+          <button type="submit" class="btn ft-btn-primary w-100 ft-filter-btn">
+            <i class="bi bi-funnel me-2"></i>Filtrer
+          </button>
+          <a href="{{ path('admin_wallet_index') }}" class="btn ft-btn-outline-primary w-100 ft-filter-reset">
+            <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="ft-admin-card">
+  <div class="ft-admin-card-header d-flex flex-wrap gap-3 justify-content-between align-items-center">
+    <div>
+      <h2 class="h5 fw-bold mb-1">Liste des wallets</h2>
+      <p class="text-muted small mb-0">Consultez chaque wallet, ses statuts, sa liaison client et ses actions disponibles.</p>
+    </div>
+    <span class="ft-admin-status-chip ft-admin-status-info">
+      <i class="bi bi-table"></i>{{ wallets|length }} resultat(s)
+    </span>
+  </div>
+  <div class="ft-admin-card-body p-0">
+    <div class="table-responsive">
+      <table class="table ft-admin-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Proprietaire</th>
+            <th>Email</th>
+            <th>Client lie</th>
+            <th>Solde</th>
+            <th>Devise</th>
+            <th>Statut</th>
+            <th>Bloque</th>
+            <th>Date creation</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for wallet in wallets %}
+            <tr>
+              <td class="fw-bold">#{{ wallet.idWallet }}</td>
+              <td>
+                <div class="ft-admin-user-cell">
+                  <span class="ft-admin-avatar-pill">
+                    {{ wallet.nomProprietaire|slice(0, 1)|upper }}
+                  </span>
+                  <div>
+                    <div class="fw-semibold">{{ wallet.nomProprietaire }}</div>
+                    <div class="ft-admin-user-subline">{{ wallet.telephone ?: 'Telephone non renseigne' }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ wallet.email ?: '-' }}</td>
+              <td>
+                {% if wallet.idUser %}
+                  <span class="badge ft-badge-blue">Client #{{ wallet.idUser }}</span>
+                {% else %}
+                  <span class="badge ft-badge-neutral">Non lie</span>
+                {% endif %}
+              </td>
+              <td class="fw-semibold">{{ wallet.solde }}</td>
+              <td>{{ wallet.devise }}</td>
+              <td>
+                {% set statutClass = wallet.statut == 'actif' ? 'ft-badge-success' : (wallet.statut == 'bloque' ? 'ft-badge-danger' : 'ft-badge-warning') %}
+                <span class="badge {{ statutClass }}">{{ wallet.statut|upper }}</span>
+              </td>
+              <td>
+                <span class="badge {{ wallet.estBloque ? 'ft-badge-danger' : 'ft-badge-success' }}">
+                  {{ wallet.estBloque ? 'Oui' : 'Non' }}
+                </span>
+              </td>
+              <td>{{ wallet.dateCreation|date('d/m/Y H:i') }}</td>
+              <td class="text-center">
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                  <a href="{{ path('admin_wallet_show', {id: wallet.idWallet}) }}" class="btn btn-sm ft-btn-outline-primary">
+                    <i class="bi bi-eye me-1"></i>Voir
+                  </a>
+                  <a href="{{ path('admin_wallet_edit', {id: wallet.idWallet}) }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil-square me-1"></i>Modifier
+                  </a>
+
+                  {% if wallet.estBloque %}
+                    <form method="post" action="{{ path('admin_wallet_unblock', {id: wallet.idWallet}) }}" class="d-inline">
+                      <input type="hidden" name="_token" value="{{ csrf_token('wallet_unblock_' ~ wallet.idWallet) }}">
+                      <button type="submit" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-unlock me-1"></i>Debloquer
+                      </button>
+                    </form>
+                  {% else %}
+                    <form method="post" action="{{ path('admin_wallet_block', {id: wallet.idWallet}) }}" class="d-inline">
+                      <input type="hidden" name="_token" value="{{ csrf_token('wallet_block_' ~ wallet.idWallet) }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-lock me-1"></i>Bloquer
+                      </button>
+                    </form>
+                  {% endif %}
+
+                  <form method="post" action="{{ path('admin_wallet_delete', {id: wallet.idWallet}) }}" class="d-inline" onsubmit="return confirm('Supprimer ce wallet ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('wallet_delete_' ~ wallet.idWallet) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-dark">
+                      <i class="bi bi-trash me-1"></i>Supprimer
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="10" class="text-center py-5">
+                <div class="text-muted mb-2">Aucun wallet ne correspond aux filtres selectionnes.</div>
+                <a href="{{ path('admin_wallet_new') }}" class="btn ft-btn-primary">
+                  <i class="bi bi-plus-circle me-2"></i>Creer le premier wallet
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    (function () {
+      const form = document.getElementById('walletFiltersForm');
+      if (!form) {
+        return;
+      }
+
+      let timer = null;
+      form.querySelectorAll('.js-wallet-autosubmit').forEach((field) => {
+        const submitLater = () => {
+          window.clearTimeout(timer);
+          timer = window.setTimeout(() => form.submit(), 350);
+        };
+
+        field.addEventListener('input', submitLater);
+        field.addEventListener('change', submitLater);
+      });
+    })();
+  </script>
+{% endblock %}

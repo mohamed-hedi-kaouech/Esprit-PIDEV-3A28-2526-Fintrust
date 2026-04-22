@@ -1,0 +1,77 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Refuser un cheque{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_cheque_index') }}" class="text-muted small text-decoration-none">Cheques</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Refus cheque</span>
+{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="ft-admin-page-title mb-1">
+      <i class="bi bi-x-octagon me-2 text-danger"></i>Refuser le cheque #{{ cheque.idCheque }}
+    </h1>
+    <p class="text-muted mb-0">Le motif de refus est obligatoire et sera enregistre sur le cheque.</p>
+  </div>
+  <a href="{{ path('admin_cheque_show', {id: cheque.idCheque}) }}" class="btn ft-btn-outline-primary">
+    <i class="bi bi-arrow-left me-2"></i>Retour au detail
+  </a>
+</div>
+
+<section class="row g-4">
+  <div class="col-12 col-xl-7">
+    <article class="ft-admin-card">
+      <div class="ft-admin-card-header text-danger">
+        <i class="bi bi-shield-x me-2"></i>Motif de refus
+      </div>
+      <div class="ft-admin-card-body">
+        {{ form_start(form) }}
+          <div class="mb-3">
+            {{ form_label(form.motifRejet, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+            {{ form_widget(form.motifRejet) }}
+            <div class="text-danger small mt-2">{{ form_errors(form.motifRejet) }}</div>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-x-circle me-2"></i>Confirmer le refus
+            </button>
+            <a href="{{ path('admin_cheque_show', {id: cheque.idCheque}) }}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left me-2"></i>Annuler
+            </a>
+          </div>
+        {{ form_end(form) }}
+      </div>
+    </article>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-journal-text me-2 text-primary"></i>Rappel du cheque
+      </div>
+      <div class="ft-admin-card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-5 text-muted">Numero</dt>
+          <dd class="col-sm-7">{{ cheque.numeroCheque }}</dd>
+
+          <dt class="col-sm-5 text-muted">Beneficiaire</dt>
+          <dd class="col-sm-7">{{ cheque.beneficiaire ?: '-' }}</dd>
+
+          <dt class="col-sm-5 text-muted">Montant</dt>
+          <dd class="col-sm-7 fw-semibold">{{ cheque.montant }}</dd>
+
+          <dt class="col-sm-5 text-muted">Wallet</dt>
+          <dd class="col-sm-7">#{{ cheque.wallet.idWallet }}</dd>
+
+          <dt class="col-sm-5 text-muted">Proprietaire</dt>
+          <dd class="col-sm-7">{{ cheque.wallet.nomProprietaire }}</dd>
+        </dl>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}

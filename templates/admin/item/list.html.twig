@@ -3,139 +3,131 @@
 {% block title %}Liste des Items{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="h3 mb-0 text-gray-800">Items</h1>
+<div class="container-fluid mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="h2 fw-bold text-dark mb-2">Gestion des Items</h1>
+            <p class="text-muted">Créez et gérez vos articles budgétaires</p>
         </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ path('admin_item_create') }}" class="btn btn-primary me-2">
-                <i class="fas fa-plus"></i> Nouvel Item
+        <div>
+            <a href="{{ path('admin_item_create') }}" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-plus me-2"></i>Nouvel Item
             </a>
-            <a href="{{ path('admin_item_export') ~ '?' ~ app.request.queryString }}" class="btn btn-success">
-                <i class="fas fa-download"></i> Exporter CSV
+            <a href="{{ path('admin_item_export') ~ '?' ~ app.request.queryString }}" class="btn btn-success btn-lg">
+                <i class="fas fa-file-pdf me-2"></i>Exporter PDF
             </a>
         </div>
     </div>
 
     {% for message in app.flashes('success') %}
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ message }}
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     {% endfor %}
 
-    <!-- Search and Filter Form -->
-    <div class="card shadow mb-4">
-        <div class="card-header">
-            <h6 class="m-0 font-weight-bold text-primary">Rechercher et Filtrer</h6>
+    <!-- Filtre -->
+    <div class="card shadow-lg mb-4 border-0" style="border-radius: 12px;">
+        <div class="card-header bg-secondary text-white" style="border-radius: 12px 12px 0 0; padding: 1.5rem;">
+            <h5 class="m-0"><i class="fas fa-filter me-2"></i>Filtres et recherche</h5>
         </div>
         <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label for="search" class="form-label">Recherche par libellé</label>
-                    <input type="text" class="form-control" id="search" name="search" 
-                           value="{{ search }}" placeholder="Entrez un libellé...">
+            <form method="GET">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="search" class="form-label">Recherche par libellé</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ search }}" placeholder="Entrez un libellé...">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="categorie" class="form-label">Catégorie</label>
+                        <select class="form-control" id="categorie" name="categorie">
+                            <option value="">Toutes les catégories</option>
+                            {% for categorie in categories %}
+                            <option value="{{ categorie.idCategorie }}" 
+                                    {% if categorieId == categorie.idCategorie %}selected{% endif %}>
+                                {{ categorie.nomCategorie }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label for="categorie" class="form-label">Catégorie</label>
-                    <select class="form-control" id="categorie" name="categorie">
-                        <option value="">Toutes les catégories</option>
-                        {% for categorie in categories %}
-                        <option value="{{ categorie.idCategorie }}" 
-                                {% if categorieId == categorie.idCategorie %}selected{% endif %}>
-                            {{ categorie.nomCategorie }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="min_amount" class="form-label">Montant min</label>
-                    <input type="number" step="0.01" class="form-control" id="min_amount" 
-                           name="min_amount" value="{{ minAmount }}" placeholder="0.00">
-                </div>
-                <div class="col-md-2">
-                    <label for="max_amount" class="form-label">Montant max</label>
-                    <input type="number" step="0.01" class="form-control" id="max_amount" 
-                           name="max_amount" value="{{ maxAmount }}" placeholder="0.00">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="fas fa-search"></i> Rechercher
-                    </button>
-                    <a href="{{ path('admin_item_list') }}" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Réinitialiser
-                    </a>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                        <label for="min_amount" class="form-label">Montant min</label>
+                        <input type="number" step="0.01" class="form-control" id="min_amount" 
+                               name="min_amount" value="{{ minAmount }}" placeholder="0.00">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="max_amount" class="form-label">Montant max</label>
+                        <input type="number" step="0.01" class="form-control" id="max_amount" 
+                               name="max_amount" value="{{ maxAmount }}" placeholder="0.00">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Rechercher
+                        </button>
+                        <a href="{{ path('admin_item_list') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Réinitialiser
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
-    {% if items|length > 0 %}
-    <form id="bulkDeleteForm" method="POST" action="{{ path('admin_item_bulk_delete') }}">
-        <input type="hidden" name="_token" value="{{ csrf_token('bulk_delete') }}">
-        
-        <div class="card shadow mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary">Liste des Items</h6>
-                <div>
-                    <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-secondary me-2">
-                        Tout sélectionner
-                    </button>
-                    <button type="submit" id="bulkDeleteBtn" class="btn btn-sm btn-danger" disabled>
-                        <i class="fas fa-trash"></i> Supprimer sélection
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="50">
-                                    <input type="checkbox" id="selectAll">
-                                </th>
-                                <th>ID</th>
-                                <th>Libellé</th>
-                                <th>Montant</th>
-                                <th>Catégorie</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in items %}
-                            <tr>
-                                <td>
-                                    <input type="checkbox" name="items[]" value="{{ item.idItem }}" class="item-checkbox">
-                                </td>
-                                <td>{{ item.idItem }}</td>
-                                <td>{{ item.libelle }}</td>
-                                <td>{{ item.montant|number_format(2, ',', ' ') }} €</td>
-                                <td>
-                                    <span class="badge bg-secondary">{{ item.categorieRel.nomCategorie }}</span>
-                                </td>
-                                <td>
-                                    <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" 
-                                       class="btn btn-sm btn-info" title="Voir">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" 
-                                       class="btn btn-sm btn-warning" title="Modifier">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{{ path('admin_item_delete', {'idItem': item.idItem}) }}" 
-                                       class="btn btn-sm btn-danger" title="Supprimer">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+    {% if groupedItems|length > 0 %}
+    {% for categoryName, categoryItems in groupedItems %}
+    <div class="card shadow-lg mb-4 border-0" style="border-radius: 12px;">
+        <div class="card-header bg-info text-white" style="border-radius: 12px 12px 0 0; padding: 1.5rem;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="m-0"><i class="fas fa-folder me-2"></i>{{ categoryName }}</h5>
+                <span class="badge bg-light text-info">{{ categoryItems|length }} item(s)</span>
             </div>
         </div>
-    </form>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Libellé</th>
+                            <th>Montant</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in categoryItems %}
+                        <tr>
+                            <td>{{ item.idItem }}</td>
+                            <td>{{ item.libelle }}</td>
+                            <td>{{ item.montant|number_format(2, ',', ' ') }} €</td>
+                            <td>
+                                <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" 
+                                   class="btn btn-sm btn-info" title="Voir">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ path('admin_item_delete', {'idItem': item.idItem}) }}" 
+                                      class="d-inline" 
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet item ?')">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.idItem) }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
     {% else %}
     <div class="alert alert-info" role="alert">
         <i class="fas fa-info-circle"></i> Aucun item trouvé. <a href="{{ path('admin_item_create') }}">Créer un nouveau</a>
@@ -143,58 +135,4 @@
     {% endif %}
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const selectAllCheckbox = document.getElementById('selectAll');
-    const itemCheckboxes = document.querySelectorAll('.item-checkbox');
-    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-    const selectAllBtn = document.getElementById('selectAllBtn');
-
-    function updateBulkDeleteButton() {
-        const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
-        bulkDeleteBtn.disabled = checkedBoxes.length === 0;
-    }
-
-    selectAllCheckbox.addEventListener('change', function() {
-        itemCheckboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-        });
-        updateBulkDeleteButton();
-    });
-
-    itemCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const allChecked = Array.from(itemCheckboxes).every(cb => cb.checked);
-            const someChecked = Array.from(itemCheckboxes).some(cb => cb.checked);
-            
-            selectAllCheckbox.checked = allChecked;
-            selectAllCheckbox.indeterminate = someChecked && !allChecked;
-            
-            updateBulkDeleteButton();
-        });
-    });
-
-    selectAllBtn.addEventListener('click', function() {
-        const allChecked = Array.from(itemCheckboxes).every(cb => cb.checked);
-        const newState = !allChecked;
-        
-        itemCheckboxes.forEach(checkbox => {
-            checkbox.checked = newState;
-        });
-        selectAllCheckbox.checked = newState;
-        selectAllCheckbox.indeterminate = false;
-        updateBulkDeleteButton();
-    });
-
-    // Confirm bulk delete
-    bulkDeleteBtn.addEventListener('click', function(e) {
-        const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
-        if (checkedBoxes.length > 0) {
-            if (!confirm(`Êtes-vous sûr de vouloir supprimer ${checkedBoxes.length} item(s) ?`)) {
-                e.preventDefault();
-            }
-        }
-    });
-});
-</script>
 {% endblock %}

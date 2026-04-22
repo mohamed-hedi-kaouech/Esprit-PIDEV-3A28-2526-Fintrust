@@ -22,6 +22,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   {# CSS Admin FinTrust #}
   <link rel="stylesheet" href="{{ asset('css/fintrust-admin.css') }}"/>
+  {# CSS Design Moderne #}
+  <link rel="stylesheet" href="{{ asset('css/design-modern.css') }}"/>
 
   {% block stylesheets %}{% endblock %}
 </head>
@@ -90,25 +92,38 @@
             <span class="badge bg-danger ms-auto">{{ activeAlertsCount }}</span>
           {% endif %}
         </a>
-
+        <a href="{{ path('product_list') }}" class="ft-sidebar-link">
+          <i class="bi bi-box-seam"></i>
+          <span>Catalogue produits</span>
+        </a>
+        <a href="{{ path('subscription_list') }}" class="ft-sidebar-link">
+          <i class="bi bi-box-seam"></i>
+          <span>Catalogue Abonnements</span>
+        </a>
         <div class="ft-sidebar-section-label mt-3">Services</div>
 
-        <a href="{{ path('admin_dashboard') }}#admin-wallet" class="ft-sidebar-link">
+        <a href="{{ path('index') }}" class="ft-sidebar-link">
+          <i class="bi bi-box-seam"></i>
+          <span>Dashboard Produits</span>
+        </a>
+
+        <a href="{{ path('admin_wallet_index') }}" class="ft-sidebar-link">
           <i class="bi bi-wallet2"></i>
           <span>Pilotage Wallet</span>
         </a>
 
-        <a href="{{ path('admin_dashboard') }}#admin-loan" class="ft-sidebar-link">
+        <a href="{{ path('admin_cheque_index') }}"
+           class="ft-sidebar-link {% if 'admin_cheque_' in app.request.attributes.get('_route') %}active{% endif %}">
+          <i class="bi bi-journal-check"></i>
+          <span>Gerer les cheques</span>
+        </a>
+
+        <a href="{{ path('admin_loan_dashboard') }}" class="ft-sidebar-link">
           <i class="bi bi-bank"></i>
           <span>Gestion des prets</span>
         </a>
 
-        <a href="{{ path('admin_dashboard') }}#admin-product" class="ft-sidebar-link">
-          <i class="bi bi-box-seam"></i>
-          <span>Catalogue produits</span>
-        </a>
-
-        <a href="{{ path('admin_dashboard') }}#admin-budget" class="ft-sidebar-link">
+        <a href="{{ path('admin_categorie_list') }}" class="ft-sidebar-link">
           <i class="bi bi-calculator"></i>
           <span>Suivi budgetaire</span>
         </a>

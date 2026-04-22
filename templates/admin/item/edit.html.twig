@@ -3,71 +3,486 @@
 {% block title %}Modifier l'Item{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <h1 class="h3 mb-0 text-gray-800">Modifier l'Item</h1>
+<div class="container-fluid mt-5">
+    <!-- Header avec navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('admin_dashboard') }}" class="text-decoration-none">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('admin_item_list') }}" class="text-decoration-none">Items</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" class="text-decoration-none">{{ item.libelle }}</a>
+                    </li>
+                    <li class="breadcrumb-item active">Modifier</li>
+                </ol>
+            </nav>
+            <h1 class="h2 fw-bold text-dark mb-2">
+                <i class="fas fa-edit text-warning me-3"></i>
+                Modifier l'Item
+            </h1>
+            <p class="text-muted">Modifiez les informations de l'article budgétaire</p>
+        </div>
+        <div class="d-flex gap-3">
+            <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" class="btn btn-info btn-lg">
+                <i class="fas fa-eye me-2"></i>Voir les détails
+            </a>
+            <a href="{{ path('admin_item_list') }}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+            </a>
         </div>
     </div>
 
+    <!-- Messages flash -->
     {% for message in app.flashes('success') %}
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ message }}
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     {% endfor %}
 
-    <div class="card shadow">
-        <div class="card-body">
-            {{ form_start(form) }}
-            
-            <div class="mb-3">
-                {{ form_label(form.libelle, 'Libellé de l\'Item') }}
-                {{ form_widget(form.libelle, {'attr': {'class': 'form-control'}}) }}
-                {% if form.libelle.vars.errors|length > 0 %}
-                    <div class="invalid-feedback d-block">
-                        {% for error in form.libelle.vars.errors %}
-                            {{ error.message }}
-                        {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-10">
+            <div class="form-card">
+                <div class="card-header-custom">
+                    <div class="card-icon">
+                        <i class="fas fa-tag"></i>
                     </div>
-                {% endif %}
+                    <div>
+                        <h5 class="mb-0">Modification de l'Item</h5>
+                        <small class="text-muted">Modifiez les informations de votre article budgétaire</small>
+                    </div>
+                    <div class="item-badge">
+                        <span class="badge bg-primary">ID: {{ item.idItem }}</span>
+                    </div>
+                </div>
+
+                <div class="card-body-custom">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="{{ form.libelle.vars.id }}" class="form-label">
+                                <i class="fas fa-tag text-primary me-2"></i>
+                                Libellé de l'Item
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </span>
+                                {{ form_widget(form.libelle, {
+                                    'attr': {
+                                        'class': 'form-control form-control-lg',
+                                        'placeholder': 'Entrez le nom de l\'article budgétaire'
+                                    }
+                                }) }}
+                            </div>
+                            {% if form.libelle.vars.errors|length > 0 %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.libelle.vars.errors %}
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error.message }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Description claire et précise de l'article (3-100 caractères)
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.montant.vars.id }}" class="form-label">
+                                <i class="fas fa-euro-sign text-success me-2"></i>
+                                Montant (€)
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-calculator"></i>
+                                </span>
+                                {{ form_widget(form.montant, {
+                                    'attr': {
+                                        'class': 'form-control form-control-lg',
+                                        'placeholder': '0.00',
+                                        'step': '0.01'
+                                    }
+                                }) }}
+                                <span class="input-group-text">€</span>
+                            </div>
+                            {% if form.montant.vars.errors|length > 0 %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.montant.vars.errors %}
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error.message }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Montant positif avec maximum 2 décimales
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.categorieRel.vars.id }}" class="form-label">
+                                <i class="fas fa-folder text-warning me-2"></i>
+                                Catégorie Budgétaire
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-list"></i>
+                                </span>
+                                {{ form_widget(form.categorieRel, {
+                                    'attr': {
+                                        'class': 'form-select form-select-lg'
+                                    }
+                                }) }}
+                            </div>
+                            {% if item.categorieRel %}
+                                <small class="form-text">
+                                    <i class="fas fa-external-link-alt me-1"></i>
+                                    <a href="{{ path('admin_categorie_edit', {'idCategorie': item.categorieRel.idCategorie}) }}" target="_blank" class="text-decoration-none">
+                                        Modifier la catégorie actuelle
+                                    </a>
+                                </small>
+                            {% endif %}
+                            {% if form.categorieRel.vars.errors|length > 0 %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.categorieRel.vars.errors %}
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error.message }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Choisissez la catégorie budgétaire appropriée
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Informations actuelles -->
+                    <div class="current-info">
+                        <div class="info-header">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Informations actuelles
+                        </div>
+                        <div class="info-content">
+                            <div class="info-item">
+                                <span class="info-label">Libellé actuel :</span>
+                                <span class="info-value">{{ item.libelle }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Montant actuel :</span>
+                                <span class="info-value">{{ item.montant|number_format(2, ',', ' ') }} €</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Catégorie actuelle :</span>
+                                <span class="info-value">{{ item.categorieRel.nomCategorie }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="fas fa-save me-2"></i>Mettre à jour l'Item
+                        </button>
+                        <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" class="btn btn-info btn-lg">
+                            <i class="fas fa-eye me-2"></i>Voir les détails
+                        </a>
+                        <a href="{{ path('admin_item_list') }}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Annuler
+                        </a>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
             </div>
 
-            <div class="mb-3">
-                {{ form_label(form.montant, 'Montant (€)') }}
-                {{ form_widget(form.montant, {'attr': {'class': 'form-control'}}) }}
-                {% if form.montant.vars.errors|length > 0 %}
-                    <div class="invalid-feedback d-block">
-                        {% for error in form.montant.vars.errors %}
-                            {{ error.message }}
-                        {% endfor %}
+            <!-- Informations complémentaires -->
+            <div class="info-card mt-4">
+                <div class="card-header-custom">
+                    <div class="card-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
                     </div>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
-                {{ form_label(form.categorieRel, 'Catégorie') }}
-                {{ form_widget(form.categorieRel, {'attr': {'class': 'form-control'}}) }}
-                {% if form.categorieRel.vars.errors|length > 0 %}
-                    <div class="invalid-feedback d-block">
-                        {% for error in form.categorieRel.vars.errors %}
-                            {{ error.message }}
-                        {% endfor %}
+                    <div>
+                        <h6 class="mb-0">Points d'attention</h6>
                     </div>
-                {% endif %}
+                </div>
+                <div class="card-body-custom">
+                    <div class="info-list">
+                        <div class="info-item">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            <span>Modifier le montant peut déclencher une nouvelle alerte budgétaire</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-folder-open text-info me-2"></i>
+                            <span>Changer de catégorie peut affecter les statistiques budgétaires</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-save text-success me-2"></i>
+                            <span>Les modifications sont immédiatement appliquées au système</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Mettre à jour
-                </button>
-                <a href="{{ path('admin_item_list') }}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Annuler
-                </a>
-            </div>
-            
-            {{ form_end(form) }}
         </div>
     </div>
 </div>
+
+<style>
+.form-card,
+.info-card {
+    background: white;
+    border: 1px solid rgba(167, 180, 248, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 1.5rem;
+}
+
+.form-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.12);
+}
+
+.card-header-custom {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: rgba(248, 250, 252, 0.8);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.card-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #3b82f6, #1f6feb);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    margin-right: 1rem;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.item-badge {
+    margin-left: auto;
+}
+
+.card-body-custom {
+    padding: 2rem;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 2rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.input-group-text {
+    background: rgba(248, 250, 252, 0.8);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    color: #64748b;
+}
+
+.form-control,
+.form-select {
+    border: 2px solid rgba(226, 232, 240, 0.8);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+.form-control-lg {
+    padding: 1rem 1.25rem;
+    font-size: 1.1rem;
+}
+
+.form-select-lg {
+    padding: 1rem 1.25rem;
+    font-size: 1.1rem;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.invalid-feedback {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.current-info {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(245, 158, 11, 0.1));
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.info-header {
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.info-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.info-label {
+    font-weight: 600;
+    color: #92400e;
+    font-size: 0.875rem;
+}
+
+.info-value {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.5);
+    flex-wrap: wrap;
+}
+
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: none;
+    color: white;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    border: none;
+    color: white;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #64748b, #475569);
+    border: none;
+    color: white;
+}
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: 8px;
+    border-left: 3px solid;
+}
+
+.info-item:nth-child(1) {
+    border-left-color: #f59e0b;
+}
+
+.info-item:nth-child(2) {
+    border-left-color: #06b6d4;
+}
+
+.info-item:nth-child(3) {
+    border-left-color: #10b981;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.breadcrumb-item a {
+    color: #64748b;
+}
+
+.breadcrumb-item.active {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .info-content {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 {% endblock %}

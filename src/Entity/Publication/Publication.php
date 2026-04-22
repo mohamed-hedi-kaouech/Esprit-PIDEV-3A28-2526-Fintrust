@@ -2,6 +2,7 @@
 
 namespace App\Entity\Publication;
 
+use App\Entity\User\Feedback;
 use App\Repository\PublicationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -73,7 +74,7 @@ class Publication
     #[ORM\Column(name: 'date_publication', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $datePublication = null;
 
-    #[ORM\OneToMany(targetEntity: \App\Entity\User\Feedback::class, mappedBy: 'publication', cascade: ['remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Feedback::class, mappedBy: 'publication', cascade: ['remove'], orphanRemoval: true)]
     private Collection $feedbacks;
 
     public function __construct()
@@ -153,14 +154,14 @@ class Publication
     }
 
     /**
-     * @return Collection<int, \App\Entity\User\Feedback>
+     * @return Collection<int, Feedback>
      */
     public function getFeedbacks(): Collection
     {
         return $this->feedbacks;
     }
 
-    public function addFeedback(\App\Entity\User\Feedback $feedback): static
+    public function addFeedback(Feedback $feedback): static
     {
         if (!$this->feedbacks->contains($feedback)) {
             $this->feedbacks->add($feedback);
@@ -170,38 +171,54 @@ class Publication
         return $this;
     }
 
-    public function removeFeedback(\App\Entity\User\Feedback $feedback): static
+    public function removeFeedback(Feedback $feedback): static
     {
         if ($this->feedbacks->removeElement($feedback)) {
-            // set the owning side to null (unless already changed)
-            if ($feedback->getPublication() === $this) {
-                $feedback->setPublication(null);
-            }
+            // L'entite Feedback est detruite avec la publication, on evite donc
+            // de forcer ici un null sur une relation non nullable.
         }
 
         return $this;
     }
 
-    public function getCommentCount(): int
-    {
-        return $this->feedbacks->filter(
-            static fn(\App\Entity\User\Feedback $feedback) => $feedback->getCommentaire() !== null
-                && trim($feedback->getCommentaire()) !== ''
-        )->count();
-    }
-
     public function getLikeCount(): int
     {
         return $this->feedbacks->filter(
-            static fn(\App\Entity\User\Feedback $feedback) => strtoupper((string) $feedback->getTypeReaction()) === 'LIKE'
+            static fn (Feedback $feedback): bool => strtoupper((string) $feedback->getTypeReaction()) === 'LIKE'
         )->count();
     }
 
     public function getDislikeCount(): int
     {
         return $this->feedbacks->filter(
-            static fn(\App\Entity\User\Feedback $feedback) => strtoupper((string) $feedback->getTypeReaction()) === 'DISLIKE'
+            static fn (Feedback $feedback): bool => strtoupper((string) $feedback->getTypeReaction()) === 'DISLIKE'
         )->count();
+    }
+
+    public function getCommentCount(): int
+    {
+        return $this->feedbacks->filter(
+            static fn (Feedback $feedback): bool => trim((string) $feedback->getCommentaire()) !== ''
+        )->count();
+    }
+
+    public function getAverageRating(): ?float
+    {
+        $ratings = [];
+
+        foreach ($this->feedbacks as $feedback) {
+            $typeReaction = strtoupper((string) $feedback->getTypeReaction());
+
+            if (str_starts_with($typeReaction, 'RATING_')) {
+                $ratings[] = (int) substr($typeReaction, 7);
+            }
+        }
+
+        if ($ratings === []) {
+            return null;
+        }
+
+        return round(array_sum($ratings) / count($ratings), 1);
     }
 
     public function getEngagementScore(): int

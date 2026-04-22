@@ -23,9 +23,18 @@ class PasswordResetController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $identifier = (string) $form->get('identifier')->getData();
             $flow = $passwordResetService->initiateResetFlow($identifier, $request);
-            $passwordResetService->dispatchEmail($flow, $request);
+            $dispatch = $passwordResetService->dispatchEmail($flow, $request);
 
-            $this->addFlash('info', 'Si un compte correspond aux informations saisies, un e-mail de reinitialisation a ete envoye.');
+            if (($dispatch['sent'] ?? false) === true) {
+                $this->addFlash('info', 'Si un compte correspond aux informations saisies, un e-mail de reinitialisation a ete envoye.');
+            } else {
+                $this->addFlash('warning', 'L envoi de l e-mail de reinitialisation a echoue sur cette machine.');
+
+                $debugResetUrl = $dispatch['debug_reset_url'] ?? null;
+                if (is_string($debugResetUrl) && $debugResetUrl !== '' && $this->getParameter('kernel.environment') === 'dev') {
+                    $this->addFlash('info', sprintf('Mode dev: utilisez directement ce lien de reinitialisation: %s', $debugResetUrl));
+                }
+            }
 
             return $this->redirectToRoute('app_login');
         }

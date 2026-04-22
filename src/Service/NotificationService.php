@@ -70,6 +70,104 @@ class NotificationService
         );
     }
 
+    public function notifyTransferSent(User $user, string $reference, float $amount, string $devise, string $recipientLabel, ?string $label = null): void
+    {
+        $message = sprintf(
+            'Transfert envoye | Ref: %s | Vous avez envoye %.2f %s vers %s.',
+            $reference,
+            $amount,
+            $devise,
+            $recipientLabel
+        );
+
+        if ($label !== null && trim($label) !== '') {
+            $message .= ' Libelle: ' . trim($label) . '.';
+        }
+
+        $message .= ' Statut: VALIDE.';
+
+        $this->notify($user, $message, 'SUCCESS');
+    }
+
+    public function notifyTransferReceived(User $user, string $reference, float $amount, string $devise, string $senderLabel, ?string $label = null): void
+    {
+        $message = sprintf(
+            'Transfert recu | Ref: %s | Vous avez recu %.2f %s de %s.',
+            $reference,
+            $amount,
+            $devise,
+            $senderLabel
+        );
+
+        if ($label !== null && trim($label) !== '') {
+            $message .= ' Libelle: ' . trim($label) . '.';
+        }
+
+        $message .= ' Statut: VALIDE.';
+
+        $this->notify($user, $message, 'SUCCESS');
+    }
+
+    public function notifyChequeRequested(User $user, string $chequeNumber, float $amount, ?string $beneficiary = null): void
+    {
+        $message = sprintf(
+            'Demande de chequier | Numero: %s | Montant: %.2f TND | Statut: EN_ATTENTE.',
+            $chequeNumber,
+            $amount
+        );
+
+        if ($beneficiary !== null && trim($beneficiary) !== '') {
+            $message .= ' Beneficiaire: ' . trim($beneficiary) . '.';
+        }
+
+        $this->notify($user, $message, 'INFO');
+    }
+
+    public function notifyChequeApproved(User $user, string $chequeNumber): void
+    {
+        $this->notify(
+            $user,
+            sprintf('Demande de chequier approuvee | Numero: %s | Statut: ACCEPTE.', $chequeNumber),
+            'SUCCESS'
+        );
+    }
+
+    public function notifyChequeRejected(User $user, string $chequeNumber, ?string $reason = null): void
+    {
+        $message = sprintf('Demande de chequier refusee | Numero: %s | Statut: REFUSE.', $chequeNumber);
+
+        if ($reason !== null && trim($reason) !== '') {
+            $message .= ' Motif: ' . trim($reason) . '.';
+        }
+
+        $this->notify($user, $message, 'ERROR');
+    }
+
+    public function notifyChequeDelivered(User $user, string $chequeNumber): void
+    {
+        $this->notify(
+            $user,
+            sprintf('Chequier livre | Numero: %s | Statut: LIVRE.', $chequeNumber),
+            'SUCCESS'
+        );
+    }
+
+    public function notifyWalletStatusChanged(User $user, string $walletStatus): void
+    {
+        $type = match (mb_strtolower($walletStatus)) {
+            'actif' => 'SUCCESS',
+            'suspendu' => 'WARNING',
+            'bloque' => 'ERROR',
+            default => 'INFO',
+        };
+
+        $this->notify(
+            $user,
+            sprintf('Statut wallet mis a jour | Nouveau statut: %s.', mb_strtoupper($walletStatus)),
+            $type
+        );
+    }
+
     public function markAsReadForUser(int $notificationId, User $user): bool
     {
         /** @var Notification|null $notification */
@@ -107,5 +205,11 @@ class NotificationService
         }
 
         return $updated;
+    }
+
+    public function getUnreadCountForUser(User $user): int
+    {
+        return $this->em->getRepository(Notification::class)
+            ->count(['user' => $user, 'isRead' => false]);
     }
 }

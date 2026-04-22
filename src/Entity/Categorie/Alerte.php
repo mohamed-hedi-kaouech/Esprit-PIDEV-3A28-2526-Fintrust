@@ -25,6 +25,9 @@ class Alerte
     #[ORM\Column(name: 'active', type: 'boolean', nullable: true)]
     private bool|null $active = true;
 
+    #[ORM\Column(name: 'read_status', type: 'boolean', options: ['default' => false])]
+    private bool $read = false;
+
     #[ORM\Column(name: 'created_at', type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
@@ -79,6 +82,17 @@ class Alerte
     public function setActive(bool|null $active): static
     {
         $this->active = $active;
+        return $this;
+    }
+
+    public function isRead(): bool
+    {
+        return $this->read;
+    }
+
+    public function setRead(bool $read): static
+    {
+        $this->read = $read;
         return $this;
     }
 

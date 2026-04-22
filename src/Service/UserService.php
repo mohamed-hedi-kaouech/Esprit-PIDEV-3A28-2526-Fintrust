@@ -2,10 +2,13 @@
 
 namespace App\Service;
 
+use App\Entity\Product\ProductSubscription;
 use App\Entity\User\Client\Kyc;
 use App\Entity\User\Client\KycFile;
 use App\Entity\User\Client\Notification;
 use App\Entity\User\User;
+use App\Entity\Wallet\Wallet;
+use App\Exception\UserDeletionException;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -107,6 +110,28 @@ class UserService
 
     public function deleteUser(User $user): void
     {
+        $wallet = $this->findWalletLinkedToUser($user);
+
+        if ($wallet instanceof Wallet) {
+            $walletStatus = trim((string) $wallet->getStatut());
+            $message = 'Impossible de supprimer cet utilisateur car un wallet lui est deja rattache.';
+
+            if ($walletStatus !== '') {
+                $message .= sprintf(' Statut du wallet: %s.', $walletStatus);
+            }
+
+            $message .= ' Supprimez ou detachez d abord ce wallet.';
+
+            throw new UserDeletionException($message);
+        }
+
+        /** @var ProductSubscription[] $subscriptions */
+        $subscriptions = $this->em->getRepository(ProductSubscription::class)->findBy(['clientUser' => $user]);
+
+        foreach ($subscriptions as $subscription) {
+            $this->em->remove($subscription);
+        }
+
         /** @var Kyc[] $kycRecords */
         $kycRecords = $this->em->getRepository(Kyc::class)->findBy(['user' => $user]);
 
@@ -123,6 +148,21 @@ class UserService
         $user->setCurrentKycId(null);
         $this->em->remove($user);
         $this->em->flush();
+    }
+
+    private function findWalletLinkedToUser(User $user): ?Wallet
+    {
+        /** @var Wallet|null $wallet */
+        $wallet = $this->em->getRepository(Wallet::class)->findOneBy(['user' => $user]);
+
+        if ($wallet instanceof Wallet) {
+            return $wallet;
+        }
+
+        /** @var Wallet|null $wallet */
+        $wallet = $this->em->getRepository(Wallet::class)->findOneBy(['idUser' => $user->getId()]);
+
+        return $wallet;
     }
 
     private function deleteKycFileArtifact(KycFile $file): void

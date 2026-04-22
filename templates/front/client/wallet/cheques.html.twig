@@ -1,0 +1,116 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Mes demandes de cheques{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="ft-page-icon-lg"><i class="bi bi-journal-check"></i></div>
+        <div>
+          <h1 class="ft-page-title mb-0">Mes demandes de cheques</h1>
+          <p class="text-muted mb-0 small">Suivez le statut de toutes vos demandes de cheque depuis votre espace client.</p>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('front_wallet_dashboard') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-house-door me-1"></i>Dashboard
+        </a>
+        <a href="{{ path('front_wallet_cheques_export_csv') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-filetype-csv me-1"></i>CSV
+        </a>
+        <a href="{{ path('front_wallet_cheques_export_pdf') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+        </a>
+        <a href="{{ path('front_wallet_cheque_request') }}" class="btn ft-btn-primary{% if wallet.estBloque %} disabled{% endif %}">
+          <i class="bi bi-journal-plus me-1"></i>Demander un chequier
+        </a>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="ft-dash-card ft-dash-card-soft h-100">
+          <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-journal-text"></i></div>
+          <div class="ft-dash-card-label">Demandes totales</div>
+          <div class="ft-dash-card-value">{{ cheques|length }}</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="ft-dash-card ft-dash-card-soft h-100">
+          <div class="ft-dash-card-icon ft-dash-icon-orange"><i class="bi bi-hourglass-split"></i></div>
+          <div class="ft-dash-card-label">En attente</div>
+          <div class="ft-dash-card-value">{{ pendingCount }}</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="ft-dash-card ft-dash-card-soft h-100">
+          <div class="ft-dash-card-icon ft-dash-icon-green"><i class="bi bi-check2-circle"></i></div>
+          <div class="ft-dash-card-label">Acceptees</div>
+          <div class="ft-dash-card-value">{{ acceptedCount }}</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="ft-dash-card ft-dash-card-soft h-100">
+          <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-truck"></i></div>
+          <div class="ft-dash-card-label">Livrees</div>
+          <div class="ft-dash-card-value">{{ deliveredCount }}</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="ft-dash-card ft-dash-card-soft h-100">
+          <div class="ft-dash-card-icon ft-dash-icon-orange"><i class="bi bi-x-octagon"></i></div>
+          <div class="ft-dash-card-label">Refusees</div>
+          <div class="ft-dash-card-value">{{ refusedCount }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ft-app-card ft-premium-card">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-ul me-2 text-primary"></i>Liste des demandes</span>
+        <span class="badge {{ wallet.estBloque ? 'ft-badge-danger' : 'ft-badge-success' }}">
+          Wallet {{ wallet.estBloque ? 'bloque' : 'operationnel' }}
+        </span>
+      </div>
+      <div class="ft-app-card-body p-0">
+        {% if cheques is empty %}
+          <div class="p-4 text-muted">Vous n avez pas encore de demande de cheque.</div>
+        {% else %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Numero cheque</th>
+                  <th>Beneficiaire</th>
+                  <th>Montant</th>
+                  <th>Date emission</th>
+                  <th>Statut</th>
+                  <th>Motif rejet</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cheque in cheques %}
+                  {% set statut = cheque.statut|lower %}
+                  <tr>
+                    <td class="fw-semibold">{{ cheque.numeroCheque }}</td>
+                    <td>{{ cheque.beneficiaire ?: 'Non renseigne' }}</td>
+                    <td>{{ cheque.montant|number_format(2, ',', ' ') }} {{ wallet.devise }}</td>
+                    <td>{{ cheque.dateEmission|date('d/m/Y H:i') }}</td>
+                    <td>
+                      <span class="badge {{ statut == 'accepte' ? 'ft-badge-success' : (statut == 'refuse' ? 'ft-badge-danger' : (statut == 'livre' ? 'ft-badge-blue' : 'ft-badge-warning')) }}">
+                        {{ cheque.statut|replace({'_': ' '})|title }}
+                      </span>
+                    </td>
+                    <td>{{ statut == 'refuse' ? (cheque.motifRejet ?: 'Aucun motif renseigne') : '-' }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

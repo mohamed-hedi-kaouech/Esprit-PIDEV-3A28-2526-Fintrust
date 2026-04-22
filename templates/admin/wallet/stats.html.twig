@@ -1,0 +1,310 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Statistiques Wallet{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_wallet_index') }}" class="text-muted small text-decoration-none">Pilotage Wallet</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Statistiques</span>
+{% endblock %}
+
+{% block admin_content %}
+<section class="ft-admin-hero mb-4">
+  <div class="ft-admin-hero-grid">
+    <div>
+      <span class="ft-admin-hero-kicker">
+        <i class="bi bi-bar-chart-line me-1"></i>Dashboard Wallet / Transaction / Cheque
+      </span>
+      <h1 class="ft-admin-page-title mb-3">Statistiques finance operationnelle</h1>
+      <p class="ft-admin-hero-subtitle mb-0">
+        Suivez l activite des wallets, le volume transactionnel et l avancement du workflow des cheques depuis une vue admin centralisee.
+      </p>
+    </div>
+    <div class="ft-admin-hero-panel">
+      <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
+        <a href="{{ path('admin_wallet_index') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-wallet2 me-2"></i>Retour Wallets
+        </a>
+        <a href="{{ path('admin_cheque_index') }}" class="btn ft-btn-primary">
+          <i class="bi bi-journal-check me-2"></i>Gerer les cheques
+        </a>
+      </div>
+      <div class="ft-admin-meta justify-content-lg-end">
+        <span><i class="bi bi-activity"></i>{{ stats.transactionsTotal }} transactions</span>
+        <span><i class="bi bi-journal-bookmark"></i>{{ stats.chequesTotal }} cheques</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="row g-3 mb-4">
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-wallet2"></i></span>
+      <div class="ft-admin-kpi-mini-label">Wallets total</div>
+      <div class="ft-admin-kpi-mini-value">{{ stats.walletsTotal }}</div>
+      <div class="ft-admin-kpi-mini-text">Ensemble des wallets presents dans le systeme.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-green">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-check2-circle"></i></span>
+      <div class="ft-admin-kpi-mini-label">Wallets actifs</div>
+      <div class="ft-admin-kpi-mini-value">{{ stats.walletsActive }}</div>
+      <div class="ft-admin-kpi-mini-text">Comptes wallet actuellement operationnels.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-red">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-lock"></i></span>
+      <div class="ft-admin-kpi-mini-label">Wallets bloques</div>
+      <div class="ft-admin-kpi-mini-value">{{ stats.walletsBlocked }}</div>
+      <div class="ft-admin-kpi-mini-text">Wallets soumis a restriction admin.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-amber">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-arrow-left-right"></i></span>
+      <div class="ft-admin-kpi-mini-label">Transactions total</div>
+      <div class="ft-admin-kpi-mini-value">{{ stats.transactionsTotal }}</div>
+      <div class="ft-admin-kpi-mini-text">Volume cumule des transactions rattachees aux wallets.</div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-3 mb-4">
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-journal-richtext"></i></span>
+      <div class="ft-admin-kpi-mini-label">Cheques total</div>
+      <div class="ft-admin-kpi-mini-value">{{ stats.chequesTotal }}</div>
+      <div class="ft-admin-kpi-mini-text">Demandes de cheques recensees dans la plateforme.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-amber">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-hourglass-split"></i></span>
+      <div class="ft-admin-kpi-mini-label">Cheques en attente</div>
+      <div class="ft-admin-kpi-mini-value">{{ stats.chequesPending }}</div>
+      <div class="ft-admin-kpi-mini-text">Demandes necessitant une decision admin.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-green">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-patch-check"></i></span>
+      <div class="ft-admin-kpi-mini-label">Cheques acceptes</div>
+      <div class="ft-admin-kpi-mini-value">{{ stats.chequesAccepted }}</div>
+      <div class="ft-admin-kpi-mini-text">Cheques valides et approuves par le back-office.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-red">
+      <span class="ft-admin-kpi-mini-icon"><i class="bi bi-x-circle"></i></span>
+      <div class="ft-admin-kpi-mini-label">Cheques refuses</div>
+      <div class="ft-admin-kpi-mini-value">{{ stats.chequesRefused }}</div>
+      <div class="ft-admin-kpi-mini-text">Demandes rejetees avec motif admin.</div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4 mb-4">
+  <div class="col-xl-7">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-bar-chart-line me-2 text-primary"></i>Creations de wallets par mois
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container ft-chart-container-medium">
+          <canvas id="walletMonthlyChart"></canvas>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="col-xl-5">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-trophy me-2 text-primary"></i>Top 5 wallets les plus actifs
+      </div>
+      <div class="ft-admin-card-body p-0">
+        <div class="table-responsive">
+          <table class="table ft-admin-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Wallet</th>
+                <th>Proprietaire</th>
+                <th>Transactions</th>
+                <th>Montant cumule</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in topActiveWallets %}
+                <tr>
+                  <td><a href="{{ path('admin_wallet_show', {id: item.wallet.idWallet}) }}" class="text-decoration-none fw-semibold">#{{ item.wallet.idWallet }}</a></td>
+                  <td>{{ item.wallet.nomProprietaire }}</td>
+                  <td>{{ item.txCount }}</td>
+                  <td>{{ item.totalAmount|number_format(2, '.', ' ') }} {{ item.wallet.devise }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="4" class="text-center py-4 text-muted">Aucune transaction disponible.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4 mb-4">
+  <div class="col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-clock-history me-2 text-primary"></i>Derniers wallets crees
+      </div>
+      <div class="ft-admin-card-body p-0">
+        <div class="table-responsive">
+          <table class="table ft-admin-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Proprietaire</th>
+                <th>Date creation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for wallet in latestWallets %}
+                <tr>
+                  <td><a href="{{ path('admin_wallet_show', {id: wallet.idWallet}) }}" class="text-decoration-none fw-semibold">#{{ wallet.idWallet }}</a></td>
+                  <td>{{ wallet.nomProprietaire }}</td>
+                  <td>{{ wallet.dateCreation|date('d/m/Y H:i') }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="3" class="text-center py-4 text-muted">Aucun wallet disponible.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-journal-bookmark me-2 text-primary"></i>Derniers cheques demandes
+      </div>
+      <div class="ft-admin-card-body p-0">
+        <div class="table-responsive">
+          <table class="table ft-admin-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Numero</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cheque in latestCheques %}
+                <tr>
+                  <td><a href="{{ path('admin_cheque_show', {id: cheque.idCheque}) }}" class="text-decoration-none fw-semibold">#{{ cheque.idCheque }}</a></td>
+                  <td>{{ cheque.numeroCheque }}</td>
+                  <td>
+                    {% set chequeStatus = cheque.statut|lower %}
+                    <span class="badge {{ chequeStatus == 'accepte' ? 'ft-badge-success' : (chequeStatus == 'refuse' ? 'ft-badge-danger' : 'ft-badge-warning') }}">
+                      {{ cheque.statut|upper }}
+                    </span>
+                  </td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="3" class="text-center py-4 text-muted">Aucun cheque disponible.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-shield-lock me-2 text-primary"></i>Wallets bloques
+      </div>
+      <div class="ft-admin-card-body p-0">
+        <div class="table-responsive">
+          <table class="table ft-admin-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Proprietaire</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for wallet in blockedWallets %}
+                <tr>
+                  <td><a href="{{ path('admin_wallet_show', {id: wallet.idWallet}) }}" class="text-decoration-none fw-semibold">#{{ wallet.idWallet }}</a></td>
+                  <td>{{ wallet.nomProprietaire }}</td>
+                  <td><span class="badge ft-badge-danger">BLOQUE</span></td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="3" class="text-center py-4 text-muted">Aucun wallet bloque.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    const walletMonthlyCtx = document.getElementById('walletMonthlyChart');
+    if (walletMonthlyCtx) {
+      new Chart(walletMonthlyCtx, {
+        type: 'bar',
+        data: {
+          labels: {{ walletsByMonth|map(item => item.label)|json_encode|raw }},
+          datasets: [{
+            label: 'Wallets crees',
+            data: {{ walletsByMonth|map(item => item.count)|json_encode|raw }},
+            backgroundColor: 'rgba(37, 99, 235, 0.82)',
+            borderRadius: 14,
+            borderSkipped: false,
+            maxBarThickness: 42
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1, color: '#64748b' },
+              grid: { color: 'rgba(148,163,184,.15)' }
+            },
+            x: {
+              ticks: { color: '#64748b' },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+  </script>
+{% endblock %}
