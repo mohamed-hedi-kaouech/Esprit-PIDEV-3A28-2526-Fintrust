@@ -7,6 +7,8 @@
 <div class="min-h-screen bg-gray-100">
     <div class="max-w-6xl mx-auto px-4 py-8">
         
+        {# ... VOTRE CONTENU EXISTANT ... #}
+        
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Mes Demandes de Prêt</h1>
             <a href="{{ path('loan_simulator') }}" class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg font-medium">
@@ -22,6 +24,7 @@
             {% endfor %}
         {% endfor %}
 
+        {# TABLE DES PRÊTS (votre code existant) #}
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <table class="w-full">
                 <thead class="bg-gray-50">
@@ -34,7 +37,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    {% for loan in loansData  %}
+                    {% for loan in loansData %}
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4">{{ loan.Loan.getLoanType() }}</td>
                         <td class="px-6 py-4 font-medium">{{ loan.Loan.getAmount()|number_format(3) }} TND</td>
@@ -73,4 +76,203 @@
 
     </div>
 </div>
+
+{# ═══════════════════════════════════════════════════════ #}
+{# 🤖 CHATBOT FLOTANT - AJOUTÉ ICI                      #}
+{# ═══════════════════════════════════════════════════════ #}
+
+{# Bouton bulle flottante #}
+<button id="chat-toggle" onclick="toggleChat()" 
+    class="fixed bottom-6 right-6 w-14 h-14 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl z-50 transition-transform hover:scale-110">
+    💬
+</button>
+
+{# Fenêtre de chat (cachée par défaut) #}
+<div id="chat-window" class="fixed bottom-24 right-6 w-80 bg-white rounded-xl shadow-2xl border z-50 hidden flex flex-col" style="height: 400px;">
+    
+    {# Header #}
+    <div class="bg-green-600 text-white px-4 py-3 rounded-t-xl flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <span class="text-lg">🤖</span>
+            <span class="font-medium text-sm">Assistant Fintrust</span>
+        </div>
+        <button onclick="toggleChat()" class="text-white hover:text-gray-200 text-xl leading-none">&times;</button>
+    </div>
+    
+    {# Messages #}
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-3 text-sm">
+        <div class="flex items-start gap-2">
+            <div class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-xs flex-shrink-0">🤖</div>
+            <div class="bg-gray-100 rounded-lg p-2 max-w-[85%]">
+                Bonjour ! Je peux vous aider avec vos prêts. Comment puis-je vous assister ?
+            </div>
+        </div>
+    </div>
+    
+    {# Input #}
+    <div class="border-t p-3">
+        <form id="chat-form" class="flex gap-2">
+            <input type="text" id="chat-input" placeholder="Posez votre question..." 
+                class="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm">
+                ➤
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DONNÉES DES PRÊTS (injectées depuis Twig)
+// ═══════════════════════════════════════════════════════════
+const loansData = [
+    {% for item in loansData %}
+    {
+        loanId: {{ item.Loan.getLoanId() }},
+        type: "{{ item.Loan.getLoanType() }}",
+        amount: "{{ item.Loan.getAmount() }}",
+        monthlyPayment: "{{ item.monthlyPayment|number_format(3) }}",
+        status: "{{ item.Loan.getStatus() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+// Prêt actif par défaut (premier prêt actif, ou le premier disponible)
+const activeLoan = loansData.find(l => l.status === 'ACTIVE') || loansData[0];
+const activeLoanId = activeLoan ? activeLoan.loanId : null;
+
+// ═══════════════════════════════════════════════════════════
+// FONCTIONS CHAT (votre code existant)
+// ═══════════════════════════════════════════════════════════
+
+// Toggle chat window
+function toggleChat() {
+    const chatWindow = document.getElementById('chat-window');
+    chatWindow.classList.toggle('hidden');
+    
+    if (!chatWindow.classList.contains('hidden')) {
+        document.getElementById('chat-input').focus();
+    }
+}
+
+// Quick ask from buttons
+function quickAsk(question) {
+    document.getElementById('chat-input').value = question;
+    sendMessage();
+}
+
+// Add message to chat
+function addMessage(content, isUser = false) {
+    const messagesDiv = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = 'flex items-start gap-2 ' + (isUser ? 'flex-row-reverse' : '');
+    
+    const avatar = isUser 
+        ? '<div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center text-xs flex-shrink-0">👤</div>'
+        : '<div class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-xs flex-shrink-0">🤖</div>';
+    
+    const bubbleColor = isUser ? 'bg-blue-50 text-blue-900' : 'bg-gray-100 text-gray-800';
+    const bubble = `<div class="${bubbleColor} rounded-lg p-2 max-w-[85%] text-sm">${content}</div>`;
+    
+    div.innerHTML = avatar + bubble;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Show loading
+function showLoading() {
+    const messagesDiv = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.id = 'chat-loading';
+    div.className = 'flex items-start gap-2';
+    div.innerHTML = `
+        <div class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-xs flex-shrink-0">🤖</div>
+        <div class="bg-gray-100 rounded-lg p-2">
+            <span class="animate-pulse text-gray-500 text-sm">● ● ●</span>
+        </div>
+    `;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// Hide loading
+function hideLoading() {
+    document.getElementById('chat-loading')?.remove();
+}
+
+// ═══════════════════════════════════════════════════════════
+// ENVOI MESSAGE (MODIFIÉ avec loanId)
+// ═══════════════════════════════════════════════════════════
+
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const question = input.value.trim();
+    
+    if (!question) return;
+    
+    // Add user message
+    addMessage(question, true);
+    input.value = '';
+    
+    // Show loading
+    showLoading();
+    
+    try {
+        // Construction du body avec question + loanId
+        const bodyParams = new URLSearchParams();
+        bodyParams.append('question', question);
+        
+        // Ajoute loanId si un prêt actif existe
+        if (activeLoanId) {
+            bodyParams.append('loanId', activeLoanId);
+        }
+        
+        const response = await fetch('{{ path("chatbot_ask") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: bodyParams.toString(),  // ← Envoie question + loanId
+        });
+        
+        const data = await response.json();
+        hideLoading();
+        
+        if (data.success) {
+            addMessage(data.answer);
+        } else {
+            addMessage('Désolé, une erreur est survenue. Veuillez réessayer.');
+        }
+        
+    } catch (error) {
+        hideLoading();
+        addMessage('Service temporairement indisponible. Réessayez plus tard.');
+    }
+}
+
+// Form submit
+document.getElementById('chat-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendMessage();
+});
+
+// ═══════════════════════════════════════════════════════════
+// SÉLECTEUR DE PRÊT (optionnel - si plusieurs prêts)
+// ═══════════════════════════════════════════════════════════
+
+function switchLoan(loanId) {
+    const selected = loansData.find(l => l.loanId === loanId);
+    if (selected) {
+        activeLoanId = selected.loanId;
+        addMessage(`🔄 Contexte changé : ${selected.type} de ${selected.amount} TND`, false);
+    }
+}
+
+</script>
 {% endblock %}
