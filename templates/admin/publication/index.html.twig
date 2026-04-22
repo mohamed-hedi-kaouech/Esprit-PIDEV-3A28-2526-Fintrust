@@ -454,52 +454,63 @@
                     <span class="advanced-panel__badge">Lundi a Dimanche</span>
                 </div>
 
-                <div class="weekly-publication-chart">
-                    {% for item in weekly_publication_stats %}
-                        <div class="weekly-publication-chart__row">
-                            <div class="weekly-publication-chart__label-wrap">
-                                <span class="weekly-publication-chart__label">{{ item.label }}</span>
-                                <span class="weekly-publication-chart__count">{{ item.count }} publication{{ item.count > 1 ? 's' : '' }}</span>
+                <div class="weekly-publication-chart weekly-publication-chart--bars">
+                    <div class="weekly-publication-chart__axis">
+                        <span>Max</span>
+                        <span>Moyen</span>
+                        <span>0</span>
+                    </div>
+                    <div class="weekly-publication-chart__plot" aria-label="Publications par jour">
+                        {% for item in weekly_publication_stats %}
+                            <div
+                                class="weekly-publication-chart__bar-item"
+                                style="--bar-ratio: {{ item.ratio }}; --bar-index: {{ loop.index0 }};"
+                                title="{{ item.label }} : {{ item.count }} publication{{ item.count > 1 ? 's' : '' }}"
+                            >
+                                <span class="weekly-publication-chart__count">{{ item.count }}</span>
+                                <div class="weekly-publication-chart__bar">
+                                    <span></span>
+                                </div>
+                                <span class="weekly-publication-chart__label">{{ item.label|slice(0, 3) }}</span>
                             </div>
-                            <div class="weekly-publication-chart__track">
-                                <div class="weekly-publication-chart__fill" style="width: {{ item.ratio }}%"></div>
-                            </div>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 </div>
 
                 <div class="feedback-ratio-stack feedback-ratio-stack--compact">
-                    <div class="feedback-ratio-card feedback-ratio-card--success">
-                        <div class="feedback-ratio-card__top">
+                    <div class="feedback-ratio-card feedback-ratio-card--success" style="--ratio: {{ feedback_insights.positive_rate }};">
+                        <div class="feedback-ratio-card__gauge">
+                            <span>{{ feedback_insights.positive_rate }}%</span>
+                        </div>
+                        <div class="feedback-ratio-card__copy">
                             <span class="feedback-ratio-card__label">Ratio positif</span>
-                            <strong class="feedback-ratio-card__value">{{ feedback_insights.positive_rate }}%</strong>
-                        </div>
-                        <div class="feedback-ratio-card__track">
-                            <div class="feedback-ratio-card__fill" style="width: {{ feedback_insights.positive_rate }}%"></div>
+                            <strong class="feedback-ratio-card__value">{{ feedback_insights.totals.likes }} likes</strong>
+                            <small>Part des reactions favorables</small>
                         </div>
                     </div>
 
-                    <div class="feedback-ratio-card feedback-ratio-card--neutral">
-                        <div class="feedback-ratio-card__top">
+                    <div class="feedback-ratio-card feedback-ratio-card--neutral" style="--ratio: {{ feedback_insights.comment_rate }};">
+                        <div class="feedback-ratio-card__gauge">
+                            <span>{{ feedback_insights.comment_rate }}%</span>
+                        </div>
+                        <div class="feedback-ratio-card__copy">
                             <span class="feedback-ratio-card__label">Part commentaires</span>
-                            <strong class="feedback-ratio-card__value">{{ feedback_insights.comment_rate }}%</strong>
-                        </div>
-                        <div class="feedback-ratio-card__track">
-                            <div class="feedback-ratio-card__fill" style="width: {{ feedback_insights.comment_rate }}%"></div>
+                            <strong class="feedback-ratio-card__value">{{ feedback_insights.totals.comments }} commentaires</strong>
+                            <small>Poids des avis textuels</small>
                         </div>
                     </div>
 
-                    <div class="feedback-ratio-card feedback-ratio-card--danger">
-                        <div class="feedback-ratio-card__top">
-                            <span class="feedback-ratio-card__label">Ratio negatif</span>
-                            <strong class="feedback-ratio-card__value">{{ feedback_insights.negative_rate }}%</strong>
+                    <div class="feedback-ratio-card feedback-ratio-card--danger" style="--ratio: {{ feedback_insights.negative_rate }};">
+                        <div class="feedback-ratio-card__gauge">
+                            <span>{{ feedback_insights.negative_rate }}%</span>
                         </div>
-                        <div class="feedback-ratio-card__track">
-                            <div class="feedback-ratio-card__fill" style="width: {{ feedback_insights.negative_rate }}%"></div>
+                        <div class="feedback-ratio-card__copy">
+                            <span class="feedback-ratio-card__label">Ratio negatif</span>
+                            <strong class="feedback-ratio-card__value">{{ feedback_insights.totals.dislikes }} dislikes</strong>
+                            <small>Signaux a surveiller</small>
                         </div>
                     </div>
                 </div>
-
             </section>
             </section>
         </div></div>
@@ -1312,105 +1323,234 @@
 }
 
 .weekly-publication-chart {
+    position: relative;
     display: grid;
-    gap: 0.85rem;
-    margin-bottom: 1.1rem;
-}
-
-.weekly-publication-chart__row {
-    display: grid;
-    gap: 0.45rem;
-}
-
-.weekly-publication-chart__label-wrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-}
-
-.weekly-publication-chart__label {
-    color: #0f172a;
-    font-weight: 700;
-}
-
-.weekly-publication-chart__count {
-    color: #64748b;
-    font-size: 0.82rem;
-}
-
-.weekly-publication-chart__track {
-    width: 100%;
-    height: 12px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #dbeafe, #e0f2fe);
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 0.9rem;
+    min-height: 300px;
+    margin: 1rem 0 1.35rem;
+    padding: 1rem 1rem 0.8rem;
+    border-radius: 18px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.96)),
+        radial-gradient(circle at 12% 12%, rgba(59, 130, 246, 0.13), transparent 28%);
+    border: 1px solid #dbeafe;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 16px 32px rgba(15, 23, 42, 0.06);
     overflow: hidden;
 }
 
-.weekly-publication-chart__fill {
+.weekly-publication-chart::before {
+    content: "";
+    position: absolute;
+    inset: 1rem 1rem 3.1rem 4.25rem;
+    background-image: linear-gradient(to bottom, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
+    background-size: 100% 33.333%;
+    pointer-events: none;
+}
+
+.weekly-publication-chart__axis {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.2rem 0 2.15rem;
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.weekly-publication-chart__plot {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(42px, 1fr));
+    gap: 0.75rem;
+    align-items: end;
+    min-height: 260px;
+}
+
+.weekly-publication-chart__bar-item {
+    --bar-color-a: #2563eb;
+    --bar-color-b: #60a5fa;
+    --bar-height: max(8px, calc(var(--bar-ratio) * 1%));
+    display: grid;
+    grid-template-rows: 26px minmax(0, 1fr) 24px;
+    justify-items: center;
+    align-items: end;
     height: 100%;
+    min-width: 0;
+}
+
+.weekly-publication-chart__bar-item:nth-child(2n) {
+    --bar-color-a: #0f766e;
+    --bar-color-b: #2dd4bf;
+}
+
+.weekly-publication-chart__bar-item:nth-child(3n) {
+    --bar-color-a: #7c3aed;
+    --bar-color-b: #a78bfa;
+}
+
+.weekly-publication-chart__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    min-height: 1.45rem;
+    padding: 0.18rem 0.45rem;
     border-radius: 999px;
-    background: linear-gradient(90deg, #1d4ed8, #3b82f6);
-    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.24);
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 0.76rem;
+    font-weight: 900;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.weekly-publication-chart__bar {
+    position: relative;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 190px;
+}
+
+.weekly-publication-chart__bar span {
+    width: clamp(24px, 58%, 52px);
+    height: var(--bar-height);
+    min-height: 8px;
+    border-radius: 16px 16px 7px 7px;
+    background: linear-gradient(180deg, var(--bar-color-b), var(--bar-color-a));
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--bar-color-a) 28%, transparent);
+    transform-origin: bottom;
+    animation: weeklyBarRise 0.75s ease both;
+    animation-delay: calc(var(--bar-index) * 70ms);
+}
+
+.weekly-publication-chart__bar-item:hover .weekly-publication-chart__bar span {
+    filter: saturate(1.15) brightness(1.04);
+    transform: scaleY(1.04);
+}
+
+.weekly-publication-chart__label {
+    width: 100%;
+    min-width: 0;
+    color: #334155;
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+@keyframes weeklyBarRise {
+    from {
+        transform: scaleY(0.08);
+        opacity: 0.4;
+    }
+    to {
+        transform: scaleY(1);
+        opacity: 1;
+    }
 }
 
 .feedback-ratio-stack--compact {
     margin-top: 1.25rem;
 }
+
 .feedback-ratio-stack {
     display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.9rem;
     margin-bottom: 1rem;
 }
 
 .feedback-ratio-card {
+    --ratio-color: #2563eb;
+    --ratio-soft: rgba(37, 99, 235, 0.12);
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 0.85rem;
+    align-items: center;
+    min-height: 124px;
     padding: 1rem;
-    border-radius: 16px;
-    background: #fff;
-    border: 1px solid #e5edf8;
+    border-radius: 18px;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9)),
+        radial-gradient(circle at top right, var(--ratio-soft), transparent 42%);
+    border: 1px solid color-mix(in srgb, var(--ratio-color) 24%, #e2e8f0);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.07);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.feedback-ratio-card__top {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    margin-bottom: 0.55rem;
+.feedback-ratio-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 22px 42px rgba(15, 23, 42, 0.1);
+}
+
+.feedback-ratio-card--success {
+    --ratio-color: #16a34a;
+    --ratio-soft: rgba(34, 197, 94, 0.14);
+}
+
+.feedback-ratio-card--neutral {
+    --ratio-color: #7c3aed;
+    --ratio-soft: rgba(124, 58, 237, 0.13);
+}
+
+.feedback-ratio-card--danger {
+    --ratio-color: #e11d48;
+    --ratio-soft: rgba(225, 29, 72, 0.12);
+}
+
+.feedback-ratio-card__gauge {
+    width: 86px;
+    height: 86px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at center, #ffffff 0 56%, transparent 57%),
+        conic-gradient(var(--ratio-color) calc(var(--ratio) * 1%), #e2e8f0 0);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 12px 26px var(--ratio-soft);
+}
+
+.feedback-ratio-card__gauge span {
+    color: #0f172a;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.feedback-ratio-card__copy {
+    min-width: 0;
 }
 
 .feedback-ratio-card__label {
+    display: block;
     color: #475569;
-    font-weight: 700;
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .feedback-ratio-card__value {
+    display: block;
+    margin-top: 0.32rem;
     color: #0f172a;
-    font-size: 1.45rem;
+    font-size: 1.05rem;
+    line-height: 1.2;
 }
 
-.feedback-ratio-card__track {
-    height: 10px;
-    border-radius: 999px;
-    background: #e2e8f0;
-    overflow: hidden;
-}
-
-.feedback-ratio-card__fill {
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #1d4ed8, #3b82f6);
-}
-
-.feedback-ratio-card--success .feedback-ratio-card__fill {
-    background: linear-gradient(90deg, #16a34a, #4ade80);
-}
-
-.feedback-ratio-card--danger .feedback-ratio-card__fill {
-    background: linear-gradient(90deg, #dc2626, #fb7185);
-}
-
-.feedback-ratio-card--neutral .feedback-ratio-card__fill {
-    background: linear-gradient(90deg, #3b82f6, #a78bfa);
+.feedback-ratio-card__copy small {
+    display: block;
+    margin-top: 0.35rem;
+    color: #64748b;
+    font-size: 0.78rem;
+    line-height: 1.4;
 }
 
 .feedback-category-table {
@@ -2110,6 +2250,57 @@
     .rating-placeholder {
         min-width: auto;
         padding-inline: 0.65rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .feedback-ratio-stack {
+        grid-template-columns: 1fr;
+    }
+
+    .weekly-publication-chart {
+        grid-template-columns: 38px minmax(0, 1fr);
+        padding-inline: 0.8rem;
+    }
+
+    .weekly-publication-chart__plot {
+        gap: 0.45rem;
+        grid-template-columns: repeat(7, minmax(28px, 1fr));
+    }
+
+    .weekly-publication-chart__bar span {
+        width: clamp(18px, 64%, 38px);
+    }
+}
+
+@media (max-width: 560px) {
+    .weekly-publication-chart {
+        min-height: 250px;
+    }
+
+    .weekly-publication-chart__plot {
+        min-height: 210px;
+    }
+
+    .weekly-publication-chart__bar {
+        min-height: 145px;
+    }
+
+    .weekly-publication-chart__axis {
+        font-size: 0.62rem;
+    }
+
+    .weekly-publication-chart__label {
+        font-size: 0.68rem;
+    }
+
+    .feedback-ratio-card {
+        grid-template-columns: 78px minmax(0, 1fr);
+    }
+
+    .feedback-ratio-card__gauge {
+        width: 72px;
+        height: 72px;
     }
 }
 </style>
