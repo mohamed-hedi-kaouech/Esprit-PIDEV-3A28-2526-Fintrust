@@ -44,26 +44,29 @@ class SecurityLocationController extends AbstractController
         $latitude = (float) ($payload['latitude'] ?? 0);
         $longitude = (float) ($payload['longitude'] ?? 0);
         $accuracy = (float) ($payload['accuracy'] ?? 0);
+        $force = (bool) ($payload['force'] ?? false);
 
         if ($latitude < -90 || $latitude > 90 || $longitude < -180 || $longitude > 180) {
             return $this->json(['ok' => false, 'message' => 'Coordonnees invalides.'], Response::HTTP_BAD_REQUEST);
         }
 
         $previous = $this->readPreviousContext($user);
-        if ($this->isRecentlyConfirmed($previous, $latitude, $longitude)) {
+        if ($this->isRecentlyConfirmed($previous, $latitude, $longitude, $force)) {
             return $this->json(['ok' => true, 'message' => 'Localisation deja confirmee recemment.']);
         }
 
         $place = $this->reverseGeocode($latitude, $longitude);
         $label = $place['label'] ?? sprintf('%.5f, %.5f', $latitude, $longitude);
         $detail = $place['detail'] ?? 'precision navigateur';
+        $coordinates = sprintf('%.6f, %.6f', $latitude, $longitude);
 
         $this->notificationService->notify(
             $user,
             sprintf(
-                'Localisation precise confirmee pres de %s (%s). Precision estimee : %.0f m.',
+                'Localisation navigateur confirmee : %s. Zone detaillee : %s. Coordonnees : %s. Precision estimee : %.0f m.',
                 $label,
                 $detail,
+                $coordinates,
                 max(0, $accuracy)
             ),
             'INFO'
@@ -75,10 +78,34 @@ class SecurityLocationController extends AbstractController
             'accuracy' => $accuracy,
             'label' => $label,
             'detail' => $detail,
+            'coordinates' => $coordinates,
             'checkedAt' => (new \DateTimeImmutable())->format(DATE_ATOM),
         ]);
 
-        return $this->json(['ok' => true, 'label' => $label, 'detail' => $detail]);
+        return $this->json(['ok' => true, 'label' => $label, 'detail' => $detail, 'coordinates' => $coordinates]);
+    }
+
+    #[Route('/localisation-navigateur/statut', name: 'browser_location_status', methods: ['GET'])]
+    public function browserLocationStatus(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $previous = $this->readPreviousContext($user);
+
+        if ($previous === null) {
+            return $this->json(['needsLocation' => true]);
+        }
+
+        $checkedAt = isset($previous['checkedAt']) ? strtotime((string) $previous['checkedAt']) : false;
+        if (!$checkedAt || time() - $checkedAt > 86400) {
+            return $this->json(['needsLocation' => true]);
+        }
+
+        return $this->json([
+            'needsLocation' => false,
+            'label' => $previous['label'] ?? null,
+            'detail' => $previous['detail'] ?? null,
+        ]);
     }
 
     /**
@@ -92,7 +119,7 @@ class SecurityLocationController extends AbstractController
                     'format' => 'jsonv2',
                     'lat' => $latitude,
                     'lon' => $longitude,
-                    'zoom' => 14,
+                    'zoom' => 18,
                     'addressdetails' => 1,
                     'accept-language' => 'fr',
                 ],
@@ -107,41 +134,50 @@ class SecurityLocationController extends AbstractController
         }
 
         $address = is_array($data['address'] ?? null) ? $data['address'] : [];
-        $label = $this->firstNonEmpty([
+        $localParts = $this->uniqueNonEmpty([
+            $data['name'] ?? null,
+            $address['road'] ?? null,
+            $address['neighbourhood'] ?? null,
+            $address['quarter'] ?? null,
             $address['suburb'] ?? null,
+            $address['city_district'] ?? null,
+            $address['village'] ?? null,
             $address['town'] ?? null,
             $address['city'] ?? null,
             $address['municipality'] ?? null,
-            $address['county'] ?? null,
-            $data['name'] ?? null,
         ]);
-        $country = $this->firstNonEmpty([
+        $areaParts = $this->uniqueNonEmpty([
+            $address['state_district'] ?? null,
+            $address['county'] ?? null,
             $address['state'] ?? null,
             $address['country'] ?? null,
         ]);
+        $label = implode(', ', array_slice($localParts, 0, 4));
+        $detail = implode(', ', array_slice($areaParts, 0, 3));
 
         return [
             'label' => $label ?: sprintf('%.5f, %.5f', $latitude, $longitude),
-            'detail' => $country ?: 'coordonnees navigateur',
+            'detail' => $detail ?: ((string) ($data['display_name'] ?? 'coordonnees navigateur')),
         ];
     }
 
     /**
      * @param array<string,mixed>|null $previous
      */
-    private function isRecentlyConfirmed(?array $previous, float $latitude, float $longitude): bool
+    private function isRecentlyConfirmed(?array $previous, float $latitude, float $longitude, bool $force = false): bool
     {
         if ($previous === null) {
             return false;
         }
 
         $checkedAt = isset($previous['checkedAt']) ? strtotime((string) $previous['checkedAt']) : false;
-        if (!$checkedAt || time() - $checkedAt > 86400) {
+        $maxAge = $force ? 300 : 86400;
+        if (!$checkedAt || time() - $checkedAt > $maxAge) {
             return false;
         }
 
-        return abs((float) ($previous['latitude'] ?? 999) - $latitude) < 0.01
-            && abs((float) ($previous['longitude'] ?? 999) - $longitude) < 0.01;
+        return abs((float) ($previous['latitude'] ?? 999) - $latitude) < 0.001
+            && abs((float) ($previous['longitude'] ?? 999) - $longitude) < 0.001;
     }
 
     /**
@@ -182,16 +218,19 @@ class SecurityLocationController extends AbstractController
 
     /**
      * @param array<int,mixed> $values
+     *
+     * @return array<int,string>
      */
-    private function firstNonEmpty(array $values): ?string
+    private function uniqueNonEmpty(array $values): array
     {
+        $items = [];
         foreach ($values as $value) {
             $string = trim((string) $value);
-            if ($string !== '') {
-                return $string;
+            if ($string !== '' && !in_array($string, $items, true)) {
+                $items[] = $string;
             }
         }
 
-        return null;
+        return $items;
     }
 }

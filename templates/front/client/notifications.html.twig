@@ -17,6 +17,19 @@
       </p>
     </div>
     <div class="ft-notif-hero-side">
+      <div class="ft-location-precision-card ft-notif-hero-action">
+        <div class="ft-location-precision-icon">
+          <i class="bi bi-crosshair"></i>
+        </div>
+        <div class="ft-location-precision-copy">
+          <span>Precision navigateur</span>
+          <strong>Position exacte automatique</strong>
+          <small data-ft-location-status>La verification se lance automatiquement a l'ouverture de votre espace.</small>
+        </div>
+        <button type="button" class="btn ft-btn-primary ft-location-precision-btn visually-hidden" data-ft-confirm-location tabindex="-1">
+          <i class="bi bi-geo-alt me-2"></i>Verifier
+        </button>
+      </div>
       {% if unreadCount > 0 %}
         <form method="post" action="{{ path('front_notifications_read_all') }}" class="ft-notif-hero-action">
           <input type="hidden" name="_token" value="{{ csrf_token('read_all_notifications') }}">
@@ -83,7 +96,7 @@
 
               <time class="ft-notif-date" datetime="{{ notif.createdAt|date('c') }}">
                 <i class="bi bi-clock-history"></i>
-                {{ notif.createdAt|date('d/m/Y a H:i') }}
+                {{ notif.createdAt|date_modify('+1 hour')|date('d/m/Y H:i') }}
               </time>
             </div>
 

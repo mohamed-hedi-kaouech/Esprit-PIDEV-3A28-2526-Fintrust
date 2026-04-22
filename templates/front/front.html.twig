@@ -311,45 +311,125 @@
     <script>
       (() => {
         const endpoint = '{{ path('front_security_browser_location') }}';
+        const statusEndpoint = '{{ path('front_security_browser_location_status') }}';
         const csrfToken = '{{ csrf_token('browser_location') }}';
-        const storageKey = 'ftBrowserLocationSentAt_{{ app.user.id }}';
-        const lastSentAt = Number(localStorage.getItem(storageKey) || 0);
-        const oneDay = 24 * 60 * 60 * 1000;
 
-        if (!('geolocation' in navigator) || Date.now() - lastSentAt < oneDay) {
-          return;
+        function setLocationStatus(message, state = 'info') {
+          document.querySelectorAll('[data-ft-location-status]').forEach((status) => {
+            status.textContent = message;
+            status.dataset.state = state;
+          });
         }
 
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            fetch(endpoint, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest'
-              },
-              body: JSON.stringify({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracy: position.coords.accuracy
-              })
-            })
-              .then((response) => response.ok ? response.json() : null)
-              .then((payload) => {
-                if (payload && payload.ok) {
-                  localStorage.setItem(storageKey, String(Date.now()));
-                }
-              })
-              .catch(() => {});
-          },
-          () => {},
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000
+        function setLocationButtons(disabled) {
+          document.querySelectorAll('[data-ft-confirm-location]').forEach((button) => {
+            button.disabled = disabled;
+            button.classList.toggle('disabled', disabled);
+          });
+        }
+
+        function sendBrowserLocation(force = false) {
+          if (!('geolocation' in navigator)) {
+            setLocationStatus('Geolocalisation navigateur non disponible sur cet appareil.', 'error');
+            if (force) {
+              alert('La geolocalisation navigateur n est pas disponible sur cet appareil.');
+            }
+            return;
           }
-        );
+
+          if (force) {
+            setLocationStatus('Recherche de votre position precise...', 'loading');
+            setLocationButtons(true);
+          }
+
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-Token': csrfToken,
+                  'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  accuracy: position.coords.accuracy,
+                  force: force
+                })
+              })
+                .then((response) => response.ok ? response.json() : null)
+                .then((payload) => {
+                  if (payload && payload.ok) {
+                    if (force) {
+                      const locationLabel = payload.label ? `Position confirmee : ${payload.label}` : 'Position confirmee.';
+                      setLocationStatus(locationLabel, 'success');
+                    }
+                    if (force) {
+                      window.location.reload();
+                    }
+                  } else if (force) {
+                    setLocationStatus('Localisation recue, mais le serveur n a pas confirme la mise a jour.', 'error');
+                  }
+                })
+                .catch(() => {
+                  if (force) {
+                    setLocationStatus('Impossible d envoyer la localisation au serveur.', 'error');
+                    alert('Impossible d envoyer la localisation au serveur.');
+                  }
+                })
+                .finally(() => {
+                  if (force) {
+                    setLocationButtons(false);
+                  }
+                });
+            },
+            () => {
+              if (force) {
+                setLocationStatus('Autorisation refusee. Activez la localisation dans le navigateur.', 'error');
+                setLocationButtons(false);
+                alert('Autorisez la localisation dans votre navigateur pour confirmer votre position exacte.');
+              }
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 15000,
+              maximumAge: 0
+            }
+          );
+        }
+
+        function checkBrowserLocationStatus() {
+          fetch(statusEndpoint, {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+            .then((response) => response.ok ? response.json() : null)
+            .then((payload) => {
+              if (!payload) {
+                return;
+              }
+
+              if (payload.needsLocation) {
+                sendBrowserLocation(false);
+                return;
+              }
+
+              if (payload.label) {
+                setLocationStatus(`Position deja confirmee : ${payload.label}`, 'success');
+              }
+            })
+            .catch(() => {});
+        }
+
+        document.querySelectorAll('[data-ft-confirm-location]').forEach((button) => {
+          button.addEventListener('click', () => sendBrowserLocation(true));
+        });
+
+        window.addEventListener('load', () => {
+          checkBrowserLocationStatus();
+        });
       })();
     </script>
   {% endif %}

@@ -31,6 +31,11 @@ class LoginSecurityApiService
 
         $ip = $this->resolveClientIp($request);
         $geo = $this->lookupIp($ip);
+
+        if ($this->isLocalFallback($geo)) {
+            return;
+        }
+
         $previous = $this->readPreviousContext($user);
         $messages = [];
 
@@ -181,6 +186,16 @@ class LoginSecurityApiService
     private function isPrivateIp(string $ip): bool
     {
         return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
+    }
+
+    /**
+     * @param array{ip:string,city:?string,country:?string,isp:?string} $geo
+     */
+    private function isLocalFallback(array $geo): bool
+    {
+        return $this->isPrivateIp($geo['ip'])
+            && strtolower((string) $geo['city']) === 'local'
+            && strtolower((string) $geo['country']) === 'local';
     }
 
     /**
