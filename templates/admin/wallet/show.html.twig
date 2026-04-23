@@ -10,16 +10,32 @@
 {% endblock %}
 
 {% block admin_content %}
+{% set metrics = analytics.metrics %}
+{% set transactionBreakdown = analytics.breakdown.transaction_types %}
+{% set anomalies = anomalyReport.anomalies_detected ?? [] %}
+{% set riskTone = riskAnalysis.level == 'critique' ? 'danger' : (riskAnalysis.level == 'eleve' ? 'danger' : (riskAnalysis.level == 'moyen' ? 'warning' : 'success')) %}
+{% set classTone = classification.class_number >= 5 ? 'danger' : (classification.class_number == 4 ? 'danger' : (classification.class_number == 3 ? 'warning' : (classification.class_number == 2 ? 'amber' : 'success'))) %}
+{% set recommendationTone = prediction.admin_recommendation == 'bloquer conseille' ? 'red' : (prediction.admin_recommendation == 'risque eleve' ? 'amber' : 'blue') %}
+
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
   <div>
     <h1 class="ft-admin-page-title mb-1">
       <i class="bi bi-wallet2 me-2 text-primary"></i>Detail du wallet #{{ wallet.idWallet }}
     </h1>
-    <p class="text-muted mb-0">Vue detaillee du wallet, de ses indicateurs et de ses actions d administration.</p>
+    <p class="text-muted mb-0">Vue analytique backend du wallet, de ses anomalies, de son score de risque et de sa projection operationnelle.</p>
   </div>
   <div class="d-flex flex-wrap gap-2">
     <a href="{{ path('admin_wallet_index') }}" class="btn ft-btn-outline-primary">
       <i class="bi bi-arrow-left me-2"></i>Retour
+    </a>
+    <a href="{{ path('admin_wallet_stats_wallet', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-bar-chart-line me-2"></i>Statistiques wallet
+    </a>
+    <a href="{{ path('admin_wallet_report_pdf', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-file-earmark-pdf me-2"></i>Rapport PDF
+    </a>
+    <a href="{{ path('admin_wallet_ai_analysis', {id: wallet.idWallet}) }}" class="btn ft-btn-primary">
+      <i class="bi bi-stars me-2"></i>Explication IA optionnelle
     </a>
     <a href="{{ path('admin_cheque_index', {wallet: wallet.idWallet}) }}" class="btn btn-outline-secondary">
       <i class="bi bi-journal-check me-2"></i>Voir les cheques
@@ -62,12 +78,6 @@
           <dt class="col-sm-4 text-muted">Solde</dt>
           <dd class="col-sm-8 fw-semibold">{{ wallet.solde }} {{ wallet.devise }}</dd>
 
-          <dt class="col-sm-4 text-muted">Devise</dt>
-          <dd class="col-sm-8">{{ wallet.devise }}</dd>
-
-          <dt class="col-sm-4 text-muted">Code acces</dt>
-          <dd class="col-sm-8">{{ wallet.codeAcces ?: '-' }}</dd>
-
           <dt class="col-sm-4 text-muted">Statut</dt>
           <dd class="col-sm-8">
             <span class="badge {{ wallet.statut == 'actif' ? 'ft-badge-success' : (wallet.statut == 'bloque' ? 'ft-badge-danger' : 'ft-badge-warning') }}">
@@ -75,14 +85,7 @@
             </span>
           </dd>
 
-          <dt class="col-sm-4 text-muted">Est actif</dt>
-          <dd class="col-sm-8">
-            <span class="badge {{ wallet.estActif ? 'ft-badge-success' : 'ft-badge-neutral' }}">
-              {{ wallet.estActif ? 'Oui' : 'Non' }}
-            </span>
-          </dd>
-
-          <dt class="col-sm-4 text-muted">Est bloque</dt>
+          <dt class="col-sm-4 text-muted">Bloque</dt>
           <dd class="col-sm-8">
             <span class="badge {{ wallet.estBloque ? 'ft-badge-danger' : 'ft-badge-success' }}">
               {{ wallet.estBloque ? 'Oui' : 'Non' }}
@@ -111,15 +114,19 @@
         <div class="ft-admin-insight-list">
           <div class="ft-admin-insight-item">
             <strong>Transactions</strong>
-            <span>{{ wallet.transactions|length }} transaction(s) liee(s) a ce wallet.</span>
+            <span>{{ metrics.total_transactions }} total, {{ metrics.transactions_last_24h }} sur 24h, {{ metrics.transactions_last_7d }} sur 7 jours.</span>
           </div>
           <div class="ft-admin-insight-item">
             <strong>Cheques</strong>
-            <span>{{ wallet.cheques|length }} cheque(s) associe(s) a ce wallet.</span>
+            <span>{{ metrics.total_cheques }} cheque(s), dont {{ metrics.refused_cheques }} refuse(s).</span>
           </div>
           <div class="ft-admin-insight-item">
-            <strong>Plafond decouvert</strong>
-            <span>{{ wallet.plafondDecouvert ?: '0.00' }} {{ wallet.devise }}</span>
+            <strong>Type dominant</strong>
+            <span>{{ metrics.dominant_transaction_type ?: 'Aucune dominante' }}</span>
+          </div>
+          <div class="ft-admin-insight-item">
+            <strong>Activite recente</strong>
+            <span>{{ metrics.recent_activity_label|upper }} avec indice historique {{ metrics.recent_vs_historical_activity_index|number_format(2, '.', ' ') }}.</span>
           </div>
         </div>
       </div>
@@ -150,16 +157,181 @@
           <i class="bi bi-pencil-square me-2"></i>Modifier les informations
         </a>
 
+        <a href="{{ path('admin_wallet_stats_wallet', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+          <i class="bi bi-graph-up me-2"></i>Ouvrir les graphiques
+        </a>
+
+        <a href="{{ path('admin_wallet_report_pdf', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+          <i class="bi bi-file-earmark-pdf me-2"></i>Telecharger rapport wallet PDF
+        </a>
+
         <a href="{{ path('admin_cheque_index', {wallet: wallet.idWallet}) }}" class="btn btn-outline-secondary">
           <i class="bi bi-journal-check me-2"></i>Gerer les cheques lies
         </a>
+      </div>
+    </article>
+  </div>
+</section>
 
-        <form method="post" action="{{ path('admin_wallet_delete', {id: wallet.idWallet}) }}" onsubmit="return confirm('Supprimer ce wallet ?');">
-          <input type="hidden" name="_token" value="{{ csrf_token('wallet_delete_' ~ wallet.idWallet) }}">
-          <button type="submit" class="btn btn-outline-dark w-100">
-            <i class="bi bi-trash me-2"></i>Supprimer le wallet
-          </button>
-        </form>
+<section class="row g-3 mt-1">
+  <div class="col-12 col-md-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue h-100">
+      <div class="ft-admin-kpi-mini-label">Score de risque</div>
+      <div class="ft-admin-kpi-mini-value">{{ riskAnalysis.score }}/100</div>
+      <div class="ft-admin-kpi-mini-text">Niveau {{ riskAnalysis.level|upper }}</div>
+    </article>
+  </div>
+
+  <div class="col-12 col-md-3">
+    <article class="ft-admin-kpi-mini {{ classification.class_number >= 4 ? 'ft-admin-kpi-mini-red' : (classification.class_number == 3 ? 'ft-admin-kpi-mini-amber' : 'ft-admin-kpi-mini-green') }} h-100">
+      <div class="ft-admin-kpi-mini-label">Classe wallet</div>
+      <div class="ft-admin-kpi-mini-value">C{{ classification.class_number }}</div>
+      <div class="ft-admin-kpi-mini-text">{{ classification.class_label }}</div>
+    </article>
+  </div>
+
+  <div class="col-12 col-md-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-amber h-100">
+      <div class="ft-admin-kpi-mini-label">Probabilite de blocage</div>
+      <div class="ft-admin-kpi-mini-value">{{ prediction.block_probability }}%</div>
+      <div class="ft-admin-kpi-mini-text">Projection sur signaux locaux</div>
+    </article>
+  </div>
+
+  <div class="col-12 col-md-3">
+    <article class="ft-admin-kpi-mini {{ prediction.admin_recommendation == 'bloquer conseille' ? 'ft-admin-kpi-mini-red' : 'ft-admin-kpi-mini-blue' }} h-100">
+      <div class="ft-admin-kpi-mini-label">Recommendation admin</div>
+      <div class="ft-admin-kpi-mini-value">{{ prediction.admin_recommendation|upper }}</div>
+      <div class="ft-admin-kpi-mini-text">Risque futur 7 jours {{ prediction.future_risk_7d|upper }}</div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4 mt-1">
+  <div class="col-12 col-xl-8">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header d-flex flex-wrap justify-content-between gap-2 align-items-center">
+        <span><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Resume analytique backend</span>
+        <div class="d-flex gap-2">
+          <span class="badge ft-badge-{{ riskTone }}">{{ riskAnalysis.level|upper }}</span>
+          <span class="badge {{ classification.class_number >= 4 ? 'ft-badge-danger' : (classification.class_number == 3 ? 'ft-badge-warning' : 'ft-badge-success') }}">
+            CLASSE {{ classification.class_number }} - {{ classification.class_label|upper }}
+          </span>
+        </div>
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="ft-admin-insight-item h-100">
+              <strong>Activite</strong>
+              <span>{{ metrics.transactions_last_24h }} sur 24h, {{ metrics.transactions_last_7d }} sur 7 jours, {{ metrics.transactions_last_30d }} sur 30 jours.</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-admin-insight-item h-100">
+              <strong>Montants</strong>
+              <span>Moyenne {{ metrics.average_transaction_amount|number_format(2, '.', ' ') }}, min {{ metrics.min_transaction_amount|number_format(2, '.', ' ') }}, max {{ metrics.max_transaction_amount|number_format(2, '.', ' ') }} {{ wallet.devise }}.</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-admin-insight-item h-100">
+              <strong>Comportement</strong>
+              <span>{{ metrics.night_transaction_count }} transaction(s) nocturne(s) et {{ metrics.rapid_transaction_count }} transaction(s) engagee(s) dans des sequences rapides.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="ft-admin-insight-item h-100">
+              <strong>Ratios de flux</strong>
+              <span>Retraits/depots montant {{ metrics.withdrawal_to_deposit_amount_ratio|number_format(2, '.', ' ') }}, volumique {{ metrics.withdrawal_to_deposit_count_ratio|number_format(2, '.', ' ') }}.</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-admin-insight-item h-100">
+              <strong>Cheques</strong>
+              <span>{{ metrics.refused_cheques }} refuse(s), taux {{ metrics.cheque_rejection_rate|number_format(2, '.', ' ') }}%.</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ft-admin-insight-item h-100">
+              <strong>Stabilite du solde</strong>
+              <span>Indice de volatilite {{ metrics.balance_instability_index|number_format(2, '.', ' ') }} avec tendance {{ prediction.balance_trend.label|upper }}.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <h5 class="fw-bold">Lecture de risque</h5>
+          <p class="mb-0">{{ riskAnalysis.explanation }}</p>
+        </div>
+
+        <div class="mb-4">
+          <h5 class="fw-bold">Classification du wallet</h5>
+          <p class="mb-0">Classe {{ classification.class_number }} - {{ classification.class_label }}. {{ classification.recommendation }}</p>
+        </div>
+
+        <div class="mb-4">
+          <h5 class="fw-bold">Prediction backend</h5>
+          <div class="ft-admin-insight-list">
+            {% for item in prediction.rationale %}
+              <div class="ft-admin-insight-item">
+                <span>{{ item }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div>
+          <h5 class="fw-bold">Facteurs qui augmentent le score</h5>
+          {% if riskAnalysis.factors is empty %}
+            <p class="text-muted mb-0">Aucun facteur de risque majeur n a augmente le score de facon significative.</p>
+          {% else %}
+            <div class="ft-admin-insight-list">
+              {% for factor in riskAnalysis.factors %}
+                <div class="ft-admin-insight-item">
+                  <strong>{{ factor.label }} (+{{ factor.points }})</strong>
+                  <span>{{ factor.reason }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header d-flex justify-content-between align-items-center gap-2">
+        <span><i class="bi bi-shield-exclamation me-2 text-primary"></i>Anomalies detectees</span>
+        <span class="badge {{ anomalyReport.severity == 'critical' or anomalyReport.severity == 'high' ? 'ft-badge-danger' : (anomalyReport.severity == 'medium' ? 'ft-badge-warning' : 'ft-badge-success') }}">
+          {{ anomalyReport.severity|upper }}
+        </span>
+      </div>
+      <div class="ft-admin-card-body">
+        {% if anomalies is empty %}
+          <p class="text-muted mb-0">Aucune anomalie metier significative n a ete detectee.</p>
+        {% else %}
+          <div class="ft-admin-insight-list">
+            {% for anomaly in anomalies %}
+              {% set anomalyTone = anomaly.severity in ['critical', 'high'] ? 'danger' : 'warning' %}
+              <div class="ft-admin-insight-item">
+                <div class="d-flex justify-content-between gap-2 align-items-start mb-1">
+                  <strong>{{ anomaly.title }}</strong>
+                  <span class="badge ft-badge-{{ anomalyTone }}">{{ anomaly.severity|upper }}</span>
+                </div>
+                <span>{{ anomaly.details }}</span>
+                {% if anomaly.examples is not empty %}
+                  <div class="small text-muted mt-2">
+                    Exemple : {{ anomaly.examples|first|json_encode(constant('JSON_UNESCAPED_UNICODE')) }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
     </article>
   </div>
@@ -253,6 +425,71 @@
 </section>
 
 <section class="ft-admin-card mt-4">
+  <div class="ft-admin-card-header">
+    <i class="bi bi-pie-chart me-2 text-primary"></i>Repartition par type de transaction
+  </div>
+  <div class="ft-admin-card-body">
+    <div class="row g-3">
+      {% for type, stats in transactionBreakdown %}
+        <div class="col-12 col-md-3">
+          <div class="ft-admin-insight-item h-100">
+            <strong>{{ type|upper }}</strong>
+            <span>{{ stats.count }} transaction(s), {{ stats.amount|number_format(2, '.', ' ') }} {{ wallet.devise }}, {{ stats.ratio_count|number_format(2, '.', ' ') }}% du volume.</span>
+          </div>
+        </div>
+      {% else %}
+        <div class="col-12">
+          <p class="text-muted mb-0">Aucune transaction disponible pour etablir une repartition.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="ft-admin-card mt-4">
+  <div class="ft-admin-card-header">
+    <i class="bi bi-activity me-2 text-primary"></i>Activite recente analysee
+  </div>
+  <div class="ft-admin-card-body p-0">
+    <div class="table-responsive">
+      <table class="table ft-admin-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Montant</th>
+            <th>Flux signe</th>
+            <th>Description</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in analytics.recent_activity %}
+            <tr>
+              <td class="fw-bold">#{{ item.id }}</td>
+              <td>
+                {% set typeClass = item.type == 'depot' ? 'ft-badge-success' : (item.type == 'retrait' ? 'ft-badge-warning' : (item.type == 'transfert' ? 'ft-badge-blue' : 'ft-badge-neutral')) %}
+                <span class="badge {{ typeClass }}">{{ item.type|upper }}</span>
+              </td>
+              <td>{{ item.amount|number_format(2, '.', ' ') }} {{ wallet.devise }}</td>
+              <td class="{{ item.signed_amount < 0 ? 'text-danger' : 'text-success' }}">
+                {{ item.signed_amount|number_format(2, '.', ' ') }} {{ wallet.devise }}
+              </td>
+              <td>{{ item.description ?: '-' }}</td>
+              <td>{{ item.date|date('d/m/Y H:i') }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">Aucune activite recente disponible.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="ft-admin-card mt-4">
   <div class="ft-admin-card-header d-flex flex-wrap gap-3 justify-content-between align-items-center">
     <div>
       <i class="bi bi-clock-history me-2 text-primary"></i>10 dernieres transactions
@@ -298,4 +535,61 @@
     </div>
   </div>
 </section>
+
+{# ── Synthèse AML ─────────────────────────────────────────────────────── #}
+{% if amlAnalysis is defined %}
+<section class="ft-admin-card mt-4">
+  <div class="ft-admin-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><i class="bi bi-shield-lock me-2 text-primary"></i>Synthèse AML — Anti-Blanchiment</span>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge {{ amlAnalysis.level_badge }} fs-6">Score {{ amlAnalysis.score }}/100 — {{ amlAnalysis.level_label }}</span>
+      <a href="{{ path('admin_aml_wallet_detail', {id: wallet.idWallet}) }}" class="btn btn-sm ft-btn-primary">
+        <i class="bi bi-shield-lock me-1"></i>Analyse AML complète
+      </a>
+    </div>
+  </div>
+  <div class="ft-admin-card-body">
+    <div class="row g-3 align-items-start">
+
+      {# Profil + recommandation #}
+      <div class="col-12 col-lg-5">
+        <div class="d-flex gap-3 mb-2">
+          <i class="{{ amlAnalysis.profile.icon }} fs-3" style="color:{{ amlAnalysis.profile.color }}"></i>
+          <div>
+            <div class="fw-semibold">Profil : <span style="color:{{ amlAnalysis.profile.color }}">{{ amlAnalysis.profile.label }}</span></div>
+            <div class="small text-muted">{{ amlAnalysis.profile.description }}</div>
+          </div>
+        </div>
+        <div class="p-2 rounded small" style="background:rgba(37,99,235,.06);border-left:3px solid {{ amlAnalysis.profile.color }}">
+          <strong>Recommandation :</strong> {{ amlAnalysis.recommendation.label }}
+        </div>
+      </div>
+
+      {# Alertes résumé #}
+      <div class="col-12 col-lg-7">
+        {% if amlAnalysis.alerts is empty %}
+          <div class="text-muted small"><i class="bi bi-shield-check text-success me-1"></i>Aucune alerte AML détectée.</div>
+        {% else %}
+          <div class="d-flex flex-column gap-2">
+            {% for alert in amlAnalysis.alerts|slice(0, 4) %}
+              {% set aBadge = alert.severity == 'critical' ? 'ft-badge-danger' : (alert.severity == 'high' ? 'ft-badge-warning' : (alert.severity == 'medium' ? 'ft-badge-info' : 'ft-badge-neutral')) %}
+              <div class="d-flex align-items-start gap-2">
+                <span class="badge {{ aBadge }} mt-1 flex-shrink-0">{{ alert.severity|upper }}</span>
+                <div class="small"><strong>{{ alert.title }}</strong> — {{ alert.description|slice(0, 80) }}{% if alert.description|length > 80 %}…{% endif %}</div>
+              </div>
+            {% endfor %}
+            {% if amlAnalysis.alert_count > 4 %}
+              <a href="{{ path('admin_aml_wallet_detail', {id: wallet.idWallet}) }}" class="small text-primary">
+                +{{ amlAnalysis.alert_count - 4 }} alerte(s) supplémentaire(s) →
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endif %}
+
 {% endblock %}

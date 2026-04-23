@@ -57,7 +57,7 @@
             </li>
 
             <li class="nav-item">
-              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') starts with 'front_wallet_' and app.request.attributes.get('_route') not in ['front_wallet_transactions', 'front_wallet_cheques', 'front_wallet_cheque_request'] %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_dashboard') : path('front_kyc_status') }}">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') starts with 'front_wallet_' and app.request.attributes.get('_route') not in ['front_wallet_transactions', 'front_wallet_cheques', 'front_wallet_cheque_request', 'front_wallet_assistant'] and not (app.request.attributes.get('_route') starts with 'front_wallet_international_transfer_') %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_dashboard') : path('front_kyc_status') }}">
                 <i class="bi bi-wallet2 me-1"></i>Wallet
               </a>
             </li>
@@ -69,8 +69,20 @@
             </li>
 
             <li class="nav-item">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') starts with 'front_wallet_international_transfer_' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_international_transfer_new') : path('front_kyc_status') }}">
+                <i class="bi bi-globe-americas me-1"></i>International
+              </a>
+            </li>
+
+            <li class="nav-item">
               <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') in ['front_wallet_cheques', 'front_wallet_cheque_request'] %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_cheques') : path('front_kyc_status') }}">
                 <i class="bi bi-journal-check me-1"></i>Cheques
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_wallet_assistant' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_assistant') : path('front_kyc_status') }}">
+                <i class="bi bi-stars me-1"></i>Assistant
               </a>
             </li>
 
@@ -116,9 +128,10 @@
 
             {# Notifications #}
             <a href="{{ path('front_notifications') }}"
-               class="btn ft-app-icon-btn {% if app.request.attributes.get('_route') == 'front_notifications' %}active{% endif %}"
+               class="btn ft-app-icon-btn position-relative {% if app.request.attributes.get('_route') == 'front_notifications' %}active{% endif %}"
                title="Notifications">
               <i class="bi bi-bell"></i>
+              <span id="frontNotificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size:.62rem">0</span>
             </a>
 
             {# Avatar + dropdown #}
@@ -166,8 +179,18 @@
                   </a>
                 </li>
                 <li>
+                  <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_wallet_international_transfer_new') : path('front_kyc_status') }}">
+                    <i class="bi bi-globe-americas me-2 text-primary"></i>International
+                  </a>
+                </li>
+                <li>
                   <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_wallet_cheques') : path('front_kyc_status') }}">
                     <i class="bi bi-journal-check me-2 text-primary"></i>Cheques
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_wallet_assistant') : path('front_kyc_status') }}">
+                    <i class="bi bi-stars me-2 text-primary"></i>Assistant
                   </a>
                 </li>
                 <li>
@@ -273,6 +296,20 @@
     document.querySelectorAll('.toast').forEach(function(el) {
       new bootstrap.Toast(el, { delay: 5000 }).show();
     });
+
+    const frontNotificationBadge = document.getElementById('frontNotificationBadge');
+    if (frontNotificationBadge) {
+      fetch('/api/notifications/me/unread-count')
+        .then((response) => response.ok ? response.json() : null)
+        .then((payload) => {
+          const count = Number(payload?.unread_count || 0);
+          if (count > 0) {
+            frontNotificationBadge.textContent = count > 99 ? '99+' : String(count);
+            frontNotificationBadge.classList.remove('d-none');
+          }
+        })
+        .catch(() => {});
+    }
   </script>
   {% block javascripts %}{% endblock %}
 </body>

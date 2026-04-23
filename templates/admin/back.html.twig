@@ -113,12 +113,32 @@
           <span>Pilotage Wallet</span>
         </a>
 
+        <a href="{{ path('admin_wallet_calendar') }}"
+           class="ft-sidebar-link {% if app.request.attributes.get('_route') == 'admin_wallet_calendar' %}active{% endif %}">
+          <i class="bi bi-calendar3"></i>
+          <span>Calendrier bancaire</span>
+        </a>
+
         <a href="{{ path('admin_cheque_index') }}"
            class="ft-sidebar-link {% if 'admin_cheque_' in app.request.attributes.get('_route') %}active{% endif %}">
           <i class="bi bi-journal-check"></i>
           <span>Gerer les cheques</span>
         </a>
 
+        <a href="{{ path('admin_aml_dashboard') }}"
+           class="ft-sidebar-link {% if 'admin_aml_' in app.request.attributes.get('_route') %}active{% endif %}">
+          <i class="bi bi-shield-lock"></i>
+          <span>Surveillance AML</span>
+        </a>
+
+        <a href="{{ path('admin_notifications_index') }}"
+           class="ft-sidebar-link {% if 'admin_notifications_' in app.request.attributes.get('_route') %}active{% endif %}">
+          <i class="bi bi-bell-fill"></i>
+          <span>Notifications</span>
+          <span id="adminNotificationBadge" class="badge bg-danger ms-auto d-none">0</span>
+        </a>
+
+        <a href="{{ path('admin_dashboard') }}#admin-loan" class="ft-sidebar-link">
         <a href="{{ path('admin_loan_dashboard') }}" class="ft-sidebar-link">
           <i class="bi bi-bank"></i>
           <span>Gestion des prets</span>
@@ -199,12 +219,13 @@
       </header>
 
       {# Flash messages #}
-      {% if app.flashes|length > 0 %}
+      {% set flashMessages = app.flashes %}
+      {% if flashMessages|length > 0 %}
         <div class="px-4 pt-3">
-          {% for type, messages in app.flashes %}
+          {% for type, messages in flashMessages %}
             {% set bsType = type == 'error' ? 'danger' : type %}
             {% for message in messages %}
-              <div class="alert alert-{{ bsType }} alert-dismissible fade show d-flex align-items-center" role="alert">
+              <div class="alert alert-{{ bsType }} alert-dismissible fade show d-flex align-items-center shadow-sm border-0" role="alert">
                 {% if type == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>
                 {% elseif type == 'error' %}<i class="bi bi-x-circle-fill me-2"></i>
                 {% elseif type == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -261,8 +282,23 @@
         }
       }
     }
+
+    const adminNotificationBadge = document.getElementById('adminNotificationBadge');
+    if (adminNotificationBadge) {
+      fetch('/api/admin/notifications/unread-count')
+        .then((response) => response.ok ? response.json() : null)
+        .then((payload) => {
+          const count = Number(payload?.unread_count || 0);
+          if (count > 0) {
+            adminNotificationBadge.textContent = count > 99 ? '99+' : String(count);
+            adminNotificationBadge.classList.remove('d-none');
+          }
+        })
+        .catch(() => {});
+    }
   </script>
 
+  {{ importmap('app') }}
   {% block javascripts %}{% endblock %}
 </body>
 </html>

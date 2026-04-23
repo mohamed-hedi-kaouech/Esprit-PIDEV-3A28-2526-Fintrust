@@ -14,6 +14,7 @@ use App\Security\RiskAccessChecker;
 use App\Service\KycService;
 use App\Service\NotificationService;
 use App\Service\UserService;
+use App\Service\WalletAssistantService;
 use App\Service\WalletAuditService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
@@ -37,6 +38,7 @@ class WalletController extends AbstractController
         private readonly UserService $userService,
         private readonly NotificationService $notificationService,
         private readonly WalletAuditService $walletAuditService,
+        private readonly WalletAssistantService $walletAssistantService,
     ) {
     }
 
@@ -426,6 +428,33 @@ class WalletController extends AbstractController
         ]);
     }
 
+    #[Route('/assistant', name: 'assistant', methods: ['GET', 'POST'])]
+    public function assistant(Request $request): Response
+    {
+        $user = $this->getAuthenticatedUser();
+
+        if ($redirect = $this->guardWalletAccess($user)) {
+            return $redirect;
+        }
+
+        $wallet = $this->requireWalletForUser($user);
+        if ($wallet instanceof Response) {
+            return $wallet;
+        }
+
+        $intent = (string) $request->request->get('intent', $request->query->get('intent', 'profile'));
+        $allowedIntents = ['balance', 'transactions', 'status', 'profile', 'loan', 'market'];
+        if (!in_array($intent, $allowedIntents, true)) {
+            $intent = 'profile';
+        }
+
+        return $this->render('front/client/wallet/assistant.html.twig', [
+            'wallet' => $wallet,
+            'intent' => $intent,
+            'assistantAnswer' => $this->walletAssistantService->answer($wallet, $intent),
+        ]);
+    }
+
     #[Route('/cheques/export/csv', name: 'cheques_export_csv', methods: ['GET'])]
     public function exportChequesCsv(): StreamedResponse|Response
     {
@@ -484,6 +513,18 @@ class WalletController extends AbstractController
             'wallet' => $wallet,
             'cheques' => $this->getLatestCheques($wallet, 200),
         ]);
+    }
+
+    #[Route('/cheques/signature/succes', name: 'cheques_signature_succes', methods: ['GET'])]
+    public function chequeSignatureSucces(): Response
+    {
+        return $this->render('front/client/wallet/cheque_signature_succes.html.twig');
+    }
+
+    #[Route('/cheques/signature/erreur', name: 'cheques_signature_erreur', methods: ['GET'])]
+    public function chequeSignatureErreur(): Response
+    {
+        return $this->render('front/client/wallet/cheque_signature_erreur.html.twig');
     }
 
     private function getAuthenticatedUser(): User

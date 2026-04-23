@@ -12,6 +12,9 @@
 {% block admin_content %}
 {% set chequeStatus = cheque.statut|lower %}
 {% set chequeBadge = chequeStatus == 'accepte' ? 'ft-badge-success' : (chequeStatus == 'refuse' ? 'ft-badge-danger' : (chequeStatus == 'livre' ? 'ft-badge-blue' : 'ft-badge-warning')) %}
+{% set yousignStatus = cheque.yousignStatus %}
+{% set yousignBadge = yousignStatus == 'signed' ? 'ft-badge-success' : (yousignStatus == 'pending' ? 'ft-badge-warning' : (yousignStatus in ['failed', 'expired', 'refused'] ? 'ft-badge-danger' : 'ft-badge-neutral')) %}
+{% set yousignLabel = yousignStatus == 'signed' ? 'Signe electroniquement' : (yousignStatus == 'pending' ? 'En attente de signature' : (yousignStatus == 'expired' ? 'Expire' : (yousignStatus == 'refused' ? 'Refuse par le signataire' : (yousignStatus == 'failed' ? 'Echec' : 'Non initie')))) %}
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
   <div>
@@ -61,6 +64,31 @@
 
           <dt class="col-sm-4 text-muted">Motif de rejet</dt>
           <dd class="col-sm-8">{{ cheque.motifRejet ?: '-' }}</dd>
+
+          <dt class="col-sm-4 text-muted">Validation signee</dt>
+          <dd class="col-sm-8">
+            {% if signature.signed %}
+              <span class="badge {{ signature.valid ? 'ft-badge-success' : 'ft-badge-warning' }}">
+                {{ signature.valid ? 'VALIDE' : 'A RECONTROLER' }}
+              </span>
+              <span class="small text-muted ms-2">{{ signature.fingerprint }}</span>
+            {% else %}
+              <span class="badge ft-badge-neutral">NON SIGNE</span>
+            {% endif %}
+          </dd>
+
+          <dt class="col-sm-4 text-muted">Signature electronique (Yousign)</dt>
+          <dd class="col-sm-8">
+            <span class="badge {{ yousignBadge }}">{{ yousignLabel }}</span>
+            {% if yousignStatus == 'signed' and cheque.yousignSignedAt %}
+              <span class="small text-muted ms-2">le {{ cheque.yousignSignedAt|date('d/m/Y H:i') }}</span>
+            {% endif %}
+            {% if yousignStatus == 'pending' and cheque.yousignSigningLink %}
+              <a href="{{ cheque.yousignSigningLink }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
+                <i class="bi bi-box-arrow-up-right me-1"></i>Lien de signature
+              </a>
+            {% endif %}
+          </dd>
         </dl>
       </div>
     </article>
@@ -99,6 +127,48 @@
       </div>
       <div class="ft-admin-card-body d-grid gap-2">
         {% if chequeStatus == 'en_attente' %}
+          {# --- Signature electronique Yousign --- #}
+          {% if yousignStatus == 'signed' %}
+            <div class="alert alert-success small mb-2 py-2">
+              <i class="bi bi-patch-check-fill me-1"></i>
+              Signe electroniquement via Yousign le {{ cheque.yousignSignedAt|date('d/m/Y H:i') }}
+            </div>
+          {% elseif yousignStatus == 'pending' %}
+            <div class="alert alert-warning small mb-2 py-2">
+              <i class="bi bi-hourglass-split me-1"></i>
+              Demande Yousign envoyee. En attente de signature du client.
+            </div>
+          {% elseif yousignStatus in ['failed', 'expired', 'refused'] %}
+            <div class="alert alert-danger small mb-2 py-2">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              La signature Yousign est en statut {{ yousignLabel|lower }}. Vous pouvez relancer.
+            </div>
+          {% endif %}
+
+          {% if yousignStatus != 'signed' %}
+            {% if not yousignConfigured %}
+              <div class="alert alert-warning border border-warning small py-2 mb-1" style="font-size:.82rem;">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                <strong>Yousign non configure.</strong>
+                Ajoutez <code>YOUSIGN_API_KEY=votre_cle</code> dans <code>.env.local</code> puis relancez le serveur.
+              </div>
+            {% endif %}
+            <form method="post" action="{{ path('admin_cheque_initiate_yousign', {id: cheque.idCheque}) }}">
+              <input type="hidden" name="_token" value="{{ csrf_token('yousign_cheque_' ~ cheque.idCheque) }}">
+              <button type="submit" class="btn btn-outline-info w-100" {{ not yousignConfigured ? 'title="YOUSIGN_API_KEY manquant dans .env.local"' : '' }}>
+                <i class="bi bi-pen-fill me-2"></i>
+                {{ yousignStatus == 'pending' ? 'Relancer signature Yousign' : 'Demander signature electronique (Yousign)' }}
+              </button>
+            </form>
+          {% endif %}
+
+          <form method="post" action="{{ path('admin_cheque_sign', {id: cheque.idCheque}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('sign_cheque_' ~ cheque.idCheque) }}">
+            <button type="submit" class="btn btn-outline-primary w-100">
+              <i class="bi bi-pen me-2"></i>Generer validation signee (admin)
+            </button>
+          </form>
+
           {% if cheque.wallet.estBloque %}
             <button type="button" class="btn btn-outline-secondary" disabled>
               <i class="bi bi-lock me-2"></i>Approbation impossible : wallet bloque
@@ -116,6 +186,15 @@
             <i class="bi bi-x-circle me-2"></i>Refuser le cheque
           </a>
         {% elseif chequeStatus == 'accepte' %}
+          {% if signature.signed %}
+            <div class="alert alert-success small mb-2">
+              Validation signee: {{ signature.fingerprint }}
+            </div>
+          {% else %}
+            <div class="alert alert-warning small mb-2">
+              La livraison est bloquee tant que la validation signee n existe pas.
+            </div>
+          {% endif %}
           <form method="post" action="{{ path('admin_cheque_deliver', {id: cheque.idCheque}) }}">
             <input type="hidden" name="_token" value="{{ csrf_token('deliver_cheque_' ~ cheque.idCheque) }}">
             <button type="submit" class="btn btn-primary w-100">
@@ -131,4 +210,17 @@
     </article>
   </div>
 </section>
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+  // Si des messages flash sont présents, scroller jusqu'à eux immédiatement
+  document.addEventListener('DOMContentLoaded', function () {
+    var flash = document.querySelector('.alert[role="alert"]');
+    if (flash) {
+      flash.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+</script>
+{% endblock %}
 {% endblock %}

@@ -103,6 +103,7 @@
             <th>Beneficiaire</th>
             <th>Montant</th>
             <th>Statut</th>
+            <th>Signature Yousign</th>
             <th>Date emission</th>
             <th>Wallet associe</th>
             <th>Proprietaire wallet</th>
@@ -114,12 +115,22 @@
           {% for cheque in cheques %}
             {% set chequeStatus = cheque.statut|lower %}
             {% set chequeBadge = chequeStatus == 'accepte' ? 'ft-badge-success' : (chequeStatus == 'refuse' ? 'ft-badge-danger' : (chequeStatus == 'livre' ? 'ft-badge-blue' : 'ft-badge-warning')) %}
+            {% set ys = cheque.yousignStatus %}
+            {% set ysBadge = ys == 'signed' ? 'ft-badge-success' : (ys == 'pending' ? 'ft-badge-warning' : (ys in ['failed', 'expired', 'refused'] ? 'ft-badge-danger' : 'ft-badge-neutral')) %}
+            {% set ysLabel = ys == 'signed' ? 'Signe' : (ys == 'pending' ? 'En attente' : (ys == 'expired' ? 'Expire' : (ys == 'refused' ? 'Refuse' : (ys == 'failed' ? 'Echec' : '-')))) %}
             <tr>
               <td class="fw-bold">#{{ cheque.idCheque }}</td>
               <td>{{ cheque.numeroCheque }}</td>
               <td>{{ cheque.beneficiaire ?: '-' }}</td>
               <td class="fw-semibold">{{ cheque.montant }}</td>
               <td><span class="badge {{ chequeBadge }}">{{ cheque.statut|upper }}</span></td>
+              <td>
+                {% if ys %}
+                  <span class="badge {{ ysBadge }}">{{ ysLabel }}</span>
+                {% else %}
+                  <span class="text-muted small">-</span>
+                {% endif %}
+              </td>
               <td>{{ cheque.dateEmission|date('d/m/Y H:i') }}</td>
               <td>
                 <a href="{{ path('admin_wallet_show', {id: cheque.wallet.idWallet}) }}" class="text-decoration-none fw-semibold">
@@ -168,7 +179,7 @@
             </tr>
           {% else %}
             <tr>
-              <td colspan="10" class="text-center py-5 text-muted">
+              <td colspan="11" class="text-center py-5 text-muted">
                 Aucune demande de cheque trouvee.
               </td>
             </tr>

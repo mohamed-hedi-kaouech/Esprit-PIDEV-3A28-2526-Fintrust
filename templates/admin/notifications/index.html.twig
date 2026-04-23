@@ -1,0 +1,156 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Notifications{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Notifications</span>
+{% endblock %}
+
+{% block admin_content %}
+<section class="ft-admin-hero mb-4">
+  <div class="ft-admin-hero-grid">
+    <div>
+      <span class="ft-admin-hero-kicker">
+        <i class="bi bi-bell-fill me-1"></i>FintrustNotificationBundle
+      </span>
+      <h1 class="ft-admin-page-title mb-3">Notifications bancaires</h1>
+      <p class="ft-admin-hero-subtitle mb-0">
+        Supervision des alertes internes clients et administrateurs: wallet, transactions, cheques, OTP, AML et risque.
+      </p>
+    </div>
+    <div class="ft-admin-hero-panel">
+      <div class="ft-admin-meta justify-content-lg-end">
+        <span><i class="bi bi-bell"></i>{{ notificationItems|length }} notification(s)</span>
+        <span><i class="bi bi-eye-slash"></i>{{ unreadCount }} non lue(s)</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="ft-admin-card mb-4">
+  <div class="ft-admin-card-header">
+    <i class="bi bi-funnel me-2 text-primary"></i>Filtres
+  </div>
+  <div class="ft-admin-card-body">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Categorie</label>
+        <select name="category" class="form-select">
+          <option value="admin" {{ filters.category == 'admin' ? 'selected' }}>Admin</option>
+          <option value="client" {{ filters.category == 'client' ? 'selected' }}>Client</option>
+          <option value="all" {{ filters.category == 'all' ? 'selected' }}>Toutes</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Type</label>
+        <select name="type" class="form-select">
+          <option value="">Tous</option>
+          {% for type in ['INFO', 'SUCCESS', 'WARNING', 'ERROR'] %}
+            <option value="{{ type }}" {{ filters.type == type ? 'selected' }}>{{ type }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Statut</label>
+        <select name="read" class="form-select">
+          <option value="">Tous</option>
+          <option value="false" {{ filters.read is same as('false') ? 'selected' }}>Non lues</option>
+          <option value="true" {{ filters.read is same as('true') ? 'selected' }}>Lues</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Gravite</label>
+        <select name="severity" class="form-select">
+          <option value="">Toutes</option>
+          {% for severity in ['info', 'success', 'warning', 'critical'] %}
+            <option value="{{ severity }}" {{ filters.severity == severity ? 'selected' }}>{{ severity|capitalize }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Wallet</label>
+        <input type="text" name="wallet" value="{{ filters.wallet }}" class="form-control" placeholder="# wallet">
+      </div>
+      <div class="col-md-2 d-grid">
+        <button type="submit" class="btn ft-btn-primary">
+          <i class="bi bi-search me-1"></i>Filtrer
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="ft-admin-card">
+  <div class="ft-admin-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><i class="bi bi-list-check me-2 text-primary"></i>Centre de notifications</span>
+    <button class="btn btn-sm ft-btn-outline-primary" id="markAllAdminNotifications">
+      <i class="bi bi-check2-all me-1"></i>Tout marquer comme lu
+    </button>
+  </div>
+  <div class="ft-admin-card-body p-0">
+    <div class="table-responsive">
+      <table class="table ft-admin-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Message</th>
+            <th>Categorie</th>
+            <th>Gravite</th>
+            <th>Statut</th>
+            <th>Date</th>
+            <th class="text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for item in notificationItems %}
+          {% set badge = item.severity == 'critical' ? 'ft-badge-danger' : (item.severity == 'warning' ? 'ft-badge-warning' : (item.severity == 'success' ? 'ft-badge-success' : 'ft-badge-blue')) %}
+          <tr class="{{ not item.read ? 'table-warning' : '' }}">
+            <td class="fw-semibold">{{ item.title }}</td>
+            <td class="small text-muted">{{ item.message }}</td>
+            <td><span class="badge ft-badge-neutral">{{ item.category|upper }}</span></td>
+            <td><span class="badge {{ badge }}">{{ item.severity|upper }}</span></td>
+            <td>
+              <span class="badge {{ item.read ? 'ft-badge-neutral' : 'ft-badge-success' }}">
+                {{ item.read ? 'Lue' : 'Non lue' }}
+              </span>
+            </td>
+            <td class="small">{{ item.created_at|date('d/m/Y H:i') }}</td>
+            <td class="text-center">
+              {% if not item.read %}
+                <button class="btn btn-sm ft-btn-outline-primary js-mark-notification-read" data-id="{{ item.id }}">
+                  <i class="bi bi-check2 me-1"></i>Lire
+                </button>
+              {% else %}
+                <span class="text-muted small">-</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">Aucune notification trouvee.</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    document.querySelectorAll('.js-mark-notification-read').forEach((button) => {
+      button.addEventListener('click', async () => {
+        await fetch(`/api/admin/notifications/${button.dataset.id}/read`, { method: 'POST' });
+        window.location.reload();
+      });
+    });
+
+    document.getElementById('markAllAdminNotifications')?.addEventListener('click', async () => {
+      await fetch('/api/admin/notifications/read-all' + window.location.search, { method: 'POST' });
+      window.location.reload();
+    });
+  </script>
+{% endblock %}

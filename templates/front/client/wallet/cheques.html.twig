@@ -86,12 +86,15 @@
                   <th>Montant</th>
                   <th>Date emission</th>
                   <th>Statut</th>
+                  <th>Signature electronique</th>
+                  <th>Workflow</th>
                   <th>Motif rejet</th>
                 </tr>
               </thead>
               <tbody>
                 {% for cheque in cheques %}
                   {% set statut = cheque.statut|lower %}
+                  {% set ys = cheque.yousignStatus %}
                   <tr>
                     <td class="fw-semibold">{{ cheque.numeroCheque }}</td>
                     <td>{{ cheque.beneficiaire ?: 'Non renseigne' }}</td>
@@ -101,6 +104,35 @@
                       <span class="badge {{ statut == 'accepte' ? 'ft-badge-success' : (statut == 'refuse' ? 'ft-badge-danger' : (statut == 'livre' ? 'ft-badge-blue' : 'ft-badge-warning')) }}">
                         {{ cheque.statut|replace({'_': ' '})|title }}
                       </span>
+                    </td>
+                    <td>
+                      {% if ys == 'signed' %}
+                        <span class="badge ft-badge-success"><i class="bi bi-patch-check-fill me-1"></i>Signe</span>
+                        {% if cheque.yousignSignedAt %}
+                          <div class="small text-muted">{{ cheque.yousignSignedAt|date('d/m/Y') }}</div>
+                        {% endif %}
+                      {% elseif ys == 'pending' and cheque.yousignSigningLink %}
+                        <a href="{{ cheque.yousignSigningLink }}" target="_blank" class="btn btn-sm btn-warning">
+                          <i class="bi bi-pen-fill me-1"></i>Signer maintenant
+                        </a>
+                      {% elseif ys in ['failed', 'expired', 'refused'] %}
+                        <span class="badge ft-badge-danger">
+                          {{ ys == 'expired' ? 'Expire' : (ys == 'refused' ? 'Refuse' : 'Echec') }}
+                        </span>
+                      {% else %}
+                        <span class="text-muted small">-</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if statut == 'en_attente' %}
+                        Demande recue, validation admin en cours
+                      {% elseif statut == 'accepte' %}
+                        Valide, preparation de livraison
+                      {% elseif statut == 'livre' %}
+                        Livre au client
+                      {% else %}
+                        Refuse apres controle
+                      {% endif %}
                     </td>
                     <td>{{ statut == 'refuse' ? (cheque.motifRejet ?: 'Aucun motif renseigne') : '-' }}</td>
                   </tr>
