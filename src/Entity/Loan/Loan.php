@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\loan;
+namespace App\Entity\Loan;
 
 use App\Entity\User\User;
 use Doctrine\DBAL\Types\Types;

@@ -13,7 +13,11 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="{{ asset('css/fintrust-front.css') }}"/>
-  {% block stylesheets %}{% endblock %}
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  {% block stylesheets %}
+
+  {% endblock %}
 </head>
 <body class="ft-front-body{% if app.user and app.user.themeMode == 'dark' %} ft-theme-dark{% endif %}">
 
