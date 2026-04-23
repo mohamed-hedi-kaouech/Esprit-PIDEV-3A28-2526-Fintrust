@@ -11,8 +11,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+
 final class ProductController extends AbstractController
 {
+
     #[Route('/Product/List', name: 'product_list')]
     public function list(Request $request, ProductRepository $repo): Response
     {
@@ -35,8 +37,10 @@ final class ProductController extends AbstractController
         }
         $em->remove($product);
         $em->flush();
-        $this->addFlash('success', 'Produit supprimé avec succès');
-        return $this->redirectToRoute('product_list');
+        return $this->redirectToRoute('product_list', [
+            'swal' => 'success',
+            'msg'  => 'Produit supprimé avec succès',
+        ]);
     }
 
     #[Route('/EditProduct', name: 'EditProduct', methods: ['GET', 'POST'])]
@@ -58,7 +62,7 @@ final class ProductController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $errors = $this->validateProductData($request);
+            $errors = $this->validateProductData($product);
             if (!empty($errors)) {
                 foreach ($errors as $err) {
                     $this->addFlash('error', $err);
@@ -69,13 +73,17 @@ final class ProductController extends AbstractController
             }
             $em->flush();
 
-            $this->addFlash('success', 'Produit modifié avec succès');
-            return $this->redirectToRoute('product_list');
+            return $this->redirectToRoute('product_list', [
+                'swal' => 'success',
+                'msg'  => 'Produit modifié avec succès',
+            ]);
         }
 
         return $this->render('html/Product/Admin/ProductEdit.html.twig', [
             'product' => $product,
             'form'    => $form->createView(),
+            'categories' => $this->getProductCategories(),
+            'formData' => $product,
         ]);
     }
 
@@ -87,24 +95,31 @@ final class ProductController extends AbstractController
         $form    = $this->createForm(ProductForm::class, $product);
 
         $form->handleRequest($request);
-        $errors = $this->validateProductData($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
+
+            $errors = $this->validateProductData($product);
+
             if (!empty($errors)) {
                 foreach ($errors as $err) {
                     $this->addFlash('error', $err);
+
                 }
+
                 return $this->render('html/Product/Admin/ProductCreate.html.twig', [
-                    'old' => $request->request->all(),'form' => $form->createView()
+                    'form' => $form->createView()
                 ]);
             }
+
             $product->setCreatedAt(new \DateTime());
 
             $em->persist($product);
             $em->flush();
 
-            $this->addFlash('success', 'Produit créé avec succès');
-            return $this->redirectToRoute('product_list');
+            return $this->redirectToRoute('product_list', [
+                'swal' => 'success',
+                'msg'  => 'Produit créé avec succès',
+
+            ]);
         }
 
         return $this->render('html/Product/Admin/ProductCreate.html.twig', [
@@ -113,28 +128,27 @@ final class ProductController extends AbstractController
     }
 
     // 🔥 Reusable validation
-    private function validateProductData(Request $request): array
-    {
-        $category = $request->request->get('category');
-        $price = $request->request->get('price');
-        $description = trim($request->request->get('description'));
 
+
+    private function validateProductData(Product $product): array
+    {
         $errors = [];
 
-        if (!$category) {
+        if (!$product->getCategory()) {
             $errors[] = 'La catégorie est obligatoire';
         }
 
-        if (!is_numeric($price) || $price < 0) {
+        if (!is_numeric($product->getPrice()) || $product->getPrice() < 0) {
             $errors[] = 'Le prix doit être un nombre positif';
         }
 
-        if (strlen($description) < 4) {
+        if (!$product->getDescription() || strlen($product->getDescription()) < 4) {
             $errors[] = 'La description doit contenir au moins 4 caractères';
         }
 
         return $errors;
     }
+
 
     // 🔥 Reusable hydration
     private function hydrateProduct(Product $product, Request $request): void
@@ -142,5 +156,27 @@ final class ProductController extends AbstractController
         $product->setCategory($request->request->get('category'));
         $product->setPrice((float)$request->request->get('price'));
         $product->setDescription(trim($request->request->get('description')));
+
+    }
+
+    private function getProductCategories(): array{
+        return [
+            'COMPTE_COURANT',
+            'COMPTE_EPARGNE',
+            'COMPTE_PREMIUM',
+            'COMPTE_JEUNE',
+            'COMPTE_ENTREPRISE',
+            'CARTE_DEBIT',
+            'CARTE_CREDIT',
+            'CARTE_PREMIUM',
+            'CARTE_VIRTUELLE',
+            'EPARGNE_CLASSIQUE',
+            'EPARGNE_LOGEMENT',
+            'DEPOT_A_TERME',
+            'PLACEMENT_INVESTISSEMENT',
+            'ASSURANCE_VIE',
+            'ASSURANCE_HABITATION',
+            'ASSURANCE_VOYAGE',
+        ];
     }
 }

@@ -405,7 +405,7 @@ async function sendEmailReport() {
     showToast('Envoi du rapport en cours...', 1800);
 
     try {
-        const response = await fetch('/admin/dashboard/send-report', {
+        const response = await fetch('/send-report', {
             method: 'POST',
         });
         const data = await response.json();
@@ -421,5 +421,24 @@ async function sendEmailReport() {
         showToast('Impossible d envoyer le rapport', 4200);
     }
 }
+async function sendEmailReportFinancier() {
+    showToast('Envoi du rapport en cours...', 1800);
 
+    try {
+        const response = await fetch('/send-report-financier', {
+            method: 'POST',
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Rapport envoye par email');
+            return;
+        }
+
+        showToast('Erreur lors de l envoi du rapport', 4200);
+    } catch (error) {
+        console.error(error);
+        showToast('Impossible d envoyer le rapport', 4200);
+    }
+}
 loadDashboard();

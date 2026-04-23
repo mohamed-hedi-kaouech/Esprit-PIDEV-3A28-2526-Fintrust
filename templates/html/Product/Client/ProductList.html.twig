@@ -2,8 +2,10 @@
 {% block title %}Nos Produits{% endblock %}
 
 {% block body %}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Fraunces:wght@700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset('css/Product/StyleProduct.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   {% set searchTerm = app.request.query.get('search') %}
   {% set filterCat = app.request.query.get('category') %}
@@ -215,39 +217,27 @@
     </div>
   </div>
 
-  {% set flashSuccesses = app.flashes('success') %}
-  {% set flashErrors = app.flashes('error') %}
-
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="{{ asset('js/Product/ScriptProduct.js') }}" defer></script>
+  {% set swalType = app.request.query.get('swal') %}
+  {% set swalMsg  = app.request.query.get('msg') %}
 
   <script>
-    {% if flashSuccesses is not empty %}
-    window.addEventListener('load', function () {
+    document.addEventListener('DOMContentLoaded', function () {
+      {% if swalType == 'success' %}
       Swal.fire({
         icon: 'success',
-        title: '{{ flashSuccesses|first|e('js') }}',
+        title: '{{ swalMsg|e('js') }}',
         showConfirmButton: false,
         timer: 2500,
-        timerProgressBar: true,
-        background: '#ffffff',
-        color: '#0f172a',
-        iconColor: '#22c97a'
+        timerProgressBar: true
       });
-    });
-    {% endif %}
-
-    {% if flashErrors is not empty %}
-    window.addEventListener('load', function () {
+      {% elseif swalType == 'error' %}
       Swal.fire({
         icon: 'error',
-        title: '{{ flashErrors|first|e('js') }}',
-        showConfirmButton: true,
-        background: '#ffffff',
-        color: '#0f172a'
+        title: '{{ swalMsg|e('js') }}',
+        showConfirmButton: true
       });
+      {% endif %}
     });
-    {% endif %}
 
     function selectType(productId) {
       Swal.fire({

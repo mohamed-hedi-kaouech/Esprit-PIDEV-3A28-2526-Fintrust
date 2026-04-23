@@ -125,10 +125,31 @@
 
     </div>
 
-    {% for msg in app.flashes('success') %}
-        <script>
-            Swal.fire({ icon: 'success', title: '{{ msg }}', showConfirmButton: false, timer: 2500, timerProgressBar: true, background: '#151820', color: '#f0f2f8', iconColor: '#22c97a' });
-        </script>
-    {% endfor %}
+{% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+
+    {% set swalType = app.request.query.get('swal') %}
+    {% set swalMsg  = app.request.query.get('msg') %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            {% if swalType == 'success' %}
+            Swal.fire({
+                icon: 'success',
+                title: '{{ swalMsg|e('js') }}',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true
+            });
+            {% elseif swalType == 'error' %}
+            Swal.fire({
+                icon: 'error',
+                title: '{{ swalMsg|e('js') }}',
+                showConfirmButton: true
+            });
+            {% endif %}
+        });
+    </script>
 {% endblock %}

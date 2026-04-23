@@ -33,6 +33,7 @@ class ProductForm extends AbstractType{
                 'attr'  => ['placeholder' => '0'],
             ])
             ->add('description', TextareaType::class, [
+                'empty_data' => '',
                 'attr' => ['placeholder' => 'Description'],
             ]);
     }

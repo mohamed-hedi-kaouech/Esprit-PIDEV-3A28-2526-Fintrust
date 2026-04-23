@@ -6,6 +6,7 @@ use App\Repository\Product\ProductRepository;
 use App\Repository\Product\ProductSubscriptionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -128,13 +129,121 @@ class DashboardController extends AbstractController
             'revenueByCategory' => $revenueByCategory,
         ]);
     }
-
     #[Route('/send-report', name: 'send_report', methods: ['POST'])]
     public function sendEmailReport(): JsonResponse
     {
-        return $this->json([
-            'success' => false,
-            'message' => 'L envoi d e-mails de rapport est desactive pour le moment.',
-        ]);
+        // 👉 Recalculate same data (or refactor later to reuse)
+        $products = $this->productRepo->findAll();
+        $subscriptions = $this->subscriptionRepo->findAll();
+
+        $products = array_filter($products, fn ($p) => $p && $p->getPrice() !== null);
+        $subscriptions = array_filter($subscriptions, fn ($s) => $s && $s->getProductObj());
+
+        $totalProducts = count($products);
+        $prices = array_map(fn ($p) => $p->getPrice(), $products);
+
+        $avgPrice = $totalProducts ? array_sum($prices) / $totalProducts : 0;
+        $minPrice = $totalProducts ? min($prices) : 0;
+        $maxPrice = $totalProducts ? max($prices) : 0;
+
+        $totalSubs = count($subscriptions);
+        $activeSubs = 0;
+        $suspendedSubs = 0;
+        $closedSubs = 0;
+        $draftSubs = 0;
+        $totalRevenue = 0.0;
+        $subsByType = [];
+
+        foreach ($subscriptions as $subscription) {
+            $status = strtoupper($subscription->getStatus() ?? '');
+
+            switch ($status) {
+                case 'ACTIVE':
+                    $activeSubs++;
+                    $totalRevenue += $subscription->getProductObj()->getPrice() ?? 0;
+                    break;
+                case 'SUSPENDED':
+                    $suspendedSubs++;
+                    break;
+                case 'CLOSED':
+                    $closedSubs++;
+                    break;
+                default:
+                    $draftSubs++;
+            }
+
+            $type = strtoupper($subscription->getType() ?? 'UNKNOWN');
+            $subsByType[$type] = ($subsByType[$type] ?? 0) + 1;
+        }
+
+        $data = [
+            "generatedAt" => (new \DateTime())->format('Y-m-d H:i:s'),
+            "totalProducts" => $totalProducts,
+            "avgPrice" => round($avgPrice, 2),
+            "minPrice" => round($minPrice, 2),
+            "maxPrice" => round($maxPrice, 2),
+            "totalSubs" => $totalSubs,
+            "activeSubs" => $activeSubs,
+            "suspendedSubs" => $suspendedSubs,
+            "closedSubs" => $closedSubs,
+            "draftSubs" => $draftSubs,
+            "activeRate" => $totalSubs ? round(($activeSubs * 100 / $totalSubs), 1) : 0,
+            "totalRevenue" => round($totalRevenue, 2),
+            "monthlyCount" => $subsByType["MONTHLY"] ?? 0,
+            "annualCount" => $subsByType["ANNUAL"] ?? 0,
+            "transactionCount" => $subsByType["TRANSACTION"] ?? 0,
+            "oneTimeCount" => $subsByType["ONE_TIME"] ?? 0,
+        ];
+
+        $client = HttpClient::create();
+
+        try {
+            $response = $client->request(
+                'POST',
+                'http://localhost:5680/webhook/Rapport_Admin', // ✅ FIXED PORT
+                [
+                    'json' => $data
+                ]
+            );
+
+
+            return $this->json([
+                'success' => true,
+                'status' => $response->getStatusCode(),
+                'message' => 'Rapport envoyé à n8n avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[Route('send-report-financier', name: 'send_report-financier', methods: ['POST'])]
+    public function sendEmailReportfinancier(): JsonResponse
+    {
+        $client = HttpClient::create();
+
+        try {
+            $response = $client->request(
+                'GET',
+                'http://localhost:5680/webhook-test/Ai-Agent', // ✅ FIXED PORT
+            );
+
+
+            return $this->json([
+                'success' => true,
+                'status' => $response->getStatusCode(),
+                'message' => 'Rapport envoyé à n8n avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

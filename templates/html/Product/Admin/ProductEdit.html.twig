@@ -16,81 +16,85 @@
 {% endblock %}
 
 {% block admin_content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-  <div>
-    <h1 class="ft-admin-page-title mb-1">
-      <i class="bi bi-pencil-square me-2 text-primary"></i>Modifier le produit
-    </h1>
-    <p class="text-muted mb-0">
-      Mettez a jour les informations du produit dans une interface plus nette et plus coherente avec l administration FinTrust.
-    </p>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h1 class="ft-admin-page-title mb-1">
+        <i class="bi bi-pencil-square me-2 text-primary"></i>Modifier le produit
+      </h1>
+      <p class="text-muted mb-0">
+        Mettez a jour les informations du produit dans une interface plus nette et plus coherente avec l administration FinTrust.
+      </p>
+    </div>
+    <a href="{{ path('product_list') }}" class="btn ft-btn-outline-primary">
+      <i class="bi bi-arrow-left me-2"></i>Retour a la liste
+    </a>
   </div>
-  <a href="{{ path('product_list') }}" class="btn ft-btn-outline-primary">
-    <i class="bi bi-arrow-left me-2"></i>Retour a la liste
-  </a>
-</div>
 
-<section class="row g-4">
-  <div class="col-12 col-xl-8">
-    <article class="ft-admin-card product-admin-card">
-      <div class="ft-admin-card-header">
-        <i class="bi bi-sliders me-2 text-primary"></i>Edition du produit #{{ product.productId }}
-      </div>
-      <div class="ft-admin-card-body">
-        <form method="POST" action="{{ path('EditProduct', { id: product.productId }) }}" class="row g-3" novalidate>
-          <input type="hidden" name="_token" value="{{ csrf_token('EditProduct_' ~ product.productId) }}">
-          <input type="hidden" name="productId" value="{{ product.productId }}">
+  <section class="row g-4">
+    <div class="col-12 col-xl-8">
+      <article class="ft-admin-card product-admin-card">
+        <div class="ft-admin-card-header">
+          <i class="bi bi-sliders me-2 text-primary"></i>Edition du produit #{{ product.productId }}
+        </div>
+        <div class="ft-admin-card-body">
 
+          {{ form_start(form, {
+            action: path('EditProduct', { id: product.productId }),
+            method: 'POST',
+            attr: { class: 'row g-3', novalidate: 'novalidate' }
+          }) }}
+
+          {# Category field #}
           <div class="col-12">
-            <label for="category" class="form-label fw-semibold">Categorie</label>
-            <select id="category" name="category" class="form-select ft-input product-admin-input">
-              <option value="">Selectionner une categorie</option>
-              {% for cat in categories %}
-                <option value="{{ cat }}" {{ formData.category == cat ? 'selected' : '' }}>
-                  {{ cat|replace({'_': ' '})|title }}
-                </option>
-              {% endfor %}
-            </select>
+            {{ form_label(form.category, null, { label_attr: { class: 'form-label fw-semibold' } }) }}
+            {{ form_widget(form.category, { attr: { class: 'form-select ft-input product-admin-input' } }) }}
+            {% if form.category.vars.errors|length %}
+              <div class="text-danger small mt-1">
+                {{ form_errors(form.category) }}
+              </div>
+            {% endif %}
             <div class="ft-filter-help">Le choix de categorie structure l affichage du produit dans le catalogue.</div>
           </div>
 
+          {# Price field #}
           <div class="col-md-6">
-            <label for="price" class="form-label fw-semibold">Prix (DT)</label>
+            {{ form_label(form.price, null, { label_attr: { class: 'form-label fw-semibold' } }) }}
             <div class="input-group">
               <span class="input-group-text bg-white text-primary"><i class="bi bi-cash-stack"></i></span>
-              <input
-                type="text"
-                id="price"
-                name="price"
-                class="form-control ft-input product-admin-input border-start-0"
-                value="{{ formData.price }}"
-              >
+              {{ form_widget(form.price, { attr: { class: 'form-control ft-input product-admin-input border-start-0' } }) }}
               <span class="input-group-text bg-white text-primary fw-semibold">DT</span>
             </div>
+            {% if form.price.vars.errors|length %}
+              <div class="text-danger small mt-1">
+                {{ form_errors(form.price) }}
+              </div>
+            {% endif %}
           </div>
 
+          {# Created at — read-only display, not a form field #}
           <div class="col-md-6">
-            <label for="createdAtPreview" class="form-label fw-semibold">Date de creation</label>
+            <label class="form-label fw-semibold">Date de creation</label>
             <input
-              type="text"
-              id="createdAtPreview"
-              class="form-control ft-input product-admin-input"
-              value="{{ product.createdAt|date('d/m/Y') }}"
-              disabled
+                    type="text"
+                    class="form-control ft-input product-admin-input"
+                    value="{{ product.createdAt|date('d/m/Y') }}"
+                    disabled
             >
           </div>
 
+          {# Description field #}
           <div class="col-12">
-            <label for="description" class="form-label fw-semibold">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              class="form-control ft-input product-admin-input product-admin-textarea"
-              rows="6"
-            >{{ formData.description }}</textarea>
+            {{ form_label(form.description, null, { label_attr: { class: 'form-label fw-semibold' } }) }}
+            {{ form_widget(form.description, { attr: { class: 'form-control ft-input product-admin-input product-admin-textarea', rows: 6 } }) }}
+            {% if form.description.vars.errors|length %}
+              <div class="text-danger small mt-1">
+                {{ form_errors(form.description) }}
+              </div>
+            {% endif %}
             <div class="ft-filter-help">Une description claire facilite la lecture, la confiance et l achat cote client.</div>
           </div>
 
+          {# Actions #}
           <div class="col-12 d-flex flex-wrap gap-2 pt-2">
             <button type="submit" class="btn ft-btn-primary">
               <i class="bi bi-check2-circle me-2"></i>Mettre a jour le produit
@@ -99,33 +103,35 @@
               <i class="bi bi-x-circle me-2"></i>Annuler
             </a>
           </div>
-        </form>
-      </div>
-    </article>
-  </div>
 
-  <div class="col-12 col-xl-4">
-    <article class="ft-admin-card mb-4 product-admin-sidecard">
-      <div class="ft-admin-card-header">
-        <i class="bi bi-bar-chart-line me-2 text-primary"></i>Resume actuel
-      </div>
-      <div class="ft-admin-card-body">
-        <div class="ft-admin-insight-list">
-          <div class="ft-admin-insight-item">
-            <strong>Categorie actuelle</strong>
-            <span>{{ product.category|replace({'_': ' '})|title }}</span>
-          </div>
-          <div class="ft-admin-insight-item">
-            <strong>Prix actuel</strong>
-            <span>{{ product.price|number_format(2, ',', ' ') }} DT</span>
-          </div>
-          <div class="ft-admin-insight-item">
-            <strong>Cree le</strong>
-            <span>{{ product.createdAt|date('d/m/Y') }}</span>
+          {{ form_end(form) }}
+
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <article class="ft-admin-card mb-4 product-admin-sidecard">
+        <div class="ft-admin-card-header">
+          <i class="bi bi-bar-chart-line me-2 text-primary"></i>Resume actuel
+        </div>
+        <div class="ft-admin-card-body">
+          <div class="ft-admin-insight-list">
+            <div class="ft-admin-insight-item">
+              <strong>Categorie actuelle</strong>
+              <span>{{ product.category|replace({'_': ' '})|title }}</span>
+            </div>
+            <div class="ft-admin-insight-item">
+              <strong>Prix actuel</strong>
+              <span>{{ product.price|number_format(2, ',', ' ') }} DT</span>
+            </div>
+            <div class="ft-admin-insight-item">
+              <strong>Cree le</strong>
+              <span>{{ product.createdAt|date('d/m/Y') }}</span>
+            </div>
           </div>
         </div>
-      </div>
-    </article>
-  </div>
-</section>
+      </article>
+    </div>
+  </section>
 {% endblock %}

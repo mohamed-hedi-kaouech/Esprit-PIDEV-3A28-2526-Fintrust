@@ -20,7 +20,29 @@ class ProductSubscriptionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ProductSubscription::class);
     }
+    public function findByFilters(?string $type, ?string $status, ?string $search)
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->join('s.clientUser', 'c')
+            ->join('s.productObj', 'p');
 
+        if (!empty($type)) {
+            $qb->andWhere('s.type = :type')
+                ->setParameter('type', $type);
+        }
+
+        if (!empty($status)) {
+            $qb->andWhere('s.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        if (!empty($search)) {
+            $qb->andWhere('p.category LIKE :search OR c.nom LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
     // Example: custom query to get subscriptions expiring in 30 days
     public function findExpiringSoon(\DateTimeInterface $dateLimit): array
     {

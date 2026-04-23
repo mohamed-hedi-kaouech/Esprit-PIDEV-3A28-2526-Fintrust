@@ -32,7 +32,11 @@
                 </button>
                 <button type="button" class="ft-product-btn ft-product-btn-ghost" onclick="sendEmailReport()">
                     <i class="bi bi-send-check"></i>
-                    Envoyer rapport PDF
+                    Envoyer rapport Statistique
+                </button>
+                <button type="button" class="ft-product-btn ft-product-btn-ghost" onclick="sendEmailReportFinancier()">
+                    <i class="bi bi-send-check"></i>
+                    Envoyer rapport Financier
                 </button>
             </div>
         </div>
@@ -246,4 +250,27 @@
     {{ parent() }}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="{{ asset('js/Product/Dashboard.js') }}" defer></script>
+
+    {% set swalType = app.request.query.get('swal') %}
+    {% set swalMsg  = app.request.query.get('msg') %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            {% if swalType == 'success' %}
+            Swal.fire({
+                icon: 'success',
+                title: '{{ swalMsg|e('js') }}',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true
+            });
+            {% elseif swalType == 'error' %}
+            Swal.fire({
+                icon: 'error',
+                title: '{{ swalMsg|e('js') }}',
+                showConfirmButton: true
+            });
+            {% endif %}
+        });
+    </script>
 {% endblock %}

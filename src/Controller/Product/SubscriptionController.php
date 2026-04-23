@@ -13,8 +13,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-
+#[IsGranted('ROLE_ADMIN')]
 final class SubscriptionController extends AbstractController
 {
     #[Route('/subscriptionslist', name: 'subscription_list', methods: ['GET', 'POST'])]
@@ -28,27 +29,11 @@ final class SubscriptionController extends AbstractController
         $statusFilter = $request->query->get('status', '');
         $search = trim($request->query->get('search', ''));
 
-        $qb = $subscriptionRepo->createQueryBuilder('s')
-            ->join('s.clientUser', 'c')
-            ->join('s.productObj', 'p');
-
-        // Apply filters
-        if ($typeFilter !== '') {
-            $qb->andWhere('s.type = :type')
-                ->setParameter('type', $typeFilter);
-        }
-
-        if ($statusFilter !== '') {
-            $qb->andWhere('s.status = :status')
-                ->setParameter('status', $statusFilter);
-        }
-
-        if ($search !== '') {
-            $qb->andWhere('p.category LIKE :search OR c.nom LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
-        }
-
-        $subscriptions = $qb->getQuery()->getResult();
+        $subscriptions = $subscriptionRepo->findByFilters(
+            $typeFilter,
+            $statusFilter,
+            $search
+        );
 
         // Map to arrays for Twig
         $subscriptionsView = array_map(function ($s) {
@@ -97,8 +82,11 @@ final class SubscriptionController extends AbstractController
 
         $em->remove($subproduct);
         $em->flush();
-        $this->addFlash('success', 'Subscription Produit supprimé avec succès');
-        return $this->redirectToRoute('subscription_list');
+
+        return $this->redirectToRoute('subscription_list', [
+            'swal' => 'success',
+            'msg'  => 'Subscription Produit supprimé avec succès',
+        ]);
     }
 
 
@@ -130,8 +118,10 @@ final class SubscriptionController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
 
-            $this->addFlash('success', 'Abonnement mis à jour avec succès.');
-            return $this->redirectToRoute('subscription_list');
+            return $this->redirectToRoute('subscription_list', [
+                'swal' => 'success',
+                'msg'  => 'Abonnement mis à jour avec succès.',
+            ]);
         }
 
         return $this->render('html/Product/Admin/SubscriptionEdit.html.twig', [

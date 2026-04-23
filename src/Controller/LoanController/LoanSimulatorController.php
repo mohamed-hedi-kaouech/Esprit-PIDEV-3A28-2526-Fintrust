@@ -132,7 +132,7 @@ class LoanSimulatorController extends AbstractController
         $loan->setLoanType($data['loanType']);
         $loan->setStatus('PENDING');
         // TODO: $loan->setUser($this->getUser()); — add after user module merge
-
+        $loan->setUser($this->getUser());
         $this->loanService->createLoan($loan);
 
         $request->getSession()->remove('loan_simulation');

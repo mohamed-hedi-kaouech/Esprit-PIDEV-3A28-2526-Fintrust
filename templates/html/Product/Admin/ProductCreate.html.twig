@@ -16,80 +16,103 @@
 {% endblock %}
 
 {% block admin_content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-  <div>
-    <h1 class="ft-admin-page-title mb-1">
-      <i class="bi bi-box-seam me-2 text-primary"></i>Creation du produit
-    </h1>
-    <p class="text-muted mb-0">
-      Ajoutez une nouvelle offre bancaire avec une presentation plus premium et un formulaire admin plus fiable.
-    </p>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h1 class="ft-admin-page-title mb-1">
+        <i class="bi bi-box-seam me-2 text-primary"></i>Creation du produit
+      </h1>
+      <p class="text-muted mb-0">
+        Ajoutez une nouvelle offre bancaire avec une presentation plus premium et un formulaire admin plus fiable.
+      </p>
+    </div>
+    <a href="{{ path('product_list') }}" class="btn ft-btn-outline-primary">
+      <i class="bi bi-arrow-left me-2"></i>Retour a la liste
+    </a>
   </div>
-  <a href="{{ path('product_list') }}" class="btn ft-btn-outline-primary">
-    <i class="bi bi-arrow-left me-2"></i>Retour a la liste
-  </a>
-</div>
 
-<section class="row g-4">
-  <div class="col-12 col-xl-8">
-    <article class="ft-admin-card product-admin-card">
-      <div class="ft-admin-card-header">
-        <i class="bi bi-plus-circle me-2 text-primary"></i>Nouveau produit
-      </div>
-      <div class="form-card">
-    {{ form_start(form) }}
-    <div class="form-group">
-        <label class="field-label">Nouvelle Catégorie</label>
-        {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
-        {{ form_errors(form.category) }}
-    </div>
-
-    <div class="form-group">
-        <label class="field-label">Nouveau Prix (DT)</label>
-        <div class="price-row">
-            {{ form_widget(form.price, {'attr': {'class': 'form-input'}}) }}
-            <span class="currency-tag">DT</span>
+  <section class="row g-4">
+    <div class="col-12 col-xl-8">
+      <article class="ft-admin-card product-admin-card">
+        <div class="ft-admin-card-header">
+          <i class="bi bi-plus-circle me-2 text-primary"></i>Nouveau produit
         </div>
-        {{ form_errors(form.price) }}
-    </div>
+        <div class="ft-admin-card-body">
+          {{ form_start(form, {attr: {class: 'row g-3', novalidate: 'novalidate'}}) }}
 
-    <div class="form-group">
-        <label class="field-label">Nouvelle Description</label>
-        {{ form_widget(form.description, {'attr': {'class': 'form-textarea'}}) }}
-        {{ form_errors(form.description) }}
-    </div>
-
-    <hr class="form-divider">
-
-    <div class="btn-row">
-        <button type="submit" class="btn btn-primary">✓ Ajouter le Produit</button>
-        <a href="{{ path('product_list') }}" class="btn btn-secondary">Annuler</a>
-    </div>
-    {{ form_end(form) }}
-</div>
-
-  <div class="col-12 col-xl-4">
-    <article class="ft-admin-card mb-4 product-admin-sidecard">
-      <div class="ft-admin-card-header">
-        <i class="bi bi-stars me-2 text-primary"></i>Guide de creation
-      </div>
-      <div class="ft-admin-card-body">
-        <div class="ft-admin-insight-list">
-          <div class="ft-admin-insight-item">
-            <strong>Categorie claire</strong>
-            <span>Choisissez une famille de produit explicite pour garder un catalogue propre et lisible.</span>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Categorie</label>
+            {{ form_widget(form.category, {attr: {class: 'form-select ft-input product-admin-input'}}) }}
+            {{ form_errors(form.category) }}
+            <div class="ft-filter-help">Choisissez un type de produit coherent avec l offre FinTrust.</div>
           </div>
-          <div class="ft-admin-insight-item">
-            <strong>Prix premium</strong>
-            <span>Affichez un tarif juste et positif pour eviter les erreurs de souscription en front.</span>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Prix (DT)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white text-primary">
+                <i class="bi bi-cash-stack"></i>
+              </span>
+              {{ form_widget(form.price, {attr: {class: 'form-control ft-input product-admin-input border-start-0', placeholder: 'Ex: 149.90'}}) }}
+              <span class="input-group-text bg-white text-primary fw-semibold">DT</span>
+            </div>
+            {{ form_errors(form.price) }}
+            <div class="ft-filter-help">Saisissez un montant strictement positif.</div>
           </div>
-          <div class="ft-admin-insight-item">
-            <strong>Description utile</strong>
-            <span>Une bonne description augmente la comprehension et la conversion des utilisateurs.</span>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Date de creation</label>
+            <input
+                    type="text"
+                    class="form-control ft-input product-admin-input"
+                    value="{{ 'now'|date('d/m/Y') }}"
+                    disabled
+            >
+            <div class="ft-filter-help">La date du jour sera appliquee automatiquement a l enregistrement.</div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Description</label>
+            {{ form_widget(form.description, {attr: {class: 'form-control ft-input product-admin-input product-admin-textarea', rows: 6, placeholder: 'Decrivez clairement le produit, ses avantages et son positionnement.'}}) }}
+            {{ form_errors(form.description) }}
+            <div class="ft-filter-help">La description doit etre claire, concise et utile pour la souscription.</div>
+          </div>
+
+          <div class="col-12 d-flex flex-wrap gap-2 pt-2">
+            <button type="submit" class="btn ft-btn-primary">
+              <i class="bi bi-check2-circle me-2"></i>Ajouter le produit
+            </button>
+            <a href="{{ path('product_list') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle me-2"></i>Annuler
+            </a>
+          </div>
+
+          {{ form_end(form) }}
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <article class="ft-admin-card mb-4 product-admin-sidecard">
+        <div class="ft-admin-card-header">
+          <i class="bi bi-stars me-2 text-primary"></i>Guide de creation
+        </div>
+        <div class="ft-admin-card-body">
+          <div class="ft-admin-insight-list">
+            <div class="ft-admin-insight-item">
+              <strong>Categorie claire</strong>
+              <span>Choisissez une famille de produit explicite pour garder un catalogue propre et lisible.</span>
+            </div>
+            <div class="ft-admin-insight-item">
+              <strong>Prix premium</strong>
+              <span>Affichez un tarif juste et positif pour eviter les erreurs de souscription en front.</span>
+            </div>
+            <div class="ft-admin-insight-item">
+              <strong>Description utile</strong>
+              <span>Une bonne description augmente la comprehension et la conversion des utilisateurs.</span>
+            </div>
           </div>
         </div>
-      </div>
-    </article>
-  </div>
-</section>
+      </article>
+    </div>
+  </section>
 {% endblock %}

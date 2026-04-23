@@ -1,7 +1,6 @@
 
 ###> symfony/framework-bundle ###
-
-
+/.idea/
 /config/secrets/prod/prod.decrypt.private.php
 
 ###< symfony/framework-bundle ###
@@ -11,12 +10,11 @@
 .phpunit.result.cache
 ###< phpunit/phpunit ###
 /var/
+/vendor/
 /migrations/
 ###> symfony/phpunit-bridge ###
-.phpunit.result.cache
-/phpunit.xml
 ###< symfony/phpunit-bridge ###
-
+/assets/vendor/
 ###> symfony/asset-mapper ###
 /var/cache/
 /var/log/
