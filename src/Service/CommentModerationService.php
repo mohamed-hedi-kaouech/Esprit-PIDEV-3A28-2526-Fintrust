@@ -43,9 +43,9 @@ class CommentModerationService
         private readonly NotificationService $notificationService,
         private readonly string $openAiApiKey,
         private readonly string $openAiModerationModel,
+
     ) {
     }
-
     /**
      * @return array{
      *   is_toxic: bool,

@@ -10,6 +10,8 @@ parameters:
     test_user_email: '%env(TEST_USER_EMAIL)%'
     openRouterKey: '%env(OPENROUTER_API_KEY)%'
     fintrust.public_url: '%env(string:FINTRUST_PUBLIC_URL)%'
+    openai.api_key: '%env(string:OPENAI_API_KEY)%'
+    openai.moderation_model: '%env(string:OPENAI_MODERATION_MODEL)%'
 
 services:
     # default configuration for services in *this* file
@@ -25,6 +27,8 @@ services:
             string $testUserEmail: '%test_user_email%'
             string $openRouterKey: '%openRouterKey%'
             string $fintrustPublicUrl: '%fintrust.public_url%'
+            string $openAiApiKey: '%openai.api_key%'
+            string $openAiModerationModel: '%openai.moderation_model%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

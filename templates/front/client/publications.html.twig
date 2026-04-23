@@ -95,7 +95,7 @@
       <div class="ft-publications-grid">
         {% for publication in publications %}
           {% set categoryKey = (publication.categorie ?: 'default')|lower %}
-          <article class="ft-publication-card ft-publication-card--{{ categoryKey|replace({' ': '-', 'é': 'e', 'è': 'e', 'ê': 'e', 'à': 'a'}) }}">
+          <article class="ft-publication-card ft-publication-card--{{ categoryKey|replace({' ': '-', 'ï¿½': 'e', 'ï¿½': 'e', 'ï¿½': 'e', 'ï¿½': 'a'}) }}">
             <div class="ft-publication-card__cover">
               <div class="ft-publication-card__cover-orb"></div>
               <div class="ft-publication-card__cover-grid"></div>
@@ -144,7 +144,7 @@
                   </div>
                   <div class="ft-publication-card__engagement-copy">
                     <span class="ft-publication-card__engagement-label">Score d'engagement</span>
-                    <small>{{ publication.commentCount }} com. • {{ publication.likeCount }} likes • {{ publication.dislikeCount }} dislikes</small>
+                    <small>{{ publication.commentCount }} com. ï¿½ {{ publication.likeCount }} likes ï¿½ {{ publication.dislikeCount }} dislikes</small>
                   </div>
                 </div>
                 <span class="ft-publication-card__engagement-chip">
@@ -456,7 +456,7 @@
 
 .ft-publication-card--information,
 .ft-publication-card--actualite,
-.ft-publication-card--actualit? {
+.ft-publication-card--actualit {
   --ft-card-accent: #8b5cf6;
   --ft-card-accent-soft: rgba(139, 92, 246, 0.16);
   --ft-card-accent-soft-2: rgba(167, 139, 250, 0.12);
