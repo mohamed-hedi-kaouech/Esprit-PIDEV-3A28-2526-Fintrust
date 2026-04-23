@@ -26,9 +26,34 @@ class PublicationRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('p')
             ->leftJoin('p.feedbacks', 'f')
             ->addSelect('p')
-            ->addSelect('COUNT(f.idFeedback) AS HIDDEN commentCount')
-            ->addSelect('SUM(CASE WHEN f.typeReaction = :likeType THEN 1 ELSE 0 END) AS HIDDEN likeCount')
-            ->setParameter('likeType', 'LIKE')
+            ->addSelect("SUM(CASE WHEN f.commentaire IS NOT NULL AND TRIM(f.commentaire) <> '' THEN 1 ELSE 0 END) AS HIDDEN commentCount")
+            ->addSelect("SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'LIKE' THEN 1 ELSE 0 END) AS HIDDEN likeCount")
+            ->addSelect("SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'DISLIKE' THEN 1 ELSE 0 END) AS HIDDEN dislikeCount")
+            ->addSelect("SUM(CASE
+                WHEN UPPER(COALESCE(f.typeReaction, '')) = 'RATING_1' THEN 1
+                WHEN UPPER(COALESCE(f.typeReaction, '')) = 'RATING_2' THEN 2
+                WHEN UPPER(COALESCE(f.typeReaction, '')) = 'RATING_3' THEN 3
+                WHEN UPPER(COALESCE(f.typeReaction, '')) = 'RATING_4' THEN 4
+                WHEN UPPER(COALESCE(f.typeReaction, '')) = 'RATING_5' THEN 5
+                ELSE 0
+            END) AS HIDDEN ratingScore")
+            ->addSelect("SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) LIKE 'RATING_%' THEN 1 ELSE 0 END) AS HIDDEN ratingCount")
+            ->addSelect("(CASE WHEN SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) LIKE 'RATING_%' THEN 1 ELSE 0 END) > 0 THEN
+                SUM(CASE
+                    WHEN UPPER(COALESCE(f.typeReaction, '')) = 'RATING_1' THEN 1
+                    WHEN UPPER(COALESCE(f.typeReaction, '')) = 'RATING_2' THEN 2
+                    WHEN UPPER(COALESCE(f.typeReaction, '')) = 'RATING_3' THEN 3
+                    WHEN UPPER(COALESCE(f.typeReaction, '')) = 'RATING_4' THEN 4
+                    WHEN UPPER(COALESCE(f.typeReaction, '')) = 'RATING_5' THEN 5
+                    ELSE 0
+                END) / SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) LIKE 'RATING_%' THEN 1 ELSE 0 END)
+                ELSE 0
+            END) AS HIDDEN ratingAverage")
+            ->addSelect("(
+                (SUM(CASE WHEN f.commentaire IS NOT NULL AND TRIM(f.commentaire) <> '' THEN 1 ELSE 0 END) * 3)
+                + (SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'LIKE' THEN 1 ELSE 0 END) * 2)
+                - SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'DISLIKE' THEN 1 ELSE 0 END)
+            ) AS HIDDEN engagementScore")
             ->where('p.statut = :status')
             ->setParameter('status', Publication::STATUS_PUBLIE);
 
@@ -38,19 +63,45 @@ class PublicationRepository extends ServiceEntityRepository
         }
 
         if ($searchTerm) {
-            $qb->andWhere('p.titre LIKE :search OR p.contenu LIKE :search')
-                ->setParameter('search', '%' . $searchTerm . '%');
+            $qb->andWhere('LOWER(p.titre) LIKE :search OR LOWER(p.contenu) LIKE :search')
+                ->setParameter('search', '%' . mb_strtolower($searchTerm) . '%');
         }
 
         match ($sortBy) {
-            'trending' => $qb->orderBy('commentCount', 'DESC')->addOrderBy('p.datePublication', 'DESC'),
-            'mieux_notees' => $qb->orderBy('likeCount', 'DESC')->addOrderBy('commentCount', 'DESC'),
+            'trending' => $qb->orderBy('engagementScore', 'DESC')->addOrderBy('commentCount', 'DESC')->addOrderBy('p.datePublication', 'DESC'),
+            'mieux_notees' => $qb->orderBy('ratingAverage', 'DESC')->addOrderBy('ratingCount', 'DESC')->addOrderBy('commentCount', 'DESC')->addOrderBy('p.datePublication', 'DESC'),
             default => $qb->orderBy('p.datePublication', 'DESC'),
         };
 
         return $qb
             ->groupBy('p.id')
             ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return Publication[]
+     */
+    public function findTopByEngagement(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.feedbacks', 'f')
+            ->addSelect("SUM(CASE WHEN f.commentaire IS NOT NULL AND TRIM(f.commentaire) <> '' THEN 1 ELSE 0 END) AS HIDDEN commentCount")
+            ->addSelect("SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'LIKE' THEN 1 ELSE 0 END) AS HIDDEN likeCount")
+            ->addSelect("SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'DISLIKE' THEN 1 ELSE 0 END) AS HIDDEN dislikeCount")
+            ->addSelect("(
+                (SUM(CASE WHEN f.commentaire IS NOT NULL AND TRIM(f.commentaire) <> '' THEN 1 ELSE 0 END) * 3)
+                + (SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'LIKE' THEN 1 ELSE 0 END) * 2)
+                - SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'DISLIKE' THEN 1 ELSE 0 END)
+            ) AS HIDDEN engagementScore")
+            ->where('p.statut = :status')
+            ->setParameter('status', Publication::STATUS_PUBLIE)
+            ->groupBy('p.id')
+            ->orderBy('engagementScore', 'DESC')
+            ->addOrderBy('commentCount', 'DESC')
+            ->addOrderBy('p.datePublication', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
@@ -69,8 +120,8 @@ class PublicationRepository extends ServiceEntityRepository
         }
 
         if ($searchTerm) {
-            $qb->andWhere('p.titre LIKE :search OR p.contenu LIKE :search')
-                ->setParameter('search', '%' . $searchTerm . '%');
+            $qb->andWhere('LOWER(p.titre) LIKE :search OR LOWER(p.contenu) LIKE :search')
+                ->setParameter('search', '%' . mb_strtolower($searchTerm) . '%');
         }
 
         return (int) $qb->getQuery()->getSingleScalarResult();

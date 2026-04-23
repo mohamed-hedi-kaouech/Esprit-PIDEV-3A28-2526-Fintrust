@@ -4,7 +4,7 @@
 
 {% block admin_content %}
 <div class="admin-publications-container">
-    <!-- En-tête avec bouton d'ajout -->
+    <!-- En-tete avec bouton d'ajout -->
     <div class="publications-header">
         <div class="header-info">
             <h1 class="page-title">
@@ -14,7 +14,7 @@
                 </svg>
                 Publications Bancaires
             </h1>
-            <p class="header-subtitle">Gérez vos publications, offres et contenu financier</p>
+            <p class="header-subtitle">G&eacute;rez vos publications, offres et contenus financiers dans une interface plus claire, plus fluide et plus premium.</p>
         </div>
         <div class="publication-actions">
             <a href="{{ path('admin_publications_create') }}" class="btn btn-primary btn-lg">
@@ -30,31 +30,31 @@
         </div>
     </div>
 
-    <!-- Statistiques élégantes -->
+    <!-- Statistiques elegantes -->
     <div class="stats-grid">
         <div class="stat-card stat-card-primary">
-            <div class="stat-icon">📰</div>
+            <div class="stat-icon">&#128240;</div>
             <div class="stat-content">
                 <h3 class="stat-value">{{ stats.total_publications }}</h3>
                 <p class="stat-label">Publications totales</p>
             </div>
         </div>
         <div class="stat-card stat-card-success">
-            <div class="stat-icon">✅</div>
+            <div class="stat-icon">&#9989;</div>
             <div class="stat-content">
                 <h3 class="stat-value">{{ stats.published_publications }}</h3>
-                <p class="stat-label">Publications publiées</p>
+                <p class="stat-label">Publications publi&eacute;es</p>
             </div>
         </div>
         <div class="stat-card stat-card-info">
-            <div class="stat-icon">💬</div>
+            <div class="stat-icon">&#128172;</div>
             <div class="stat-content">
                 <h3 class="stat-value">{{ stats.total_comments }}</h3>
                 <p class="stat-label">Commentaires totaux</p>
             </div>
         </div>
         <div class="stat-card stat-card-warning">
-            <div class="stat-icon">⭐</div>
+            <div class="stat-icon">&#11088;</div>
             <div class="stat-content">
                 <h3 class="stat-value">{{ stats.total_feedbacks }}</h3>
                 <p class="stat-label">Interactions totales</p>
@@ -66,7 +66,7 @@
     <div class="filters-section">
         <form method="GET" class="filters-form">
             <div class="filter-group">
-                <label for="search" class="filter-label">🔍 Rechercher</label>
+                <label for="search" class="filter-label">&#128269; Rechercher</label>
                 <input 
                     type="text" 
                     id="search" 
@@ -78,9 +78,9 @@
             </div>
 
             <div class="filter-group">
-                <label for="category" class="filter-label">📂 Catégorie</label>
+                <label for="category" class="filter-label">&#128194; Cat&eacute;gorie</label>
                 <select id="category" name="category" class="filter-select">
-                    <option value="">Toutes les catégories</option>
+                    <option value="">Toutes les cat&eacute;gories</option>
                     {% for cat in categories %}
                         <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>
                             {{ cat starts with 'Actualit' ? 'Actualit&eacute;' : (cat == 'CYBERSECURITE' ? 'Cybers&eacute;curit&eacute;' : (cat == 'TECH' ? 'Tech' : (cat == 'assurance' ? 'Assurance' : cat))) }}
@@ -90,12 +90,12 @@
             </div>
 
             <div class="filter-group">
-                <label for="sort" class="filter-label">📊 Tri</label>
+                <label for="sort" class="filter-label">&#128202; Tri</label>
                 <select id="sort" name="sort" class="filter-select">
-                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Plus récentes</option>
-                    <option value="views" {% if sort_by == 'views' %}selected{% endif %}>Plus consultées</option>
-                    <option value="comments" {% if sort_by == 'comments' %}selected{% endif %}>Plus commentées</option>
-                    <option value="likes" {% if sort_by == 'likes' %}selected{% endif %}>Tendance</option>
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Plus r&eacute;centes</option>
+                    <option value="likes" {% if sort_by == 'likes' %}selected{% endif %}>Plus lik&eacute;es</option>
+                    <option value="comments" {% if sort_by == 'comments' %}selected{% endif %}>Plus comment&eacute;es</option>
+                    <option value="engagement" {% if sort_by == 'engagement' %}selected{% endif %}>Tendance</option>
                 </select>
             </div>
 
@@ -104,93 +104,128 @@
     </div>
 
     <!-- Tableau des publications -->
-    <div class="publications-table-wrapper">
-        {% if publications|length > 0 %}
-            <table class="publications-table">
-                <thead>
-                    <tr>
-                        <th>Titre</th>
-                        <th>Catégorie</th>
-                        <th>Statut</th>
-                        <th>Date</th>
-                        <th class="text-center">Vues</th>
-                        <th class="text-center">Likes</th>
-                        <th class="text-center">Dislikes</th>
-                        <th class="text-center">Commentaires</th>
-                        <th class="text-center">Note</th>
-                        <th class="text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for pub in publications %}
-                        <tr class="publication-row">
-                            <td class="title-cell">
-                                <strong>{{ pub.titre|slice(0, 30) }}{{ pub.titre|length > 30 ? '...' : '' }}</strong>
-                            </td>
-                            <td>
-                                <span class="badge badge-category">
-                                    {{ pub.categorie ? (pub.categorie starts with 'Actualit' ? 'Actualit&eacute;' : (pub.categorie == 'CYBERSECURITE' ? 'Cybers&eacute;curit&eacute;' : (pub.categorie == 'TECH' ? 'Tech' : (pub.categorie == 'assurance' ? 'Assurance' : pub.categorie)))) : 'Non d&eacute;finie' }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge badge-{{ pub.statut == 'PUBLIE' ? 'published' : 'draft' }}">
-                                    {% if pub.statut == 'PUBLIE' %}Publie
-                                    {% elseif pub.statut == 'BROUILLON' %}Brouillon
-                                    {% else %}{{ pub.statut }}{% endif %}
-                                </span>
-                            </td>
-                            <td class="text-muted">{{ pub.datePublication ? pub.datePublication|date('d/m/Y') : '—' }}</td>
-                            <td class="text-center">
-                                <span class="stat-badge">—</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="stat-badge stat-badge-success">—</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="stat-badge stat-badge-danger">—</span>
-                            </td>
-                            <td class="text-center">
-                                <a href="{{ path('admin_publications_comments', {id: pub.id}) }}" class="stat-badge stat-badge-info stat-badge-link" title="Voir les commentaires">
-                                    Commentaires {{ pub.feedbacks|filter(feedback => feedback.commentaire is not empty)|length }}
-                                </a>
-                            </td>
-                            <td class="text-center">
-                                <small class="text-muted">Aucune note</small>
-                            </td>
-                            <td class="text-right">
-                                <div class="action-buttons">
-                                    <a href="{{ path('admin_publications_comments', {id: pub.id}) }}" class="btn-icon btn-info" title="Commentaires">
-                                        💬
-                                    </a>
-                                    <a href="{{ path('admin_publications_edit', {id: pub.id}) }}" class="btn-icon btn-warning" title="Modifier">
-                                        ✏️
-                                    </a>
-                                    <form method="POST" action="{{ path('admin_publications_delete', {id: pub.id}) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ pub.id) }}">
-                                        <button type="submit" class="btn-icon btn-danger" title="Supprimer">🗑️</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <div class="empty-state">
-                <div class="empty-icon">📭</div>
-                <h3>Aucune publication trouvée</h3>
-                <p>Créez votre première publication pour commencer</p>
-                <a href="{{ path('admin_publications_create') }}" class="btn btn-primary">Créer une publication</a>
+    <div class="publications-table-shell">
+        <div class="publications-table-shell__head">
+            <div>
+                <h2 class="publications-table-shell__title">Liste des publications</h2>
+                <p class="publications-table-shell__subtitle">Une lecture plus claire des contenus, des statuts et des actions admin.</p>
             </div>
-        {% endif %}
-    </div>
+            <span class="publications-table-shell__badge">{{ total }} publication{{ total > 1 ? 's' : '' }}</span>
+        </div>
 
+        <div class="publications-table-wrapper">
+            {% if publications|length > 0 %}
+                <table class="publications-table publications-table--premium">
+                    <thead>
+                        <tr>
+                            <th>Publication</th>
+                            <th>Cat&eacute;gorie</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                            <th class="text-center">Likes</th>
+                            <th class="text-center">Dislikes</th>
+                            <th class="text-center">Commentaires</th>
+                            <th class="text-center">Note</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pub in publications %}
+                            <tr class="publication-row">
+                                <td class="title-cell">
+                                    <div class="publication-primary-cell">
+                                        <strong class="publication-primary-cell__title">{{ pub.titre|slice(0, 42) }}{{ pub.titre|length > 42 ? '...' : '' }}</strong>
+                                        <span class="publication-primary-cell__meta">#{{ pub.id }} &bull; {{ pub.contenu|striptags|slice(0, 72) }}{{ pub.contenu|length > 72 ? '...' : '' }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-category badge-category--soft">
+                                        {{ pub.categorie ? (pub.categorie starts with 'Actualit' ? 'Actualit&eacute;' : (pub.categorie == 'CYBERSECURITE' ? 'Cybers&eacute;curit&eacute;' : (pub.categorie == 'TECH' ? 'Tech' : (pub.categorie == 'assurance' ? 'Assurance' : pub.categorie)))) : 'Non d&eacute;finie' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ pub.statut == 'PUBLIE' ? 'published' : 'draft' }} badge-status">
+                                        {% if pub.statut == 'PUBLIE' %}Publi&eacute;{% elseif pub.statut == 'BROUILLON' %}Brouillon{% else %}{{ pub.statut }}{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="date-pill">
+                                        <strong>{{ pub.datePublication ? pub.datePublication|date('d/m') : '--/--' }}</strong>
+                                        <span>{{ pub.datePublication ? pub.datePublication|date('Y') : '----' }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="metric-pill metric-pill--success" title="Likes">
+                                        <i class="bi bi-hand-thumbs-up"></i>
+                                        <strong>{{ pub.likeCount }}</strong>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="metric-pill metric-pill--danger" title="Dislikes">
+                                        <i class="bi bi-hand-thumbs-down"></i>
+                                        <strong>{{ pub.dislikeCount }}</strong>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ path('admin_publications_comments', {id: pub.id}) }}" class="stat-badge stat-badge-info stat-badge-link" title="Voir les commentaires">
+                                        <i class="bi bi-chat-left-text"></i>
+                                        <span>{{ pub.commentCount }} avis</span>
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    {% if pub.averageRating is not null %}
+                                        <span class="rating-pill">
+                                            <i class="bi bi-star-fill"></i>
+                                            <strong>{{ pub.averageRating }}</strong>
+                                            <small>/5</small>
+                                        </span>
+                                    {% else %}
+                                        <span class="rating-placeholder">Aucune note</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">
+                                    <div class="action-buttons">
+                                        <a href="{{ path('admin_publications_comments', {id: pub.id}) }}" class="btn-icon btn-info" title="Commentaires">
+                                            <span class="btn-icon__glyph"><i class="bi bi-chat-left-text"></i></span>
+                                            <span class="btn-icon__text">Avis</span>
+                                        </a>
+                                        <a href="{{ path('admin_publications_export_single_pdf', {id: pub.id}) }}" class="btn-icon btn-primary" title="Telecharger PDF intelligent">
+                                            <span class="btn-icon__glyph"><i class="bi bi-file-earmark-pdf"></i></span>
+                                            <span class="btn-icon__text">PDF intelligent</span>
+                                        </a>
+                                        <a href="{{ path('admin_publications_edit', {id: pub.id}) }}" class="btn-icon btn-warning" title="Modifier">
+                                            <span class="btn-icon__glyph"><i class="bi bi-pencil-square"></i></span>
+                                            <span class="btn-icon__text">Modifier</span>
+                                        </a>
+                                        <form method="POST" action="{{ path('admin_publications_delete', {id: pub.id}) }}" style="display:inline-flex;" onsubmit="return confirm('Confirmer la suppression?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ pub.id) }}">
+                                            <button type="submit" class="btn-icon btn-danger" title="Supprimer">
+                                                <span class="btn-icon__glyph"><i class="bi bi-trash3"></i></span>
+                                                <span class="btn-icon__text">Supprimer</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">&#128236;</div>
+                    <h3>Aucune publication trouv&eacute;e</h3>
+                    <p>Cr&eacute;ez votre premi&egrave;re publication pour commencer.</p>
+                    <a href="{{ path('admin_publications_create') }}" class="btn btn-primary">Cr&eacute;er une publication</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
     <!-- Pagination -->
     {% if total_pages > 1 %}
         <div class="pagination">
             {% if current_page > 1 %}
-                <a href="{{ path('admin_publications_index', {page: 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">« Première</a>
-                <a href="{{ path('admin_publications_index', {page: current_page - 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">‹ Précédente</a>
+                <a href="{{ path('admin_publications_index', {page: 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">&laquo; Premi&egrave;re</a>
+                <a href="{{ path('admin_publications_index', {page: current_page - 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">&lsaquo; Pr&eacute;c&eacute;dente</a>
             {% endif %}
 
             {% for page in range(1, total_pages) %}
@@ -203,8 +238,8 @@
             {% endfor %}
 
             {% if current_page < total_pages %}
-                <a href="{{ path('admin_publications_index', {page: current_page + 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">Suivante ›</a>
-                <a href="{{ path('admin_publications_index', {page: total_pages, search: search, category: current_category, sort: sort_by}) }}" class="page-link">Dernière »</a>
+                <a href="{{ path('admin_publications_index', {page: current_page + 1, search: search, category: current_category, sort: sort_by}) }}" class="page-link">Suivante &rsaquo;</a>
+                <a href="{{ path('admin_publications_index', {page: total_pages, search: search, category: current_category, sort: sort_by}) }}" class="page-link">Derni&egrave;re &raquo;</a>
             {% endif %}
         </div>
     {% endif %}
@@ -234,8 +269,8 @@
                 <strong class="analytics-summary-card__value">{{ feedback_insights.totals.dislikes }}</strong>
             </div>
             <div class="analytics-summary-card analytics-summary-card--accent">
-                <span class="analytics-summary-card__label">Signals</span>
-                <strong class="analytics-summary-card__value">{{ feedback_insights.total_signals }}</strong>
+                <span class="analytics-summary-card__label">Score engagement</span>
+                <strong class="analytics-summary-card__value">{{ (feedback_insights.totals.comments * 3) + (feedback_insights.totals.likes * 2) - feedback_insights.totals.dislikes }}</strong>
             </div>
         </div>
 
@@ -255,7 +290,7 @@
                             <div class="category-performance-item__top">
                                 <div>
                                     <h4>{{ item.category starts with 'Actualit' ? 'Actualit&eacute;' : (item.category in ['CYBERSECURITE', 'Cybersecurite', 'Cybers?curit?'] ? 'Cybers&eacute;curit&eacute;' : item.category) }}</h4>
-                                    <p>{{ item.publications }} publication{{ item.publications > 1 ? 's' : '' }} � {{ item.engagement }} signal{{ item.engagement > 1 ? 's' : '' }}</p>
+                                    <p>{{ item.publications }} publication{{ item.publications > 1 ? 's' : '' }} &bull; {{ item.engagement }} signal{{ item.engagement > 1 ? 's' : '' }}</p>
                                 </div>
                                 <div class="category-performance-item__metrics">
                                     <span>&#128077; {{ item.likes }} likes</span>
@@ -294,6 +329,123 @@
             </section>
 
             <section class="advanced-panel">
+                {% set commentImpact = feedback_insights.totals.comments * 3 %}
+                {% set likeImpact = feedback_insights.totals.likes * 2 %}
+                {% set dislikeImpact = feedback_insights.totals.dislikes %}
+                {% set engagementChartTotal = commentImpact + likeImpact + dislikeImpact %}
+                {% set commentShare = engagementChartTotal > 0 ? ((commentImpact / engagementChartTotal) * 100)|round(2, 'floor') : 0 %}
+                {% set likeShare = engagementChartTotal > 0 ? ((likeImpact / engagementChartTotal) * 100)|round(2, 'floor') : 0 %}
+                {% set dislikeShare = engagementChartTotal > 0 ? (100 - commentShare - likeShare)|round(2, 'floor') : 0 %}
+                <div class="advanced-panel__head">
+                    <div>
+                        <h3>Vue globale du score d'engagement</h3>
+                        <p>Lecture visuelle de la formule engagement = commentaires x3 + likes x2 - dislikes.</p>
+                    </div>
+                    <span class="advanced-panel__badge">Synthese generale</span>
+                </div>
+
+                <div class="engagement-overview-card">
+                    <div
+                        class="engagement-overview-card__chart"
+                        style="--comments-share: {{ commentShare }}; --likes-share: {{ likeShare }}; --dislikes-share: {{ dislikeShare }};"
+                    >
+                        <div class="engagement-overview-card__chart-inner">
+                            <span class="engagement-overview-card__eyebrow">Score global</span>
+                            <strong>{{ (feedback_insights.totals.comments * 3) + (feedback_insights.totals.likes * 2) - feedback_insights.totals.dislikes }}</strong>
+                            <small>{{ feedback_insights.totals.comments + feedback_insights.totals.likes + feedback_insights.totals.dislikes }} interactions</small>
+                        </div>
+                    </div>
+
+                    <div class="engagement-overview-card__legend">
+                        <div class="engagement-overview-card__legend-head">
+                            <h4>Composition du score</h4>
+                            <p>Le cercle montre l�impact de chaque type d�interaction sur le score global.</p>
+                        </div>
+
+                        <div class="engagement-overview-card__legend-list">
+                            <div class="engagement-legend-item engagement-legend-item--comments">
+                                <span class="engagement-legend-item__dot"></span>
+                                <div>
+                                    <strong>Commentaires x3</strong>
+                                    <small>{{ feedback_insights.totals.comments }} commentaire{{ feedback_insights.totals.comments > 1 ? 's' : '' }} � impact {{ commentImpact }}</small>
+                                </div>
+                                <span class="engagement-legend-item__value">{{ commentShare|round(0, 'common') }}%</span>
+                            </div>
+
+                            <div class="engagement-legend-item engagement-legend-item--likes">
+                                <span class="engagement-legend-item__dot"></span>
+                                <div>
+                                    <strong>Likes x2</strong>
+                                    <small>{{ feedback_insights.totals.likes }} like{{ feedback_insights.totals.likes > 1 ? 's' : '' }} � impact {{ likeImpact }}</small>
+                                </div>
+                                <span class="engagement-legend-item__value">{{ likeShare|round(0, 'common') }}%</span>
+                            </div>
+
+                            <div class="engagement-legend-item engagement-legend-item--dislikes">
+                                <span class="engagement-legend-item__dot"></span>
+                                <div>
+                                    <strong>Dislikes</strong>
+                                    <small>{{ feedback_insights.totals.dislikes }} dislike{{ feedback_insights.totals.dislikes > 1 ? 's' : '' }} � pression -{{ dislikeImpact }}</small>
+                                </div>
+                                <span class="engagement-legend-item__value">{{ dislikeShare|round(0, 'common') }}%</span>
+                            </div>
+                        </div>
+
+                        <div class="engagement-overview-card__mini-stats">
+                            <div class="engagement-mini-stat">
+                                <span>Commentaires</span>
+                                <strong>{{ feedback_insights.totals.comments }}</strong>
+                            </div>
+                            <div class="engagement-mini-stat engagement-mini-stat--success">
+                                <span>Likes</span>
+                                <strong>{{ feedback_insights.totals.likes }}</strong>
+                            </div>
+                            <div class="engagement-mini-stat engagement-mini-stat--danger">
+                                <span>Dislikes</span>
+                                <strong>{{ feedback_insights.totals.dislikes }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="advanced-panel__subhead">
+                    <div>
+                        <h4>Top publications</h4>
+                        <p>Classement secondaire pour identifier les publications qui tirent le score vers le haut.</p>
+                    </div>
+                    <span class="advanced-panel__badge advanced-panel__badge--soft">{{ top_publications|length }} publications</span>
+                </div>
+
+                <div class="feedback-category-table feedback-category-table--bars">
+                    <div class="feedback-category-table__head">
+                        <span>Publication</span>
+                        <span>Impact</span>
+                    </div>
+                    {% set topMaxScore = top_publications is not empty ? (top_publications|first).engagementScore : 0 %}
+                    {% for pub in top_publications %}
+                        {% set scoreRatio = topMaxScore > 0 ? ((pub.engagementScore / topMaxScore) * 100)|round(0, 'floor') : 0 %}
+                        <div class="feedback-category-table__row feedback-category-table__row--bar">
+                            <div>
+                                <strong>{{ pub.titre }}</strong>
+                                <small>&#128172; {{ pub.commentCount }} commentaires &nbsp; &#128077; {{ pub.likeCount }} likes &nbsp; &#128078; {{ pub.dislikeCount }} dislikes</small>
+                            </div>
+                            <div class="feedback-category-table__bar-wrap">
+                                <div class="feedback-category-table__bar-track">
+                                    <div class="feedback-category-table__bar-fill" style="width: {{ scoreRatio }}%"></div>
+                                </div>
+                                <span class="feedback-category-table__total">{{ pub.engagementScore }}</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="advanced-empty-state">
+                            <h4>Aucune publication classee</h4>
+                            <p>Le top apparaitra des que les publications recevront des interactions.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="advanced-panel">
                 <div class="advanced-panel__head">
                     <div>
                         <h3>Chart hebdomadaire des publications</h3>
@@ -302,71 +454,62 @@
                     <span class="advanced-panel__badge">Lundi a Dimanche</span>
                 </div>
 
-                <div class="weekly-publication-chart">
-                    {% for item in weekly_publication_stats %}
-                        <div class="weekly-publication-chart__row">
-                            <div class="weekly-publication-chart__label-wrap">
-                                <span class="weekly-publication-chart__label">{{ item.label }}</span>
-                                <span class="weekly-publication-chart__count">{{ item.count }} publication{{ item.count > 1 ? 's' : '' }}</span>
+                <div class="weekly-publication-chart weekly-publication-chart--bars">
+                    <div class="weekly-publication-chart__axis">
+                        <span>Max</span>
+                        <span>Moyen</span>
+                        <span>0</span>
+                    </div>
+                    <div class="weekly-publication-chart__plot" aria-label="Publications par jour">
+                        {% for item in weekly_publication_stats %}
+                            <div
+                                class="weekly-publication-chart__bar-item"
+                                style="--bar-ratio: {{ item.ratio }}; --bar-index: {{ loop.index0 }};"
+                                title="{{ item.label }} : {{ item.count }} publication{{ item.count > 1 ? 's' : '' }}"
+                            >
+                                <span class="weekly-publication-chart__count">{{ item.count }}</span>
+                                <div class="weekly-publication-chart__bar">
+                                    <span></span>
+                                </div>
+                                <span class="weekly-publication-chart__label">{{ item.label|slice(0, 3) }}</span>
                             </div>
-                            <div class="weekly-publication-chart__track">
-                                <div class="weekly-publication-chart__fill" style="width: {{ item.ratio }}%"></div>
-                            </div>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 </div>
 
                 <div class="feedback-ratio-stack feedback-ratio-stack--compact">
-                    <div class="feedback-ratio-card feedback-ratio-card--success">
-                        <div class="feedback-ratio-card__top">
+                    <div class="feedback-ratio-card feedback-ratio-card--success" style="--ratio: {{ feedback_insights.positive_rate }};">
+                        <div class="feedback-ratio-card__gauge">
+                            <span>{{ feedback_insights.positive_rate }}%</span>
+                        </div>
+                        <div class="feedback-ratio-card__copy">
                             <span class="feedback-ratio-card__label">Ratio positif</span>
-                            <strong class="feedback-ratio-card__value">{{ feedback_insights.positive_rate }}%</strong>
-                        </div>
-                        <div class="feedback-ratio-card__track">
-                            <div class="feedback-ratio-card__fill" style="width: {{ feedback_insights.positive_rate }}%"></div>
+                            <strong class="feedback-ratio-card__value">{{ feedback_insights.totals.likes }} likes</strong>
+                            <small>Part des reactions favorables</small>
                         </div>
                     </div>
 
-                    <div class="feedback-ratio-card feedback-ratio-card--neutral">
-                        <div class="feedback-ratio-card__top">
+                    <div class="feedback-ratio-card feedback-ratio-card--neutral" style="--ratio: {{ feedback_insights.comment_rate }};">
+                        <div class="feedback-ratio-card__gauge">
+                            <span>{{ feedback_insights.comment_rate }}%</span>
+                        </div>
+                        <div class="feedback-ratio-card__copy">
                             <span class="feedback-ratio-card__label">Part commentaires</span>
-                            <strong class="feedback-ratio-card__value">{{ feedback_insights.comment_rate }}%</strong>
-                        </div>
-                        <div class="feedback-ratio-card__track">
-                            <div class="feedback-ratio-card__fill" style="width: {{ feedback_insights.comment_rate }}%"></div>
+                            <strong class="feedback-ratio-card__value">{{ feedback_insights.totals.comments }} commentaires</strong>
+                            <small>Poids des avis textuels</small>
                         </div>
                     </div>
 
-                    <div class="feedback-ratio-card feedback-ratio-card--danger">
-                        <div class="feedback-ratio-card__top">
+                    <div class="feedback-ratio-card feedback-ratio-card--danger" style="--ratio: {{ feedback_insights.negative_rate }};">
+                        <div class="feedback-ratio-card__gauge">
+                            <span>{{ feedback_insights.negative_rate }}%</span>
+                        </div>
+                        <div class="feedback-ratio-card__copy">
                             <span class="feedback-ratio-card__label">Ratio negatif</span>
-                            <strong class="feedback-ratio-card__value">{{ feedback_insights.negative_rate }}%</strong>
-                        </div>
-                        <div class="feedback-ratio-card__track">
-                            <div class="feedback-ratio-card__fill" style="width: {{ feedback_insights.negative_rate }}%"></div>
+                            <strong class="feedback-ratio-card__value">{{ feedback_insights.totals.dislikes }} dislikes</strong>
+                            <small>Signaux a surveiller</small>
                         </div>
                     </div>
-                </div>
-
-                <div class="feedback-category-table">
-                    <div class="feedback-category-table__head">
-                        <span>Categorie</span>
-                        <span>Signals</span>
-                    </div>
-                    {% for item in feedback_insights.top_feedback_categories %}
-                        <div class="feedback-category-table__row">
-                            <div>
-                                <strong>{{ item.category starts with 'Actualit' ? 'Actualit&eacute;' : (item.category in ['CYBERSECURITE', 'Cybersecurite', 'Cybers?curit?'] ? 'Cybers&eacute;curit&eacute;' : item.category) }}</strong>
-                                <small>&#128172; {{ item.comments }} commentaires &nbsp; &#128077; {{ item.likes }} likes &nbsp; &#128078; {{ item.dislikes }} dislikes</small>
-                            </div>
-                            <span class="feedback-category-table__total">{{ item.total }}</span>
-                        </div>
-                    {% else %}
-                        <div class="advanced-empty-state">
-                            <h4>Aucun feedback exploitable</h4>
-                            <p>Les signaux d'engagement apparaitront ici des que les utilisateurs commenceront a interagir.</p>
-                        </div>
-                    {% endfor %}
                 </div>
             </section>
             </section>
@@ -376,6 +519,8 @@
 <style>
 .admin-publications-container {
     padding: 2rem;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .publications-header {
@@ -405,18 +550,32 @@
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
 
 .stat-card {
-    padding: 1.5rem;
-    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    padding: 1.45rem;
+    border-radius: 24px;
     display: flex;
     gap: 1rem;
     align-items: center;
-    border: 1px solid #e2e8f0;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    box-shadow: 0 22px 44px rgba(15, 23, 42, 0.06);
+}
+
+.stat-card::after {
+    content: "";
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    top: -44px;
+    right: -32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
 }
 
 .stat-card-primary { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
@@ -425,32 +584,49 @@
 .stat-card-warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
 
 .stat-icon {
-    font-size: 2.5rem;
+    position: relative;
+    z-index: 1;
+    width: 4rem;
+    height: 4rem;
+    display: grid;
+    place-items: center;
+    border-radius: 20px;
+    font-size: 1.8rem;
+    background: rgba(255, 255, 255, 0.58);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .stat-value {
+    position: relative;
+    z-index: 1;
     font-size: 1.75rem;
     font-weight: 700;
     margin: 0;
 }
 
 .stat-label {
+    position: relative;
+    z-index: 1;
     font-size: 0.875rem;
     color: #64748b;
     margin: 0;
 }
 
 .filters-section {
-    background: #fff;
+    background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.1), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
     padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    border-radius: 26px;
+    border: 1px solid rgba(219, 234, 254, 0.95);
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.06);
     margin-bottom: 2rem;
+    max-width: 100%;
 }
 
 .filters-form {
     display: grid;
-    grid-template-columns: 1fr minmax(200px, 1fr) minmax(200px, 1fr) auto;
+    grid-template-columns: minmax(0, 1.2fr) minmax(180px, 0.8fr) minmax(180px, 0.8fr) auto;
     gap: 1rem;
     align-items: flex-end;
 }
@@ -469,48 +645,419 @@
 
 .filter-input,
 .filter-select {
-    padding: 0.625rem 0.875rem;
+    min-height: 52px;
+    padding: 0.85rem 1rem;
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
+    border-radius: 16px;
     font-size: 0.875rem;
+    background: rgba(255, 255, 255, 0.92);
+    transition: border-color 0.24s ease, box-shadow 0.24s ease, transform 0.24s ease;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    outline: none;
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+.publications-table-shell {
+    margin-top: 1.4rem;
+}
+
+.publications-table-shell__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.publications-table-shell__head h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.35rem;
+}
+
+.publications-table-shell__head p {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+}
+
+.publications-table-shell__count {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.65rem 0.95rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1d4ed8;
+    font-weight: 800;
+    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.12);
 }
 
 .publications-table-wrapper {
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 22px;
+    border: 1px solid rgba(191, 219, 254, 0.65);
     overflow: hidden;
+    overflow-x: auto;
+    max-width: 100%;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(14px);
 }
 
 .publications-table {
     width: 100%;
+    min-width: 1080px;
     border-collapse: collapse;
 }
 
 .publications-table thead {
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
+    background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+    border-bottom: 1px solid #dbe7fb;
 }
 
 .publications-table th {
-    padding: 1rem;
+    padding: 1.1rem 1rem;
     text-align: left;
-    font-weight: 600;
-    font-size: 0.875rem;
+    font-weight: 800;
+    font-size: 0.8rem;
     color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
 .publications-table tbody tr {
-    border-bottom: 1px solid #e2e8f0;
-    transition: background 0.2s;
+    border-bottom: 1px solid #edf2fb;
+    transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
 }
 
 .publications-table tbody tr:hover {
-    background: #f1f5f9;
+    background: linear-gradient(90deg, rgba(239, 246, 255, 0.95), rgba(248, 250, 252, 0.95));
+    box-shadow: inset 4px 0 0 #3b82f6;
+}
+
+.publications-table td {
+    padding: 0.95rem 1rem;
+    vertical-align: middle;
 }
 
 .title-cell {
-    font-weight: 500;
+    min-width: 280px;
+}
+
+.publication-main {
+    display: flex;
+    align-items: stretch;
+    gap: 0.85rem;
+}
+
+.publication-main__accent {
+    width: 4px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #2563eb, #60a5fa);
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22);
+}
+
+.publication-main__content {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.publication-main__title {
+    display: block;
+    color: #0f172a;
+    font-size: 0.98rem;
+    line-height: 1.35;
+}
+
+.publication-main__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.publication-main__meta span {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.28rem 0.55rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.publication-date {
+    display: inline-grid;
+    gap: 0.15rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    min-width: 68px;
+    text-align: center;
+}
+
+.publication-date__day {
+    color: #0f172a;
+    font-weight: 800;
+}
+
+.publication-date__year {
+    color: #64748b;
+    font-size: 0.78rem;
+}
+
+.publications-table-shell {
+    position: relative;
+    margin-bottom: 1.9rem;
+    padding: 1.2rem;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.12), transparent 26%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+    border: 1px solid rgba(219, 234, 254, 0.95);
+    box-shadow: 0 26px 60px rgba(15, 23, 42, 0.07);
+}
+
+.publications-table-shell__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.publications-table-shell__title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.3rem;
+    letter-spacing: -0.02em;
+}
+
+.publications-table-shell__subtitle {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+    line-height: 1.65;
+}
+
+.publications-table-shell__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 0.95rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #dbeafe, #c7d2fe);
+    color: #1d4ed8;
+    font-weight: 800;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.publications-table--premium th {
+    padding: 1rem 0.9rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.publications-table--premium td {
+    padding: 0.95rem 0.9rem;
+    vertical-align: middle;
+}
+
+.publications-table-wrapper {
+    border-radius: 22px;
+    overflow: auto;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(219, 234, 254, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.publications-table--premium thead {
+    background: linear-gradient(180deg, #f8fbff, #eef5ff);
+}
+
+.publication-primary-cell {
+    display: grid;
+    gap: 0.28rem;
+}
+
+.publication-primary-cell__title {
+    display: block;
+    color: #0f172a;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.publication-primary-cell__meta {
+    display: block;
+    color: #64748b;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+.publication-row {
+    transition: transform 0.24s ease, background 0.24s ease, box-shadow 0.24s ease;
+}
+
+.publication-row:hover {
+    background: linear-gradient(90deg, rgba(239, 246, 255, 0.64), rgba(248, 250, 252, 0.92));
+    box-shadow: inset 4px 0 0 #60a5fa;
+}
+
+.date-pill {
+    width: 86px;
+    padding: 0.68rem 0.72rem;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    border: 1px solid #dbe5f0;
+    text-align: center;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.date-pill strong {
+    display: block;
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.date-pill span {
+    display: block;
+    margin-top: 0.2rem;
+    color: #64748b;
+    font-size: 0.78rem;
+}
+
+.stat-badge-muted {
+    color: #475569;
+}
+
+.badge-category--soft {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.badge-status {
+    min-width: 92px;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.metric-pill {
+    min-width: 70px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+    padding: 0.55rem 0.72rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.metric-pill i {
+    font-size: 0.82rem;
+}
+
+.metric-pill strong {
+    font-size: 0.86rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.metric-pill--neutral {
+    color: #475569;
+}
+
+.metric-pill--success {
+    color: #16a34a;
+}
+
+.metric-pill--danger {
+    color: #dc2626;
+}
+
+.rating-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #fff7ed, #ffedd5);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    color: #b45309;
+    box-shadow: 0 10px 24px rgba(245, 158, 11, 0.10);
+}
+
+.rating-pill i {
+    color: #f59e0b;
+    font-size: 0.82rem;
+}
+
+.rating-pill strong {
+    font-size: 0.86rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.rating-pill small {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #c2410c;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: nowrap;
+}
+
+.btn-icon {
+    min-height: 2.85rem;
+    min-width: 2.85rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    box-shadow: 0 14px 24px rgba(15, 23, 42, 0.08);
+    position: relative;
+}
+
+.btn-icon__glyph {
+    line-height: 1;
+    font-size: 1rem;
+}
+
+.btn-icon__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.rating-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: 0.83rem;
+    font-weight: 700;
 }
 
 .pie-chart-card {
@@ -776,105 +1323,234 @@
 }
 
 .weekly-publication-chart {
+    position: relative;
     display: grid;
-    gap: 0.85rem;
-    margin-bottom: 1.1rem;
-}
-
-.weekly-publication-chart__row {
-    display: grid;
-    gap: 0.45rem;
-}
-
-.weekly-publication-chart__label-wrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-}
-
-.weekly-publication-chart__label {
-    color: #0f172a;
-    font-weight: 700;
-}
-
-.weekly-publication-chart__count {
-    color: #64748b;
-    font-size: 0.82rem;
-}
-
-.weekly-publication-chart__track {
-    width: 100%;
-    height: 12px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #dbeafe, #e0f2fe);
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 0.9rem;
+    min-height: 300px;
+    margin: 1rem 0 1.35rem;
+    padding: 1rem 1rem 0.8rem;
+    border-radius: 18px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.96)),
+        radial-gradient(circle at 12% 12%, rgba(59, 130, 246, 0.13), transparent 28%);
+    border: 1px solid #dbeafe;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 16px 32px rgba(15, 23, 42, 0.06);
     overflow: hidden;
 }
 
-.weekly-publication-chart__fill {
+.weekly-publication-chart::before {
+    content: "";
+    position: absolute;
+    inset: 1rem 1rem 3.1rem 4.25rem;
+    background-image: linear-gradient(to bottom, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
+    background-size: 100% 33.333%;
+    pointer-events: none;
+}
+
+.weekly-publication-chart__axis {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.2rem 0 2.15rem;
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.weekly-publication-chart__plot {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(42px, 1fr));
+    gap: 0.75rem;
+    align-items: end;
+    min-height: 260px;
+}
+
+.weekly-publication-chart__bar-item {
+    --bar-color-a: #2563eb;
+    --bar-color-b: #60a5fa;
+    --bar-height: max(8px, calc(var(--bar-ratio) * 1%));
+    display: grid;
+    grid-template-rows: 26px minmax(0, 1fr) 24px;
+    justify-items: center;
+    align-items: end;
     height: 100%;
+    min-width: 0;
+}
+
+.weekly-publication-chart__bar-item:nth-child(2n) {
+    --bar-color-a: #0f766e;
+    --bar-color-b: #2dd4bf;
+}
+
+.weekly-publication-chart__bar-item:nth-child(3n) {
+    --bar-color-a: #7c3aed;
+    --bar-color-b: #a78bfa;
+}
+
+.weekly-publication-chart__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    min-height: 1.45rem;
+    padding: 0.18rem 0.45rem;
     border-radius: 999px;
-    background: linear-gradient(90deg, #1d4ed8, #3b82f6);
-    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.24);
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 0.76rem;
+    font-weight: 900;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.weekly-publication-chart__bar {
+    position: relative;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 190px;
+}
+
+.weekly-publication-chart__bar span {
+    width: clamp(24px, 58%, 52px);
+    height: var(--bar-height);
+    min-height: 8px;
+    border-radius: 16px 16px 7px 7px;
+    background: linear-gradient(180deg, var(--bar-color-b), var(--bar-color-a));
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--bar-color-a) 28%, transparent);
+    transform-origin: bottom;
+    animation: weeklyBarRise 0.75s ease both;
+    animation-delay: calc(var(--bar-index) * 70ms);
+}
+
+.weekly-publication-chart__bar-item:hover .weekly-publication-chart__bar span {
+    filter: saturate(1.15) brightness(1.04);
+    transform: scaleY(1.04);
+}
+
+.weekly-publication-chart__label {
+    width: 100%;
+    min-width: 0;
+    color: #334155;
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+@keyframes weeklyBarRise {
+    from {
+        transform: scaleY(0.08);
+        opacity: 0.4;
+    }
+    to {
+        transform: scaleY(1);
+        opacity: 1;
+    }
 }
 
 .feedback-ratio-stack--compact {
     margin-top: 1.25rem;
 }
+
 .feedback-ratio-stack {
     display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.9rem;
     margin-bottom: 1rem;
 }
 
 .feedback-ratio-card {
+    --ratio-color: #2563eb;
+    --ratio-soft: rgba(37, 99, 235, 0.12);
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 0.85rem;
+    align-items: center;
+    min-height: 124px;
     padding: 1rem;
-    border-radius: 16px;
-    background: #fff;
-    border: 1px solid #e5edf8;
+    border-radius: 18px;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9)),
+        radial-gradient(circle at top right, var(--ratio-soft), transparent 42%);
+    border: 1px solid color-mix(in srgb, var(--ratio-color) 24%, #e2e8f0);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.07);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.feedback-ratio-card__top {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    margin-bottom: 0.55rem;
+.feedback-ratio-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 22px 42px rgba(15, 23, 42, 0.1);
+}
+
+.feedback-ratio-card--success {
+    --ratio-color: #16a34a;
+    --ratio-soft: rgba(34, 197, 94, 0.14);
+}
+
+.feedback-ratio-card--neutral {
+    --ratio-color: #7c3aed;
+    --ratio-soft: rgba(124, 58, 237, 0.13);
+}
+
+.feedback-ratio-card--danger {
+    --ratio-color: #e11d48;
+    --ratio-soft: rgba(225, 29, 72, 0.12);
+}
+
+.feedback-ratio-card__gauge {
+    width: 86px;
+    height: 86px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at center, #ffffff 0 56%, transparent 57%),
+        conic-gradient(var(--ratio-color) calc(var(--ratio) * 1%), #e2e8f0 0);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 12px 26px var(--ratio-soft);
+}
+
+.feedback-ratio-card__gauge span {
+    color: #0f172a;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.feedback-ratio-card__copy {
+    min-width: 0;
 }
 
 .feedback-ratio-card__label {
+    display: block;
     color: #475569;
-    font-weight: 700;
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .feedback-ratio-card__value {
+    display: block;
+    margin-top: 0.32rem;
     color: #0f172a;
-    font-size: 1.45rem;
+    font-size: 1.05rem;
+    line-height: 1.2;
 }
 
-.feedback-ratio-card__track {
-    height: 10px;
-    border-radius: 999px;
-    background: #e2e8f0;
-    overflow: hidden;
-}
-
-.feedback-ratio-card__fill {
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #1d4ed8, #3b82f6);
-}
-
-.feedback-ratio-card--success .feedback-ratio-card__fill {
-    background: linear-gradient(90deg, #16a34a, #4ade80);
-}
-
-.feedback-ratio-card--danger .feedback-ratio-card__fill {
-    background: linear-gradient(90deg, #dc2626, #fb7185);
-}
-
-.feedback-ratio-card--neutral .feedback-ratio-card__fill {
-    background: linear-gradient(90deg, #3b82f6, #a78bfa);
+.feedback-ratio-card__copy small {
+    display: block;
+    margin-top: 0.35rem;
+    color: #64748b;
+    font-size: 0.78rem;
+    line-height: 1.4;
 }
 
 .feedback-category-table {
@@ -882,6 +1558,32 @@
     overflow: hidden;
     border: 1px solid #e2e8f0;
     background: #fff;
+}
+
+.advanced-panel__subhead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 1.35rem 0 0.85rem;
+}
+
+.advanced-panel__subhead h4 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1rem;
+}
+
+.advanced-panel__subhead p {
+    margin: 0.3rem 0 0;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.advanced-panel__badge--soft {
+    background: #eef2ff;
+    color: #4338ca;
 }
 
 .feedback-category-table__head,
@@ -927,6 +1629,210 @@
     font-weight: 800;
 }
 
+.engagement-overview-card {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 1.4rem;
+    align-items: center;
+    padding: 1.25rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(248, 250, 252, 0.96), rgba(239, 246, 255, 0.92));
+    border: 1px solid #dbeafe;
+}
+
+.engagement-overview-card__chart {
+    --comments-share: 0;
+    --likes-share: 0;
+    --dislikes-share: 0;
+    width: 190px;
+    height: 190px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at center, #ffffff 0 58%, transparent 59%),
+        conic-gradient(
+            from 220deg,
+            #2563eb 0 calc(var(--comments-share) * 1%),
+            #14b8a6 calc(var(--comments-share) * 1%) calc((var(--comments-share) + var(--likes-share)) * 1%),
+            #fb7185 calc((var(--comments-share) + var(--likes-share)) * 1%) 100%
+        );
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 18px 38px rgba(37, 99, 235, 0.12);
+    position: relative;
+}
+
+.engagement-overview-card__chart::before {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.92));
+}
+
+.engagement-overview-card__chart-inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    line-height: 1;
+}
+
+.engagement-overview-card__eyebrow {
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.engagement-overview-card__chart-inner strong {
+    margin-top: 0.45rem;
+    color: #0f172a;
+    font-size: 2rem;
+    font-weight: 900;
+}
+
+.engagement-overview-card__chart-inner small {
+    margin-top: 0.4rem;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.engagement-overview-card__legend {
+    display: grid;
+    gap: 1rem;
+}
+
+.engagement-overview-card__legend-head h4 {
+    margin: 0;
+    color: #0f172a;
+}
+
+.engagement-overview-card__legend-head p {
+    margin: 0.4rem 0 0;
+    color: #64748b;
+    line-height: 1.65;
+}
+
+.engagement-overview-card__legend-list {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.engagement-legend-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+}
+
+.engagement-legend-item__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.engagement-legend-item--comments .engagement-legend-item__dot {
+    background: #2563eb;
+}
+
+.engagement-legend-item--likes .engagement-legend-item__dot {
+    background: #14b8a6;
+}
+
+.engagement-legend-item--dislikes .engagement-legend-item__dot {
+    background: #fb7185;
+}
+
+.engagement-legend-item strong {
+    display: block;
+    color: #0f172a;
+}
+
+.engagement-legend-item small {
+    display: block;
+    margin-top: 0.2rem;
+    color: #64748b;
+    line-height: 1.45;
+}
+
+.engagement-legend-item__value {
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.engagement-overview-card__mini-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.engagement-mini-stat {
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid #dbeafe;
+}
+
+.engagement-mini-stat span {
+    display: block;
+    color: #64748b;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.engagement-mini-stat strong {
+    display: block;
+    margin-top: 0.4rem;
+    color: #1d4ed8;
+    font-size: 1.45rem;
+}
+
+.engagement-mini-stat--success strong {
+    color: #0f766e;
+}
+
+.engagement-mini-stat--danger strong {
+    color: #e11d48;
+}
+
+.feedback-category-table--bars .feedback-category-table__row,
+.feedback-category-table--bars .feedback-category-table__head {
+    grid-template-columns: minmax(0, 1fr) 150px;
+}
+
+.feedback-category-table__bar-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.feedback-category-table__bar-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: #dbeafe;
+    overflow: hidden;
+}
+
+.feedback-category-table__bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
+}
+
 .advanced-empty-state {
     padding: 1.35rem;
     border-radius: 16px;
@@ -969,42 +1875,80 @@
     color: #000;
 }
 
+.badge-category--soft {
+    padding: 0.45rem 0.85rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.badge-status {
+    min-width: 92px;
+    text-align: center;
+}
+
 .badge-published { background: #dcfce7; color: #15803d; }
 .badge-draft { background: #fef3c7; color: #92400e; }
 .badge-archived { background: #f3f4f6; color: #6b7280; }
 
 .stat-badge {
-    background: #f1f5f9;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid #dbeafe;
+    white-space: nowrap;
 }
 
 .stat-badge-success { color: #16a34a; }
 .stat-badge-danger { color: #dc2626; }
 .stat-badge-info { color: #0284c7; }
+.stat-badge-accent { color: #7c3aed; }
+
+.stat-badge-link {
+    text-decoration: none;
+    min-width: 84px;
+}
+
+.stat-badge-link:hover {
+    transform: translateY(-1px);
+    border-color: rgba(14, 165, 233, 0.35);
+}
+
+.stat-badge-score {
+    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+    border-color: #e9d5ff;
+}
 
 .action-buttons {
     display: flex;
-    gap: 0.5rem;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: nowrap;
 }
 
 .btn-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 6px;
-    font-size: 1.25rem;
-    border: none;
+    min-width: 2.85rem;
+    min-height: 2.85rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 16px;
+    font-size: 1rem;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+    box-shadow: 0 14px 24px rgba(15, 23, 42, 0.08);
 }
 
 .btn-icon:hover {
-    transform: scale(1.1);
+    transform: translateY(-2px);
 }
 
 .empty-state {
@@ -1223,12 +2167,53 @@
 }
 
 @media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filters-form {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .filters-form .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
     .analytics-summary-grid,
     .advanced-analytics-grid {
         grid-template-columns: 1fr 1fr;
     }
 }
 @media (max-width: 768px) {
+    .advanced-panel__subhead {
+        flex-direction: column;
+    }
+
+    .engagement-overview-card {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .engagement-overview-card__chart {
+        width: 170px;
+        height: 170px;
+    }
+
+    .engagement-overview-card__mini-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .feedback-category-table--bars .feedback-category-table__head,
+    .feedback-category-table--bars .feedback-category-table__row {
+        grid-template-columns: 1fr;
+    }
+
+    .publications-table-shell__head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     .publications-header {
         flex-direction: column;
         gap: 1rem;
@@ -1238,12 +2223,84 @@
         grid-template-columns: 1fr;
     }
 
+    .stats-grid,
+    .analytics-summary-grid,
+    .advanced-analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
     .publications-table {
         font-size: 0.75rem;
     }
 
     .action-buttons {
-        font-size: 0.75rem;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        min-width: 2.6rem;
+        min-height: 2.6rem;
+        padding: 0.55rem;
+    }
+
+    .metric-pill,
+    .stat-badge,
+    .rating-placeholder {
+        min-width: auto;
+        padding-inline: 0.65rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .feedback-ratio-stack {
+        grid-template-columns: 1fr;
+    }
+
+    .weekly-publication-chart {
+        grid-template-columns: 38px minmax(0, 1fr);
+        padding-inline: 0.8rem;
+    }
+
+    .weekly-publication-chart__plot {
+        gap: 0.45rem;
+        grid-template-columns: repeat(7, minmax(28px, 1fr));
+    }
+
+    .weekly-publication-chart__bar span {
+        width: clamp(18px, 64%, 38px);
+    }
+}
+
+@media (max-width: 560px) {
+    .weekly-publication-chart {
+        min-height: 250px;
+    }
+
+    .weekly-publication-chart__plot {
+        min-height: 210px;
+    }
+
+    .weekly-publication-chart__bar {
+        min-height: 145px;
+    }
+
+    .weekly-publication-chart__axis {
+        font-size: 0.62rem;
+    }
+
+    .weekly-publication-chart__label {
+        font-size: 0.68rem;
+    }
+
+    .feedback-ratio-card {
+        grid-template-columns: 78px minmax(0, 1fr);
+    }
+
+    .feedback-ratio-card__gauge {
+        width: 72px;
+        height: 72px;
     }
 }
 </style>
@@ -1269,11 +2326,4 @@
   }
 </script>
 {% endblock %}
-
-
-
-
-
-
-
 

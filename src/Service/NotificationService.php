@@ -206,4 +206,10 @@ class NotificationService
 
         return $updated;
     }
+
+    public function getUnreadCountForUser(User $user): int
+    {
+        return $this->em->getRepository(Notification::class)
+            ->count(['user' => $user, 'isRead' => false]);
+    }
 }

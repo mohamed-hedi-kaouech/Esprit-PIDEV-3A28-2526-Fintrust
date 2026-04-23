@@ -180,5 +180,50 @@ class Publication
 
         return $this;
     }
+
+    public function getLikeCount(): int
+    {
+        return $this->feedbacks->filter(
+            static fn (Feedback $feedback): bool => strtoupper((string) $feedback->getTypeReaction()) === 'LIKE'
+        )->count();
+    }
+
+    public function getDislikeCount(): int
+    {
+        return $this->feedbacks->filter(
+            static fn (Feedback $feedback): bool => strtoupper((string) $feedback->getTypeReaction()) === 'DISLIKE'
+        )->count();
+    }
+
+    public function getCommentCount(): int
+    {
+        return $this->feedbacks->filter(
+            static fn (Feedback $feedback): bool => trim((string) $feedback->getCommentaire()) !== ''
+        )->count();
+    }
+
+    public function getAverageRating(): ?float
+    {
+        $ratings = [];
+
+        foreach ($this->feedbacks as $feedback) {
+            $typeReaction = strtoupper((string) $feedback->getTypeReaction());
+
+            if (str_starts_with($typeReaction, 'RATING_')) {
+                $ratings[] = (int) substr($typeReaction, 7);
+            }
+        }
+
+        if ($ratings === []) {
+            return null;
+        }
+
+        return round(array_sum($ratings) / count($ratings), 1);
+    }
+
+    public function getEngagementScore(): int
+    {
+        return ($this->getCommentCount() * 3) + ($this->getLikeCount() * 2) - $this->getDislikeCount();
+    }
 }
 

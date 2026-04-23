@@ -93,6 +93,7 @@ class PublicationService
             'comments' => $totalComments,
             'likes' => $totalLikes,
             'dislikes' => $totalDislikes,
+            'engagement_score' => $this->calculateEngagementScore($totalComments, $totalLikes, $totalDislikes),
         ];
     }
 
@@ -164,25 +165,26 @@ class PublicationService
             GROUP BY p.categorie
             ORDER BY
                 (
-                    SUM(CASE WHEN f.commentaire IS NOT NULL AND TRIM(f.commentaire) <> '' THEN 1 ELSE 0 END)
-                    + SUM(CASE WHEN UPPER(COALESCE(f.type_reaction, '')) = 'LIKE' THEN 1 ELSE 0 END)
-                    + SUM(CASE WHEN UPPER(COALESCE(f.type_reaction, '')) = 'DISLIKE' THEN 1 ELSE 0 END)
+                    (SUM(CASE WHEN f.commentaire IS NOT NULL AND TRIM(f.commentaire) <> '' THEN 1 ELSE 0 END) * 3)
+                    + (SUM(CASE WHEN UPPER(COALESCE(f.type_reaction, '')) = 'LIKE' THEN 1 ELSE 0 END) * 2)
+                    - SUM(CASE WHEN UPPER(COALESCE(f.type_reaction, '')) = 'DISLIKE' THEN 1 ELSE 0 END)
                 ) DESC,
                 SUM(CASE WHEN UPPER(COALESCE(f.type_reaction, '')) = 'LIKE' THEN 1 ELSE 0 END) DESC
             LIMIT 5
         SQL;
 
         $categories = array_map(static function (array $row) {
-            $comments = (int) $row['comments'];
-            $likes = (int) $row['likes'];
-            $dislikes = (int) $row['dislikes'];
+            $comments = (int) ($row['comments'] ?? $row['comment_count'] ?? 0);
+            $likes = (int) ($row['likes'] ?? $row['like_count'] ?? 0);
+            $dislikes = (int) ($row['dislikes'] ?? $row['dislike_count'] ?? 0);
 
             return [
-                'category' => $row['category'],
+                'category' => $row['category'] ?? $row['category_name'] ?? 'Non definie',
                 'comments' => $comments,
                 'likes' => $likes,
                 'dislikes' => $dislikes,
                 'total' => $comments + $likes + $dislikes,
+                'engagement_score' => self::computeEngagementScore($comments, $likes, $dislikes),
             ];
         }, array_slice($this->normalizeCategoryStatRows(
             $this->em->getConnection()->executeQuery($sql)->fetchAllAssociative()
@@ -194,8 +196,17 @@ class PublicationService
             'positive_rate' => $positiveRate,
             'negative_rate' => $negativeRate,
             'comment_rate' => $commentRate,
+            'engagement_score' => $feedbackStats['engagement_score'],
             'top_feedback_categories' => $categories,
         ];
+    }
+
+    /**
+     * @return Publication[]
+     */
+    public function getTopPublicationsByEngagement(int $limit = 5): array
+    {
+        return $this->publicationRepo->findTopByEngagement($limit);
     }
 
     public function getWeeklyPublicationStats(): array
@@ -285,17 +296,25 @@ class PublicationService
         $maxEngagement = 1;
 
         foreach ($grouped as $item) {
-            $engagement = $item['comments'] + $item['likes'] + $item['dislikes'];
+            $engagement = self::computeEngagementScore($item['comments'], $item['likes'], $item['dislikes']);
             $maxPublications = max($maxPublications, $item['publications']);
             $maxEngagement = max($maxEngagement, $engagement);
         }
 
         usort($grouped, static function (array $left, array $right) {
-            return [$right['publications'], $right['likes'], $right['comments']] <=> [$left['publications'], $left['likes'], $left['comments']];
+            return [
+                self::computeEngagementScore($right['comments'], $right['likes'], $right['dislikes']),
+                $right['publications'],
+                $right['likes'],
+            ] <=> [
+                self::computeEngagementScore($left['comments'], $left['likes'], $left['dislikes']),
+                $left['publications'],
+                $left['likes'],
+            ];
         });
 
         return array_map(static function (array $item) use ($maxPublications, $maxEngagement) {
-            $engagement = $item['comments'] + $item['likes'] + $item['dislikes'];
+            $engagement = self::computeEngagementScore($item['comments'], $item['likes'], $item['dislikes']);
 
             return [
                 'category' => $item['category'],
@@ -330,5 +349,15 @@ class PublicationService
             'TRADING ET INVESTISSEMENT' => 'Trading et Investissement',
             default => ucfirst(strtolower($value)),
         };
+    }
+
+    private function calculateEngagementScore(int $comments, int $likes, int $dislikes): int
+    {
+        return self::computeEngagementScore($comments, $likes, $dislikes);
+    }
+
+    private static function computeEngagementScore(int $comments, int $likes, int $dislikes): int
+    {
+        return ($comments * 3) + ($likes * 2) - $dislikes;
     }
 }

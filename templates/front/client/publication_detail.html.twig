@@ -3,91 +3,230 @@
 {% block title %}{{ publication.titre }}{% endblock %}
 
 {% block body %}
-<div class="ft-app-page">
-  <div class="container-fluid px-4 py-4" style="max-width:1080px">
+{% set safeAverage = averageRating is not null ? averageRating : 0 %}
+
+<div class="ft-detail-page">
+  <div class="container-fluid px-4 py-4" style="max-width: 1180px;">
     <div class="mb-4">
-      <a href="{{ path('front_module', {slug: 'publications'}) }}" class="btn btn-sm ft-btn-outline-primary">
+      <a href="{{ path('front_module', {slug: 'publications'}) }}" class="btn ft-detail-back-btn">
         <i class="bi bi-arrow-left me-2"></i>Retour aux publications
       </a>
     </div>
 
-    <div class="ft-app-card mb-4 overflow-hidden">
-      <div class="position-relative publication-hero">
-        <div class="publication-hero-mask"></div>
-        <div class="publication-hero-content">
-          <span class="badge ft-badge-small">{{ publication.categorie ?: 'Actualité' }}</span>
-          <h1 class="ft-page-title mt-3 mb-3">{{ publication.titre }}</h1>
-          <p class="text-muted mb-2">Publié le {{ publication.datePublication ? publication.datePublication|date('d/m/Y') : 'Date non définie' }}</p>
-          <div class="d-flex flex-wrap gap-3 align-items-center mt-3">
-            <span class="text-warning fw-semibold fs-6">{{ averageRating is not null ? averageRating ~ ' / 5' : 'Pas encore noté' }}</span>
-            <span class="text-white small">
-              {% for i in 1..5 %}
-                <i class="bi {{ averageRating >= i ? 'bi-star-fill' : 'bi-star' }}"></i>
-              {% endfor %}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="ft-app-card-body row g-4 pt-5">
-        <div class="col-lg-8">
-          <div class="publication-copy mb-4">
-            <p class="lead text-secondary">{{ publication.contenu|raw }}</p>
-          </div>
-
-          <div class="d-flex flex-wrap gap-3 mb-4">
-            <form method="post" action="{{ path('front_publications_react', {id: publication.id, reaction: 'like'}) }}" novalidate="novalidate">
-              <input type="hidden" name="_token" value="{{ csrf_token('publication_react_' ~ publication.id) }}" />
-              <button type="submit" class="btn btn-outline-success btn-sm">
-                <i class="bi bi-hand-thumbs-up me-1"></i>Like ({{ likes }})
-              </button>
-            </form>
-            <form method="post" action="{{ path('front_publications_react', {id: publication.id, reaction: 'dislike'}) }}" novalidate="novalidate">
-              <input type="hidden" name="_token" value="{{ csrf_token('publication_react_' ~ publication.id) }}" />
-              <button type="submit" class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-hand-thumbs-down me-1"></i>Dislike ({{ dislikes }})
-              </button>
-            </form>
-          </div>
-
-          <div class="mb-4">
-            <h2 class="ft-section-title">Commentaires</h2>
-            {% if comments is empty %}
-              <p class="text-muted">Soyez le premier à laisser un avis sur cette publication.</p>
-            {% endif %}
-            {% for feedback in comments %}
-              <div class="comment-card mb-3">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <div>
-                    <span class="fw-semibold">{{ feedback.user.prenom }} {{ feedback.user.nom|first ~ '.' }}</span>
-                    <span class="text-muted small ms-2">{{ feedback.dateFeedback ? feedback.dateFeedback|date('d/m/Y H:i') : '...' }}</span>
-                  </div>
-                  <span class="badge ft-badge-neutral">Avis</span>
-                </div>
-                <p class="mb-2">{{ feedback.commentaire }}</p>
-                {% if feedback.typeReaction is not empty and feedback.typeReaction starts with('RATING_') %}
-                  <div class="small text-warning">
-                    {% set stars = feedback.typeReaction|split('_')[1]|default(0) %}
-                    {% for i in 1..5 %}
-                      <i class="bi {{ i <= stars ? 'bi-star-fill' : 'bi-star' }}"></i>
-                    {% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="col-lg-4">
-          <div class="ft-app-card h-100">
-            <div class="ft-app-card-header">
-              <i class="bi bi-chat-left-text me-2 text-primary"></i>Laisser un avis
+    <div class="ft-detail-shell">
+      <section class="ft-detail-hero">
+        <div class="ft-detail-hero__overlay"></div>
+        <div class="ft-detail-hero__content">
+          <div class="ft-detail-hero__main">
+            <div class="ft-detail-hero__badges">
+              <span class="badge ft-detail-badge">{{ publication.categorie ?: 'Actualite' }}</span>
+              <span class="ft-detail-kicker"><i class="bi bi-lightning-charge-fill"></i>Experience premium</span>
             </div>
-            <div class="ft-app-card-body">
+
+            <h1 class="ft-detail-title">{{ publication.titre }}</h1>
+
+            <p class="ft-detail-meta">
+              <span><i class="bi bi-calendar3"></i>Publie le {{ publication.datePublication ? publication.datePublication|date('d/m/Y') : 'Date non definie' }}</span>
+              <span><i class="bi bi-chat-dots"></i>{{ comments|length }} avis lecteur{{ comments|length > 1 ? 's' : '' }}</span>
+            </p>
+
+            <div class="ft-detail-stats">
+              <div class="ft-detail-stat">
+                <span class="ft-detail-stat__label">Interactions</span>
+                <strong>{{ likes + dislikes }}</strong>
+              </div>
+              <div class="ft-detail-stat">
+                <span class="ft-detail-stat__label">Likes</span>
+                <strong>{{ likes }}</strong>
+              </div>
+              <div class="ft-detail-stat">
+                <span class="ft-detail-stat__label">Note moyenne</span>
+                <strong>{{ averageRating is not null ? averageRating ~ '/5' : 'Pas encore notee' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <aside class="ft-detail-score-card">
+            <div class="ft-detail-score-card__ring">
+              <div class="ft-detail-score-card__inner">
+                <span class="ft-detail-score-card__value">{{ averageRating is not null ? averageRating : '--' }}</span>
+                <span class="ft-detail-score-card__scale">/5</span>
+              </div>
+            </div>
+            <div class="ft-detail-score-card__title">Satisfaction client</div>
+            <div class="ft-detail-score-card__stars">
+              {% for i in 1..5 %}
+                <i class="bi {{ safeAverage >= i ? 'bi-star-fill' : 'bi-star' }}"></i>
+              {% endfor %}
+            </div>
+            <div class="ft-detail-score-card__text">
+              {{ averageRating is not null ? 'Moyenne des retours collectes.' : 'En attente des premiers avis.' }}
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <div class="ft-detail-body">
+        <div class="row g-4">
+          <div class="col-lg-8">
+            <section class="ft-detail-card">
+              <div class="ft-detail-card__header">
+                <div>
+                  <span class="ft-detail-card__eyebrow">Lecture</span>
+                  <h2 class="ft-detail-card__title">Contenu de la publication</h2>
+                </div>
+              </div>
+              <div class="ft-detail-copy">{{ publication.contenu|raw }}</div>
+            </section>
+
+            <section class="ft-detail-card mt-4">
+              <div class="ft-detail-card__header">
+                <div>
+                  <span class="ft-detail-card__eyebrow">Interaction</span>
+                  <h2 class="ft-detail-card__title">Exprimez votre ressenti</h2>
+                </div>
+              </div>
+
+              <div class="ft-reaction-grid">
+                <form method="post" action="{{ path('front_publications_react', {id: publication.id, reaction: 'like'}) }}" novalidate="novalidate">
+                  <input type="hidden" name="_token" value="{{ csrf_token('publication_react_' ~ publication.id) }}">
+                  <button type="submit" class="ft-reaction-tile ft-reaction-tile--like">
+                    <span class="ft-reaction-tile__icon"><i class="bi bi-hand-thumbs-up-fill"></i></span>
+                    <span class="ft-reaction-tile__content">
+                      <span class="ft-reaction-tile__label">Like</span>
+                      <strong class="ft-reaction-tile__value">{{ likes }}</strong>
+                    </span>
+                  </button>
+                </form>
+
+                <form method="post" action="{{ path('front_publications_react', {id: publication.id, reaction: 'dislike'}) }}" novalidate="novalidate">
+                  <input type="hidden" name="_token" value="{{ csrf_token('publication_react_' ~ publication.id) }}">
+                  <button type="submit" class="ft-reaction-tile ft-reaction-tile--dislike">
+                    <span class="ft-reaction-tile__icon"><i class="bi bi-hand-thumbs-down-fill"></i></span>
+                    <span class="ft-reaction-tile__content">
+                      <span class="ft-reaction-tile__label">Dislike</span>
+                      <strong class="ft-reaction-tile__value">{{ dislikes }}</strong>
+                    </span>
+                  </button>
+                </form>
+              </div>
+            </section>
+
+            <section class="ft-detail-card mt-4">
+              <div class="ft-detail-card__header ft-detail-card__header--between">
+                <div>
+                  <span class="ft-detail-card__eyebrow">Communaute</span>
+                  <h2 class="ft-detail-card__title">Commentaires clients</h2>
+                </div>
+                <span class="ft-comments-count">{{ comments|length }} entree{{ comments|length > 1 ? 's' : '' }}</span>
+              </div>
+
+              {% if comments is empty %}
+                <div class="ft-empty-state">
+                  <i class="bi bi-chat-square-heart"></i>
+                  <p class="mb-0">Soyez le premier a laisser un avis sur cette publication.</p>
+                </div>
+              {% else %}
+                <div class="ft-comments-list">
+                  {% for feedback in comments %}
+                    <article class="ft-comment-card">
+                      <div class="ft-comment-card__header">
+                        <div class="ft-comment-card__identity">
+                          <span class="ft-comment-card__avatar">
+                            {{ feedback.user.prenom|default('U')|first|upper }}{{ feedback.user.nom|default('')|first|upper }}
+                          </span>
+                          <div>
+                            <div class="ft-comment-card__author">{{ feedback.user.prenom|default('Utilisateur') }} {{ feedback.user.nom is defined and feedback.user.nom ? feedback.user.nom|first ~ '.' : '' }}</div>
+                            <div class="ft-comment-card__meta">{{ feedback.dateFeedback ? feedback.dateFeedback|date('d/m/Y H:i') : '...' }}</div>
+                          </div>
+                        </div>
+                        <span class="badge ft-comment-card__badge">Avis client</span>
+                      </div>
+
+                      <p class="ft-comment-card__body">{{ feedback.commentaire }}</p>
+
+                      {% if feedback.typeReaction is not empty and feedback.typeReaction starts with('RATING_') %}
+                        {% set stars = feedback.typeReaction|split('_')[1]|default(0) %}
+                        <div class="ft-comment-card__stars">
+                          {% for i in 1..5 %}
+                            <i class="bi {{ i <= stars ? 'bi-star-fill' : 'bi-star' }}"></i>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+
+                      {% if app.user and feedback.user.id == app.user.id %}
+                        <div class="ft-comment-actions">
+                          <details class="ft-comment-edit">
+                            <summary>Modifier mon commentaire</summary>
+                            <form method="post" action="{{ path('front_publications_comment_edit', {id: publication.id, feedbackId: feedback.idFeedback}) }}" class="ft-comment-edit__form">
+                              <input type="hidden" name="_token" value="{{ csrf_token('edit_comment_' ~ feedback.idFeedback) }}">
+                              <textarea name="commentaire" rows="4" class="form-control ft-input">{{ feedback.commentaire }}</textarea>
+                              <select name="rating" class="form-select ft-input">
+                                {% set selectedStars = feedback.typeReaction is not empty and feedback.typeReaction starts with('RATING_') ? feedback.typeReaction|split('_')[1]|default(0) : 0 %}
+                                {% for value in [5, 4, 3, 2, 1] %}
+                                  <option value="{{ value }}" {% if selectedStars == value %}selected{% endif %}>{{ value }} etoile{{ value > 1 ? 's' : '' }}</option>
+                                {% endfor %}
+                              </select>
+                              <button type="submit" class="btn ft-btn-primary ft-comment-edit__submit">Enregistrer</button>
+                            </form>
+                          </details>
+
+                          <form method="post" action="{{ path('front_publications_comment_delete', {id: publication.id, feedbackId: feedback.idFeedback}) }}" onsubmit="return confirm('Supprimer votre commentaire ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_comment_' ~ feedback.idFeedback) }}">
+                            <button type="submit" class="btn ft-btn-danger-soft">Supprimer</button>
+                          </form>
+                        </div>
+                      {% endif %}
+
+                      {% if feedback.adminResponse is not empty %}
+                        <div class="ft-admin-reply">
+                          <div class="ft-admin-reply__header">
+                            <span><i class="bi bi-shield-check me-2"></i>Reponse de l'administration</span>
+                            {% if feedback.adminResponseDate %}
+                              <small>{{ feedback.adminResponseDate|date('d/m/Y H:i') }}</small>
+                            {% endif %}
+                          </div>
+                          <p class="mb-0">{{ feedback.adminResponse }}</p>
+                        </div>
+                      {% endif %}
+                    </article>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </section>
+          </div>
+
+          <div class="col-lg-4">
+            <aside class="ft-detail-card ft-feedback-card">
+              <div class="ft-feedback-card__top">
+                <div class="ft-feedback-card__icon"><i class="bi bi-chat-left-text"></i></div>
+                <div>
+                  <div class="ft-feedback-card__eyebrow">Votre feedback</div>
+                  <div class="ft-feedback-card__title">Laisser un avis</div>
+                </div>
+              </div>
+
+              <div class="ft-feedback-card__summary">
+                <h3>{{ publication.titre }}</h3>
+                <p>Publie le {{ publication.datePublication ? publication.datePublication|date('d/m/Y') : 'Date non definie' }}</p>
+                <ul class="ft-feedback-card__metrics">
+                  <li><span>Note moyenne</span><strong>{{ averageRating is not null ? averageRating ~ ' / 5' : 'Nouveau' }}</strong></li>
+                  <li><span>Commentaires</span><strong>{{ comments|length }}</strong></li>
+                  <li><span>Reactions</span><strong>{{ likes + dislikes }}</strong></li>
+                </ul>
+              </div>
+
+              {% if commentNotice %}
+                <div class="alert alert-{{ commentNotice.type == 'danger' ? 'danger' : 'warning' }} ft-feedback-card__alert" role="alert">
+                  <i class="bi {{ commentNotice.type == 'danger' ? 'bi-shield-exclamation' : 'bi-exclamation-triangle' }} me-2"></i>
+                  {{ commentNotice.message }}
+                </div>
+              {% endif %}
+
               {{ form_start(commentForm, {attr: {novalidate: 'novalidate'}}) }}
                 <div class="mb-3">
                   {{ form_label(commentForm.commentaire, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
-                  {{ form_widget(commentForm.commentaire, {attr: {class: 'form-control ft-input', rows: 4, placeholder: 'Votre commentaire'}}) }}
+                  {{ form_widget(commentForm.commentaire, {attr: {class: 'form-control ft-input ft-feedback-card__textarea', rows: 5, placeholder: 'Partagez votre avis, votre experience ou votre suggestion'}}) }}
                   {% if commentForm.commentaire.vars.errors|length > 0 %}
                     <div class="text-danger small mt-1">{{ form_errors(commentForm.commentaire) }}</div>
                   {% endif %}
@@ -119,7 +258,7 @@
                   <i class="bi bi-send-fill me-2"></i>Envoyer mon avis
                 </button>
               {{ form_end(commentForm) }}
-            </div>
+            </aside>
           </div>
         </div>
       </div>
@@ -130,100 +269,617 @@
 
 {% block stylesheets %}
 <style>
-.publication-hero {
-  min-height: 320px;
-  background: radial-gradient(circle at top left, rgba(191,219,254,0.38), transparent 32%),
-              radial-gradient(circle at right center, rgba(147,197,253,0.28), transparent 28%),
-              linear-gradient(135deg, rgba(29,78,216,0.94) 0%, rgba(59,130,246,0.9) 48%, rgba(125,211,252,0.78) 100%),
-              url('{{ asset('images/hero-publication.jpg') }}') center/cover no-repeat;
-  position: relative;
-  border-radius: 24px 24px 0 0;
+.ft-detail-page {
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 28%),
+    linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+  min-height: 100vh;
 }
-.publication-hero-mask {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(15,23,42,0.14), rgba(30,64,175,0.28));
-}
-.publication-hero-content {
-  position: relative;
-  color: white;
-  padding: 2.75rem 2.5rem 3rem;
-  text-shadow: 0 8px 22px rgba(15, 23, 42, 0.16);
-}
-.publication-copy p {
-  color: #334155;
-  line-height: 1.8;
-}
-.comment-card {
-  border-radius: 18px;
-  background: linear-gradient(180deg, #f8fbff, #f8fafc);
-  padding: 1.35rem;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.06);
-}
-.ft-badge-small {
-  background: rgba(255,255,255,0.88);
-  color: #1e3a8a;
-  padding: 0.5rem 0.9rem;
+
+.ft-detail-back-btn {
+  border: 1px solid #3b82f6;
+  color: #2563eb;
+  background: #fff;
   border-radius: 999px;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
-}
-.ft-app-card-header {
+  padding: 0.7rem 1rem;
   font-weight: 700;
 }
+
+.ft-detail-back-btn:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.ft-detail-shell {
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(191, 219, 254, 0.85);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 28px 70px rgba(37, 99, 235, 0.12);
+}
+
+.ft-detail-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 24%),
+    radial-gradient(circle at bottom center, rgba(191, 219, 254, 0.18), transparent 22%),
+    linear-gradient(135deg, rgba(30, 64, 175, 0.98) 0%, rgba(37, 99, 235, 0.92) 52%, rgba(96, 165, 250, 0.82) 100%);
+}
+
+.ft-detail-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.75), transparent 88%);
+}
+
+.ft-detail-hero__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) 260px;
+  gap: 2rem;
+  align-items: end;
+  padding: 2.4rem;
+  color: #fff;
+}
+
+.ft-detail-hero__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.ft-detail-badge {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e3a8a;
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  font-weight: 800;
+}
+
+.ft-detail-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  background: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.ft-detail-title {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1.05;
+  margin: 0 0 1rem;
+  color: #fff;
+}
+
+.ft-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-bottom: 1.4rem;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.ft-detail-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.ft-detail-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.ft-detail-stat {
+  min-width: 140px;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(17, 24, 39, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.ft-detail-stat__label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.ft-detail-score-card {
+  align-self: center;
+  padding: 1.35rem 1.1rem;
+  border-radius: 24px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
+}
+
+.ft-detail-score-card__ring {
+  width: 132px;
+  height: 132px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: conic-gradient(#fbbf24 0 72%, rgba(255, 255, 255, 0.18) 72% 100%);
+  display: grid;
+  place-items: center;
+}
+
+.ft-detail-score-card__inner {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.74);
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.ft-detail-score-card__value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ft-detail-score-card__scale {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ft-detail-score-card__title {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.ft-detail-score-card__stars {
+  margin: 0.7rem 0 0.45rem;
+  color: #facc15;
+}
+
+.ft-detail-score-card__text {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9rem;
+}
+
+.ft-detail-body {
+  padding: 1rem;
+}
+
+.ft-detail-card {
+  border: 1px solid #dbeafe;
+  border-radius: 22px;
+  background: #fff;
+  padding: 1.4rem;
+  box-shadow: 0 14px 34px rgba(59, 130, 246, 0.06);
+}
+
+.ft-detail-card__header {
+  margin-bottom: 1rem;
+}
+
+.ft-detail-card__header--between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ft-detail-card__eyebrow {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  color: #2563eb;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ft-detail-card__title {
+  margin: 0;
+  font-size: 1.45rem;
+  color: #0f172a;
+}
+
+.ft-detail-copy {
+  color: #475569;
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.ft-detail-copy p:last-child {
+  margin-bottom: 0;
+}
+
+.ft-reaction-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.ft-reaction-tile {
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  padding: 1rem 1.15rem;
+  border-radius: 18px;
+  border: 1px solid #dbeafe;
+  background: #fff;
+}
+
+.ft-reaction-tile--like {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.ft-reaction-tile--dislike {
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.ft-reaction-tile__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+}
+
+.ft-reaction-tile--like .ft-reaction-tile__icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.ft-reaction-tile--dislike .ft-reaction-tile__icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.ft-reaction-tile__label {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.ft-reaction-tile__value {
+  color: #0f172a;
+  font-size: 1.2rem;
+}
+
+.ft-comments-count {
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.ft-empty-state {
+  border: 1px dashed #bfdbfe;
+  border-radius: 18px;
+  padding: 1.4rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.ft-empty-state i {
+  display: block;
+  font-size: 1.6rem;
+  color: #3b82f6;
+  margin-bottom: 0.7rem;
+}
+
+.ft-comments-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.ft-comment-card {
+  border: 1px solid #dbeafe;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  padding: 1rem;
+}
+
+.ft-comment-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 0.8rem;
+}
+
+.ft-comment-card__identity {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.ft-comment-card__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #fff;
+  font-weight: 800;
+}
+
+.ft-comment-card__author {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ft-comment-card__meta {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.ft-comment-card__badge {
+  background: #eef4ff;
+  color: #2563eb;
+  border-radius: 999px;
+}
+
+.ft-comment-card__body {
+  margin-bottom: 0.6rem;
+  color: #334155;
+}
+
+.ft-comment-card__stars {
+  color: #f59e0b;
+  margin-bottom: 0.85rem;
+}
+
+.ft-comment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.ft-comment-edit {
+  flex: 1 1 280px;
+}
+
+.ft-comment-edit summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.72rem 1rem;
+  background: #eaf2ff;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.ft-comment-edit summary::-webkit-details-marker {
+  display: none;
+}
+
+.ft-comment-edit__form {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.ft-comment-edit__submit {
+  width: fit-content;
+}
+
+.ft-admin-reply {
+  margin-top: 0.75rem;
+  border: 1px solid #bfdbfe;
+  background: #f8fbff;
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+}
+
+.ft-admin-reply__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.45rem;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.ft-feedback-card {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.ft-feedback-card__top {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.ft-feedback-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  color: #fff;
+}
+
+.ft-feedback-card__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 800;
+}
+
+.ft-feedback-card__title {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.ft-feedback-card__summary {
+  padding: 1rem;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  background: #f8fbff;
+  margin-bottom: 1rem;
+}
+
+.ft-feedback-card__summary h3 {
+  margin-bottom: 0.35rem;
+  color: #0f172a;
+}
+
+.ft-feedback-card__summary p {
+  margin-bottom: 0.8rem;
+  color: #64748b;
+}
+
+.ft-feedback-card__metrics {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ft-feedback-card__metrics li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #334155;
+}
+
+.ft-feedback-card__metrics strong {
+  color: #0f172a;
+}
+
+.ft-feedback-card__alert {
+  border-radius: 16px;
+}
+
+.ft-feedback-card__textarea,
+.ft-input {
+  border-radius: 16px;
+  border-color: #cbd5e1;
+}
+
 .ft-rating-picker {
   display: grid;
   gap: 0.75rem;
 }
-.ft-rating-picker__option {
-  position: relative;
-}
+
 .ft-rating-picker__input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
+
 .ft-rating-picker__label {
+  width: 100%;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem 1rem;
-  border-radius: 16px;
-  border: 1px solid #dbeafe;
-  background: linear-gradient(180deg, #ffffff, #f8fbff);
-  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.06);
-  cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
-}
-.ft-rating-picker__label:hover {
-  transform: translateY(-1px);
-  border-color: #93c5fd;
-  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.12);
-}
-.ft-rating-picker__icons {
-  display: inline-flex;
   align-items: center;
-  gap: 0.22rem;
-  color: #f59e0b;
-  font-size: 1rem;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  background: #fff;
+  cursor: pointer;
 }
-.ft-rating-picker__text {
-  color: #1e3a8a;
-  font-weight: 700;
-  font-size: 0.92rem;
-}
+
 .ft-rating-picker__input:checked + .ft-rating-picker__label {
-  border-color: #60a5fa;
-  background: linear-gradient(180deg, #eff6ff, #dbeafe);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.10), 0 16px 32px rgba(37, 99, 235, 0.14);
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
-.ft-rating-picker__input:focus + .ft-rating-picker__label {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.10), 0 16px 32px rgba(37, 99, 235, 0.14);
+
+.ft-rating-picker__icons {
+  color: #f59e0b;
+}
+
+.ft-rating-picker__text {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.ft-btn-primary {
+  background: linear-gradient(135deg, #2563eb, #38bdf8);
+  color: #fff;
+  border: 0;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.ft-btn-danger-soft {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #dc2626;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+@media (max-width: 991.98px) {
+  .ft-detail-hero__content {
+    grid-template-columns: 1fr;
+  }
+
+  .ft-detail-score-card {
+    max-width: 280px;
+  }
+
+  .ft-feedback-card {
+    position: static;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .ft-detail-hero__content,
+  .ft-detail-body {
+    padding: 1.2rem;
+  }
+
+  .ft-detail-card__header--between,
+  .ft-comment-card__header,
+  .ft-admin-reply__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ft-reaction-grid {
+    flex-direction: column;
+  }
+
+  .ft-reaction-tile {
+    width: 100%;
+  }
 }
 </style>
 {% endblock %}

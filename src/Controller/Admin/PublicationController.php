@@ -2,11 +2,12 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\User\Feedback;
 use App\Entity\Publication\Publication;
-use App\Form\Admin\PublicationFeedbackFormType;
 use App\Form\Admin\PublicationFormType;
 use App\Repository\PublicationRepository;
 use App\Service\ExportService;
+use App\Service\PdfPublicationService;
 use App\Service\PublicationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,6 +24,7 @@ class PublicationController extends AbstractController
         private readonly PublicationService $publicationService,
         private readonly PublicationRepository $publicationRepo,
         private readonly ExportService $exportService,
+        private readonly PdfPublicationService $pdfPublicationService,
         private readonly EntityManagerInterface $em,
     ) {}
 
@@ -34,9 +36,17 @@ class PublicationController extends AbstractController
         $categoryName = $request->query->get('category', null);
         $sortBy = $request->query->get('sort', 'newest');
 
-        // Récupérer publsiations (brouillons et publié)
-        $qb = $this->em->getRepository(Publication::class)->createQueryBuilder('p');
-        
+        $qb = $this->em->getRepository(Publication::class)->createQueryBuilder('p')
+            ->leftJoin('p.feedbacks', 'f')
+            ->addSelect("SUM(CASE WHEN f.commentaire IS NOT NULL AND TRIM(f.commentaire) <> '' THEN 1 ELSE 0 END) AS HIDDEN commentCount")
+            ->addSelect("SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'LIKE' THEN 1 ELSE 0 END) AS HIDDEN likeCount")
+            ->addSelect("SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'DISLIKE' THEN 1 ELSE 0 END) AS HIDDEN dislikeCount")
+            ->addSelect("(
+                (SUM(CASE WHEN f.commentaire IS NOT NULL AND TRIM(f.commentaire) <> '' THEN 1 ELSE 0 END) * 3)
+                + (SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'LIKE' THEN 1 ELSE 0 END) * 2)
+                - SUM(CASE WHEN UPPER(COALESCE(f.typeReaction, '')) = 'DISLIKE' THEN 1 ELSE 0 END)
+            ) AS HIDDEN engagementScore");
+
         if ($search) {
             $qb->andWhere('p.titre LIKE :search OR p.contenu LIKE :search')
                 ->setParameter('search', '%' . $search . '%');
@@ -48,14 +58,18 @@ class PublicationController extends AbstractController
         }
 
         match ($sortBy) {
-            'views', 'comments', 'likes' => $qb->orderBy('p.datePublication', 'DESC'),
+            'comments' => $qb->orderBy('commentCount', 'DESC')->addOrderBy('p.datePublication', 'DESC'),
+            'likes' => $qb->orderBy('likeCount', 'DESC')->addOrderBy('p.datePublication', 'DESC'),
+            'engagement' => $qb->orderBy('engagementScore', 'DESC')->addOrderBy('commentCount', 'DESC')->addOrderBy('p.datePublication', 'DESC'),
             default => $qb->orderBy('p.datePublication', 'DESC'),
         };
 
         $limit = 10;
-        $qb->setFirstResult(($page - 1) * $limit)->setMaxResults($limit);
+        $qb->groupBy('p.id')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
         $publications = $qb->getQuery()->getResult();
-        
+
         $countQb = $this->em->getRepository(Publication::class)->createQueryBuilder('p')
             ->select('COUNT(p.id)')
             ->where($search ? 'p.titre LIKE :search OR p.contenu LIKE :search' : '1=1')
@@ -88,6 +102,7 @@ class PublicationController extends AbstractController
         $categoryPerformance = $this->publicationService->getCategoryPerformanceStats();
         $feedbackInsights = $this->publicationService->getFeedbackInsightStats();
         $weeklyPublicationStats = $this->publicationService->getWeeklyPublicationStats();
+        $topPublications = $this->publicationService->getTopPublicationsByEngagement(5);
         $trendMax = max(array_map(fn(array $point) => $point['count'], $publicationTrend)) ?: 1;
 
         return $this->render('admin/publication/index.html.twig', [
@@ -106,6 +121,7 @@ class PublicationController extends AbstractController
             'category_performance' => $categoryPerformance,
             'feedback_insights' => $feedbackInsights,
             'weekly_publication_stats' => $weeklyPublicationStats,
+            'top_publications' => $topPublications,
             'trend_max' => $trendMax,
         ]);
     }
@@ -138,6 +154,12 @@ class PublicationController extends AbstractController
         return $this->exportService->exportPublicationsPdfHtml($publications);
     }
 
+    #[Route('/{id}/export/pdf', name: 'export_single_pdf', methods: ['GET'])]
+    public function exportSinglePublicationPdf(Publication $publication): Response
+    {
+        return $this->pdfPublicationService->generatePublicationPdf($publication);
+    }
+
     #[Route('/create', name: 'create', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
@@ -147,7 +169,7 @@ class PublicationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->publicationService->createPublication($publication);
-            $this->addFlash('success', 'Publication créée avec succès!');
+            $this->addFlash('success', 'Publication creee avec succes!');
             return $this->redirectToRoute('admin_publications_index');
         }
 
@@ -165,7 +187,7 @@ class PublicationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->publicationService->updatePublication($publication);
-            $this->addFlash('success', 'Publication mise à jour avec succès!');
+            $this->addFlash('success', 'Publication mise a jour avec succes!');
             return $this->redirectToRoute('admin_publications_index');
         }
 
@@ -180,31 +202,27 @@ class PublicationController extends AbstractController
     {
         if ($this->isCsrfTokenValid('delete' . $publication->getId(), $request->request->get('_token'))) {
             $this->publicationService->deletePublication($publication);
-            $this->addFlash('success', 'Publication supprimée avec succès!');
+            $this->addFlash('success', 'Publication supprimee avec succes!');
         }
 
         return $this->redirectToRoute('admin_publications_index');
     }
 
     #[Route('/{id}/comments', name: 'comments', methods: ['GET'])]
-    public function showComments(Publication $publication, Request $request): Response
+    public function showComments(Publication $publication): Response
     {
-        $feedbacks = $publication->getFeedbacks()
+        $allFeedbacks = $publication->getFeedbacks();
+        $feedbacks = $allFeedbacks
             ->filter(fn($f) => $f->getCommentaire() !== null && trim((string) $f->getCommentaire()) !== '')
             ->toArray();
 
-        $commentCount = count($feedbacks);
-        $likeCount = 0;
-        $dislikeCount = 0;
+        usort($feedbacks, static fn(Feedback $left, Feedback $right) => ($right->getDateFeedback()?->getTimestamp() ?? 0) <=> ($left->getDateFeedback()?->getTimestamp() ?? 0));
 
-        foreach ($feedbacks as $feedback) {
-            $type = strtoupper((string) $feedback->getTypeReaction());
-            if ($type === 'LIKE') {
-                $likeCount++;
-            } elseif ($type === 'DISLIKE') {
-                $dislikeCount++;
-            }
-        }
+        $commentCount = $publication->getCommentCount();
+        $likeCount = $publication->getLikeCount();
+        $dislikeCount = $publication->getDislikeCount();
+        $engagementScore = $publication->getEngagementScore();
+        $adminReplyCount = count(array_filter($feedbacks, static fn(Feedback $feedback) => $feedback->getAdminResponse() !== null && trim($feedback->getAdminResponse()) !== ''));
 
         return $this->render('admin/publication/comments.html.twig', [
             'publication' => $publication,
@@ -212,26 +230,62 @@ class PublicationController extends AbstractController
             'commentCount' => $commentCount,
             'likeCount' => $likeCount,
             'dislikeCount' => $dislikeCount,
+            'engagementScore' => $engagementScore,
+            'adminReplyCount' => $adminReplyCount,
         ]);
     }
 
     #[Route('/{id}/feedback/{feedbackId}/reply', name: 'reply_feedback', methods: ['POST'])]
     public function replyFeedback(Publication $publication, int $feedbackId, Request $request): Response
     {
-        $feedback = $this->em->find(\App\Entity\Publication\PublicationFeedback::class, $feedbackId);
-        
+        $feedback = $this->em->getRepository(Feedback::class)->find($feedbackId);
         if (!$feedback || $feedback->getPublication()->getId() !== $publication->getId()) {
             throw $this->createNotFoundException();
         }
 
-        $reply = new \App\Entity\Publication\PublicationFeedback();
-        $form = $this->createForm(PublicationFeedbackFormType::class, $reply);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->publicationService->replyToComment($feedback, $this->getUser(), $reply->getContent());
-            $this->addFlash('success', 'Réponse ajoutée avec succès!');
+        if (!$this->isCsrfTokenValid('reply_feedback_' . $feedback->getIdFeedback(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action invalide.');
+            return $this->redirectToRoute('admin_publications_comments', ['id' => $publication->getId()]);
         }
+
+        $reply = trim((string) $request->request->get('admin_response', ''));
+
+        if ($reply === '') {
+            $this->addFlash('error', 'La reponse admin ne peut pas etre vide.');
+            return $this->redirectToRoute('admin_publications_comments', ['id' => $publication->getId()]);
+        }
+
+        $feedback
+            ->setAdminResponse($reply)
+            ->setAdminResponseDate(new \DateTime());
+
+        $this->em->flush();
+        $this->addFlash('success', 'Reponse admin enregistree avec succes.');
+
+        return $this->redirectToRoute('admin_publications_comments', ['id' => $publication->getId()]);
+    }
+
+    #[Route('/{id}/feedback/{feedbackId}/delete-reply', name: 'delete_reply', methods: ['POST'])]
+    public function deleteReply(Publication $publication, int $feedbackId, Request $request): Response
+    {
+        $feedback = $this->em->getRepository(Feedback::class)->find($feedbackId);
+
+        if (!$feedback || $feedback->getPublication()->getId() !== $publication->getId()) {
+            throw $this->createNotFoundException();
+        }
+
+        if (!$this->isCsrfTokenValid('delete_reply_' . $feedback->getIdFeedback(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action invalide.');
+
+            return $this->redirectToRoute('admin_publications_comments', ['id' => $publication->getId()]);
+        }
+
+        $feedback
+            ->setAdminResponse(null)
+            ->setAdminResponseDate(null);
+
+        $this->em->flush();
+        $this->addFlash('success', 'La reponse admin a ete supprimee.');
 
         return $this->redirectToRoute('admin_publications_comments', ['id' => $publication->getId()]);
     }
