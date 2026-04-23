@@ -16,10 +16,17 @@ use App\Repository\PublicationRepository;
 use App\Security\KycAccessChecker;
 use App\Security\RiskAccessChecker;
 use App\Service\BehavioralProfileService;
+use App\Service\AdvancedAnalyticsService;
+use App\Service\AccountDeactivationRequestService;
 use App\Service\CaptchaService;
+use App\Service\EconomicDataService;
+use App\Service\FinancialNewsService;
 use App\Service\KycService;
+use App\Service\MarketWatchService;
 use App\Service\NotificationService;
+use App\Service\KycVerificationCenterService;
 use App\Service\QrCodeService;
+use App\Service\UserIntelligenceService;
 use App\Service\UserService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -69,6 +76,13 @@ class ClientController extends AbstractController
         private readonly UserService $userService,
         private readonly NotificationService $notificationService,
         private readonly QrCodeService $qrCodeService,
+        private readonly UserIntelligenceService $userIntelligenceService,
+        private readonly FinancialNewsService $financialNewsService,
+        private readonly EconomicDataService $economicDataService,
+        private readonly MarketWatchService $marketWatchService,
+        private readonly AdvancedAnalyticsService $advancedAnalyticsService,
+        private readonly AccountDeactivationRequestService $accountDeactivationRequestService,
+        private readonly KycVerificationCenterService $kycVerificationCenterService,
         private readonly KycAccessChecker $kycAccessChecker,
         private readonly RiskAccessChecker $riskAccessChecker,
         private readonly ValidatorInterface $validator,
@@ -91,6 +105,156 @@ class ClientController extends AbstractController
         return $this->render('front/client/dashboard.html.twig', [
             'user' => $user,
             'kyc' => $kyc,
+            'newsFeed' => $this->financialNewsService->getUserFeed($user, 3),
+            'analyticsNews' => $this->advancedAnalyticsService->getNewsRelevance($user, 3),
+            'recommendedAction' => $this->advancedAnalyticsService->getNextBestAction($user),
+            'dropoffRisk' => $this->advancedAnalyticsService->getDropoffRisk($user),
+            'economyOverview' => $this->economicDataService->getOverview(),
+            'watchlistHighlights' => $this->marketWatchService->getWatchlistHighlights(3),
+        ]);
+    }
+
+    #[Route('/actualites-pertinentes', name: 'relevant_news', methods: ['GET'])]
+    public function relevantNews(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        return $this->render('front/client/relevant_news.html.twig', [
+            'user' => $user,
+            'relevance' => $this->advancedAnalyticsService->getNewsRelevance($user, 6),
+        ]);
+    }
+
+    #[Route('/actions-recommandees', name: 'recommended_actions', methods: ['GET'])]
+    public function recommendedActions(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        return $this->render('front/client/recommended_actions.html.twig', [
+            'user' => $user,
+            'recommendation' => $this->advancedAnalyticsService->getNextBestAction($user),
+            'prioritySummary' => $this->advancedAnalyticsService->getActionPrioritySummary($user),
+            'dropoffRisk' => $this->advancedAnalyticsService->getDropoffRisk($user),
+        ]);
+    }
+
+    #[Route('/coherence-identitaire', name: 'identity_consistency', methods: ['GET'])]
+    public function identityConsistency(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        return $this->render('front/client/identity_consistency.html.twig', [
+            'user' => $user,
+            'identityConsistency' => $this->advancedAnalyticsService->getIdentityConsistency($user),
+        ]);
+    }
+
+    #[Route('/marches-economie', name: 'markets', methods: ['GET'])]
+    public function markets(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        $selectedSymbol = (string) $request->query->get('symbol', '');
+        $watchlist = $this->marketWatchService->getWatchlist();
+        $defaultSymbol = $selectedSymbol !== '' ? $selectedSymbol : ($watchlist[0]['symbol'] ?? 'AAPL');
+        $assetDetail = $this->marketWatchService->getAssetDetail($defaultSymbol);
+
+        return $this->render('front/client/markets.html.twig', [
+            'user' => $user,
+            'economyOverview' => $this->economicDataService->getOverview(),
+            'inflation' => $this->economicDataService->getInflation(),
+            'rates' => $this->economicDataService->getRates(),
+            'currencies' => $this->economicDataService->getCurrencies(),
+            'indicators' => $this->economicDataService->getIndicators(),
+            'watchlist' => $watchlist,
+            'watchlistHighlights' => $this->marketWatchService->getHighlights(),
+            'trendingAssets' => $this->marketWatchService->getTrending(),
+            'discoverableAssets' => $this->marketWatchService->getDiscoverableAssets(),
+            'marketOverview' => $this->marketWatchService->getMarketOverview(),
+            'assetDetail' => $assetDetail,
+        ]);
+    }
+
+    #[Route('/marches-economie/watchlist/add', name: 'watchlist_add', methods: ['POST'])]
+    public function addToWatchlist(Request $request): RedirectResponse
+    {
+        if (!$this->isCsrfTokenValid('watchlist_add', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'La demande est invalide.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        $symbol = (string) $request->request->get('symbol', '');
+        if ($symbol === '' || !$this->marketWatchService->addToWatchlist($symbol)) {
+            $this->addFlash('error', 'Actif introuvable.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        $this->addFlash('success', 'Actif ajoute a votre watchlist.');
+
+        return $this->redirectToRoute('front_markets', ['symbol' => $symbol]);
+    }
+
+    #[Route('/marches-economie/watchlist/remove', name: 'watchlist_remove', methods: ['POST'])]
+    public function removeFromWatchlist(Request $request): RedirectResponse
+    {
+        $symbol = (string) $request->request->get('symbol', '');
+
+        if ($symbol === '') {
+            $this->addFlash('error', 'Le symbole a retirer est invalide.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        if (!$this->isCsrfTokenValid('watchlist_remove_' . $symbol, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'La demande est invalide.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        $this->marketWatchService->removeFromWatchlist($symbol);
+        $this->addFlash('success', 'Actif retire de votre watchlist.');
+
+        return $this->redirectToRoute('front_markets');
+    }
+
+    #[Route('/actualites-financieres', name: 'news', methods: ['GET'])]
+    public function news(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        $category = strtoupper((string) $request->query->get('category', ''));
+        $country = strtolower((string) $request->query->get('country', ''));
+        $keyword = trim((string) $request->query->get('keyword', ''));
+
+        $articles = $this->financialNewsService->getFinancialNews([
+            'category' => $category !== '' ? $category : null,
+            'country' => $country !== '' ? $country : null,
+            'keyword' => $keyword !== '' ? $keyword : null,
+            'limit' => 12,
+        ]);
+
+        return $this->render('front/client/news.html.twig', [
+            'user' => $user,
+            'articles' => $articles,
+            'headline' => $articles[0] ?? null,
+            'marketHighlights' => $this->financialNewsService->getMarketNews(3),
+            'bankHighlights' => $this->financialNewsService->getBankNews(3),
+            'categoryCounts' => $this->financialNewsService->getCategoryCounts(),
+            'selectedCategory' => $category,
+            'selectedCountry' => $country,
+            'selectedKeyword' => $keyword,
         ]);
     }
 
@@ -111,15 +275,77 @@ class ClientController extends AbstractController
             return $this->redirectToRoute('front_profile');
         }
 
-        $qrUrl = $user->getQrToken()
-            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $request->getSchemeAndHttpHost())
+        $baseUrl = $request->getSchemeAndHttpHost();
+        $publicProfileUrl = $user->getQrToken()
+            ? $this->qrCodeService->getPublicProfileUrl($user->getQrToken(), $baseUrl)
             : null;
+        $localProfileUrl = $user->getQrToken()
+            ? $this->generateUrl('front_qr_view', ['token' => $user->getQrToken()])
+            : null;
+        $qrUrl = $user->getQrToken()
+            ? $this->generateUrl('front_qr_code_image', ['token' => $user->getQrToken()])
+            : null;
+        $qrNeedsPublicUrl = $user->getQrToken()
+            ? $this->qrCodeService->isLocalOnlyUrl($baseUrl)
+            : false;
 
         return $this->render('front/client/profile.html.twig', [
             'form' => $form,
             'user' => $user,
             'qrUrl' => $qrUrl,
+            'publicProfileUrl' => $publicProfileUrl,
+            'localProfileUrl' => $localProfileUrl,
+            'qrNeedsPublicUrl' => $qrNeedsPublicUrl,
+            'intelligenceProfile' => $this->userIntelligenceService->buildProfileEnrichment($user),
+            'riskProfile' => $this->userIntelligenceService->getRiskProfile($user),
+            'financialBehavior' => $this->userIntelligenceService->getFinancialBehaviorSummary($user),
+            'monitoringTimeline' => $this->userIntelligenceService->buildMonitoringTimeline($user),
+            'dropoffRisk' => $this->advancedAnalyticsService->getDropoffRisk($user),
+            'deactivationRequest' => $this->accountDeactivationRequestService->getLatestForUser($user),
         ]);
+    }
+
+    #[Route('/profil/desactivation', name: 'profile_deactivation_request', methods: ['POST'])]
+    public function requestDeactivation(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$this->isCsrfTokenValid('profile_deactivation_request', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'La demande de desactivation est invalide.');
+
+            return $this->redirectToRoute('front_profile');
+        }
+
+        $reason = trim((string) $request->request->get('reason', ''));
+        $impact = trim((string) $request->request->get('impact_summary', ''));
+
+        if (mb_strlen($reason) < 20) {
+            $this->addFlash('error', 'Precisez une justification plus detaillee pour votre demande de desactivation.');
+
+            return $this->redirectToRoute('front_profile');
+        }
+
+        try {
+            $requestData = $this->accountDeactivationRequestService->submit(
+                $user,
+                $reason,
+                $impact,
+                $this->advancedAnalyticsService->getDropoffRisk($user)
+            );
+
+            $this->notificationService->notify(
+                $user,
+                'Votre demande de desactivation de compte a bien ete enregistree. Notre equipe admin va l examiner avant toute fermeture.',
+                'WARNING'
+            );
+
+            $this->addFlash('success', 'Votre demande de desactivation a ete transmise pour revue admin.');
+        } catch (\RuntimeException $exception) {
+            $this->addFlash('error', $exception->getMessage());
+        }
+
+        return $this->redirectToRoute('front_profile');
     }
 
     #[Route('/preferences/theme/{mode}', name: 'theme_switch', methods: ['POST'])]
@@ -190,6 +416,8 @@ class ClientController extends AbstractController
             $rawFiles = $filesBag['documents'] ?? $form->get('documents')->getData();
             $files = is_array($rawFiles) ? array_values(array_filter($rawFiles)) : ($rawFiles ? [$rawFiles] : []);
             $signatureData = (string) ($payload['signatureData'] ?? $form->get('signatureData')->getData() ?? '');
+            $selfieData = (string) ($payload['selfieData'] ?? $form->get('selfieData')->getData() ?? '');
+            $selfieFingerprintData = (string) ($payload['selfieFingerprintData'] ?? $form->get('selfieFingerprintData')->getData() ?? '');
 
             $entityErrors = $this->validator->validate($kyc);
 
@@ -204,20 +432,26 @@ class ClientController extends AbstractController
                 }
             } elseif ($files === []) {
                 $this->addFlash('error', 'Veuillez joindre au moins un document justificatif.');
+            } elseif ($selfieData === '') {
+                $this->addFlash('error', 'Ajoutez un selfie KYC de reference pour activer la connexion selfie sur votre compte.');
+            } elseif ($selfieFingerprintData === '') {
+                $this->addFlash('error', 'L empreinte du selfie KYC est absente. Reprenez votre selfie de reference.');
             } elseif (!$this->hasValidKycFiles($files)) {
                 $this->addFlash('error', 'Chaque justificatif doit etre en JPG, PNG ou PDF, avec une taille maximale de 5 Mo.');
             } elseif (!$captchaService->validateAnswer(
                 $request->getSession(),
                 'kyc_submit',
                 (string) $request->request->get('captcha_token', ''),
-                $request->request->getBoolean('captcha_confirm')
+                $request->request->getBoolean('captcha_confirm'),
+                (string) $request->request->get('recaptcha_token', ''),
+                $request->getClientIp()
             )) {
                 $captchaService->refreshChallenge($request->getSession(), 'kyc_submit');
                 $captcha = $captchaService->getOrCreateChallenge($request->getSession(), 'kyc_submit');
                 $this->addFlash('error', 'Le CAPTCHA KYC est invalide. Veuillez recommencer.');
             } else {
                 try {
-                    $this->kycService->submitKyc($user, $kyc, $files, $signatureData);
+                    $this->kycService->submitKyc($user, $kyc, $files, $signatureData, $selfieData, $selfieFingerprintData);
                     $this->notificationService->notifyKycSubmitted($user);
                     $captchaService->clearChallenge($request->getSession(), 'kyc_submit');
 
@@ -276,6 +510,7 @@ class ClientController extends AbstractController
         return $this->render('front/client/kyc_status.html.twig', [
             'user' => $user,
             'kyc' => $kyc,
+            'kycCenter' => $this->kycVerificationCenterService->buildCenter($user),
         ]);
     }
 

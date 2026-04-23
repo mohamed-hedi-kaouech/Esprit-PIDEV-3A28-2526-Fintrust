@@ -123,8 +123,22 @@
       </div>
       <div class="ft-admin-card-body">
         {% if qrUrl %}
-          <img src="{{ qrUrl }}" alt="QR {{ user.fullName }}" class="img-fluid rounded border" style="max-width:160px"/>
-          <p class="text-muted small mt-2 mb-0 text-break">{{ user.qrToken }}</p>
+          <img src="{{ qrUrl }}" alt="QR {{ user.fullName }}" class="img-fluid rounded border bg-white p-2" style="max-width:240px"/>
+          {% if publicProfileUrl %}
+            <a href="{{ publicProfileUrl }}" target="_blank" rel="noopener noreferrer"
+               class="btn btn-sm btn-outline-primary mt-3">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir le profil public
+            </a>
+            <p class="text-muted small mt-2 mb-0 text-break">{{ publicProfileUrl }}</p>
+          {% else %}
+            <p class="text-muted small mt-2 mb-0 text-break">{{ user.qrToken }}</p>
+          {% endif %}
+          {% if qrNeedsPublicUrl %}
+            <div class="alert alert-warning small mt-3 mb-0 text-start">
+              Cette URL est locale uniquement. Pour un scan depuis un telephone, configurez `FINTRUST_PUBLIC_URL`
+              avec l'URL publique ou l'adresse IP reseau de cette machine.
+            </div>
+          {% endif %}
         {% else %}
           <div class="text-muted py-3">
             <i class="bi bi-qr-code fs-2 d-block mb-2"></i>Non disponible
@@ -168,6 +182,14 @@
         <form method="post" action="{{ path('admin_user_notify', {id: user.id}) }}" id="notifyForm" novalidate="novalidate">
           <input type="hidden" name="_token" value="{{ csrf_token('notify_' ~ user.id) }}"/>
           <div class="mb-3">
+            <label class="form-label fw-semibold small">Canal</label>
+            <select name="channel" class="form-select ft-input">
+              <option value="INTERNE">Notification interne</option>
+              <option value="EMAIL">E-mail + notification interne</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Type</label>
             <select name="type" class="form-select ft-input">
               <option value="INFO">Information</option>
               <option value="SUCCESS">Succès</option>
@@ -176,11 +198,16 @@
             </select>
           </div>
           <div class="mb-3">
+            <label class="form-label fw-semibold small">Sujet de l'e-mail</label>
+            <input type="text" name="subject" class="form-control ft-input" maxlength="140"
+                   placeholder="Ex: Mise a jour importante de votre dossier FinTrust">
+          </div>
+          <div class="mb-3">
             <textarea name="message" class="form-control ft-input" rows="3"
                       placeholder="Message à envoyer à {{ user.prenom }}…"></textarea>
           </div>
           <button type="submit" class="btn ft-btn-primary w-100">
-            <i class="bi bi-send me-2"></i>Envoyer
+            <i class="bi bi-send me-2"></i>Envoyer au client
           </button>
         </form>
       </div>

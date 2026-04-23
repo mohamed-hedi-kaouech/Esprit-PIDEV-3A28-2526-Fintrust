@@ -2,7 +2,6 @@
 
 namespace App\Controller\Front;
 
-use App\Entity\User\User;
 use App\Form\Front\VerifyAccountCodeType;
 use App\Repository\UserRepository;
 use App\Service\AccountVerificationMailer;
@@ -19,6 +18,7 @@ class VerifyAccountController extends AbstractController
         Request $request,
         UserRepository $userRepository,
         UserService $userService,
+        AccountVerificationMailer $accountVerificationMailer,
     ): Response {
         $prefilledEmail = (string) $request->query->get('email', '');
         $form = $this->createForm(VerifyAccountCodeType::class, null, [
@@ -35,7 +35,6 @@ class VerifyAccountController extends AbstractController
                 $this->addFlash('error', 'Aucun compte FinTrust ne correspond a cette adresse e-mail.');
             } elseif ($user->isVerified()) {
                 $this->addFlash('info', 'Votre compte est deja verifie. Vous pouvez vous connecter.');
-
                 return $this->redirectToRoute('app_login');
             } elseif ($userService->isVerificationCodeExpired($user)) {
                 $this->addFlash('error', 'Le code de verification a expire. Demandez un nouveau code.');
@@ -54,6 +53,7 @@ class VerifyAccountController extends AbstractController
         return $this->render('front/security/verify_account.html.twig', [
             'verifyForm' => $form,
             'prefilledEmail' => $prefilledEmail,
+            'mailDeliveryDisabled' => $accountVerificationMailer->isMailerDisabled(),
         ]);
     }
 
@@ -68,7 +68,6 @@ class VerifyAccountController extends AbstractController
 
         if (!$this->isCsrfTokenValid('resend_verification_code', (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'La demande de renvoi est invalide. Veuillez reessayer.');
-
             return $this->redirectToRoute('app_verify_account', ['email' => $email]);
         }
 
@@ -76,13 +75,11 @@ class VerifyAccountController extends AbstractController
 
         if ($user === null) {
             $this->addFlash('error', 'Aucun compte FinTrust ne correspond a cette adresse e-mail.');
-
             return $this->redirectToRoute('app_verify_account');
         }
 
         if ($user->isVerified()) {
             $this->addFlash('info', 'Votre compte est deja verifie. Vous pouvez vous connecter.');
-
             return $this->redirectToRoute('app_login');
         }
 
@@ -90,29 +87,11 @@ class VerifyAccountController extends AbstractController
 
         try {
             $accountVerificationMailer->sendVerificationCode($user);
-            $this->addFlash('success', 'Un nouveau code de verification a ete envoye a votre adresse e-mail.');
-        } catch (\Throwable) {
-            $this->addFlash('warning', 'Le code a bien ete regenere, mais l envoi e-mail a echoue.');
-            $this->addVerificationCodeFallbackFlash($user);
+            $this->addFlash('success', 'Un nouveau code de verification a ete envoye par e-mail. Verifiez aussi les dossiers Spam et Promotions si vous ne le voyez pas tout de suite.');
+        } catch (\Throwable $exception) {
+            $this->addFlash('error', 'Le code a bien ete regenere, mais l e-mail n a pas pu etre envoye. Verifiez la configuration SMTP FinTrust puis reessayez.');
         }
 
         return $this->redirectToRoute('app_verify_account', ['email' => $email]);
-    }
-
-    private function addVerificationCodeFallbackFlash(User $user): void
-    {
-        if ($this->getParameter('kernel.environment') !== 'dev') {
-            return;
-        }
-
-        $code = $user->getEmailVerificationCode();
-        if (!is_string($code) || $code === '') {
-            return;
-        }
-
-        $this->addFlash(
-            'info',
-            sprintf('Mode dev: e-mail indisponible sur cette machine. Nouveau code de verification: %s', $code)
-        );
     }
 }

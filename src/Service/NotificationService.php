@@ -5,33 +5,42 @@ namespace App\Service;
 use App\Entity\User\Client\Notification;
 use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
 
 /**
- * Service - Notifications internes.
+ * Service - Notifications internes et e-mail.
  *
- * Cree des notifications stockees en base de donnees.
- * Extensible pour integrer Symfony Mailer (email) ou Notifier (SMS/push).
+ * Cree des notifications stockees en base de donnees
+ * et peut aussi envoyer un e-mail selon le canal choisi.
  */
 class NotificationService
 {
-    public function __construct(private readonly EntityManagerInterface $em) {}
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MailerInterface $mailer,
+        private readonly string $fintrustMailerFrom,
+        private readonly string $fintrustMailerDsn,
+    ) {}
 
     /**
-     * Cree une notification interne pour un utilisateur.
-     *
      * @param string $type INFO | SUCCESS | WARNING | ERROR
+     * @param string $channel INTERNE | EMAIL
      */
-    public function notify(User $user, string $message, string $type = 'INFO'): void
+    public function notify(
+        User $user,
+        string $message,
+        string $type = 'INFO',
+        string $channel = 'INTERNE',
+        ?string $emailSubject = null,
+    ): void
     {
-        $notif = new Notification();
-        $notif->setUser($user);
-        $notif->setMessage($message);
-        $notif->setType($type);
-        $notif->setCreatedAt(new \DateTime());
-        $notif->setIsRead(false);
+        $this->createInternalNotification($user, $message, $type);
 
-        $this->em->persist($notif);
-        $this->em->flush();
+        if (strtoupper($channel) === 'EMAIL') {
+            $this->sendEmailNotification($user, $message, $type, $emailSubject);
+        }
     }
 
     public function notifyKycApproved(User $user): void
@@ -205,5 +214,80 @@ class NotificationService
         }
 
         return $updated;
+    }
+
+    public function countUnreadForUser(User $user): int
+    {
+        return $this->em->getRepository(Notification::class)->count([
+            'user' => $user,
+            'isRead' => false,
+        ]);
+    }
+
+    private function createInternalNotification(User $user, string $message, string $type): void
+    {
+        $notif = new Notification();
+        $notif->setUser($user);
+        $notif->setMessage($message);
+        $notif->setType($type);
+        $notif->setCreatedAt(new \DateTime());
+        $notif->setIsRead(false);
+
+        $this->em->persist($notif);
+        $this->em->flush();
+    }
+
+    private function sendEmailNotification(User $user, string $message, string $type, ?string $emailSubject = null): void
+    {
+        if ($this->isMailerDisabled()) {
+            throw new \RuntimeException('Le transport e-mail FinTrust est desactive. Configurez MAILER_DSN avec un SMTP reel.');
+        }
+
+        $subject = trim((string) $emailSubject);
+        if ($subject === '') {
+            $subject = $this->buildSubject($type);
+        }
+
+        $email = (new TemplatedEmail())
+            ->from(new Address($this->fintrustMailerFrom, 'FinTrust'))
+            ->to(new Address($user->getEmail(), $user->getFullName()))
+            ->subject($subject)
+            ->htmlTemplate('emails/admin_notification.html.twig')
+            ->context([
+                'user' => $user,
+                'message' => $message,
+                'type' => $type,
+                'typeLabel' => $this->buildTypeLabel($type),
+                'emailSubject' => $subject,
+            ]);
+
+        $this->mailer->send($email);
+    }
+
+    private function isMailerDisabled(): bool
+    {
+        $dsn = strtolower(trim($this->fintrustMailerDsn));
+
+        return $dsn === '' || $dsn === 'null://null';
+    }
+
+    private function buildSubject(string $type): string
+    {
+        return match (strtoupper($type)) {
+            'SUCCESS' => 'FinTrust - Mise a jour positive sur votre compte',
+            'WARNING' => 'FinTrust - Action requise sur votre compte',
+            'ERROR' => 'FinTrust - Alerte importante sur votre compte',
+            default => 'FinTrust - Nouvelle notification de votre espace client',
+        };
+    }
+
+    private function buildTypeLabel(string $type): string
+    {
+        return match (strtoupper($type)) {
+            'SUCCESS' => 'Succes',
+            'WARNING' => 'Avertissement',
+            'ERROR' => 'Alerte',
+            default => 'Information',
+        };
     }
 }

@@ -2,6 +2,8 @@
 
 {% block title %}Verification e-mail{% endblock %}
 
+{% block stylesheets %}{{ parent() }}{% endblock %}
+
 {% block body %}
 <div class="ft-auth-page ft-verify-page">
   <div class="container">
@@ -42,6 +44,12 @@
                 </div>
               </div>
             </div>
+
+            {% if mailDeliveryDisabled %}
+              <div class="alert alert-warning mt-4 mb-0">
+                La configuration SMTP FinTrust est inactive. Le code doit etre envoye par e-mail : activez le mailer puis renvoyez un nouveau code.
+              </div>
+            {% endif %}
           </div>
 
           <div class="ft-auth-card ft-verify-card">
@@ -85,9 +93,9 @@
               </button>
             {{ form_end(verifyForm) }}
 
-            <form method="post" action="{{ path('app_verify_account_resend') }}" class="mt-3" id="resend-verification-form">
+            <form method="post" action="{{ path('app_verify_account_resend') }}" class="mt-3">
               <input type="hidden" name="_token" value="{{ csrf_token('resend_verification_code') }}">
-              <input type="hidden" name="email" id="resend-verification-email" value="{{ prefilledEmail ?: verifyForm.email.vars.value }}">
+              <input type="hidden" name="email" id="verify-resend-email" value="{{ prefilledEmail ?: verifyForm.email.vars.value }}">
               <button type="submit" class="btn ft-btn-outline-primary w-100">
                 <i class="bi bi-arrow-repeat me-2"></i>Renvoyer un nouveau code
               </button>
@@ -111,21 +119,19 @@
   {{ parent() }}
   <script>
     (function () {
-      const emailInput = document.getElementById('{{ verifyForm.email.vars.id }}');
-      const resendEmailInput = document.getElementById('resend-verification-email');
-      const resendForm = document.getElementById('resend-verification-form');
+      const visibleEmailInput = document.getElementById('{{ verifyForm.email.vars.id }}');
+      const resendEmailInput = document.getElementById('verify-resend-email');
 
-      if (!emailInput || !resendEmailInput || !resendForm) {
+      if (!visibleEmailInput || !resendEmailInput) {
         return;
       }
 
       const syncEmail = () => {
-        resendEmailInput.value = emailInput.value.trim();
+        resendEmailInput.value = visibleEmailInput.value.trim();
       };
 
-      emailInput.addEventListener('input', syncEmail);
-      emailInput.addEventListener('change', syncEmail);
-      resendForm.addEventListener('submit', syncEmail);
+      visibleEmailInput.addEventListener('input', syncEmail);
+      visibleEmailInput.addEventListener('change', syncEmail);
       syncEmail();
     })();
   </script>

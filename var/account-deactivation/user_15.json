@@ -1,0 +1,25 @@
+{
+    "requestId": "deact_15_20260419225534",
+    "userId": 15,
+    "userName": "ines hmani",
+    "userEmail": "ineshmani5@gmail.com",
+    "reason": "je veux desactiver mon compte c fini entre nous",
+    "impactSummary": "inutile pr le moment",
+    "status": "REJECTED",
+    "submittedAt": "2026-04-19T22:55:34+00:00",
+    "reviewedAt": "2026-04-20T00:22:18+00:00",
+    "reviewedById": 2,
+    "reviewedByName": "Admin FinTrust",
+    "adminNote": "non on peut pas pour le moment reessayez une autre fois",
+    "riskSnapshot": {
+        "userId": 15,
+        "dropoffRiskScore": 40,
+        "riskLevel": "LOW",
+        "engagementLevel": "INACTIVE",
+        "topSignals": [
+            "Baisse nette de frequence d utilisation recente."
+        ],
+        "recommendedIntervention": "Suivi standard avec mise en avant des prochaines actions utiles.",
+        "lastEngagementDate": "2026-04-19T22:54:53+00:00"
+    }
+}

@@ -93,6 +93,19 @@
             <span class="badge bg-danger ms-auto">{{ activeAlertsCount }}</span>
           {% endif %}
         </a>
+
+        <a href="{{ path('admin_analytics_intelligence') }}"
+           class="ft-sidebar-link {% if app.request.attributes.get('_route') == 'admin_analytics_intelligence' %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i>
+          <span>Intelligence</span>
+        </a>
+
+        <a href="{{ path('admin_calendar_index') }}"
+           class="ft-sidebar-link {% if 'admin_calendar_' in app.request.attributes.get('_route') %}active{% endif %}">
+          <i class="bi bi-calendar-week"></i>
+          <span>Calendrier</span>
+        </a>
+
         <a href="{{ path('product_list') }}" class="ft-sidebar-link">
           <i class="bi bi-box-seam"></i>
           <span>Catalogue produits</span>
@@ -139,7 +152,6 @@
         </a>
 
         <a href="{{ path('admin_dashboard') }}#admin-loan" class="ft-sidebar-link">
-        <a href="{{ path('admin_loan_dashboard') }}" class="ft-sidebar-link">
           <i class="bi bi-bank"></i>
           <span>Gestion des prets</span>
         </a>

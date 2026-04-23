@@ -4,14 +4,18 @@ namespace App\Controller\Front;
 
 use App\Entity\User\User;
 use App\Form\Front\RegistrationFormType;
+use App\Repository\UserRepository;
 use App\Service\AccountVerificationMailer;
 use App\Service\CaptchaService;
+use App\Service\SelfieKycAuthService;
 use App\Service\UserService;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
@@ -22,7 +26,6 @@ class SecurityController extends AbstractController
         Request $request,
         UserService $userService,
         AccountVerificationMailer $accountVerificationMailer,
-        LoggerInterface $logger,
     ): Response {
         if ($redirect = $this->redirectAuthenticatedUser()) {
             return $redirect;
@@ -38,19 +41,9 @@ class SecurityController extends AbstractController
 
             try {
                 $accountVerificationMailer->sendVerificationCode($user);
-                $this->addFlash('success', 'Compte cree avec succes. Un code de verification a ete envoye a votre adresse e-mail.');
-                $logger->info('Email de verification envoye avec succes', [
-                    'user_email' => $user->getEmail(),
-                    'verification_code' => $user->getEmailVerificationCode(),
-                ]);
-            } catch (\Throwable $e) {
-                $this->addFlash('warning', 'Compte cree avec succes. L envoi de l e-mail a echoue pour le moment, mais vous pouvez demander un nouveau code.');
-                $this->addVerificationCodeFallbackFlash($user);
-                $logger->error('Erreur lors de l envoi du code de verification', [
-                    'user_email' => $user->getEmail(),
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
+                $this->addFlash('success', 'Compte cree avec succes. Un code de verification a ete envoye par e-mail. Verifiez aussi les dossiers Spam et Promotions de Gmail.');
+            } catch (\Throwable $exception) {
+                $this->addFlash('error', 'Compte cree avec succes, mais l e-mail de verification n a pas pu etre envoye. Verifiez la configuration SMTP FinTrust puis renvoyez un nouveau code.');
             }
 
             return $this->redirectToRoute('app_verify_account', [
@@ -83,27 +76,117 @@ class SecurityController extends AbstractController
         ]);
     }
 
+    #[Route('/login/selfie/enroll', name: 'app_selfie_enroll', methods: ['POST'])]
+    public function selfieEnroll(
+        Request $request,
+        UserRepository $userRepository,
+        UserPasswordHasherInterface $passwordHasher,
+        SelfieKycAuthService $selfieKycAuthService,
+    ): JsonResponse {
+        $payload = $this->getJsonPayload($request);
+
+        if (!$this->isCsrfTokenValid('selfie_auth', (string) ($payload['_token'] ?? ''))) {
+            return $this->json(['code' => 'invalid_request', 'message' => 'La demande selfie est invalide.'], Response::HTTP_FORBIDDEN);
+        }
+
+        $email = trim((string) ($payload['email'] ?? ''));
+        $password = (string) ($payload['password'] ?? '');
+        $selfie = (string) ($payload['selfie'] ?? '');
+        $fingerprint = (string) ($payload['fingerprint'] ?? '');
+
+        if ($email === '' || $password === '' || $selfie === '' || $fingerprint === '') {
+            return $this->json(['code' => 'missing_credentials', 'message' => 'Renseignez votre e-mail, votre mot de passe et capturez votre selfie pour activer ce mode de connexion.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $user = $userRepository->findByEmail($email);
+        if (!$user instanceof User || !$passwordHasher->isPasswordValid($user, $password)) {
+            return $this->json(['code' => 'invalid_credentials', 'message' => 'E-mail ou mot de passe invalide.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        if (!$user->isVerified()) {
+            return $this->json(['code' => 'email_not_verified', 'message' => 'Verifiez d abord votre adresse e-mail avant d activer la connexion selfie KYC.'], Response::HTTP_CONFLICT);
+        }
+
+        if ($user->isAdmin()) {
+            return $this->json(['code' => 'admin_account', 'message' => 'Cette connexion selfie est reservee a l espace client.'], Response::HTTP_CONFLICT);
+        }
+
+        try {
+            $result = $selfieKycAuthService->storeReferenceSelfie($user, $selfie, $fingerprint);
+        } catch (\RuntimeException $exception) {
+            return $this->json(['code' => 'enrollment_failed', 'message' => $exception->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return $this->json($result);
+    }
+
+    #[Route('/login/selfie/auth', name: 'app_selfie_auth', methods: ['POST'])]
+    public function selfieAuth(
+        Request $request,
+        UserRepository $userRepository,
+        UserPasswordHasherInterface $passwordHasher,
+        SelfieKycAuthService $selfieKycAuthService,
+        Security $security,
+    ): JsonResponse {
+        $payload = $this->getJsonPayload($request);
+
+        if (!$this->isCsrfTokenValid('selfie_auth', (string) ($payload['_token'] ?? ''))) {
+            return $this->json(['code' => 'invalid_request', 'message' => 'La demande selfie est invalide.'], Response::HTTP_FORBIDDEN);
+        }
+
+        $email = trim((string) ($payload['email'] ?? ''));
+        $password = (string) ($payload['password'] ?? '');
+        $fingerprint = (string) ($payload['fingerprint'] ?? '');
+
+        if ($email === '' || $password === '' || $fingerprint === '') {
+            return $this->json(['code' => 'missing_credentials', 'message' => 'Renseignez votre e-mail, votre mot de passe et capturez votre selfie pour continuer.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $user = $userRepository->findByEmail($email);
+        if (!$user instanceof User) {
+            return $this->json(['code' => 'user_not_found', 'message' => 'Aucun compte ne correspond a cet e-mail.'], Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$passwordHasher->isPasswordValid($user, $password)) {
+            return $this->json(['code' => 'invalid_credentials', 'message' => 'E-mail ou mot de passe invalide.'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        if (!$user->isVerified()) {
+            return $this->json(['code' => 'email_not_verified', 'message' => 'Votre adresse e-mail doit etre verifiee avant la connexion selfie KYC.'], Response::HTTP_CONFLICT);
+        }
+
+        if ($user->getStatus() === User::STATUS_SUSPENDU) {
+            return $this->json(['code' => 'account_suspended', 'message' => 'Votre compte est suspendu.'], Response::HTTP_FORBIDDEN);
+        }
+
+        try {
+            $result = $selfieKycAuthService->verifySelfie($user, $fingerprint);
+        } catch (\RuntimeException $exception) {
+            return $this->json(['code' => 'selfie_unavailable', 'message' => $exception->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if (!$result['matched']) {
+            return $this->json([
+                'code' => 'selfie_mismatch',
+                'message' => $result['message'],
+                'score' => $result['score'],
+                'threshold' => $result['threshold'],
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $security->login($user, 'App\\Security\\AppAuthenticator', 'main');
+
+        return $this->json([
+            'message' => 'Selfie reconnu et mot de passe valide. Connexion en cours...',
+            'score' => $result['score'],
+            'redirectUrl' => $this->generateUrl('front_dashboard'),
+        ]);
+    }
+
     #[Route('/logout', name: 'app_logout', methods: ['GET'])]
     public function logout(): never
     {
         throw new \LogicException('Intercepte par le firewall Symfony.');
-    }
-
-    private function addVerificationCodeFallbackFlash(User $user): void
-    {
-        if ($this->getParameter('kernel.environment') !== 'dev') {
-            return;
-        }
-
-        $code = $user->getEmailVerificationCode();
-        if (!is_string($code) || $code === '') {
-            return;
-        }
-
-        $this->addFlash(
-            'info',
-            sprintf('Mode dev: e-mail indisponible sur cette machine. Utilisez ce code de verification: %s', $code)
-        );
     }
 
     private function redirectAuthenticatedUser(): ?RedirectResponse
@@ -120,4 +203,15 @@ class SecurityController extends AbstractController
 
         return $this->redirectToRoute('front_dashboard');
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getJsonPayload(Request $request): array
+    {
+        $data = json_decode((string) $request->getContent(), true);
+
+        return is_array($data) ? $data : [];
+    }
+
 }
