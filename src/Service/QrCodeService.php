@@ -2,21 +2,21 @@
 
 namespace App\Service;
 
+use Endroid\QrCode\Builder\BuilderInterface;
+
 /**
- * Service — Génération de QR codes clients.
- *
- * Utilise l'API publique api.qrserver.com (aucune dépendance Composer requise).
- * Extensible pour utiliser endroid/qr-code ou BaconQrCode si nécessaire.
+ * Service - Generation de QR codes clients avec EndroidQrCodeBundle.
  */
 class QrCodeService
 {
     public function __construct(
-        private readonly string $fintrustPublicUrl = '',
+        private readonly BuilderInterface $defaultQrCodeBuilder,
+        private readonly ?string $fintrustPublicUrl = '',
     ) {}
 
     /**
-     * Génère un token unique sécurisé pour le QR code d'un utilisateur.
-     * 48 caractères hexadécimaux (24 octets aléatoires).
+     * Genere un token unique securise pour le QR code d'un utilisateur.
+     * 48 caracteres hexadecimaux (24 octets aleatoires).
      */
     public function generateToken(): string
     {
@@ -24,17 +24,20 @@ class QrCodeService
     }
 
     /**
-     * Retourne l'URL de l'image QR code pour un token donné.
+     * Retourne le SVG du QR code pour un token donne.
      * Le QR code encode l'URL publique du profil client.
      *
      * @param string $token   Token unique du client
      * @param string $baseUrl URL de base de l'application (ex: https://fintrust.tn)
      */
-    public function getQrImageUrl(string $token, string $baseUrl = ''): string
+    public function getQrSvg(string $token, string $baseUrl = ''): string
     {
-        $data = urlencode($this->getPublicProfileUrl($token, $baseUrl));
+        $builder = clone $this->defaultQrCodeBuilder;
 
-        return "https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=16&ecc=M&data={$data}";
+        return $builder
+            ->data($this->getPublicProfileUrl($token, $baseUrl))
+            ->build()
+            ->getString();
     }
 
     public function getPublicProfileUrl(string $token, string $baseUrl = ''): string

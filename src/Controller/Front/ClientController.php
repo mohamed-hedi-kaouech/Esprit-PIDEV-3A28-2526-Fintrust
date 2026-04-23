@@ -3,31 +3,26 @@
 namespace App\Controller\Front;
 
 use App\Entity\User\Client\Kyc;
-use App\Entity\Categorie\Alerte;
-use App\Repository\CategorieRepository;
-use App\Repository\ItemRepository;
 use App\Entity\User\User;
 use App\Form\Front\KycFormType;
 use App\Form\Front\ProfileFormType;
-use App\Entity\Publication\Publication;
-use App\Entity\User\Feedback;
-use App\Form\Front\PublicationCommentType;
 use App\Repository\KycRepository;
-use App\Repository\PublicationRepository;
 use App\Security\KycAccessChecker;
 use App\Security\RiskAccessChecker;
 use App\Service\BehavioralProfileService;
+use App\Service\AdvancedAnalyticsService;
+use App\Service\AccountDeactivationRequestService;
 use App\Service\CaptchaService;
-use App\Service\CommentModerationService;
-use App\Service\DynamicClientNotificationService;
+use App\Service\EconomicDataService;
+use App\Service\FinancialNewsService;
 use App\Service\KycService;
+use App\Service\MarketWatchService;
 use App\Service\NotificationService;
+use App\Service\KycVerificationCenterService;
 use App\Service\QrCodeService;
-use App\Service\RewardService;
+use App\Service\UserIntelligenceService;
 use App\Service\UserService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -73,17 +68,18 @@ class ClientController extends AbstractController
         private readonly KycService $kycService,
         private readonly UserService $userService,
         private readonly NotificationService $notificationService,
-        private readonly CommentModerationService $commentModerationService,
-        private readonly DynamicClientNotificationService $dynamicNotificationService,
         private readonly QrCodeService $qrCodeService,
+        private readonly UserIntelligenceService $userIntelligenceService,
+        private readonly FinancialNewsService $financialNewsService,
+        private readonly EconomicDataService $economicDataService,
+        private readonly MarketWatchService $marketWatchService,
+        private readonly AdvancedAnalyticsService $advancedAnalyticsService,
+        private readonly AccountDeactivationRequestService $accountDeactivationRequestService,
+        private readonly KycVerificationCenterService $kycVerificationCenterService,
         private readonly KycAccessChecker $kycAccessChecker,
         private readonly RiskAccessChecker $riskAccessChecker,
         private readonly ValidatorInterface $validator,
         private readonly BehavioralProfileService $behavioralProfileService,
-        private readonly PublicationRepository $publicationRepository,
-        private readonly CategorieRepository $categorieRepository,
-        private readonly ItemRepository $itemRepository,
-        private readonly EntityManagerInterface $em,
     ) {}
 
     #[Route('/tableau-de-bord', name: 'dashboard')]
@@ -98,7 +94,156 @@ class ClientController extends AbstractController
         return $this->render('front/client/dashboard.html.twig', [
             'user' => $user,
             'kyc' => $kyc,
-            'isEligible' => $this->rewardService->isEligibleForReward($user),
+            'newsFeed' => $this->financialNewsService->getUserFeed($user, 3),
+            'analyticsNews' => $this->advancedAnalyticsService->getNewsRelevance($user, 3),
+            'recommendedAction' => $this->advancedAnalyticsService->getNextBestAction($user),
+            'dropoffRisk' => $this->advancedAnalyticsService->getDropoffRisk($user),
+            'economyOverview' => $this->economicDataService->getOverview(),
+            'watchlistHighlights' => $this->marketWatchService->getWatchlistHighlights(3),
+        ]);
+    }
+
+    #[Route('/actualites-pertinentes', name: 'relevant_news', methods: ['GET'])]
+    public function relevantNews(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        return $this->render('front/client/relevant_news.html.twig', [
+            'user' => $user,
+            'relevance' => $this->advancedAnalyticsService->getNewsRelevance($user, 6),
+        ]);
+    }
+
+    #[Route('/actions-recommandees', name: 'recommended_actions', methods: ['GET'])]
+    public function recommendedActions(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        return $this->render('front/client/recommended_actions.html.twig', [
+            'user' => $user,
+            'recommendation' => $this->advancedAnalyticsService->getNextBestAction($user),
+            'prioritySummary' => $this->advancedAnalyticsService->getActionPrioritySummary($user),
+            'dropoffRisk' => $this->advancedAnalyticsService->getDropoffRisk($user),
+        ]);
+    }
+
+    #[Route('/coherence-identitaire', name: 'identity_consistency', methods: ['GET'])]
+    public function identityConsistency(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        return $this->render('front/client/identity_consistency.html.twig', [
+            'user' => $user,
+            'identityConsistency' => $this->advancedAnalyticsService->getIdentityConsistency($user),
+        ]);
+    }
+
+    #[Route('/marches-economie', name: 'markets', methods: ['GET'])]
+    public function markets(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        $selectedSymbol = (string) $request->query->get('symbol', '');
+        $watchlist = $this->marketWatchService->getWatchlist();
+        $defaultSymbol = $selectedSymbol !== '' ? $selectedSymbol : ($watchlist[0]['symbol'] ?? 'AAPL');
+        $assetDetail = $this->marketWatchService->getAssetDetail($defaultSymbol);
+
+        return $this->render('front/client/markets.html.twig', [
+            'user' => $user,
+            'economyOverview' => $this->economicDataService->getOverview(),
+            'inflation' => $this->economicDataService->getInflation(),
+            'rates' => $this->economicDataService->getRates(),
+            'currencies' => $this->economicDataService->getCurrencies(),
+            'indicators' => $this->economicDataService->getIndicators(),
+            'watchlist' => $watchlist,
+            'watchlistHighlights' => $this->marketWatchService->getHighlights(),
+            'trendingAssets' => $this->marketWatchService->getTrending(),
+            'discoverableAssets' => $this->marketWatchService->getDiscoverableAssets(),
+            'marketOverview' => $this->marketWatchService->getMarketOverview(),
+            'assetDetail' => $assetDetail,
+        ]);
+    }
+
+    #[Route('/marches-economie/watchlist/add', name: 'watchlist_add', methods: ['POST'])]
+    public function addToWatchlist(Request $request): RedirectResponse
+    {
+        if (!$this->isCsrfTokenValid('watchlist_add', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'La demande est invalide.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        $symbol = (string) $request->request->get('symbol', '');
+        if ($symbol === '' || !$this->marketWatchService->addToWatchlist($symbol)) {
+            $this->addFlash('error', 'Actif introuvable.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        $this->addFlash('success', 'Actif ajoute a votre watchlist.');
+
+        return $this->redirectToRoute('front_markets', ['symbol' => $symbol]);
+    }
+
+    #[Route('/marches-economie/watchlist/remove', name: 'watchlist_remove', methods: ['POST'])]
+    public function removeFromWatchlist(Request $request): RedirectResponse
+    {
+        $symbol = (string) $request->request->get('symbol', '');
+
+        if ($symbol === '') {
+            $this->addFlash('error', 'Le symbole a retirer est invalide.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        if (!$this->isCsrfTokenValid('watchlist_remove_' . $symbol, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'La demande est invalide.');
+
+            return $this->redirectToRoute('front_markets');
+        }
+
+        $this->marketWatchService->removeFromWatchlist($symbol);
+        $this->addFlash('success', 'Actif retire de votre watchlist.');
+
+        return $this->redirectToRoute('front_markets');
+    }
+
+    #[Route('/actualites-financieres', name: 'news', methods: ['GET'])]
+    public function news(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $this->behavioralProfileService->refreshUserBehavior($user);
+
+        $category = strtoupper((string) $request->query->get('category', ''));
+        $country = strtolower((string) $request->query->get('country', ''));
+        $keyword = trim((string) $request->query->get('keyword', ''));
+
+        $articles = $this->financialNewsService->getFinancialNews([
+            'category' => $category !== '' ? $category : null,
+            'country' => $country !== '' ? $country : null,
+            'keyword' => $keyword !== '' ? $keyword : null,
+            'limit' => 12,
+        ]);
+
+        return $this->render('front/client/news.html.twig', [
+            'user' => $user,
+            'articles' => $articles,
+            'headline' => $articles[0] ?? null,
+            'marketHighlights' => $this->financialNewsService->getMarketNews(3),
+            'bankHighlights' => $this->financialNewsService->getBankNews(3),
+            'categoryCounts' => $this->financialNewsService->getCategoryCounts(),
+            'selectedCategory' => $category,
+            'selectedCountry' => $country,
+            'selectedKeyword' => $keyword,
         ]);
     }
 
@@ -123,8 +268,11 @@ class ClientController extends AbstractController
         $publicProfileUrl = $user->getQrToken()
             ? $this->qrCodeService->getPublicProfileUrl($user->getQrToken(), $baseUrl)
             : null;
+        $localProfileUrl = $user->getQrToken()
+            ? $this->generateUrl('front_qr_view', ['token' => $user->getQrToken()])
+            : null;
         $qrUrl = $user->getQrToken()
-            ? $this->qrCodeService->getQrImageUrl($user->getQrToken(), $baseUrl)
+            ? $this->generateUrl('front_qr_code_image', ['token' => $user->getQrToken()])
             : null;
         $qrNeedsPublicUrl = $user->getQrToken()
             ? $this->qrCodeService->isLocalOnlyUrl($baseUrl)
@@ -135,8 +283,58 @@ class ClientController extends AbstractController
             'user' => $user,
             'qrUrl' => $qrUrl,
             'publicProfileUrl' => $publicProfileUrl,
+            'localProfileUrl' => $localProfileUrl,
             'qrNeedsPublicUrl' => $qrNeedsPublicUrl,
+            'intelligenceProfile' => $this->userIntelligenceService->buildProfileEnrichment($user),
+            'riskProfile' => $this->userIntelligenceService->getRiskProfile($user),
+            'financialBehavior' => $this->userIntelligenceService->getFinancialBehaviorSummary($user),
+            'monitoringTimeline' => $this->userIntelligenceService->buildMonitoringTimeline($user),
+            'dropoffRisk' => $this->advancedAnalyticsService->getDropoffRisk($user),
+            'deactivationRequest' => $this->accountDeactivationRequestService->getLatestForUser($user),
         ]);
+    }
+
+    #[Route('/profil/desactivation', name: 'profile_deactivation_request', methods: ['POST'])]
+    public function requestDeactivation(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$this->isCsrfTokenValid('profile_deactivation_request', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'La demande de desactivation est invalide.');
+
+            return $this->redirectToRoute('front_profile');
+        }
+
+        $reason = trim((string) $request->request->get('reason', ''));
+        $impact = trim((string) $request->request->get('impact_summary', ''));
+
+        if (mb_strlen($reason) < 20) {
+            $this->addFlash('error', 'Precisez une justification plus detaillee pour votre demande de desactivation.');
+
+            return $this->redirectToRoute('front_profile');
+        }
+
+        try {
+            $requestData = $this->accountDeactivationRequestService->submit(
+                $user,
+                $reason,
+                $impact,
+                $this->advancedAnalyticsService->getDropoffRisk($user)
+            );
+
+            $this->notificationService->notify(
+                $user,
+                'Votre demande de desactivation de compte a bien ete enregistree. Notre equipe admin va l examiner avant toute fermeture.',
+                'WARNING'
+            );
+
+            $this->addFlash('success', 'Votre demande de desactivation a ete transmise pour revue admin.');
+        } catch (\RuntimeException $exception) {
+            $this->addFlash('error', $exception->getMessage());
+        }
+
+        return $this->redirectToRoute('front_profile');
     }
 
     #[Route('/preferences/theme/{mode}', name: 'theme_switch', methods: ['POST'])]
@@ -207,6 +405,8 @@ class ClientController extends AbstractController
             $rawFiles = $filesBag['documents'] ?? $form->get('documents')->getData();
             $files = is_array($rawFiles) ? array_values(array_filter($rawFiles)) : ($rawFiles ? [$rawFiles] : []);
             $signatureData = (string) ($payload['signatureData'] ?? $form->get('signatureData')->getData() ?? '');
+            $selfieData = (string) ($payload['selfieData'] ?? $form->get('selfieData')->getData() ?? '');
+            $selfieFingerprintData = (string) ($payload['selfieFingerprintData'] ?? $form->get('selfieFingerprintData')->getData() ?? '');
 
             $entityErrors = $this->validator->validate($kyc);
 
@@ -221,20 +421,26 @@ class ClientController extends AbstractController
                 }
             } elseif ($files === []) {
                 $this->addFlash('error', 'Veuillez joindre au moins un document justificatif.');
+            } elseif ($selfieData === '') {
+                $this->addFlash('error', 'Ajoutez un selfie KYC de reference pour activer la connexion selfie sur votre compte.');
+            } elseif ($selfieFingerprintData === '') {
+                $this->addFlash('error', 'L empreinte du selfie KYC est absente. Reprenez votre selfie de reference.');
             } elseif (!$this->hasValidKycFiles($files)) {
                 $this->addFlash('error', 'Chaque justificatif doit etre en JPG, PNG ou PDF, avec une taille maximale de 5 Mo.');
             } elseif (!$captchaService->validateAnswer(
                 $request->getSession(),
                 'kyc_submit',
                 (string) $request->request->get('captcha_token', ''),
-                $request->request->getBoolean('captcha_confirm')
+                $request->request->getBoolean('captcha_confirm'),
+                (string) $request->request->get('recaptcha_token', ''),
+                $request->getClientIp()
             )) {
                 $captchaService->refreshChallenge($request->getSession(), 'kyc_submit');
                 $captcha = $captchaService->getOrCreateChallenge($request->getSession(), 'kyc_submit');
                 $this->addFlash('error', 'Le CAPTCHA KYC est invalide. Veuillez recommencer.');
             } else {
                 try {
-                    $this->kycService->submitKyc($user, $kyc, $files, $signatureData);
+                    $this->kycService->submitKyc($user, $kyc, $files, $signatureData, $selfieData, $selfieFingerprintData);
                     $this->notificationService->notifyKycSubmitted($user);
                     $captchaService->clearChallenge($request->getSession(), 'kyc_submit');
 
@@ -293,11 +499,12 @@ class ClientController extends AbstractController
         return $this->render('front/client/kyc_status.html.twig', [
             'user' => $user,
             'kyc' => $kyc,
+            'kycCenter' => $this->kycVerificationCenterService->buildCenter($user),
         ]);
     }
 
     #[Route('/module/{slug}', name: 'module', methods: ['GET'])]
-    public function module(string $slug, Request $request): Response
+    public function module(string $slug): Response
     {
         /** @var User $user */
         $user = $this->getUser();
@@ -319,400 +526,22 @@ class ClientController extends AbstractController
             return $redirect;
         }
 
-        if ($slug === 'wallet') {
-            return $this->redirectToRoute('front_wallet_dashboard');
-        }
-
-        if ($slug === 'publications') {
-            $search = trim((string) $request->query->get('keyword', ''));
-            $category = trim((string) $request->query->get('category', '')) ?: null;
-            $sort = (string) $request->query->get('sort', 'recentes');
-
-            $publications = $this->publicationRepository->findPublishedWithStats(
-                $category,
-                $search,
-                $sort,
-            );
-
-            $categories = $this->publicationRepository->getDistinctCategories();
-
-            return $this->render('front/client/publications.html.twig', [
-                'module' => self::FRONT_MODULES[$slug],
-                'publications' => $publications,
-                'categories' => $categories,
-                'searchTerm' => $search,
-                'selectedCategory' => $category,
-                'sortBy' => $sort,
-            ]);
-        }
-
-        if ($slug === 'budget') {
-            $categories = $this->categorieRepository->findBy([], ['nomCategorie' => 'ASC']);
-            $budgetStats = [];
-            $totalBudget = 0.0;
-            $totalSpent = 0.0;
-            $activeAlerts = 0;
-            $totalItems = 0;
-
-            $weeklyLabels = [
-                1 => 'Lun',
-                2 => 'Mar',
-                3 => 'Mer',
-                4 => 'Jeu',
-                5 => 'Ven',
-                6 => 'Sam',
-                7 => 'Dim',
-            ];
-            $weeklyActivity = array_fill_keys(array_values($weeklyLabels), 0);
-
-            foreach ($categories as $categorie) {
-                $spent = $this->itemRepository->getTotalMontantByCategorie($categorie->getIdCategorie());
-                $itemCount = $categorie->getItems()->count();
-                $alerts = array_values(array_filter(
-                    $categorie->getAlertes()->toArray(),
-                    static fn (Alerte $alerte): bool => (bool) $alerte->getActive()
-                ));
-
-                foreach ($alerts as $alerte) {
-                    $dayIndex = (int) $alerte->getCreatedAt()->format('N');
-                    if (isset($weeklyLabels[$dayIndex])) {
-                        $weeklyActivity[$weeklyLabels[$dayIndex]]++;
-                    }
-                }
-
-                $budget = $categorie->getBudgetPrevu();
-                $usage = $budget > 0 ? ($spent / $budget) * 100 : 0;
-                $remaining = $budget - $spent;
-                $alertCount = count($alerts);
-
-                if ($usage >= 100 || $alertCount > 0) {
-                    $status = 'danger';
-                    $statusLabel = 'Depassement';
-                } elseif ($usage >= 80) {
-                    $status = 'warning';
-                    $statusLabel = 'Alerte proche';
-                } else {
-                    $status = 'ok';
-                    $statusLabel = 'Sous controle';
-                }
-
-                $budgetStats[] = [
-                    'categorie' => $categorie,
-                    'spent' => $spent,
-                    'budget' => $budget,
-                    'usage' => $usage,
-                    'remaining' => $remaining,
-                    'itemCount' => $itemCount,
-                    'alertCount' => $alertCount,
-                    'status' => $status,
-                    'statusLabel' => $statusLabel,
-                ];
-
-                $totalBudget += $budget;
-                $totalSpent += $spent;
-                $activeAlerts += $alertCount;
-                $totalItems += $itemCount;
-            }
-
-            usort($budgetStats, static fn (array $left, array $right): int => $right['usage'] <=> $left['usage']);
-
-            $globalUsage = $totalBudget > 0 ? ($totalSpent / $totalBudget) * 100 : 0;
-            $remainingBudget = $totalBudget - $totalSpent;
-            $topCategories = array_slice($budgetStats, 0, 3);
-            $latestAlerts = $this->em->getRepository(Alerte::class)->findBy([], ['createdAt' => 'DESC'], 5);
-
-            $insight = $topCategories !== []
-                ? sprintf(
-                    'La categorie %s concentre actuellement %.1f%% du budget utilise. Gardez un oeil prioritaire sur ce poste.',
-                    $topCategories[0]['categorie']->getNomCategorie(),
-                    $topCategories[0]['usage']
-                )
-                : 'Commencez par definir des categories et des depenses pour activer votre centre de pilotage budgetaire.';
-
-            return $this->render('front/client/budget.html.twig', [
-                'module' => self::FRONT_MODULES[$slug],
-                'budgetStats' => $budgetStats,
-                'topCategories' => $topCategories,
-                'latestAlerts' => $latestAlerts,
-                'weeklyActivity' => $weeklyActivity,
-                'totalBudget' => $totalBudget,
-                'totalSpent' => $totalSpent,
-                'remainingBudget' => $remainingBudget,
-                'globalUsage' => $globalUsage,
-                'activeAlerts' => $activeAlerts,
-                'trackedCategories' => count($categories),
-                'totalItems' => $totalItems,
-                'insight' => $insight,
-            ]);
-        }
-
         return $this->render('front/client/module.html.twig', [
             'module' => self::FRONT_MODULES[$slug],
         ]);
     }
 
-    #[Route('/publications/{id}', name: 'publications_view', methods: ['GET', 'POST'])]
-    public function viewPublication(Publication $publication, Request $request): Response
-    {
-        $commentNotice = $request->getSession()->get('publication_comment_notice');
-        $request->getSession()->remove('publication_comment_notice');
-
-        $comment = new Feedback();
-        $commentForm = $this->createForm(PublicationCommentType::class, $comment, [
-            'action' => $this->generateUrl('front_publications_view', ['id' => $publication->getId()]),
-        ]);
-        $commentForm->handleRequest($request);
-
-        if ($commentForm->isSubmitted() && $commentForm->isValid()) {
-            $rating = (int) $commentForm->get('rating')->getData();
-            $commentText = trim((string) $comment->getCommentaire());
-
-            $analysis = $this->commentModerationService->handleDecision(
-                $commentText,
-                $this->getUser(),
-                'Publication #' . $publication->getId()
-            );
-
-            if ($analysis['decision'] === 'reject') {
-                $this->addFlash('error', 'Votre commentaire ne peut pas etre publie, car il contient des propos inappropries, agressifs ou des gros mots. Merci de reformuler votre message avec un langage respectueux et professionnel.');
-                $request->getSession()->set('publication_comment_notice', [
-                    'type' => 'danger',
-                    'message' => 'Votre commentaire ne respecte pas les regles de la plateforme.',
-                ]);
-
-                return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-            }
-
-            if ($analysis['decision'] === 'moderate') {
-                $this->addFlash('warning', 'Votre commentaire contient un langage juge sensible ou inapproprie. Il a ete bloque pour verification avant publication.');
-                $request->getSession()->set('publication_comment_notice', [
-                    'type' => 'warning',
-                    'message' => 'Votre commentaire ne respecte pas totalement les regles de la plateforme. Il a ete envoye en verification.',
-                ]);
-
-                return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-            }
-
-            $comment->setPublication($publication)
-                ->setUser($this->getUser())
-                ->setDateFeedback(new \DateTime())
-                ->setTypeReaction('RATING_' . $rating);
-
-            $this->em->persist($comment);
-            $this->em->flush();
-
-            $this->addFlash('success', 'Votre avis a bien été pris en compte.');
-
-            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-        }
-
-        $feedbacks = $publication->getFeedbacks()->toArray();
-        $likes = count(array_filter($feedbacks, static fn($feedback) => $feedback->getTypeReaction() === 'LIKE'));
-        $dislikes = count(array_filter($feedbacks, static fn($feedback) => $feedback->getTypeReaction() === 'DISLIKE'));
-        $ratings = array_map(
-            static fn($feedback) => (int) substr($feedback->getTypeReaction(), 7),
-            array_filter($feedbacks, static fn($feedback) => str_starts_with((string) $feedback->getTypeReaction(), 'RATING_'))
-        );
-        $averageRating = $ratings ? round(array_sum($ratings) / count($ratings), 1) : null;
-        $comments = array_values(array_filter($feedbacks, static fn($feedback) => $feedback->getCommentaire() !== null && trim((string) $feedback->getCommentaire()) !== ''));
-
-        return $this->render('front/client/publication_detail.html.twig', [
-            'module' => self::FRONT_MODULES['publications'],
-            'publication' => $publication,
-            'commentForm' => $commentForm->createView(),
-            'likes' => $likes,
-            'dislikes' => $dislikes,
-            'averageRating' => $averageRating,
-            'comments' => $comments,
-            'commentNotice' => $commentNotice,
-        ]);
-    }
-
-    #[Route('/publications/{id}/reaction/{reaction}', name: 'publications_react', methods: ['POST'])]
-    public function reactPublication(Publication $publication, string $reaction, Request $request): Response
-    {
-        if (!$this->isCsrfTokenValid('publication_react_' . $publication->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action invalide.');
-
-            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-        }
-
-        $reaction = strtoupper($reaction);
-        if (!in_array($reaction, ['LIKE', 'DISLIKE'], true)) {
-            $this->addFlash('error', 'Réaction invalide.');
-
-            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-        }
-
-        $feedback = new \App\Entity\User\Feedback();
-        $feedback->setPublication($publication)
-            ->setUser($this->getUser())
-            ->setDateFeedback(new \DateTime())
-            ->setTypeReaction($reaction);
-
-        $this->em->persist($feedback);
-        $this->em->flush();
-
-        $this->addFlash('success', sprintf('Votre %s a bien été enregistré.', strtolower($reaction)));
-
-        return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-    }
-
-    #[Route('/publications/{id}/comments/{feedbackId}/edit', name: 'publications_comment_edit', methods: ['POST'])]
-    public function editPublicationComment(Publication $publication, int $feedbackId, Request $request): Response
-    {
-        $feedback = $this->em->getRepository(Feedback::class)->find($feedbackId);
-
-        if (!$feedback || $feedback->getPublication()->getId() !== $publication->getId()) {
-            throw $this->createNotFoundException('Commentaire introuvable.');
-        }
-
-        if ($feedback->getUser()->getId() !== $this->getUser()->getId()) {
-            throw $this->createAccessDeniedException('Vous ne pouvez modifier que votre propre commentaire.');
-        }
-
-        if (!$this->isCsrfTokenValid('edit_comment_' . $feedback->getIdFeedback(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action invalide.');
-
-            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-        }
-
-        $commentaire = trim((string) $request->request->get('commentaire', ''));
-        $rating = (int) $request->request->get('rating', 0);
-
-        if ($commentaire === '') {
-            $this->addFlash('error', 'Le commentaire ne peut pas etre vide.');
-
-            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-        }
-
-        if ($rating < 1 || $rating > 5) {
-            $this->addFlash('error', 'La note doit etre comprise entre 1 et 5.');
-
-            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-        }
-
-        $analysis = $this->commentModerationService->handleDecision(
-            $commentaire,
-            $this->getUser(),
-            'Edition commentaire publication #' . $publication->getId()
-        );
-
-        if ($analysis['decision'] === 'reject') {
-            $this->addFlash('error', 'Votre commentaire ne peut pas etre publie, car il contient des propos inappropries, agressifs ou des gros mots. Merci de reformuler votre message avec un langage respectueux et professionnel.');
-            $request->getSession()->set('publication_comment_notice', [
-                'type' => 'danger',
-                'message' => 'Votre commentaire ne respecte pas les regles de la plateforme.',
-            ]);
-
-            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-        }
-
-        if ($analysis['decision'] === 'moderate') {
-            $this->addFlash('warning', 'Votre commentaire modifie contient un langage juge sensible ou inapproprie. Il a ete bloque pour verification avant publication.');
-            $request->getSession()->set('publication_comment_notice', [
-                'type' => 'warning',
-                'message' => 'Votre commentaire modifie ne respecte pas totalement les regles de la plateforme. Il a ete envoye en verification.',
-            ]);
-
-            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-        }
-
-        $feedback
-            ->setCommentaire($commentaire)
-            ->setTypeReaction('RATING_' . $rating)
-            ->setDateFeedback(new \DateTime());
-
-        $this->em->flush();
-        $this->addFlash('success', 'Votre commentaire a bien ete modifie.');
-
-        return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-    }
-
-    #[Route('/publications/{id}/comments/{feedbackId}/delete', name: 'publications_comment_delete', methods: ['POST'])]
-    public function deletePublicationComment(Publication $publication, int $feedbackId, Request $request): Response
-    {
-        $feedback = $this->em->getRepository(Feedback::class)->find($feedbackId);
-
-        if (!$feedback || $feedback->getPublication()->getId() !== $publication->getId()) {
-            throw $this->createNotFoundException('Commentaire introuvable.');
-        }
-
-        if ($feedback->getUser()->getId() !== $this->getUser()->getId()) {
-            throw $this->createAccessDeniedException('Vous ne pouvez supprimer que votre propre commentaire.');
-        }
-
-        if (!$this->isCsrfTokenValid('delete_comment_' . $feedback->getIdFeedback(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Action invalide.');
-
-            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-        }
-
-        $this->em->remove($feedback);
-        $this->em->flush();
-        $this->addFlash('success', 'Votre commentaire a bien ete supprime.');
-
-        return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
-    }
-
     #[Route('/notifications', name: 'notifications')]
-    public function notifications(Request $request): Response
+    public function notifications(): Response
     {
         /** @var User $user */
         $user = $this->getUser();
-
-        $session = $request->getSession();
-        $lastVisit = $this->dynamicNotificationService->getLastCheck($session);
-        $dynamicNotifications = $this->dynamicNotificationService->getNotifications($user, $lastVisit);
-        $this->dynamicNotificationService->markChecked($session);
-
-        $nativeNotifications = array_map(
-            static fn ($notif): array => [
-                'id' => 'native-' . $notif->getId(),
-                'source' => 'native',
-                'type' => strtoupper((string) $notif->getType()),
-                'title' => match (strtoupper((string) $notif->getType())) {
-                    'SUCCESS' => 'Confirmation',
-                    'ERROR' => 'Incident',
-                    'WARNING' => 'Vigilance',
-                    default => 'Information',
-                },
-                'message' => (string) $notif->getMessage(),
-                'date' => $notif->getCreatedAt(),
-                'read' => $notif->isRead(),
-                'nativeId' => $notif->getId(),
-                'actionUrl' => null,
-                'actionLabel' => null,
-            ],
-            $this->userService->getNotifications($user)
-        );
-
-        $notifications = array_merge($dynamicNotifications, $nativeNotifications);
-        usort(
-            $notifications,
-            static fn (array $left, array $right): int => $right['date'] <=> $left['date']
-        );
-
-        $unreadCount = count(array_filter($notifications, static fn (array $notif): bool => !$notif['read']));
+        $notifs = $this->userService->getNotifications($user);
+        $unreadCount = count(array_filter($notifs, static fn ($notif) => !$notif->isRead()));
 
         return $this->render('front/client/notifications.html.twig', [
-            'notifications' => $notifications,
+            'notifications' => $notifs,
             'unreadCount' => $unreadCount,
-            'dynamicCount' => count($dynamicNotifications),
-        ]);
-    }
-
-    #[Route('/notifications/count', name: 'notifications_count', methods: ['GET'])]
-    public function notificationCount(Request $request): JsonResponse
-    {
-        /** @var User $user */
-        $user = $this->getUser();
-
-        $dynamicCount = $this->dynamicNotificationService->getUnreadCount($user, $request->getSession());
-        $nativeCount = $this->notificationService->getUnreadCountForUser($user);
-
-        return $this->json([
-            'count' => $dynamicCount + $nativeCount,
         ]);
     }
 
@@ -752,12 +581,9 @@ class ClientController extends AbstractController
         }
 
         $updated = $this->notificationService->markAllAsReadForUser($user);
-        $dynamicUpdated = $this->dynamicNotificationService->getUnreadCount($user, $request->getSession());
-        $this->dynamicNotificationService->markChecked($request->getSession());
 
-        if ($updated > 0 || $dynamicUpdated > 0) {
-            $totalUpdated = $updated + $dynamicUpdated;
-            $this->addFlash('success', $totalUpdated > 1 ? 'Toutes les notifications ont ete marquees comme lues.' : 'La notification a ete marquee comme lue.');
+        if ($updated > 0) {
+            $this->addFlash('success', $updated > 1 ? 'Toutes les notifications ont ete marquees comme lues.' : 'La notification a ete marquee comme lue.');
         } else {
             $this->addFlash('info', 'Aucune notification non lue a mettre a jour.');
         }

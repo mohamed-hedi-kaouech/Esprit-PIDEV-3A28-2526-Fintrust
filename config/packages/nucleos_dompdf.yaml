@@ -1,0 +1,6 @@
+nucleos_dompdf:
+    defaults:
+        defaultFont: 'DejaVu Sans'
+        isHtml5ParserEnabled: true
+        isRemoteEnabled: true
+        chroot: '%kernel.project_dir%/public'

@@ -1,0 +1,382 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}Actualites financieres{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-news-page-hero {
+      position: relative;
+      overflow: hidden;
+      padding: 2.2rem;
+      border-radius: 2.2rem;
+      border: 1px solid rgba(147, 197, 253, 0.96);
+      background:
+        radial-gradient(circle at 88% 18%, rgba(56, 189, 248, 0.28), transparent 22%),
+        radial-gradient(circle at 12% 78%, rgba(59, 130, 246, 0.14), transparent 26%),
+        linear-gradient(135deg, rgba(255,255,255,.99), rgba(240,248,255,.97));
+      box-shadow: 0 28px 48px rgba(15, 23, 42, 0.07);
+    }
+    .ft-news-page-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: linear-gradient(180deg, #2563eb, #38bdf8, #f59e0b);
+    }
+    .ft-news-page-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .5rem .95rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(191, 219, 254, 0.95);
+      color: #1d4ed8;
+      font-size: .76rem;
+      font-weight: 800;
+      margin-bottom: .8rem;
+      box-shadow: 0 12px 20px rgba(37, 99, 235, 0.08);
+    }
+    .ft-news-page-title {
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: .65rem;
+      line-height: .98;
+      letter-spacing: -.03em;
+      max-width: 900px;
+    }
+    .ft-news-disclaimer {
+      padding: 1rem 1.1rem;
+      border-radius: 1.2rem;
+      border: 1px solid rgba(203, 213, 225, .9);
+      background: rgba(255,255,255,.88);
+      color: #475569;
+      font-size: .88rem;
+      max-width: 340px;
+      box-shadow: 0 16px 28px rgba(15, 23, 42, 0.05);
+    }
+    .ft-news-hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .ft-news-hero-stat {
+      padding: 1rem 1.05rem;
+      border-radius: 1.25rem;
+      border: 1px solid rgba(191, 219, 254, 0.95);
+      background: rgba(255,255,255,.82);
+      box-shadow: 0 14px 24px rgba(15, 23, 42, 0.04);
+    }
+    .ft-news-hero-stat span {
+      display: block;
+      color: #64748b;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+      margin-bottom: .35rem;
+    }
+    .ft-news-hero-stat strong {
+      color: #0f172a;
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+    .ft-news-filter-card,
+    .ft-news-featured-card,
+    .ft-news-list-card,
+    .ft-news-side-card {
+      border-radius: 1.5rem;
+      border: 1px solid rgba(203, 213, 225, .92);
+      background: linear-gradient(180deg, rgba(255,255,255,.99), rgba(248,251,255,.96));
+      box-shadow: 0 18px 32px rgba(15, 23, 42, 0.05);
+    }
+    .ft-news-filter-card {
+      padding: 1.35rem;
+      background:
+        radial-gradient(circle at right top, rgba(14,165,233,.08), transparent 26%),
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(247,251,255,.97));
+    }
+    .ft-news-filter-chip {
+      display: inline-flex;
+      padding: .5rem .85rem;
+      border-radius: 999px;
+      border: 1px solid #dbe7f7;
+      background: rgba(255,255,255,.9);
+      color: #1e3a8a;
+      text-decoration: none;
+      font-size: .82rem;
+      font-weight: 700;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .ft-news-filter-chip:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 18px rgba(37, 99, 235, 0.1);
+      border-color: #bfdbfe;
+    }
+    .ft-news-filter-chip.is-active {
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 12px 20px rgba(37, 99, 235, 0.18);
+    }
+    .ft-news-featured-card,
+    .ft-news-list-card,
+    .ft-news-side-card {
+      padding: 1.25rem;
+    }
+    .ft-news-featured-card {
+      position: relative;
+      overflow: hidden;
+      border-color: rgba(147, 197, 253, 0.92);
+      background:
+        radial-gradient(circle at top right, rgba(56,189,248,.12), transparent 24%),
+        linear-gradient(135deg, rgba(255,255,255,.99), rgba(243,248,255,.97));
+    }
+    .ft-news-featured-card::after {
+      content: "";
+      position: absolute;
+      inset: auto 1.25rem 0 1.25rem;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #2563eb, #38bdf8, #f59e0b);
+      opacity: .9;
+    }
+    .ft-news-featured-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.18;
+      margin: .7rem 0;
+      letter-spacing: -.02em;
+    }
+    .ft-news-featured-meta,
+    .ft-news-article-meta {
+      display: flex;
+      gap: .7rem;
+      align-items: center;
+      flex-wrap: wrap;
+      color: #64748b;
+      font-size: .82rem;
+    }
+    .ft-news-featured-copy,
+    .ft-news-article-copy {
+      color: #475569;
+      line-height: 1.75;
+    }
+    .ft-news-article {
+      padding: 1.1rem 0;
+      border-bottom: 1px solid rgba(226, 232, 240, .9);
+    }
+    .ft-news-article:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .ft-news-article:hover {
+      background: linear-gradient(90deg, rgba(239,246,255,.45), rgba(255,255,255,0));
+    }
+    .ft-news-article-title {
+      font-size: 1.16rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: .5rem 0;
+      line-height: 1.35;
+    }
+    .ft-news-side-title {
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: .95rem;
+    }
+    .ft-news-side-list {
+      display: grid;
+      gap: .8rem;
+    }
+    .ft-news-side-item {
+      padding: 1rem;
+      border-radius: 1.1rem;
+      border: 1px solid rgba(226, 232, 240, .96);
+      background: rgba(255,255,255,.88);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .ft-news-side-item:hover {
+      transform: translateY(-3px);
+      border-color: rgba(191, 219, 254, 1);
+      box-shadow: 0 16px 24px rgba(15, 23, 42, 0.06);
+    }
+    .ft-news-side-item strong {
+      display: block;
+      color: #0f172a;
+      font-size: .95rem;
+      margin-bottom: .3rem;
+    }
+    .ft-news-side-item small {
+      color: #64748b;
+      line-height: 1.6;
+      display: block;
+    }
+    @media (max-width: 991.98px) {
+      .ft-news-hero-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+    <section class="ft-news-page-hero mb-4">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+          <div class="ft-news-page-kicker">
+            <i class="bi bi-graph-up-arrow"></i>
+            FinTrust Financial News
+          </div>
+          <h1 class="ft-news-page-title">Actualites marches & banques</h1>
+          <p class="text-muted mb-0" style="max-width:760px">Suivez une veille premium sur les banques, les marches, la regulation et les grandes tendances financieres, avec un rendu sobre et une lecture rapide.</p>
+        </div>
+        <div class="ft-news-disclaimer">
+          <strong>Information uniquement.</strong><br>
+          Les actualites affichees sont fournies a titre informatif et ne constituent pas un conseil d investissement.
+        </div>
+      </div>
+      <div class="ft-news-hero-stats">
+        <div class="ft-news-hero-stat">
+          <span>Flux actif</span>
+          <strong>{{ articles|length }} actualite{{ articles|length > 1 ? 's' : '' }}</strong>
+        </div>
+        <div class="ft-news-hero-stat">
+          <span>A la une</span>
+          <strong>{{ headline ? headline.category : 'FINANCIAL' }}</strong>
+        </div>
+        <div class="ft-news-hero-stat">
+          <span>Lecture</span>
+          <strong>Rapide & premium</strong>
+        </div>
+      </div>
+    </section>
+
+    <div class="ft-news-filter-card mb-4">
+      <form method="get" class="row g-3 align-items-end">
+        <div class="col-lg-4">
+          <label class="form-label fw-semibold small">Recherche</label>
+          <input type="text" class="form-control ft-input" name="keyword" value="{{ selectedKeyword }}" placeholder="Banques, taux, regulation...">
+        </div>
+        <div class="col-lg-3">
+          <label class="form-label fw-semibold small">Pays</label>
+          <select class="form-select ft-input" name="country">
+            <option value="">Tous</option>
+            <option value="tn" {{ selectedCountry == 'tn' ? 'selected' : '' }}>Tunisie</option>
+            <option value="global" {{ selectedCountry == 'global' ? 'selected' : '' }}>Global</option>
+            <option value="eu" {{ selectedCountry == 'eu' ? 'selected' : '' }}>Europe</option>
+          </select>
+        </div>
+        <div class="col-lg-3">
+          <label class="form-label fw-semibold small">Categorie</label>
+          <select class="form-select ft-input" name="category">
+            <option value="">Toutes</option>
+            {% for code, total in categoryCounts %}
+              <option value="{{ code }}" {{ selectedCategory == code ? 'selected' : '' }}>{{ code }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-lg-2 d-grid">
+          <button type="submit" class="btn ft-btn-primary">Filtrer</button>
+        </div>
+      </form>
+
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <a href="{{ path('front_news') }}" class="ft-news-filter-chip {{ selectedCategory == '' ? 'is-active' : '' }}">Tout</a>
+        <a href="{{ path('front_news', {category: 'MARKET'}) }}" class="ft-news-filter-chip {{ selectedCategory == 'MARKET' ? 'is-active' : '' }}">Bourse</a>
+        <a href="{{ path('front_news', {category: 'BANKING'}) }}" class="ft-news-filter-chip {{ selectedCategory == 'BANKING' ? 'is-active' : '' }}">Banques</a>
+        <a href="{{ path('front_news', {category: 'REGULATION'}) }}" class="ft-news-filter-chip {{ selectedCategory == 'REGULATION' ? 'is-active' : '' }}">Reglementation</a>
+        <a href="{{ path('front_news', {category: 'ECONOMY'}) }}" class="ft-news-filter-chip {{ selectedCategory == 'ECONOMY' ? 'is-active' : '' }}">Tendances</a>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-xl-8">
+        {% if headline %}
+          <article class="ft-news-featured-card mb-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+              <span class="badge {{ headline.importanceLevel in ['HIGH', 'BREAKING'] ? 'ft-badge-warning' : 'ft-badge-blue' }}">{{ headline.importanceLevel }}</span>
+              <div class="ft-news-featured-meta">
+                <span>{{ headline.sourceName }}</span>
+                <span>{{ headline.publishedAt|date('d/m/Y H:i') }}</span>
+                <span>{{ headline.category }}</span>
+              </div>
+            </div>
+            <h2 class="ft-news-featured-title">{{ headline.title }}</h2>
+            <p class="ft-news-featured-copy mb-3">{{ headline.summary }}</p>
+            <div class="d-flex flex-wrap gap-2">
+              {% for tag in headline.tags %}
+                <span class="badge ft-badge-neutral">{{ tag }}</span>
+              {% endfor %}
+            </div>
+          </article>
+        {% endif %}
+
+        <section class="ft-news-list-card">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <h3 class="mb-0" style="font-size:1.15rem;font-weight:800;color:#0f172a;">Flux des actualites</h3>
+            <span class="text-muted small">{{ articles|length }} article{{ articles|length > 1 ? 's' : '' }}</span>
+          </div>
+
+          {% if articles is empty %}
+            <div class="text-center text-muted py-5">
+              <i class="bi bi-newspaper fs-2 d-block mb-2 text-primary"></i>
+              Aucune actualite ne correspond a ces filtres.
+            </div>
+          {% else %}
+            {% for article in articles %}
+              <article class="ft-news-article">
+                <div class="ft-news-article-meta">
+                  <span class="badge {{ article.importanceLevel in ['HIGH', 'BREAKING'] ? 'ft-badge-warning' : 'ft-badge-blue' }}">{{ article.category }}</span>
+                  <span>{{ article.sourceName }}</span>
+                  <span>{{ article.publishedAt|date('d/m/Y H:i') }}</span>
+                </div>
+                <h4 class="ft-news-article-title">{{ article.title }}</h4>
+                <p class="ft-news-article-copy mb-2">{{ article.summary }}</p>
+                <div class="d-flex flex-wrap gap-2">
+                  {% for tag in article.tags %}
+                    <span class="badge ft-badge-neutral">{{ tag }}</span>
+                  {% endfor %}
+                </div>
+              </article>
+            {% endfor %}
+          {% endif %}
+        </section>
+      </div>
+
+      <div class="col-xl-4">
+        <aside class="ft-news-side-card mb-4">
+          <div class="ft-news-side-title">A la une banques</div>
+          <div class="ft-news-side-list">
+            {% for article in bankHighlights %}
+              <article class="ft-news-side-item">
+                <strong>{{ article.title }}</strong>
+                <small>{{ article.summary }}</small>
+              </article>
+            {% endfor %}
+          </div>
+        </aside>
+
+        <aside class="ft-news-side-card">
+          <div class="ft-news-side-title">Focus marches</div>
+          <div class="ft-news-side-list">
+            {% for article in marketHighlights %}
+              <article class="ft-news-side-item">
+                <strong>{{ article.title }}</strong>
+                <small>{{ article.summary }}</small>
+              </article>
+            {% endfor %}
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

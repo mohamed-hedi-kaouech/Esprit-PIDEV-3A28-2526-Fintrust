@@ -1,6 +1,5 @@
-{# Vue dossier KYC Admin — BackOffice | Hérite de admin/back.html.twig #}
 {% extends 'admin/back.html.twig' %}
-{% block title %}KYC — {{ kyc.user.fullName }}{% endblock %}
+{% block title %}KYC - {{ kyc.user.fullName }}{% endblock %}
 
 {% block breadcrumb %}
   <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
@@ -11,10 +10,9 @@
 {% endblock %}
 
 {% block admin_content %}
-
 <div class="d-flex align-items-center justify-content-between mb-4">
   <h1 class="ft-admin-page-title mb-0">
-    <i class="bi bi-shield-check me-2 text-primary"></i>Dossier KYC — {{ kyc.user.fullName }}
+    <i class="bi bi-shield-check me-2 text-primary"></i>Dossier KYC - {{ kyc.user.fullName }}
   </h1>
   <a href="{{ path('admin_kyc_list') }}" class="btn btn-sm btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i>Retour
@@ -22,8 +20,6 @@
 </div>
 
 <div class="row g-4">
-
-  {# ---- Informations KYC ---- #}
   <div class="col-lg-6">
     <div class="ft-admin-card h-100">
       <div class="ft-admin-card-header">
@@ -33,29 +29,22 @@
         <dl class="row">
           <dt class="col-5 text-muted small">Client</dt>
           <dd class="col-7 fw-semibold">{{ kyc.user.fullName }}</dd>
-
           <dt class="col-5 text-muted small">Email</dt>
           <dd class="col-7 small">{{ kyc.user.email }}</dd>
-
           <dt class="col-5 text-muted small">CIN</dt>
           <dd class="col-7"><code>{{ kyc.cin }}</code></dd>
-
           <dt class="col-5 text-muted small">Adresse</dt>
           <dd class="col-7 small">{{ kyc.adresse }}</dd>
-
           <dt class="col-5 text-muted small">Date de naissance</dt>
           <dd class="col-7 small">{{ kyc.dateNaissance|date('d/m/Y') }}</dd>
-
           <dt class="col-5 text-muted small">Soumis le</dt>
           <dd class="col-7 small">{{ kyc.dateSubmission|date('d/m/Y à H:i') }}</dd>
-
           <dt class="col-5 text-muted small">Statut</dt>
           <dd class="col-7">
             <span class="badge {{ kyc.statut == 'APPROUVE' ? 'ft-badge-success' : (kyc.statut == 'REFUSE' ? 'ft-badge-danger' : 'ft-badge-warning') }}">
               {{ kyc.statut }}
             </span>
           </dd>
-
           {% if kyc.commentaireAdmin %}
             <dt class="col-5 text-muted small">Commentaire</dt>
             <dd class="col-7 small">{{ kyc.commentaireAdmin }}</dd>
@@ -65,95 +54,196 @@
     </div>
   </div>
 
-  {# ---- Actions (uniquement si EN_ATTENTE) ---- #}
   {% if kyc.statut == 'EN_ATTENTE' %}
-  <div class="col-lg-6">
-
-    {# Approuver #}
-    <div class="ft-admin-card ft-admin-card-success mb-4">
-      <div class="ft-admin-card-header text-success">
-        <i class="bi bi-check-circle me-2"></i>Approuver le dossier
-      </div>
-      <div class="ft-admin-card-body">
-        <form method="post" action="{{ path('admin_kyc_approve', {id: kyc.id}) }}">
-          <input type="hidden" name="_token" value="{{ csrf_token('kyc_approve_' ~ kyc.id) }}"/>
-          <div class="mb-3">
-            <label class="form-label small fw-semibold">Commentaire (optionnel)</label>
-            <textarea name="commentaire" class="form-control ft-input" rows="2"
-                      placeholder="Dossier conforme, identité vérifiée…"></textarea>
-          </div>
-          <button type="submit" class="btn btn-success w-100 fw-semibold">
-            <i class="bi bi-check-lg me-2"></i>Approuver et activer le compte
-          </button>
-        </form>
-      </div>
-    </div>
-
-    {# Refuser #}
-    <div class="ft-admin-card ft-admin-card-danger">
-      <div class="ft-admin-card-header text-danger">
-        <i class="bi bi-x-circle me-2"></i>Refuser le dossier
-      </div>
-      <div class="ft-admin-card-body">
-        <form method="post" action="{{ path('admin_kyc_refuse', {id: kyc.id}) }}" novalidate="novalidate">
-          <input type="hidden" name="_token" value="{{ csrf_token('kyc_refuse_' ~ kyc.id) }}"/>
-          <div class="mb-3">
-            <label class="form-label small fw-semibold">
-              Motif de refus <span class="text-danger">*</span>
-            </label>
-            <textarea name="commentaire" class="form-control ft-input" rows="3"
-                      placeholder="Documents illisibles, CIN expiré, photo non conforme…"></textarea>
-            <div class="form-text text-danger">Le motif est obligatoire et sera communiqué au client.</div>
-          </div>
-          <button type="submit" class="btn btn-danger w-100 fw-semibold">
-            <i class="bi bi-x-lg me-2"></i>Refuser le dossier
-          </button>
-        </form>
-      </div>
-    </div>
-
-  </div>
-  {% endif %}
-
-</div>
-
-{# ---- Fichiers justificatifs ---- #}
-{% if filesData is not empty %}
-<div class="ft-admin-card mt-4">
-  <div class="ft-admin-card-header">
-    <i class="bi bi-paperclip me-2 text-primary"></i>
-    Pièces justificatives ({{ filesData|length }} fichier(s))
-  </div>
-  <div class="ft-admin-card-body">
-    <div class="row g-3">
-      {% for item in filesData %}
-        <div class="col-sm-6 col-md-4 col-lg-3">
-          <div class="ft-kyc-file-card">
-            <div class="ft-kyc-file-name text-truncate" title="{{ item.file.fileName }}">
-              <i class="bi {{ item.file.fileType == 'application/pdf' ? 'bi-file-earmark-pdf text-danger' : 'bi-file-earmark-image text-primary' }} me-1"></i>
-              {{ item.file.fileName }}
-            </div>
-            <div class="text-muted" style="font-size:.75rem">{{ (item.file.fileSize / 1024)|round(1) }} Ko</div>
-
-            {% if item.file.fileType starts with 'image/' %}
-              <img src="{{ asset(item.path) }}"
-                   alt="{{ item.file.fileName }}"
-                   class="img-fluid rounded mt-2 border"
-                   style="max-height:160px; object-fit:cover; width:100%"/>
-            {% else %}
-              <a href="{{ asset(item.path) }}"
-                 target="_blank"
-                 rel="noopener"
-                 class="btn btn-sm ft-btn-outline-primary mt-2 w-100">
-                <i class="bi bi-download me-1"></i>Ouvrir le PDF
-              </a>
-            {% endif %}
-          </div>
+    <div class="col-lg-6">
+      <div class="ft-admin-card ft-admin-card-success mb-4">
+        <div class="ft-admin-card-header text-success">
+          <i class="bi bi-check-circle me-2"></i>Approuver le dossier
         </div>
-      {% endfor %}
+        <div class="ft-admin-card-body">
+          <form method="post" action="{{ path('admin_kyc_approve', {id: kyc.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('kyc_approve_' ~ kyc.id) }}"/>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Commentaire (optionnel)</label>
+              <textarea name="commentaire" class="form-control ft-input" rows="2" placeholder="Dossier conforme, identite verifiee..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-success w-100 fw-semibold">
+              <i class="bi bi-check-lg me-2"></i>Approuver et activer le compte
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="ft-admin-card ft-admin-card-danger">
+        <div class="ft-admin-card-header text-danger">
+          <i class="bi bi-x-circle me-2"></i>Refuser le dossier
+        </div>
+        <div class="ft-admin-card-body">
+          <form method="post" action="{{ path('admin_kyc_refuse', {id: kyc.id}) }}" novalidate="novalidate">
+            <input type="hidden" name="_token" value="{{ csrf_token('kyc_refuse_' ~ kyc.id) }}"/>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Motif de refus <span class="text-danger">*</span></label>
+              <textarea name="commentaire" class="form-control ft-input" rows="3" placeholder="Documents illisibles, photo non conforme..."></textarea>
+              <div class="form-text text-danger">Le motif est obligatoire et sera communique au client.</div>
+            </div>
+            <button type="submit" class="btn btn-danger w-100 fw-semibold">
+              <i class="bi bi-x-lg me-2"></i>Refuser le dossier
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-xl-4">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-stars me-2 text-primary"></i>Profil intelligent
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-mini-kpi"><span>Score de confiance</span><strong>{{ intelligenceProfile.trustScore }}/100</strong></div>
+        <div class="ft-admin-mini-kpi"><span>Segment</span><strong>{{ intelligenceProfile.segment }}</strong></div>
+        <div class="ft-admin-mini-kpi"><span>Risque</span><strong>{{ riskProfile.riskLevel }} · {{ riskProfile.globalRiskScore|number_format(1, ',', ' ') }}/100</strong></div>
+        <div class="ft-admin-soft-box mt-3">
+          <div class="fw-semibold text-primary mb-2">Resume metier</div>
+          <p class="small text-muted mb-0">{{ intelligenceProfile.generatedSummary }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Comportement financier
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-mini-kpi"><span>Frequence</span><strong>{{ financialBehavior.transactionFrequency|number_format(2, ',', ' ') }}/jour</strong></div>
+        <div class="ft-admin-mini-kpi"><span>Montant moyen</span><strong>{{ financialBehavior.avgTransactionAmount|number_format(2, ',', ' ') }} TND</strong></div>
+        <div class="ft-admin-mini-kpi"><span>Tendance</span><strong>{{ financialBehavior.activityTrend }}</strong></div>
+        <div class="ft-admin-soft-box mt-3">
+          <div class="fw-semibold text-primary mb-2">Anomalies eventuelles</div>
+          {% if financialBehavior.anomalyFlags is empty %}
+            <div class="small text-muted">Aucune anomalie majeure detectee.</div>
+          {% else %}
+            <ul class="ft-admin-clean-list mb-0">
+              {% for item in financialBehavior.anomalyFlags %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-shield-lock me-2 text-primary"></i>Decision KYC consolidee
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-admin-mini-kpi"><span>Statut global</span><strong>{{ kycCenter.overallKycStatus }}</strong></div>
+        <div class="ft-admin-mini-kpi"><span>Document</span><strong>{{ kycCenter.document.documentStatus }} · {{ kycCenter.document.confidenceScore }}/100</strong></div>
+        <div class="ft-admin-mini-kpi"><span>Selfie-document</span><strong>{{ kycCenter.selfieMatch.selfieMatchStatus }}{% if kycCenter.selfieMatch.selfieMatchScore is not null %} · {{ kycCenter.selfieMatch.selfieMatchScore }}/100{% endif %}</strong></div>
+        <div class="ft-admin-soft-box mt-3">
+          <div class="fw-semibold text-primary mb-2">Recommandations</div>
+          <ul class="ft-admin-clean-list mb-0">
+            {% for item in kycCenter.decision.recommendations %}
+              <li>{{ item }}</li>
+            {% else %}
+              <li>Aucune recommandation supplementaire.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-{% endif %}
 
+{% if filesData is not empty %}
+  <div class="ft-admin-card mt-4">
+    <div class="ft-admin-card-header">
+      <i class="bi bi-paperclip me-2 text-primary"></i>
+      Pieces justificatives ({{ filesData|length }} fichier(s))
+    </div>
+    <div class="ft-admin-card-body">
+      <div class="row g-3">
+        {% for item in filesData %}
+          <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="ft-kyc-file-card">
+              <div class="ft-kyc-file-name text-truncate" title="{{ item.file.fileName }}">
+                <i class="bi {{ item.file.fileType == 'application/pdf' ? 'bi-file-earmark-pdf text-danger' : 'bi-file-earmark-image text-primary' }} me-1"></i>
+                {{ item.file.fileName }}
+              </div>
+              <div class="text-muted" style="font-size:.75rem">{{ (item.file.fileSize / 1024)|round(1) }} Ko</div>
+
+              {% if item.file.fileType starts with 'image/' %}
+                <img src="{{ asset(item.path) }}" alt="{{ item.file.fileName }}" class="img-fluid rounded mt-2 border" style="max-height:160px; object-fit:cover; width:100%"/>
+              {% else %}
+                <a href="{{ asset(item.path) }}" target="_blank" rel="noopener" class="btn btn-sm ft-btn-outline-primary mt-2 w-100">
+                  <i class="bi bi-download me-1"></i>Ouvrir le PDF
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <style>
+    .ft-admin-mini-kpi {
+      display: flex;
+      justify-content: space-between;
+      gap: .8rem;
+      padding: .85rem 0;
+      border-bottom: 1px solid #edf2fb;
+      color: #526581;
+      font-size: .92rem;
+    }
+    .ft-admin-mini-kpi:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+    .ft-admin-mini-kpi strong {
+      color: #0f172a;
+      text-align: right;
+    }
+    .ft-admin-soft-box {
+      padding: 1rem;
+      border-radius: 1.1rem;
+      border: 1px solid #dbe7f7;
+      background: linear-gradient(135deg, #f8fbff, #eef5ff);
+    }
+    .ft-admin-clean-list {
+      list-style: none;
+      padding: 0;
+    }
+    .ft-admin-clean-list li {
+      color: #45556f;
+      font-size: .9rem;
+      display: flex;
+      gap: .55rem;
+      align-items: flex-start;
+    }
+    .ft-admin-clean-list li + li {
+      margin-top: .45rem;
+    }
+    .ft-admin-clean-list li::before {
+      content: "";
+      width: .46rem;
+      height: .46rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      margin-top: .42rem;
+      flex-shrink: 0;
+    }
+  </style>
 {% endblock %}

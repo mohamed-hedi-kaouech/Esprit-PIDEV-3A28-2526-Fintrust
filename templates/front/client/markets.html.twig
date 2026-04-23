@@ -1,0 +1,708 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}Marches & economie{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-app-page {
+      background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.08), transparent 24%),
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.06), transparent 20%),
+        linear-gradient(180deg, #edf4fb 0%, #f6faff 32%, #eef5fb 100%);
+      min-height: 100vh;
+    }
+    .ft-markets-hero {
+      position: relative;
+      overflow: hidden;
+      padding: 2.3rem;
+      border-radius: 2.25rem;
+      border: 1px solid rgba(147, 197, 253, 0.88);
+      background:
+        radial-gradient(circle at 86% 14%, rgba(56,189,248,.30), transparent 24%),
+        radial-gradient(circle at 10% 82%, rgba(34,197,94,.16), transparent 28%),
+        radial-gradient(circle at 42% 22%, rgba(37,99,235,.10), transparent 20%),
+        linear-gradient(135deg, rgba(255,255,255,.98), rgba(236,246,255,.96) 52%, rgba(226,242,255,.98));
+      box-shadow: 0 28px 56px rgba(15, 23, 42, 0.08);
+    }
+    .ft-markets-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: linear-gradient(180deg, #2563eb, #38bdf8, #22c55e);
+    }
+    .ft-markets-hero::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      top: -110px;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,.16), rgba(59,130,246,0));
+      pointer-events: none;
+    }
+    .ft-markets-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .55rem .95rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.94);
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      color: #1d4ed8;
+      font-size: .76rem;
+      font-weight: 800;
+      margin-bottom: .85rem;
+      box-shadow: 0 10px 18px rgba(37, 99, 235, 0.08);
+    }
+    .ft-markets-title {
+      font-size: clamp(2.25rem, 4vw, 3.9rem);
+      font-weight: 800;
+      color: #0f1f42;
+      line-height: .98;
+      letter-spacing: -.03em;
+      margin-bottom: .6rem;
+      max-width: 900px;
+      text-wrap: balance;
+    }
+    .ft-markets-disclaimer {
+      padding: 1.1rem 1.15rem;
+      border-radius: 1.35rem;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.96), rgba(243,249,255,.95));
+      border: 1px solid rgba(203, 213, 225, .84);
+      max-width: 340px;
+      color: #475569;
+      box-shadow: 0 16px 28px rgba(15, 23, 42, 0.06);
+    }
+    .ft-markets-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .ft-markets-stat-card {
+      position: relative;
+      overflow: hidden;
+      padding: 1.1rem 1.1rem;
+      border-radius: 1.35rem;
+      border: 1px solid rgba(191,219,254,.9);
+      background:
+        linear-gradient(155deg, rgba(255,255,255,.95), rgba(239,247,255,.92));
+      box-shadow: 0 18px 28px rgba(15,23,42,.05);
+    }
+    .ft-markets-stat-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -22px -34px auto;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37,99,235,.12), rgba(37,99,235,0));
+    }
+    .ft-markets-stat-card span {
+      display: block;
+      color: #64748b;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+      margin-bottom: .3rem;
+    }
+    .ft-markets-stat-card strong {
+      display: block;
+      color: #0d2b58;
+      font-size: 1.3rem;
+      font-weight: 900;
+    }
+    .ft-market-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.65rem;
+      border: 1px solid rgba(203, 213, 225, .86);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(248,251,255,.96));
+      box-shadow: 0 22px 36px rgba(15, 23, 42, 0.055);
+      height: 100%;
+    }
+    .ft-market-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent 26%);
+      pointer-events: none;
+    }
+    .ft-market-card-header {
+      position: relative;
+      padding: 1.18rem 1.24rem;
+      border-bottom: 1px solid rgba(226,232,240,.92);
+      display: flex;
+      justify-content: space-between;
+      gap: .7rem;
+      align-items: center;
+      flex-wrap: wrap;
+      font-weight: 800;
+      color: #102449;
+    }
+    .ft-market-card-header span:first-child {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: .65rem;
+    }
+    .ft-market-card-header span:first-child::before {
+      content: "";
+      width: .8rem;
+      height: .8rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #60a5fa, #2563eb);
+      box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.08);
+    }
+    .ft-market-card-body {
+      padding: 1.2rem;
+    }
+    .ft-market-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .ft-market-kpi {
+      padding: 1rem;
+      border-radius: 1.2rem;
+      border: 1px solid rgba(219,231,247,.95);
+      background:
+        linear-gradient(155deg, rgba(255,255,255,.96), rgba(245,250,255,.94));
+      box-shadow: 0 12px 24px rgba(15,23,42,.03);
+    }
+    .ft-market-kpi-label {
+      color: #5c7499;
+      font-size: .78rem;
+      font-weight: 800;
+      margin-bottom: .35rem;
+    }
+    .ft-market-kpi strong {
+      display: block;
+      color: #102d59;
+      font-size: 1.15rem;
+      font-weight: 900;
+    }
+    .ft-market-kpi small {
+      color: #64748b;
+      font-size: .8rem;
+    }
+    .ft-market-soft-list {
+      display: grid;
+      gap: .8rem;
+    }
+    .ft-market-soft-item {
+      position: relative;
+      overflow: hidden;
+      padding: 1rem;
+      border-radius: 1.2rem;
+      border: 1px solid rgba(226,232,240,.9);
+      background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(247,251,255,.94));
+      transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+    }
+    .ft-market-soft-item::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: linear-gradient(180deg, #60a5fa, #2563eb, #38bdf8);
+      opacity: .92;
+    }
+    .ft-market-soft-item:hover {
+      transform: translateY(-3px);
+      border-color: rgba(147, 197, 253, 0.9);
+      box-shadow: 0 16px 28px rgba(37,99,235,.08);
+    }
+    .ft-market-soft-item-top {
+      display: flex;
+      justify-content: space-between;
+      gap: .7rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: .45rem;
+    }
+    .ft-market-soft-item strong {
+      color: #102449;
+      font-size: .98rem;
+      font-weight: 800;
+    }
+    .ft-market-soft-item .text-muted.small {
+      color: #6280a8 !important;
+    }
+    .ft-trend-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: .42rem .78rem;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 800;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.4);
+    }
+    .ft-trend-badge.up { background: rgba(16,185,129,.14); color: #047857; }
+    .ft-trend-badge.down { background: rgba(239,68,68,.12); color: #dc2626; }
+    .ft-trend-badge.stable { background: rgba(148,163,184,.14); color: #475569; }
+    .ft-watchlist-table {
+      display: grid;
+      gap: .8rem;
+    }
+    .ft-watchlist-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr auto;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem;
+      border-radius: 1.2rem;
+      border: 1px solid rgba(226,232,240,.9);
+      background: linear-gradient(145deg, rgba(255,255,255,.97), rgba(246,250,255,.95));
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .ft-watchlist-row:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 26px rgba(37,99,235,.07);
+    }
+    .ft-watchlist-asset strong {
+      display: block;
+      color: #102449;
+      font-size: .98rem;
+      font-weight: 800;
+    }
+    .ft-watchlist-asset small,
+    .ft-watchlist-meta {
+      color: #64748b;
+      font-size: .82rem;
+    }
+    .ft-watchlist-value {
+      color: #0e2d59;
+      font-weight: 900;
+      font-size: 1.06rem;
+    }
+    .ft-market-detail-card {
+      padding: 1.15rem;
+      border-radius: 1.35rem;
+      border: 1px solid rgba(191,219,254,.88);
+      background:
+        radial-gradient(circle at top right, rgba(56,189,248,.14), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(34,197,94,.08), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(244,249,255,.96));
+      box-shadow: 0 18px 32px rgba(37,99,235,.07);
+    }
+    .ft-market-detail-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f2447;
+      margin: .35rem 0 .8rem;
+    }
+    .ft-market-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .8rem;
+      margin-top: 1rem;
+    }
+    .ft-market-detail-metric {
+      padding: .9rem;
+      border-radius: 1rem;
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(226,232,240,.92);
+    }
+    .ft-market-detail-metric span {
+      display: block;
+      color: #64748b;
+      font-size: .76rem;
+      font-weight: 800;
+      margin-bottom: .25rem;
+    }
+    .ft-market-detail-metric strong {
+      color: #0f172a;
+      font-weight: 800;
+    }
+    .ft-market-mini-chart {
+      height: 140px;
+      display: flex;
+      align-items: end;
+      gap: .65rem;
+      padding-top: 1rem;
+    }
+    .ft-market-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .45rem;
+    }
+    .ft-market-bar {
+      width: 100%;
+      border-radius: 999px 999px .75rem .75rem;
+      background: linear-gradient(180deg, #41d6ff, #2563eb 58%, #1d4ed8);
+      min-height: 22px;
+      box-shadow: 0 12px 18px rgba(37,99,235,.18);
+    }
+    .ft-market-bar-wrap small {
+      color: #64748b;
+      font-size: .75rem;
+      font-weight: 700;
+    }
+    .ft-market-actions {
+      display: flex;
+      gap: .6rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .ft-market-subcopy {
+      max-width: 760px;
+      color: #506987;
+      font-size: 1.14rem;
+      line-height: 1.7;
+    }
+    .ft-market-inline-pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      margin-top: 1.15rem;
+      padding: .65rem .9rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.8);
+      color: #1d4ed8;
+      font-size: .84rem;
+      font-weight: 700;
+      box-shadow: 0 12px 24px rgba(37,99,235,.07);
+    }
+    .ft-market-inline-pulse::before {
+      content: "";
+      width: .6rem;
+      height: .6rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, #0ea5e9);
+      box-shadow: 0 0 0 6px rgba(14,165,233,.08);
+    }
+    .ft-market-card--blue {
+      background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.14), transparent 26%),
+        radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.10), transparent 30%),
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(240,247,255,.97));
+      border-color: rgba(191, 219, 254, 0.92);
+      box-shadow: 0 24px 40px rgba(37, 99, 235, 0.08);
+    }
+    .ft-market-card--blue .ft-market-card-header {
+      background: linear-gradient(180deg, rgba(245,250,255,.92), rgba(255,255,255,.72));
+    }
+    .ft-market-card--blue .ft-market-card-body {
+      background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,0));
+    }
+    .ft-market-card--blue .ft-trend-badge.stable {
+      background: rgba(59,130,246,.10);
+      color: #315b96;
+    }
+    @media (max-width: 1199.98px) {
+      .ft-markets-stat-grid,
+      .ft-market-kpi-grid,
+      .ft-market-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .ft-watchlist-row {
+        grid-template-columns: 1fr;
+      }
+      .ft-markets-disclaimer {
+        max-width: 100%;
+      }
+    }
+    @media (max-width: 767.98px) {
+      .ft-markets-stat-grid,
+      .ft-market-kpi-grid,
+      .ft-market-detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+    <section class="ft-markets-hero mb-4">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+          <div class="ft-markets-kicker">
+            <i class="bi bi-bar-chart-line"></i>
+            Marches & economie
+          </div>
+          <h1 class="ft-markets-title">Suivez les indicateurs economiques et votre watchlist dans un espace premium</h1>
+          <p class="ft-market-subcopy mb-0">Une lecture claire des taux, devises, tendances macro et actifs suivis, avec une experience plus elegante, plus coloree et plus fluide que technique.</p>
+          <div class="ft-market-inline-pulse">Panorama enrichi, signaux lisibles et dynamique premium en temps reel</div>
+        </div>
+        <div class="ft-markets-disclaimer">
+          <strong>Information uniquement.</strong><br>
+          Les informations affichees sont fournies a titre indicatif et ne constituent pas un conseil d investissement.
+        </div>
+      </div>
+      <div class="ft-markets-stat-grid">
+        <div class="ft-markets-stat-card">
+          <span>Inflation</span>
+          <strong>{{ economyOverview.inflationRate|number_format(1, ',', ' ') }}%</strong>
+        </div>
+        <div class="ft-markets-stat-card">
+          <span>Taux</span>
+          <strong>{{ economyOverview.interestRate|number_format(2, ',', ' ') }}%</strong>
+        </div>
+        <div class="ft-markets-stat-card">
+          <span>Devise principale</span>
+          <strong>{{ economyOverview.primaryCurrency }}</strong>
+        </div>
+        <div class="ft-markets-stat-card">
+          <span>Tendance globale</span>
+          <strong>{{ marketOverview.globalTrend }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <div class="row g-4 mb-4">
+      <div class="col-xl-8">
+        <section class="ft-market-card ft-market-card--blue">
+          <div class="ft-market-card-header">
+            <span>Vue economique</span>
+            <span class="badge ft-badge-blue">{{ economyOverview.updatedAt|date('d/m/Y H:i') }}</span>
+          </div>
+          <div class="ft-market-card-body">
+            <div class="ft-market-kpi-grid">
+              <div class="ft-market-kpi">
+                <div class="ft-market-kpi-label">Inflation</div>
+                <strong>{{ inflation.value|number_format(1, ',', ' ') }}{{ inflation.unit }}</strong>
+                <small>{{ inflation.period }}</small>
+              </div>
+              {% for rate in rates %}
+                <div class="ft-market-kpi">
+                  <div class="ft-market-kpi-label">{{ rate.name }}</div>
+                  <strong>{{ rate.value|number_format(2, ',', ' ') }}{{ rate.unit }}</strong>
+                  <small>{{ rate.period }}</small>
+                </div>
+              {% endfor %}
+              <div class="ft-market-kpi">
+                <div class="ft-market-kpi-label">Resume</div>
+                <strong>{{ economyOverview.globalTrend }}</strong>
+                <small>{{ economyOverview.primaryCurrency }}</small>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="col-xl-4">
+        <section class="ft-market-card ft-market-card--blue">
+          <div class="ft-market-card-header">
+            <span>Devises & taux</span>
+            <span class="badge ft-badge-neutral">Live mock</span>
+          </div>
+          <div class="ft-market-card-body">
+            <div class="ft-market-soft-list">
+              {% for currency in currencies %}
+                <div class="ft-market-soft-item">
+                  <div class="ft-market-soft-item-top">
+                    <strong>{{ currency.baseCurrency }}/{{ currency.targetCurrency }}</strong>
+                    <span class="ft-trend-badge {{ currency.trend|lower }}">{{ currency.changePercent >= 0 ? '+' : '' }}{{ currency.changePercent|number_format(2, ',', ' ') }}%</span>
+                  </div>
+                  <div class="text-muted small">Taux {{ currency.rate|number_format(2, ',', ' ') }} · {{ currency.updatedAt|date('d/m/Y H:i') }}</div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-xl-7">
+        <section class="ft-market-card">
+          <div class="ft-market-card-header">
+            <span>Ma watchlist</span>
+            <span class="badge ft-badge-warning">{{ watchlist|length }} actif{{ watchlist|length > 1 ? 's' : '' }}</span>
+          </div>
+          <div class="ft-market-card-body">
+            {% if watchlist is empty %}
+              <div class="text-center text-muted py-4">
+                <i class="bi bi-star fs-2 d-block mb-2 text-primary"></i>
+                Aucun actif suivi pour le moment.
+              </div>
+            {% else %}
+              <div class="ft-watchlist-table">
+                {% for item in watchlist %}
+                  <div class="ft-watchlist-row">
+                    <div class="ft-watchlist-asset">
+                      <strong>{{ item.name }}</strong>
+                      <small>{{ item.symbol }} · {{ item.category }}</small>
+                    </div>
+                    <div>
+                      <div class="ft-watchlist-value">{{ item.currentValue|number_format(2, ',', ' ') }}</div>
+                      <div class="ft-watchlist-meta">Derniere mise a jour</div>
+                    </div>
+                    <div>
+                      <span class="ft-trend-badge {{ item.trend|lower }}">{{ item.changePercent >= 0 ? '+' : '' }}{{ item.changePercent|number_format(2, ',', ' ') }}%</span>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                      <a href="{{ path('front_markets', {symbol: item.symbol}) }}" class="btn ft-btn-outline-primary btn-sm">Voir le detail</a>
+                      <form method="post" action="{{ path('front_watchlist_remove') }}">
+                        <input type="hidden" name="symbol" value="{{ item.symbol }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('watchlist_remove_' ~ item.symbol) }}">
+                        <button type="submit" class="btn ft-btn-soft btn-sm">Retirer</button>
+                      </form>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </section>
+      </div>
+      <div class="col-xl-5">
+        <section class="ft-market-card">
+          <div class="ft-market-card-header">
+            <span>Variations importantes</span>
+            <span class="badge ft-badge-blue">{{ watchlistHighlights|length }} mouvements</span>
+          </div>
+          <div class="ft-market-card-body">
+            <div class="ft-market-soft-list">
+              {% for item in watchlistHighlights %}
+                <div class="ft-market-soft-item">
+                  <div class="ft-market-soft-item-top">
+                    <strong>{{ item.name }}</strong>
+                    <span class="ft-trend-badge {{ item.trend|lower }}">{{ item.changePercent >= 0 ? '+' : '' }}{{ item.changePercent|number_format(2, ',', ' ') }}%</span>
+                  </div>
+                  <div class="text-muted small">{{ item.symbol }} · {{ item.category }} · {{ item.currentValue|number_format(2, ',', ' ') }}</div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-xl-7">
+        <section class="ft-market-card">
+          <div class="ft-market-card-header">
+            <span>Detail actif</span>
+            {% if assetDetail %}
+              <span class="badge ft-badge-blue">{{ assetDetail.symbol }}</span>
+            {% endif %}
+          </div>
+          <div class="ft-market-card-body">
+            {% if assetDetail %}
+              <div class="ft-market-detail-card">
+                <span class="badge ft-badge-neutral">{{ assetDetail.category }}</span>
+                <h3 class="ft-market-detail-title">{{ assetDetail.name }}</h3>
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                  <strong style="font-size:1.55rem;color:#0f172a;">{{ assetDetail.currentValue|number_format(2, ',', ' ') }}</strong>
+                  <span class="ft-trend-badge {{ assetDetail.trend|lower }}">{{ assetDetail.change >= 0 ? '+' : '' }}{{ assetDetail.change|number_format(2, ',', ' ') }} · {{ assetDetail.changePercent >= 0 ? '+' : '' }}{{ assetDetail.changePercent|number_format(2, ',', ' ') }}%</span>
+                </div>
+                <p class="text-muted mb-0">{{ assetDetail.summary }}</p>
+
+                <div class="ft-market-mini-chart">
+                  <div class="ft-market-bar-wrap"><span class="ft-market-bar" style="height: 42%"></span><small>J-6</small></div>
+                  <div class="ft-market-bar-wrap"><span class="ft-market-bar" style="height: 58%"></span><small>J-5</small></div>
+                  <div class="ft-market-bar-wrap"><span class="ft-market-bar" style="height: 54%"></span><small>J-4</small></div>
+                  <div class="ft-market-bar-wrap"><span class="ft-market-bar" style="height: 66%"></span><small>J-3</small></div>
+                  <div class="ft-market-bar-wrap"><span class="ft-market-bar" style="height: 63%"></span><small>J-2</small></div>
+                  <div class="ft-market-bar-wrap"><span class="ft-market-bar" style="height: 74%"></span><small>J-1</small></div>
+                </div>
+
+                <div class="ft-market-detail-grid">
+                  <div class="ft-market-detail-metric">
+                    <span>Point haut</span>
+                    <strong>{{ assetDetail.dayHigh|number_format(2, ',', ' ') }}</strong>
+                  </div>
+                  <div class="ft-market-detail-metric">
+                    <span>Point bas</span>
+                    <strong>{{ assetDetail.dayLow|number_format(2, ',', ' ') }}</strong>
+                  </div>
+                  <div class="ft-market-detail-metric">
+                    <span>Mise a jour</span>
+                    <strong>{{ assetDetail.updatedAt|date('d/m/Y H:i') }}</strong>
+                  </div>
+                </div>
+              </div>
+            {% else %}
+              <div class="text-center text-muted py-4">
+                <i class="bi bi-bar-chart fs-2 d-block mb-2 text-primary"></i>
+                Aucun actif disponible pour le moment.
+              </div>
+            {% endif %}
+          </div>
+        </section>
+      </div>
+      <div class="col-xl-5">
+        <section class="ft-market-card">
+          <div class="ft-market-card-header">
+            <span>Ajouter a la watchlist</span>
+            <span class="badge ft-badge-success">Personnalisation</span>
+          </div>
+          <div class="ft-market-card-body">
+            <div class="ft-market-soft-list">
+              {% for asset in discoverableAssets|slice(0, 5) %}
+                <div class="ft-market-soft-item">
+                  <div class="ft-market-soft-item-top">
+                    <strong>{{ asset.name }}</strong>
+                    <span class="badge ft-badge-neutral">{{ asset.category }}</span>
+                  </div>
+                  <div class="text-muted small mb-3">{{ asset.symbol }} · {{ asset.currentValue|number_format(2, ',', ' ') }} · {{ asset.updatedAt|date('d/m/Y H:i') }}</div>
+                  <form method="post" action="{{ path('front_watchlist_add') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('watchlist_add') }}">
+                    <input type="hidden" name="symbol" value="{{ asset.symbol }}">
+                    <button type="submit" class="btn ft-btn-primary btn-sm">Ajouter a la watchlist</button>
+                  </form>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-xl-6">
+        <section class="ft-market-card">
+          <div class="ft-market-card-header">
+            <span>Indicateurs macro</span>
+            <span class="badge ft-badge-blue">Economiques</span>
+          </div>
+          <div class="ft-market-card-body">
+            <div class="ft-market-soft-list">
+              {% for indicator in indicators %}
+                <div class="ft-market-soft-item">
+                  <div class="ft-market-soft-item-top">
+                    <strong>{{ indicator.name }}</strong>
+                    <span class="ft-trend-badge {{ indicator.trend|lower }}">{{ indicator.trend }}</span>
+                  </div>
+                  <div class="text-muted small">{{ indicator.value|number_format(1, ',', ' ') }} {{ indicator.unit }} · {{ indicator.period }}</div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="col-xl-6">
+        <section class="ft-market-card">
+          <div class="ft-market-card-header">
+            <span>Tendances du marche</span>
+            <span class="badge ft-badge-warning">A surveiller</span>
+          </div>
+          <div class="ft-market-card-body">
+            <div class="ft-market-soft-list">
+              {% for asset in trendingAssets|slice(0, 5) %}
+                <div class="ft-market-soft-item">
+                  <div class="ft-market-soft-item-top">
+                    <strong>{{ asset.name }}</strong>
+                    <span class="ft-trend-badge {{ asset.trend|lower }}">{{ asset.changePercent >= 0 ? '+' : '' }}{{ asset.changePercent|number_format(2, ',', ' ') }}%</span>
+                  </div>
+                  <div class="text-muted small">{{ asset.symbol }} · {{ asset.category }} · mise a jour {{ asset.updatedAt|date('d/m/Y H:i') }}</div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

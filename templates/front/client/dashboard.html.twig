@@ -39,20 +39,6 @@
             {% endif %}
           </span>
         </div>
-        <div class="ft-dash-hero-metrics">
-          <div class="ft-dash-hero-metric">
-            <span class="ft-dash-hero-metric-label">Segment</span>
-            <strong>{{ user.clientSegment == 'A_RISQUE' ? 'A risque' : user.clientSegment }}</strong>
-          </div>
-          <div class="ft-dash-hero-metric">
-            <span class="ft-dash-hero-metric-label">Risque</span>
-            <strong>{{ user.riskLevel }}</strong>
-          </div>
-          <div class="ft-dash-hero-metric">
-            <span class="ft-dash-hero-metric-label">Flux moyen</span>
-            <strong>{{ user.averageTransactionAmount|number_format(0, ',', ' ') }} TND</strong>
-          </div>
-        </div>
       </div>
 
       <div class="ft-dash-hero-side">
@@ -74,16 +60,6 @@
         <a href="{{ path('front_profile') }}" class="btn ft-btn-outline-primary btn-sm ft-dash-profile-btn">
           <i class="bi bi-person-gear me-1"></i>Profile
         </a>
-        <div class="ft-dash-hero-actions">
-          <a href="{{ path('front_notifications') }}" class="ft-dash-quick-link">
-            <i class="bi bi-bell"></i>
-            <span>Mes alertes</span>
-          </a>
-          <a href="#ft-services" class="ft-dash-quick-link">
-            <i class="bi bi-grid"></i>
-            <span>Mes services</span>
-          </a>
-        </div>
       </div>
     </section>
 
@@ -142,12 +118,17 @@
             {% elseif user.status == 'EN_ATTENTE' %}<span class="badge ft-badge-warning">En attente</span>
             {% else %}<span class="badge ft-badge-danger">Suspendu</span>{% endif %}
           </div>
-          <div class="ft-dash-card-note">Disponibilite immediate de vos parcours FinTrust.</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
         <div class="ft-dash-card ft-dash-card-accent ft-dash-card-kyc">
-          <div class="ft-dash-card-icon ft-dash-icon-green"><i class="bi bi-shield-check-fill"></i></div>
+          <div class="ft-dash-card-icon ft-dash-icon-green" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 3.2L18.5 5.7V11.4C18.5 15.48 15.83 19.27 12 20.8C8.17 19.27 5.5 15.48 5.5 11.4V5.7L12 3.2Z" fill="currentColor" fill-opacity="0.16"/>
+              <path d="M12 3.2L18.5 5.7V11.4C18.5 15.48 15.83 19.27 12 20.8C8.17 19.27 5.5 15.48 5.5 11.4V5.7L12 3.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+              <path d="M9.4 11.7L11.25 13.55L14.85 9.95" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <div class="ft-dash-card-label">Statut KYC</div>
           <div class="ft-dash-card-value">
             {% if user.kycStatus == 'APPROUVE' %}<span class="badge ft-badge-success">Approuve</span>
@@ -155,7 +136,6 @@
             {% elseif user.kycStatus == 'REFUSE' %}<span class="badge ft-badge-danger">Refuse</span>
             {% else %}<span class="badge ft-badge-neutral">Non soumis</span>{% endif %}
           </div>
-          <div class="ft-dash-card-note">Niveau de verification d identite du compte.</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
@@ -163,7 +143,6 @@
           <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-calendar-check-fill"></i></div>
           <div class="ft-dash-card-label">Membre depuis</div>
           <div class="ft-dash-card-value fw-semibold small">{{ user.createdAt|date('d/m/Y') }}</div>
-          <div class="ft-dash-card-note">Presence active dans l ecosysteme FinTrust.</div>
         </div>
       </div>
       <div class="col-6 col-lg-3">
@@ -171,7 +150,6 @@
           <div class="ft-dash-card-icon ft-dash-icon-orange"><i class="bi bi-award-fill"></i></div>
           <div class="ft-dash-card-label">Role</div>
           <div class="ft-dash-card-value"><span class="badge ft-badge-blue">{{ user.role }}</span></div>
-          <div class="ft-dash-card-note">Position actuelle dans votre espace client.</div>
         </div>
       </div>
     </div>
@@ -182,7 +160,6 @@
           <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-translate"></i></div>
           <div class="ft-dash-card-label">Langue</div>
           <div class="ft-dash-card-value">{{ user.preferredLanguage|upper }}</div>
-          <div class="ft-dash-card-note">Langue principale de votre interface et des echanges.</div>
         </div>
       </div>
       <div class="col-md-6 col-xl-3">
@@ -190,7 +167,6 @@
           <div class="ft-dash-card-icon ft-dash-icon-purple"><i class="bi bi-circle-half"></i></div>
           <div class="ft-dash-card-label">Theme</div>
           <div class="ft-dash-card-value">{{ user.themeMode == 'dark' ? 'Sombre' : 'Clair' }}</div>
-          <div class="ft-dash-card-note">Ambiance d affichage adaptee a votre preference.</div>
         </div>
       </div>
       <div class="col-md-6 col-xl-3">
@@ -198,7 +174,6 @@
           <div class="ft-dash-card-icon ft-dash-icon-green"><i class="bi bi-arrow-left-right"></i></div>
           <div class="ft-dash-card-label">Frequence transactions</div>
           <div class="ft-dash-card-value">{{ user.transactionFrequency|number_format(2, ',', ' ') }}/jour</div>
-          <div class="ft-dash-card-note">Cadence moyenne detectee sur vos mouvements recents.</div>
         </div>
       </div>
       <div class="col-md-6 col-xl-3">
@@ -213,18 +188,247 @@
           <div class="ft-dash-card-icon ft-dash-icon-red"><i class="bi bi-shield-fill-exclamation"></i></div>
           <div class="ft-dash-card-label">Fraud score</div>
           <div class="ft-dash-card-value">{{ user.fraudScore|number_format(1, ',', ' ') }}/100</div>
-          <div class="ft-dash-card-note">Signal previsionnel dedie a la protection du compte.</div>
-        </div>
-      </div>
-      <div class="col-md-6 col-xl-3">
-        <div class="ft-dash-card ft-dash-card-soft ft-dash-card-highlight">
-          <div class="ft-dash-card-icon ft-dash-icon-blue"><i class="bi bi-gem"></i></div>
-          <div class="ft-dash-card-label">Badge prestige</div>
-          <div class="ft-dash-card-value">{{ user.engagementBadge }}</div>
-          <div class="ft-dash-card-note">Niveau d engagement evolutif dans l univers FinTrust.</div>
         </div>
       </div>
     </div>
+
+    <div class="ft-app-card mb-4 ft-premium-card ft-news-widget-card">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Actualites financieres</span>
+        <a href="{{ path('front_news') }}" class="btn ft-btn-outline-primary btn-sm">
+          Voir plus
+        </a>
+      </div>
+      <div class="ft-app-card-body">
+        <div class="ft-news-widget-hero">
+          <div>
+            <span class="ft-news-widget-kicker">FinTrust Market News</span>
+            <h3 class="ft-news-widget-title">Veille marches & banques</h3>
+            <p class="mb-0 text-muted">Une selection premium d actualites financieres pour enrichir votre experience client, avec un angle informatif et une lecture rapide.</p>
+          </div>
+          <div class="ft-news-widget-note">
+            Les actualites affichees sont fournies a titre informatif.
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          {% for article in newsFeed %}
+            <div class="col-lg-4">
+              <article class="ft-news-mini-card h-100">
+                <div class="ft-news-mini-topline">
+                  <span class="badge {{ article.importanceLevel in ['HIGH', 'BREAKING'] ? 'ft-badge-warning' : 'ft-badge-blue' }}">{{ article.category }}</span>
+                  <span class="ft-news-mini-date">{{ article.publishedAt|date('d/m/Y H:i') }}</span>
+                </div>
+                <h4>{{ article.title }}</h4>
+                <p>{{ article.summary }}</p>
+                <div class="ft-news-mini-meta">
+                  <span>{{ article.sourceName }}</span>
+                  <a href="{{ path('front_news', {category: article.category}) }}">Explorer</a>
+                </div>
+              </article>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="ft-app-card mb-4 ft-premium-card ft-market-widget-card">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-bar-chart-line me-2 text-primary"></i>Marches & watchlist</span>
+        <a href="{{ path('front_markets') }}" class="btn ft-btn-outline-primary btn-sm">Voir plus</a>
+      </div>
+      <div class="ft-app-card-body">
+        <div class="row g-3">
+          <div class="col-xl-4">
+            <div class="ft-market-overview-card">
+              <div class="ft-market-overview-kicker">Vue d ensemble economique</div>
+              <h3>{{ economyOverview.summary }}</h3>
+              <div class="ft-market-overview-grid">
+                <div class="ft-market-overview-item">
+                  <span>Inflation</span>
+                  <strong>{{ economyOverview.inflationRate|number_format(1, ',', ' ') }}%</strong>
+                </div>
+                <div class="ft-market-overview-item">
+                  <span>Taux</span>
+                  <strong>{{ economyOverview.interestRate|number_format(2, ',', ' ') }}%</strong>
+                </div>
+                <div class="ft-market-overview-item">
+                  <span>Devise</span>
+                  <strong>{{ economyOverview.primaryCurrency }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-8">
+            <div class="row g-3">
+              {% for item in watchlistHighlights %}
+                <div class="col-md-4">
+                  <div class="ft-market-mini-card">
+                    <div class="ft-market-mini-top">
+                      <span class="badge ft-badge-neutral">{{ item.category }}</span>
+                      <span class="ft-market-mini-symbol">{{ item.symbol }}</span>
+                    </div>
+                    <strong>{{ item.name }}</strong>
+                    <div class="ft-market-mini-value">{{ item.currentValue|number_format(2, ',', ' ') }}</div>
+                    <div class="ft-market-mini-trend {{ item.trend == 'UP' ? 'up' : (item.trend == 'DOWN' ? 'down' : 'stable') }}">
+                      {{ item.changePercent >= 0 ? '+' : '' }}{{ item.changePercent|number_format(2, ',', ' ') }}%
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <div class="ft-app-card mb-4 ft-premium-card ft-relax-dashboard-card" data-ft-dash-relax>
+        <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span><i class="bi bi-stars me-2 text-primary"></i>Espace detente</span>
+          {% if user.kycStatus == 'EN_ATTENTE' %}
+            <span class="badge ft-badge-warning">Disponible pendant l'analyse de votre dossier</span>
+          {% else %}
+            <span class="badge ft-badge-blue">Pause premium</span>
+          {% endif %}
+        </div>
+        <div class="ft-app-card-body">
+          <div class="ft-relax-dash-hero">
+            <div>
+              <div class="ft-relax-dash-kicker">Moment detente</div>
+              <h3 class="ft-relax-dash-title">Profitez d'une pause legere avec quelques jeux elegants</h3>
+              <p class="mb-0 text-muted">
+                {% if user.kycStatus == 'EN_ATTENTE' %}
+                  Votre verification est en cours. En attendant, decouvrez quelques activites discretes integrees naturellement a votre experience FinTrust.
+                {% else %}
+                  Quelques activites discretes sont disponibles pour enrichir votre dashboard avec une touche plus premium et plus agreable.
+                {% endif %}
+              </p>
+            </div>
+            <div class="ft-relax-dash-hero-side">
+              <div class="ft-relax-dash-mini-note">
+                <span>Acces</span>
+                <strong>{{ user.kycStatus == 'EN_ATTENTE' ? 'Conseille pendant l attente KYC' : 'Disponible a tout moment' }}</strong>
+              </div>
+              <a href="{{ path('front_kyc_status') }}" class="btn ft-btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-up-right-circle me-2"></i>Voir le centre KYC
+              </a>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1 mb-3">
+            <div class="col-md-4">
+              <button type="button" class="ft-relax-mini-card" data-ft-dash-game-open="chess">
+                <span class="ft-relax-mini-icon blue"><i class="bi bi-grid-3x3-gap"></i></span>
+                <div class="ft-relax-mini-topline">
+                  <strong>Jeu d'echecs</strong>
+                  <span class="ft-relax-mini-badge">90 sec</span>
+                </div>
+                <small>Une pause strategique dans un cadre elegant.</small>
+                <span class="ft-relax-mini-open">Ouvrir <i class="bi bi-arrow-right-short"></i></span>
+              </button>
+            </div>
+            <div class="col-md-4">
+              <button type="button" class="ft-relax-mini-card" data-ft-dash-game-open="memory">
+                <span class="ft-relax-mini-icon violet"><i class="bi bi-app-indicator"></i></span>
+                <div class="ft-relax-mini-topline">
+                  <strong>Jeu de concentration</strong>
+                  <span class="ft-relax-mini-badge">75 sec</span>
+                </div>
+                <small>Testez votre memoire avec une experience legere et fluide.</small>
+                <span class="ft-relax-mini-open">Ouvrir <i class="bi bi-arrow-right-short"></i></span>
+              </button>
+            </div>
+            <div class="col-md-4">
+              <button type="button" class="ft-relax-mini-card" data-ft-dash-game-open="jump">
+                <span class="ft-relax-mini-icon green"><i class="bi bi-lightning-charge"></i></span>
+                <div class="ft-relax-mini-topline">
+                  <strong>Jeu de saut</strong>
+                  <span class="ft-relax-mini-badge">45 sec</span>
+                </div>
+                <small>Un mini defi simple et rythme pour patienter agreablement.</small>
+                <span class="ft-relax-mini-open">Ouvrir <i class="bi bi-arrow-right-short"></i></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="ft-relax-dash-console">
+            <div class="ft-relax-dash-console-head">
+              <div>
+                <div class="ft-relax-dash-console-kicker">Activite en cours</div>
+                <h4 class="mb-1" data-ft-dash-game-title>Selectionnez un jeu</h4>
+                <p class="mb-0 text-muted" data-ft-dash-game-desc>Les activites restent discretionnaires, bien espacees et coherentes avec l'experience bancaire FinTrust.</p>
+              </div>
+              <button type="button" class="btn ft-btn-soft btn-sm" data-ft-dash-game-reset disabled>
+                <i class="bi bi-arrow-clockwise me-1"></i>Relancer
+              </button>
+            </div>
+            <div class="ft-relax-gamify-strip" data-ft-relax-gamify>
+              <div class="ft-relax-score-card">
+                <span><i class="bi bi-award"></i> Badge</span>
+                <strong data-ft-relax-badge>Pause prete</strong>
+              </div>
+              <div class="ft-relax-score-card">
+                <span><i class="bi bi-stopwatch"></i> Temps</span>
+                <strong data-ft-relax-time>--</strong>
+              </div>
+              <div class="ft-relax-score-card">
+                <span><i class="bi bi-stars"></i> Score</span>
+                <strong><span data-ft-relax-score>0</span>/100</strong>
+              </div>
+              <div class="ft-relax-score-card">
+                <span><i class="bi bi-trophy"></i> Record</span>
+                <strong data-ft-relax-best>0</strong>
+              </div>
+              <div class="ft-relax-morale">
+                <div class="ft-relax-morale-top">
+                  <span>Barre de moral</span>
+                  <strong data-ft-relax-comment>Choisissez un jeu pour demarrer une pause courte.</strong>
+                </div>
+                <div class="ft-relax-morale-track">
+                  <span data-ft-relax-morale-bar style="width: 12%"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="ft-relax-dash-panel is-active" data-ft-dash-panel="placeholder">
+              <div class="ft-relax-dash-placeholder">
+                <div class="ft-relax-dash-placeholder-icon"><i class="bi bi-controller"></i></div>
+                <strong>Un espace de detente integre a votre dashboard</strong>
+                <p class="mb-0">Choisissez une activite ci-dessus pour commencer sans quitter votre tableau de bord FinTrust.</p>
+              </div>
+            </div>
+
+            <div class="ft-relax-dash-panel" data-ft-dash-panel="chess">
+              <div class="ft-relax-dash-toolbar">
+                <span class="ft-game-badge" data-ft-dash-chess-selection>Aucune piece selectionnee</span>
+                <span class="ft-game-badge" data-ft-dash-chess-last>Aucun mouvement</span>
+              </div>
+              <div class="ft-chess-board ft-chess-board-compact" data-ft-dash-chess-board></div>
+            </div>
+
+            <div class="ft-relax-dash-panel" data-ft-dash-panel="memory">
+              <div class="ft-relax-dash-toolbar">
+                <span class="ft-game-badge" data-ft-dash-memory-moves>0 mouvement</span>
+                <span class="ft-game-badge" data-ft-dash-memory-pairs>0/6 paires</span>
+              </div>
+              <div class="ft-memory-grid ft-memory-grid-compact" data-ft-dash-memory-grid></div>
+            </div>
+
+            <div class="ft-relax-dash-panel" data-ft-dash-panel="jump">
+              <div class="ft-relax-dash-toolbar">
+                <span class="ft-game-badge" data-ft-dash-jump-score>Score 0</span>
+                <span class="ft-game-badge" data-ft-dash-jump-best>Meilleur 0</span>
+              </div>
+              <div class="ft-jump-stage ft-jump-stage-compact" data-ft-dash-jump-stage tabindex="0" role="button" aria-label="Pause reflexe">
+                <div class="ft-jump-player" data-ft-dash-jump-player></div>
+                <div class="ft-jump-obstacle" data-ft-dash-jump-obstacle></div>
+                <div class="ft-jump-ground"></div>
+                <div class="ft-jump-hint">Cliquez ici ou appuyez sur Espace pour sauter.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
     <div class="ft-app-card mb-4 ft-insight-panel">
       <div class="ft-app-card-header">
@@ -542,26 +746,6 @@
                 <span>Insights</span>
               </a>
             </div>
-
-            {# Bouton récompense SMS #}
-            <div class="mt-4">
-              <div class="ft-smart-note {{ isEligible ? 'note-green' : 'note-orange' }} mb-3">
-                <strong>{{ isEligible ? '🎉 Vous êtes éligible à une récompense !' : '📊 Continuez vos efforts budgétaires' }}</strong>
-                <p class="mb-0">
-                  {{ isEligible
-                    ? 'Vous avez respecté votre budget et tous vos seuils de catégories. Réclamez votre code promo !'
-                    : 'Respectez votre budget total et les seuils de chaque catégorie pour débloquer une récompense.' }}
-                </p>
-              </div>
-              {% if isEligible %}
-                <form method="post" action="{{ path('front_check_reward') }}">
-                  <input type="hidden" name="_token" value="{{ csrf_token('check_reward') }}">
-                  <button type="submit" class="btn ft-btn-primary w-100">
-                    <i class="bi bi-gift me-2"></i>Recevoir mon code promo par SMS
-                  </button>
-                </form>
-              {% endif %}
-            </div>
           </div>
         </div>
       </div>
@@ -750,7 +934,7 @@
       </div>
 
       <div class="col-sm-6 col-lg-4">
-        <a href="{{ user.kycApproved ? path('front_wallet_dashboard') : path('front_kyc_status') }}" class="ft-module-card text-decoration-none {{ not user.kycApproved ? 'ft-module-locked' }}">
+        <a href="{{ user.kycApproved ? path('front_module', {slug: 'wallet'}) : path('front_kyc_status') }}" class="ft-module-card text-decoration-none {{ not user.kycApproved ? 'ft-module-locked' }}">
           <div class="ft-module-icon ft-module-teal"><i class="bi bi-wallet2"></i></div>
           <div class="ft-module-body">
             <div class="ft-module-title">Wallet</div>
@@ -893,177 +1077,1472 @@
     </form>
   </div>
 </aside>
+
+<section class="row g-4 mt-1 mb-4">
+  <div class="col-xl-7">
+    <div class="ft-app-card ft-premium-card h-100">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-lightning-charge-fill me-2 text-primary"></i>Actualites pertinentes</span>
+        <a href="{{ path('front_relevant_news') }}" class="btn ft-btn-outline-primary btn-sm">Voir l'analyse</a>
+      </div>
+      <div class="ft-app-card-body">
+        <div class="row g-3">
+          {% for item in analyticsNews.items %}
+            <div class="col-md-4">
+              <div class="ft-news-mini-card h-100">
+                <div class="ft-news-mini-topline">
+                  <span class="badge {{ item.priority == 'HIGH' ? 'ft-badge-warning' : 'ft-badge-blue' }}">{{ item.category }}</span>
+                  <span class="ft-news-mini-date">{{ item.relevanceScore }}/100</span>
+                </div>
+                <h4>{{ item.title }}</h4>
+                <p>{{ item.impactReason }}</p>
+                <div class="ft-news-mini-meta">
+                  <span>{{ item.priority }}</span>
+                  <a href="{{ path('front_relevant_news') }}">Explorer</a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-5">
+    <div class="ft-app-card ft-premium-card h-100">
+      <div class="ft-app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-stars me-2 text-primary"></i>Action recommandee</span>
+        <a href="{{ path('front_recommended_actions') }}" class="btn ft-btn-outline-primary btn-sm">Prioriser</a>
+      </div>
+      <div class="ft-app-card-body">
+        <div class="p-3 rounded-4 mb-3" style="background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(34,197,94,.08));border:1px solid rgba(191,219,254,.8);">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <div class="small text-muted">{{ recommendedAction.actionType }}</div>
+              <div class="fw-bold fs-5">{{ recommendedAction.title }}</div>
+            </div>
+            <span class="badge {{ recommendedAction.priorityLevel in ['HIGH', 'CRITICAL'] ? 'ft-badge-danger' : 'ft-badge-warning' }}">{{ recommendedAction.priorityLevel }}</span>
+          </div>
+          <div class="small text-muted mt-2">{{ recommendedAction.description }}</div>
+        </div>
+        <div class="mb-3">
+          <div class="small text-muted">Raison principale</div>
+          <div class="fw-semibold">{{ recommendedAction.reason }}</div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-muted">Risque de desengagement</div>
+            <div class="fw-semibold">{{ dropoffRisk.dropoffRiskScore }}/100 · {{ dropoffRisk.engagementLevel }}</div>
+          </div>
+          <a href="{{ path('front_identity_consistency') }}" class="btn ft-btn-soft btn-sm">Identite & cohérence</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
 
-{% block javascripts %}
+  {% block javascripts %}
   {{ parent() }}
   <style>
-    .ft-dash-hero {
-      padding: 1.8rem 1.9rem;
-      border-radius: 28px;
+    .ft-market-widget-card {
+      border: 1px solid rgba(191, 219, 254, 0.95);
       background:
-        radial-gradient(circle at top right, rgba(96, 165, 250, 0.28), transparent 32%),
-        radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.14), transparent 24%),
-        linear-gradient(135deg, #ffffff 0%, #eef6ff 48%, #d8eafe 100%);
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.08), transparent 24%),
+        radial-gradient(circle at left bottom, rgba(59, 130, 246, 0.09), transparent 24%),
+        linear-gradient(135deg, rgba(255,255,255,.99), rgba(247,251,255,.98));
+      box-shadow: 0 22px 42px rgba(15, 23, 42, 0.06);
     }
-
-    .ft-dash-hero::before {
-      content: '';
-      position: absolute;
-      inset: auto auto 16px 52%;
-      width: 220px;
-      height: 90px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, rgba(59,130,246,.12), rgba(125,211,252,.02));
-      filter: blur(18px);
-      pointer-events: none;
+    .ft-market-overview-card {
+      padding: 1.15rem;
+      border-radius: 1.25rem;
+      border: 1px solid #dbe7f7;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(244,250,255,.95));
+      height: 100%;
     }
-
-    .ft-dash-hero-metrics {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .85rem;
-      margin-top: 1.2rem;
-    }
-
-    .ft-dash-hero-metric {
-      min-width: 120px;
-      padding: .85rem 1rem;
-      border-radius: 18px;
-      background: rgba(255,255,255,.72);
-      border: 1px solid rgba(21,96,189,.08);
-      box-shadow: 0 16px 30px rgba(21,96,189,.08);
-      backdrop-filter: blur(6px);
-    }
-
-    .ft-dash-hero-metric-label {
-      display: block;
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: .03em;
+    .ft-market-overview-kicker {
+      color: #64748b;
       text-transform: uppercase;
-      color: #6480a5;
-      margin-bottom: .3rem;
+      letter-spacing: .08em;
+      font-size: .72rem;
+      font-weight: 800;
+      margin-bottom: .45rem;
     }
-
-    .ft-dash-hero-metric strong {
-      color: #10305c;
-      font-size: 1rem;
+    .ft-market-overview-card h3 {
+      color: #0f172a;
+      font-size: 1.02rem;
+      font-weight: 800;
+      line-height: 1.55;
+      margin-bottom: 1rem;
     }
-
-    .ft-dash-hero-actions {
+    .ft-market-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .65rem;
+    }
+    .ft-market-overview-item {
+      padding: .8rem;
+      border-radius: 1rem;
+      background: rgba(255,255,255,.88);
+      border: 1px solid #e2e8f0;
+    }
+    .ft-market-overview-item span {
+      display: block;
+      color: #64748b;
+      font-size: .75rem;
+      font-weight: 700;
+      margin-bottom: .25rem;
+    }
+    .ft-market-overview-item strong {
+      color: #0f172a;
+      font-size: .95rem;
+      font-weight: 800;
+    }
+    .ft-market-mini-card {
+      padding: 1rem;
+      border-radius: 1.2rem;
+      border: 1px solid #dbe7f7;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,251,255,.95));
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+      height: 100%;
+    }
+    .ft-market-mini-top {
       display: flex;
+      justify-content: space-between;
+      gap: .6rem;
+      align-items: center;
+      margin-bottom: .6rem;
+    }
+    .ft-market-mini-symbol {
+      color: #64748b;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .ft-market-mini-card strong {
+      display: block;
+      color: #0f172a;
+      font-size: .95rem;
+      line-height: 1.45;
+      margin-bottom: .5rem;
+    }
+    .ft-market-mini-value {
+      color: #0f172a;
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: .35rem;
+    }
+    .ft-market-mini-trend {
+      font-size: .88rem;
+      font-weight: 800;
+    }
+    .ft-market-mini-trend.up { color: #059669; }
+    .ft-market-mini-trend.down { color: #dc2626; }
+    .ft-market-mini-trend.stable { color: #475569; }
+    .ft-news-widget-card {
+      border: 1px solid rgba(96, 165, 250, 0.82);
+      background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.22), transparent 24%),
+        radial-gradient(circle at left bottom, rgba(37, 99, 235, 0.16), transparent 26%),
+        linear-gradient(135deg, rgba(255,255,255,.99), rgba(239,246,255,.98));
+      box-shadow: 0 22px 42px rgba(37, 99, 235, 0.10);
+    }
+    .ft-news-widget-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.1rem;
+    }
+    .ft-news-widget-kicker {
+      display: inline-flex;
+      color: #1d4ed8;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .72rem;
+      font-weight: 800;
+      margin-bottom: .4rem;
+    }
+    .ft-news-widget-title {
+      font-size: clamp(1.25rem, 2vw, 1.75rem);
+      font-weight: 800;
+      color: #0b2a6f;
+      margin-bottom: .35rem;
+    }
+    .ft-news-widget-note {
+      padding: .85rem 1rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(147, 197, 253, 0.9);
+      background: linear-gradient(135deg, rgba(239,246,255,.96), rgba(219,234,254,.92));
+      color: #1e3a8a;
+      font-size: .85rem;
+      max-width: 280px;
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.08);
+    }
+    .ft-news-mini-card {
+      border-radius: 1.25rem;
+      border: 1px solid rgba(147, 197, 253, 0.75);
+      background:
+        radial-gradient(circle at top right, rgba(191,219,254,.38), transparent 22%),
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(239,246,255,.96));
+      padding: 1rem;
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.08);
+      height: 100%;
+    }
+    .ft-news-mini-topline {
+      display: flex;
+      justify-content: space-between;
+      gap: .7rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: .7rem;
+    }
+    .ft-news-mini-date {
+      color: #335d9d;
+      font-size: .78rem;
+      font-weight: 700;
+    }
+    .ft-news-mini-card h4 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0b2a6f;
+      line-height: 1.45;
+      margin-bottom: .55rem;
+    }
+    .ft-news-mini-card p {
+      color: #4c6791;
+      font-size: .9rem;
+      line-height: 1.6;
+      margin-bottom: .9rem;
+    }
+    .ft-news-mini-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: .7rem;
+      align-items: center;
+      flex-wrap: wrap;
+      color: #40618f;
+      font-size: .82rem;
+    }
+    .ft-news-mini-meta a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 800;
+    }
+    .ft-insight-panel {
+      border: 1px solid rgba(96, 165, 250, 0.8);
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.22), transparent 24%),
+        radial-gradient(circle at left bottom, rgba(6,182,212,.14), transparent 26%),
+        linear-gradient(135deg, rgba(255,255,255,.99), rgba(239,246,255,.97));
+      box-shadow: 0 22px 42px rgba(37, 99, 235, 0.10);
+    }
+    .ft-insight-panel .ft-app-card-header {
+      background: linear-gradient(90deg, rgba(239,246,255,.98), rgba(255,255,255,.92));
+    }
+    .ft-insight-panel .ft-action-card {
+      border: 1px solid rgba(147, 197, 253, 0.82);
+      background:
+        radial-gradient(circle at top right, rgba(191,219,254,.34), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(239,246,255,.96));
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.08);
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .ft-insight-panel .ft-action-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(59, 130, 246, 0.8);
+      box-shadow: 0 18px 34px rgba(37, 99, 235, 0.14);
+    }
+    .ft-insight-panel .ft-action-icon {
+      background: linear-gradient(135deg, rgba(219,234,254,.96), rgba(191,219,254,.82));
+      color: #2563eb;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.82);
+    }
+    .ft-insight-panel .ft-module-title {
+      color: #0b2a6f;
+    }
+    .ft-insight-panel .ft-module-desc {
+      color: #4d6b98;
+      font-weight: 700;
+    }
+    .ft-insight-panel .ft-royal-badge {
+      background: linear-gradient(135deg, rgba(37,99,235,.12), rgba(96,165,250,.18));
+      border-color: rgba(96,165,250,.55);
+      color: #1d4ed8;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.10);
+    }
+    .ft-relax-dashboard-card {
+      border: 1px solid rgba(191, 219, 254, 0.95);
+      background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.11), transparent 26%),
+        radial-gradient(circle at left bottom, rgba(16, 185, 129, 0.08), transparent 22%),
+        linear-gradient(135deg, rgba(255,255,255,.99), rgba(247,251,255,.98));
+      box-shadow: 0 22px 42px rgba(15, 23, 42, 0.06);
+    }
+    .ft-relax-dash-hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 1.2rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+    .ft-relax-dash-kicker,
+    .ft-relax-dash-console-kicker {
+      display: inline-flex;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .72rem;
+      font-weight: 800;
+      margin-bottom: .45rem;
+    }
+    .ft-relax-dash-title {
+      max-width: 760px;
+      font-size: clamp(1.35rem, 2vw, 1.95rem);
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: .45rem;
+      line-height: 1.1;
+    }
+    .ft-relax-dash-hero-side {
+      display: flex;
+      gap: .85rem;
+      align-items: center;
       flex-wrap: wrap;
       justify-content: flex-end;
-      gap: .6rem;
     }
-
-    .ft-dash-quick-link {
+    .ft-relax-dash-mini-note {
+      padding: .85rem 1rem;
+      border-radius: 1rem;
+      background: rgba(255,255,255,.92);
+      border: 1px solid #dbe7f7;
+      min-width: 220px;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+    }
+    .ft-relax-dash-mini-note span {
+      display: block;
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #64748b;
+      font-weight: 800;
+      margin-bottom: .3rem;
+    }
+    .ft-relax-dash-mini-note strong {
+      color: #0f172a;
+      font-size: .92rem;
+      font-weight: 700;
+    }
+    .ft-relax-mini-card {
+      width: 100%;
+      height: 100%;
+      text-align: left;
+      border: 1px solid #dbe7f7;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,251,255,.95));
+      border-radius: 1.3rem;
+      padding: 1.15rem;
+      display: grid;
+      gap: .6rem;
+      box-shadow: 0 16px 28px rgba(15, 23, 42, 0.05);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .ft-relax-mini-card:hover,
+    .ft-relax-mini-card.is-active {
+      transform: translateY(-4px);
+      border-color: #9ec5fe;
+      box-shadow: 0 20px 34px rgba(37, 99, 235, 0.11);
+      background: linear-gradient(180deg, rgba(255,255,255,1), rgba(239,246,255,.96));
+    }
+    .ft-relax-mini-card strong {
+      color: #0f172a;
+      font-size: 1.03rem;
+      font-weight: 800;
+    }
+    .ft-relax-mini-card small {
+      color: #64748b;
+      font-size: .89rem;
+      line-height: 1.5;
+    }
+    .ft-relax-mini-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .7rem;
+      flex-wrap: wrap;
+    }
+    .ft-relax-mini-badge {
       display: inline-flex;
       align-items: center;
-      gap: .45rem;
-      padding: .6rem .9rem;
+      padding: .34rem .66rem;
       border-radius: 999px;
-      text-decoration: none;
-      background: rgba(255,255,255,.76);
-      color: #204b87;
-      border: 1px solid rgba(21,96,189,.1);
-      font-size: .85rem;
+      background: rgba(239,246,255,.96);
+      border: 1px solid #dbe7f7;
+      color: #1e40af;
+      font-size: .72rem;
+      font-weight: 800;
+    }
+    .ft-relax-mini-open {
+      display: inline-flex;
+      align-items: center;
+      gap: .25rem;
+      color: #1d4ed8;
+      font-size: .84rem;
+      font-weight: 800;
+    }
+    .ft-relax-mini-icon {
+      width: 3.15rem;
+      height: 3.15rem;
+      border-radius: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.65);
+    }
+    .ft-relax-mini-icon.blue { background: linear-gradient(135deg, rgba(59,130,246,.16), rgba(147,197,253,.3)); color: #2563eb; }
+    .ft-relax-mini-icon.violet { background: linear-gradient(135deg, rgba(250,204,21,.22), rgba(254,243,199,.7)); color: #b45309; }
+    .ft-relax-mini-icon.green { background: linear-gradient(135deg, rgba(16,185,129,.15), rgba(191,219,254,.38)); color: #0f766e; }
+    .ft-relax-dash-console {
+      border-radius: 1.35rem;
+      overflow: hidden;
+      border: 1px solid #dbe7f7;
+      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(248,251,255,.94));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    .ft-relax-dash-console-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      padding: 1.05rem 1.15rem;
+      border-bottom: 1px solid #dbe7f7;
+      background: linear-gradient(180deg, rgba(239,246,255,.95), rgba(255,255,255,.92));
+    }
+    .ft-relax-gamify-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(118px, 1fr)) minmax(260px, 1.8fr);
+      gap: .75rem;
+      padding: .95rem 1.15rem;
+      border-bottom: 1px solid #dbe7f7;
+      background:
+        linear-gradient(90deg, rgba(239,246,255,.98), rgba(255,251,235,.86)),
+        linear-gradient(135deg, rgba(37,99,235,.08), rgba(250,204,21,.12));
+    }
+    .ft-relax-score-card {
+      min-height: 76px;
+      padding: .78rem .85rem;
+      border-radius: .95rem;
+      border: 1px solid rgba(191,219,254,.95);
+      background: rgba(255,255,255,.86);
+      box-shadow: 0 12px 22px rgba(15, 23, 42, 0.05);
+    }
+    .ft-relax-score-card span,
+    .ft-relax-morale-top span {
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      color: #64748b;
+      font-size: .72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: .38rem;
+    }
+    .ft-relax-score-card span i {
+      color: #2563eb;
+    }
+    .ft-relax-score-card strong {
+      display: block;
+      color: #0f172a;
+      font-size: 1.02rem;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+    .ft-relax-morale {
+      min-height: 76px;
+      padding: .78rem .9rem;
+      border-radius: .95rem;
+      border: 1px solid rgba(250,204,21,.58);
+      background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,251,235,.84));
+      box-shadow: 0 12px 24px rgba(180, 83, 9, 0.06);
+    }
+    .ft-relax-morale-top {
+      display: flex;
+      justify-content: space-between;
+      gap: .75rem;
+      align-items: flex-start;
+      margin-bottom: .7rem;
+    }
+    .ft-relax-morale-top strong {
+      color: #1e3a8a;
+      font-size: .9rem;
+      font-weight: 800;
+      text-align: right;
+      line-height: 1.35;
+    }
+    .ft-relax-morale-track {
+      height: .7rem;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(219,234,254,.95);
+      border: 1px solid rgba(191,219,254,.9);
+    }
+    .ft-relax-morale-track span {
+      display: block;
+      height: 100%;
+      width: 12%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2563eb, #60a5fa 58%, #facc15);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.55) inset;
+      transition: width .28s ease;
+    }
+    .ft-relax-dash-panel {
+      display: none;
+      padding: 1.15rem;
+    }
+    .ft-relax-dash-panel.is-active {
+      display: block;
+    }
+    .ft-relax-dash-placeholder {
+      min-height: 240px;
+      border: 1px dashed #c7d9f7;
+      border-radius: 1.15rem;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(248,251,255,.96), rgba(239,246,255,.84));
+      color: #5b6b81;
+      padding: 1.5rem;
+    }
+    .ft-relax-dash-placeholder-icon {
+      width: 3.5rem;
+      height: 3.5rem;
+      margin: 0 auto 1rem;
+      border-radius: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(37,99,235,.08);
+      color: #2563eb;
+      font-size: 1.4rem;
+    }
+    .ft-relax-dash-toolbar {
+      display: flex;
+      gap: .55rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .ft-chess-board-compact {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      width: min(100%, 560px);
+      aspect-ratio: 1 / 1;
+      border-radius: 1.15rem;
+      overflow: hidden;
+      border: 1px solid #c7d9f7;
+      box-shadow: 0 22px 38px rgba(15, 23, 42, 0.08);
+      background: #fff;
+    }
+    .ft-chess-cell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.3rem, 2vw, 2rem);
       font-weight: 700;
-      box-shadow: 0 10px 24px rgba(21,96,189,.08);
-      transition: all .2s ease;
+      border: 0;
+      padding: 0;
+      aspect-ratio: 1 / 1;
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
     }
-
-    .ft-dash-quick-link:hover {
-      transform: translateY(-1px);
-      color: #fff;
-      background: linear-gradient(135deg, #1a73e8, #1560BD);
-      border-color: transparent;
-    }
-
-    .ft-dash-card {
-      border-radius: 18px;
-      padding: 1.15rem 1.2rem;
-      box-shadow: 0 10px 28px rgba(15,23,42,.07);
-    }
-
-    .ft-dash-card-accent,
-    .ft-dash-card-soft {
-      background:
-        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 30%),
-        linear-gradient(180deg, rgba(255,255,255,.98), #f8fbff);
-    }
-
-    .ft-dash-card-note {
-      margin-top: .15rem;
-      color: #68809f;
-      font-size: .77rem;
-      line-height: 1.45;
-      font-weight: 500;
-    }
-
-    .ft-dash-card-highlight {
-      background:
-        radial-gradient(circle at top right, rgba(125,211,252,.22), transparent 34%),
-        radial-gradient(circle at bottom left, rgba(196,181,253,.14), transparent 28%),
-        linear-gradient(180deg, #ffffff, #eef5ff);
-    }
-
-    .ft-insight-panel {
-      position: relative;
-      overflow: hidden;
-      border-radius: 22px;
-      background:
-        radial-gradient(circle at top right, rgba(96,165,250,.12), transparent 28%),
-        linear-gradient(180deg, #ffffff, #f7fbff);
-    }
-
-    .ft-insight-panel::after {
-      content: '';
+    .ft-chess-cell-light { background: linear-gradient(135deg, #f8fafc, #e7eef8); }
+    .ft-chess-cell-dark { background: linear-gradient(135deg, #bdd2ea, #9ebde0); }
+    .ft-chess-cell:hover { filter: brightness(1.02); z-index: 1; }
+    .ft-chess-cell-selected::after,
+    .ft-chess-cell-target::after {
+      content: "";
       position: absolute;
-      right: -40px;
-      bottom: -40px;
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(59,130,246,.1), transparent 68%);
+      inset: 6px;
+      border-radius: .7rem;
+      border: 2px solid transparent;
+      pointer-events: none;
     }
-
-    .ft-action-card {
+    .ft-chess-cell-selected::after { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+    .ft-chess-cell-target::after { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.14); }
+    .ft-chess-piece-white { color: #ffffff; text-shadow: 0 2px 8px rgba(15, 23, 42, 0.35), 0 0 1px rgba(15, 23, 42, 0.45); }
+    .ft-chess-piece-black { color: #0f172a; text-shadow: 0 1px 2px rgba(255,255,255,.18); }
+    .ft-memory-grid-compact {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(84px, 110px));
+      gap: .85rem;
+      justify-content: start;
+    }
+    .ft-memory-card {
       position: relative;
-      overflow: hidden;
-      border-radius: 18px;
-      background:
-        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 35%),
-        linear-gradient(180deg, #ffffff, #f9fbff);
-      border: 1px solid rgba(21,96,189,.08);
-      box-shadow: 0 10px 24px rgba(15,23,42,.05);
+      border: 0;
+      border-radius: 1rem;
+      min-height: 96px;
+      aspect-ratio: 1 / 1;
+      background: transparent;
+      perspective: 900px;
+      padding: 0;
+      cursor: pointer;
     }
-
-    .ft-action-card::before {
-      content: '';
+    .ft-memory-card-face {
       position: absolute;
-      inset: 0 auto 0 0;
-      width: 4px;
-      background: linear-gradient(180deg, #1a73e8, #7c3aed);
-      border-radius: 18px 0 0 18px;
+      inset: 0;
+      border-radius: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .35s ease, opacity .25s ease, box-shadow .2s ease;
+      backface-visibility: hidden;
+      border: 1px solid #dbe7f7;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
     }
-
+    .ft-memory-card-front {
+      background: linear-gradient(135deg, #ffffff, #eef5ff);
+      transform: rotateY(180deg);
+      font-size: 1.5rem;
+      color: #1e293b;
+    }
+    .ft-memory-card-back {
+      background: linear-gradient(135deg, #f8fbff, #dbeafe);
+      color: #2563eb;
+      font-size: 1.15rem;
+    }
+    .ft-memory-card.is-flipped .ft-memory-card-front,
+    .ft-memory-card.is-matched .ft-memory-card-front {
+      transform: rotateY(0deg);
+    }
+    .ft-memory-card.is-flipped .ft-memory-card-back,
+    .ft-memory-card.is-matched .ft-memory-card-back {
+      transform: rotateY(180deg);
+    }
+    .ft-memory-card.is-matched .ft-memory-card-front {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border-color: #86efac;
+      box-shadow: 0 14px 26px rgba(16, 185, 129, 0.14);
+    }
+    .ft-jump-stage-compact {
+      position: relative;
+      min-height: 240px;
+      border-radius: 1.15rem;
+      border: 1px solid #dbe7f7;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(255,255,255,.95) 0 22px, transparent 23px),
+        radial-gradient(circle at 28% 26%, rgba(255,255,255,.72) 0 14px, transparent 15px),
+        linear-gradient(180deg, #f6fbff 0%, #e7f0fb 62%, #dbeafe 100%);
+      outline: none;
+    }
+    .ft-jump-stage-compact::before {
+      content: "";
+      position: absolute;
+      inset: auto 0 48px 0;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(96,165,250,.35), rgba(59,130,246,.65), rgba(96,165,250,.35));
+    }
+    .ft-jump-player,
+    .ft-jump-obstacle {
+      position: absolute;
+      bottom: 50px;
+      will-change: transform, left;
+    }
+    .ft-jump-player {
+      left: 54px;
+      width: 34px;
+      height: 34px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      box-shadow: 0 12px 20px rgba(37,99,235,.22);
+    }
+    .ft-jump-player::after {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.9);
+      opacity: .85;
+    }
+    .ft-jump-obstacle {
+      left: 100%;
+      width: 22px;
+      height: 46px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #0f766e, #34d399);
+      box-shadow: 0 10px 18px rgba(15,118,110,.18);
+    }
+    .ft-jump-ground {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 40px;
+      height: 10px;
+      background: linear-gradient(90deg, rgba(191,219,254,.95), rgba(96,165,250,.9), rgba(191,219,254,.95));
+      opacity: .95;
+    }
+    .ft-jump-hint {
+      position: absolute;
+      left: 1rem;
+      right: 1rem;
+      bottom: 1rem;
+      color: #5b6b81;
+      font-size: .88rem;
+      text-align: center;
+    }
     @media (max-width: 991.98px) {
-      .ft-dash-hero-actions {
-        justify-content: flex-start;
+      .ft-relax-dash-hero-side { justify-content: flex-start; }
+      .ft-relax-gamify-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
-
-      .ft-dash-hero-metrics {
-        gap: .65rem;
+      .ft-relax-morale {
+        grid-column: 1 / -1;
       }
-
-      .ft-dash-hero-metric {
-        min-width: 0;
-        flex: 1 1 140px;
+    }
+    @media (max-width: 767.98px) {
+      .ft-memory-grid-compact {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .ft-chess-board-compact {
+        width: 100%;
+      }
+      .ft-relax-gamify-strip {
+        grid-template-columns: 1fr;
+      }
+      .ft-relax-morale-top {
+        display: block;
+      }
+      .ft-relax-morale-top strong {
+        display: block;
+        text-align: left;
       }
     }
   </style>
+  <script>
+    (function () {
+      const root = document.querySelector('[data-ft-dash-relax]');
+      if (!root) {
+        return;
+      }
+
+      const openButtons = root.querySelectorAll('[data-ft-dash-game-open]');
+      const panels = root.querySelectorAll('[data-ft-dash-panel]');
+      const titleNode = root.querySelector('[data-ft-dash-game-title]');
+      const descNode = root.querySelector('[data-ft-dash-game-desc]');
+      const resetButton = root.querySelector('[data-ft-dash-game-reset]');
+      const scoreNode = root.querySelector('[data-ft-relax-score]');
+      const bestNode = root.querySelector('[data-ft-relax-best]');
+      const badgeNode = root.querySelector('[data-ft-relax-badge]');
+      const timeNode = root.querySelector('[data-ft-relax-time]');
+      const moraleBar = root.querySelector('[data-ft-relax-morale-bar]');
+      const commentNode = root.querySelector('[data-ft-relax-comment]');
+
+      const meta = {
+        chess: {
+          title: "Jeu d'echecs",
+          description: "Un defi rapide: gagnez des points a chaque bon deplacement avant la fin du chrono."
+        },
+        memory: {
+          title: 'Jeu de concentration',
+          description: 'Retrouvez les paires, montez votre score et debloquez un badge de concentration.'
+        },
+        jump: {
+          title: 'Jeu de saut',
+          description: "Un mini defi court: sautez au bon moment, gardez le rythme et faites grimper la barre."
+        }
+      };
+
+      const gameLimits = {
+        chess: 90,
+        memory: 75,
+        jump: 45
+      };
+      const gamify = {
+        activeGame: null,
+        score: 0,
+        bestScore: Number(localStorage.getItem('ftRelaxBestScore') || 0),
+        timeLeft: 0,
+        timer: null,
+        finished: true
+      };
+
+      function formatTime(seconds) {
+        return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
+      }
+
+      function badgeFor(score) {
+        if (score >= 90) {
+          return 'Champion FinTrust';
+        }
+        if (score >= 75) {
+          return 'Focus premium';
+        }
+        if (score >= 55) {
+          return 'Esprit agile';
+        }
+        if (score >= 25) {
+          return 'Bonne energie';
+        }
+        return 'Pause prete';
+      }
+
+      function encouragementFor(score, reason) {
+        if (reason === 'time') {
+          return 'Temps ecoule, mais belle pause. Relancez pour battre votre score.';
+        }
+        if (reason === 'collision') {
+          return 'Bon reflexe deja. Encore un essai et le record peut monter.';
+        }
+        if (score >= 90) {
+          return 'Excellent rythme. Votre concentration est au top.';
+        }
+        if (score >= 70) {
+          return 'Tres belle session. Vous progressez avec un bon calme.';
+        }
+        if (score >= 45) {
+          return 'Bonne pause, score solide. Le prochain essai peut faire mieux.';
+        }
+        return 'Bravo pour ce depart. Chaque essai augmente votre maitrise.';
+      }
+
+      function updateGamify(delta = 0) {
+        if (delta) {
+          gamify.score = Math.min(100, Math.max(0, gamify.score + delta));
+        }
+        if (scoreNode) {
+          scoreNode.textContent = gamify.score;
+        }
+        if (bestNode) {
+          bestNode.textContent = gamify.bestScore;
+        }
+        if (badgeNode) {
+          badgeNode.textContent = badgeFor(gamify.score);
+        }
+        if (timeNode) {
+          timeNode.textContent = gamify.activeGame ? formatTime(gamify.timeLeft) : '--';
+        }
+        if (moraleBar) {
+          moraleBar.style.width = Math.max(12, gamify.score) + '%';
+        }
+      }
+
+      function finishSession(reason = 'complete') {
+        if (!gamify.activeGame || gamify.finished) {
+          return;
+        }
+        gamify.finished = true;
+        if (gamify.timer) {
+          clearInterval(gamify.timer);
+          gamify.timer = null;
+        }
+        gamify.score = Math.min(100, Math.max(gamify.score, reason === 'complete' ? 70 : gamify.score));
+        gamify.bestScore = Math.max(gamify.bestScore, gamify.score);
+        localStorage.setItem('ftRelaxBestScore', String(gamify.bestScore));
+        updateGamify();
+        if (commentNode) {
+          commentNode.textContent = encouragementFor(gamify.score, reason) + ' Score final: ' + gamify.score + '/100.';
+        }
+        if (gamify.activeGame === 'jump') {
+          stopJump();
+        }
+      }
+
+      function startSession(game) {
+        if (gamify.timer) {
+          clearInterval(gamify.timer);
+        }
+        gamify.activeGame = game;
+        gamify.score = 0;
+        gamify.timeLeft = gameLimits[game] || 60;
+        gamify.finished = false;
+        if (commentNode) {
+          commentNode.textContent = 'Session lancee. Jouez vite, le chrono est court.';
+        }
+        updateGamify();
+        gamify.timer = window.setInterval(() => {
+          gamify.timeLeft -= 1;
+          updateGamify();
+          if (gamify.timeLeft <= 0) {
+            finishSession('time');
+          }
+        }, 1000);
+      }
+
+      function reward(delta) {
+        if (!gamify.finished) {
+          updateGamify(delta);
+        }
+      }
+
+      function setActive(game) {
+        openButtons.forEach((button) => button.classList.toggle('is-active', button.dataset.ftDashGameOpen === game));
+        panels.forEach((panel) => panel.classList.toggle('is-active', panel.dataset.ftDashPanel === game));
+        if (titleNode) {
+          titleNode.textContent = meta[game].title;
+        }
+        if (descNode) {
+          descNode.textContent = meta[game].description;
+        }
+        if (resetButton) {
+          resetButton.disabled = false;
+          resetButton.dataset.currentGame = game;
+        }
+        if (game === 'chess') {
+          resetChess();
+        } else if (game === 'memory') {
+          resetMemory();
+        } else if (game === 'jump') {
+          resetJump();
+        }
+        startSession(game);
+      }
+
+      openButtons.forEach((button) => {
+        button.addEventListener('click', () => setActive(button.dataset.ftDashGameOpen));
+      });
+
+      const pieceMarkup = {
+        br: '<span class="ft-chess-piece-black">&#9820;</span>',
+        bn: '<span class="ft-chess-piece-black">&#9822;</span>',
+        bb: '<span class="ft-chess-piece-black">&#9821;</span>',
+        bq: '<span class="ft-chess-piece-black">&#9819;</span>',
+        bk: '<span class="ft-chess-piece-black">&#9818;</span>',
+        bp: '<span class="ft-chess-piece-black">&#9823;</span>',
+        wr: '<span class="ft-chess-piece-white">&#9814;</span>',
+        wn: '<span class="ft-chess-piece-white">&#9816;</span>',
+        wb: '<span class="ft-chess-piece-white">&#9815;</span>',
+        wq: '<span class="ft-chess-piece-white">&#9813;</span>',
+        wk: '<span class="ft-chess-piece-white">&#9812;</span>',
+        wp: '<span class="ft-chess-piece-white">&#9817;</span>'
+      };
+
+      const initialChessBoard = [
+        ['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
+        ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+        ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']
+      ];
+      let chessBoard = initialChessBoard.map((row) => [...row]);
+      let chessSelected = null;
+      let chessLastMove = '';
+      let chessTurn = 'white';
+      let chessThinking = false;
+      let chessMoves = 0;
+      const chessBoardNode = root.querySelector('[data-ft-dash-chess-board]');
+      const chessSelectionNode = root.querySelector('[data-ft-dash-chess-selection]');
+      const chessLastNode = root.querySelector('[data-ft-dash-chess-last]');
+
+      function chessLabel(x, y) {
+        return String.fromCharCode(65 + x) + (8 - y);
+      }
+
+      function inBounds(x, y) {
+        return x >= 0 && x < 8 && y >= 0 && y < 8;
+      }
+
+      function pieceColor(piece) {
+        if (!piece) {
+          return null;
+        }
+
+        return piece.charAt(0) === 'w' ? 'white' : 'black';
+      }
+
+      function getSlidingMoves(board, x, y, piece, directions) {
+        const moves = [];
+        const color = pieceColor(piece);
+
+        directions.forEach(([dx, dy]) => {
+          let currentX = x + dx;
+          let currentY = y + dy;
+
+          while (inBounds(currentX, currentY)) {
+            const targetPiece = board[currentY][currentX];
+
+            if (!targetPiece) {
+              moves.push({ x: currentX, y: currentY });
+            } else {
+              if (pieceColor(targetPiece) !== color) {
+                moves.push({ x: currentX, y: currentY });
+              }
+              break;
+            }
+
+            currentX += dx;
+            currentY += dy;
+          }
+        });
+
+        return moves;
+      }
+
+      function getPseudoLegalMoves(board, x, y) {
+        const piece = board[y][x];
+
+        if (!piece) {
+          return [];
+        }
+
+        const color = pieceColor(piece);
+        const kind = piece.charAt(1);
+        const moves = [];
+
+        if (kind === 'p') {
+          const direction = color === 'white' ? -1 : 1;
+          const startRow = color === 'white' ? 6 : 1;
+          const oneStepY = y + direction;
+
+          if (inBounds(x, oneStepY) && !board[oneStepY][x]) {
+            moves.push({ x, y: oneStepY });
+
+            const twoStepY = y + (2 * direction);
+            if (y === startRow && inBounds(x, twoStepY) && !board[twoStepY][x]) {
+              moves.push({ x, y: twoStepY });
+            }
+          }
+
+          [-1, 1].forEach((dx) => {
+            const targetX = x + dx;
+            const targetY = y + direction;
+
+            if (!inBounds(targetX, targetY)) {
+              return;
+            }
+
+            const targetPiece = board[targetY][targetX];
+            if (targetPiece && pieceColor(targetPiece) !== color) {
+              moves.push({ x: targetX, y: targetY });
+            }
+          });
+
+          return moves;
+        }
+
+        if (kind === 'n') {
+          [
+            [1, 2], [2, 1], [2, -1], [1, -2],
+            [-1, -2], [-2, -1], [-2, 1], [-1, 2]
+          ].forEach(([dx, dy]) => {
+            const targetX = x + dx;
+            const targetY = y + dy;
+
+            if (!inBounds(targetX, targetY)) {
+              return;
+            }
+
+            const targetPiece = board[targetY][targetX];
+            if (!targetPiece || pieceColor(targetPiece) !== color) {
+              moves.push({ x: targetX, y: targetY });
+            }
+          });
+
+          return moves;
+        }
+
+        if (kind === 'b') {
+          return getSlidingMoves(board, x, y, piece, [[1, 1], [1, -1], [-1, 1], [-1, -1]]);
+        }
+
+        if (kind === 'r') {
+          return getSlidingMoves(board, x, y, piece, [[1, 0], [-1, 0], [0, 1], [0, -1]]);
+        }
+
+        if (kind === 'q') {
+          return getSlidingMoves(board, x, y, piece, [
+            [1, 1], [1, -1], [-1, 1], [-1, -1],
+            [1, 0], [-1, 0], [0, 1], [0, -1]
+          ]);
+        }
+
+        if (kind === 'k') {
+          [
+            [1, 1], [1, 0], [1, -1], [0, 1],
+            [0, -1], [-1, 1], [-1, 0], [-1, -1]
+          ].forEach(([dx, dy]) => {
+            const targetX = x + dx;
+            const targetY = y + dy;
+
+            if (!inBounds(targetX, targetY)) {
+              return;
+            }
+
+            const targetPiece = board[targetY][targetX];
+            if (!targetPiece || pieceColor(targetPiece) !== color) {
+              moves.push({ x: targetX, y: targetY });
+            }
+          });
+        }
+
+        return moves;
+      }
+
+      function moveChessPiece(fromX, fromY, toX, toY) {
+        chessBoard[toY][toX] = chessBoard[fromY][fromX];
+        chessBoard[fromY][fromX] = '';
+      }
+
+      function collectComputerMoves() {
+        const moves = [];
+
+        chessBoard.forEach((row, y) => {
+          row.forEach((piece, x) => {
+            if (pieceColor(piece) !== 'black') {
+              return;
+            }
+
+            getPseudoLegalMoves(chessBoard, x, y).forEach((target) => {
+              moves.push({
+                fromX: x,
+                fromY: y,
+                toX: target.x,
+                toY: target.y,
+                capture: Boolean(chessBoard[target.y][target.x])
+              });
+            });
+          });
+        });
+
+        return moves;
+      }
+
+      function runComputerMove() {
+        const moves = collectComputerMoves();
+
+        if (!moves.length) {
+          chessThinking = false;
+          chessTurn = 'white';
+          chessLastMove = 'Ordinateur sans coup disponible';
+          renderChessBoard();
+          return;
+        }
+
+        const captureMoves = moves.filter((move) => move.capture);
+        const pool = captureMoves.length ? captureMoves : moves;
+        const move = pool[Math.floor(Math.random() * pool.length)];
+
+        moveChessPiece(move.fromX, move.fromY, move.toX, move.toY);
+        chessLastMove = 'Ordinateur: ' + chessLabel(move.fromX, move.fromY) + ' -> ' + chessLabel(move.toX, move.toY);
+        chessThinking = false;
+        chessTurn = 'white';
+        renderChessBoard();
+      }
+
+      function resetChess() {
+        chessBoard = initialChessBoard.map((row) => [...row]);
+        chessSelected = null;
+        chessLastMove = '';
+        chessTurn = 'white';
+        chessThinking = false;
+        chessMoves = 0;
+        renderChessBoard();
+      }
+
+      function renderChessBoard() {
+        if (!chessBoardNode) {
+          return;
+        }
+        chessBoardNode.innerHTML = '';
+        chessBoard.forEach((row, y) => {
+          row.forEach((piece, x) => {
+            const cell = document.createElement('button');
+            cell.type = 'button';
+            cell.className = 'ft-chess-cell ' + (((x + y) % 2 === 0) ? 'ft-chess-cell-light' : 'ft-chess-cell-dark');
+            const legalMoves = chessSelected ? getPseudoLegalMoves(chessBoard, chessSelected.x, chessSelected.y) : [];
+            const isLegalTarget = legalMoves.some((target) => target.x === x && target.y === y);
+            if (chessSelected && chessSelected.x === x && chessSelected.y === y) {
+              cell.classList.add('ft-chess-cell-selected');
+            }
+            if (chessSelected && isLegalTarget && !(chessSelected.x === x && chessSelected.y === y)) {
+              cell.classList.add('ft-chess-cell-target');
+            }
+            cell.innerHTML = piece ? pieceMarkup[piece] : '';
+            cell.addEventListener('click', () => {
+              if (chessThinking || chessTurn !== 'white') {
+                return;
+              }
+
+              if (!chessSelected) {
+                if (!piece || pieceColor(piece) !== 'white') {
+                  return;
+                }
+                chessSelected = { x, y };
+              } else if (chessSelected.x === x && chessSelected.y === y) {
+                chessSelected = null;
+              } else if (piece && pieceColor(piece) === 'white') {
+                chessSelected = { x, y };
+              } else {
+                const selectedMoves = getPseudoLegalMoves(chessBoard, chessSelected.x, chessSelected.y);
+                const canMove = selectedMoves.some((target) => target.x === x && target.y === y);
+
+                if (!canMove) {
+                  return;
+                }
+
+                moveChessPiece(chessSelected.x, chessSelected.y, x, y);
+                chessLastMove = chessLabel(chessSelected.x, chessSelected.y) + ' -> ' + chessLabel(x, y);
+                chessMoves += 1;
+                reward(12);
+                chessSelected = null;
+                chessTurn = 'black';
+                chessThinking = true;
+                renderChessBoard();
+                if (chessMoves >= 6) {
+                  finishSession('complete');
+                  return;
+                }
+                window.setTimeout(runComputerMove, 450);
+                return;
+              }
+              renderChessBoard();
+            });
+            chessBoardNode.appendChild(cell);
+          });
+        });
+        if (chessSelectionNode) {
+          if (chessThinking) {
+            chessSelectionNode.textContent = 'Ordinateur en reflexion...';
+          } else if (chessSelected) {
+            chessSelectionNode.textContent = 'Piece: ' + chessLabel(chessSelected.x, chessSelected.y);
+          } else {
+            chessSelectionNode.textContent = chessTurn === 'white' ? 'A vous de jouer' : 'Tour de l\'ordinateur';
+          }
+        }
+        if (chessLastNode) {
+          chessLastNode.textContent = chessLastMove || 'Aucun mouvement';
+        }
+      }
+
+      const memoryIcons = [
+        '<i class="bi bi-gem"></i>', '<i class="bi bi-gem"></i>',
+        '<i class="bi bi-bank"></i>', '<i class="bi bi-bank"></i>',
+        '<i class="bi bi-shield-check"></i>', '<i class="bi bi-shield-check"></i>',
+        '<i class="bi bi-graph-up-arrow"></i>', '<i class="bi bi-graph-up-arrow"></i>',
+        '<i class="bi bi-stars"></i>', '<i class="bi bi-stars"></i>',
+        '<i class="bi bi-wallet2"></i>', '<i class="bi bi-wallet2"></i>'
+      ];
+      let memoryDeck = [];
+      let memoryFlipped = [];
+      let memoryMatched = [];
+      let memoryMoves = 0;
+      let memoryLock = false;
+      const memoryGrid = root.querySelector('[data-ft-dash-memory-grid]');
+      const memoryMovesNode = root.querySelector('[data-ft-dash-memory-moves]');
+      const memoryPairsNode = root.querySelector('[data-ft-dash-memory-pairs]');
+
+      function shuffle(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function resetMemory() {
+        memoryDeck = shuffle(memoryIcons);
+        memoryFlipped = [];
+        memoryMatched = [];
+        memoryMoves = 0;
+        memoryLock = false;
+        renderMemory();
+      }
+
+      function renderMemory() {
+        if (!memoryGrid) {
+          return;
+        }
+        memoryGrid.innerHTML = '';
+        memoryDeck.forEach((icon, index) => {
+          const visible = memoryFlipped.includes(index) || memoryMatched.includes(index);
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'ft-memory-card' + (visible ? ' is-flipped' : '') + (memoryMatched.includes(index) ? ' is-matched' : '');
+          card.innerHTML = '<span class="ft-memory-card-face ft-memory-card-front">' + icon + '</span><span class="ft-memory-card-face ft-memory-card-back"><i class="bi bi-diamond"></i></span>';
+          card.addEventListener('click', () => {
+            if (gamify.finished || memoryLock || memoryFlipped.includes(index) || memoryMatched.includes(index)) {
+              return;
+            }
+            memoryFlipped.push(index);
+            renderMemory();
+            if (memoryFlipped.length < 2) {
+              return;
+            }
+            memoryMoves += 1;
+            const [first, second] = memoryFlipped;
+            if (memoryDeck[first] === memoryDeck[second]) {
+              memoryMatched.push(first, second);
+              memoryFlipped = [];
+              reward(14);
+              renderMemory();
+              if (memoryMatched.length === memoryDeck.length) {
+                finishSession('complete');
+              }
+              return;
+            }
+            memoryLock = true;
+            setTimeout(() => {
+              memoryFlipped = [];
+              memoryLock = false;
+              renderMemory();
+            }, 650);
+          });
+          memoryGrid.appendChild(card);
+        });
+        if (memoryMovesNode) {
+          memoryMovesNode.textContent = memoryMoves + (memoryMoves > 1 ? ' mouvements' : ' mouvement');
+        }
+        if (memoryPairsNode) {
+          memoryPairsNode.textContent = (memoryMatched.length / 2) + '/6 paires';
+        }
+      }
+
+      const jumpStage = root.querySelector('[data-ft-dash-jump-stage]');
+      const jumpPlayer = root.querySelector('[data-ft-dash-jump-player]');
+      const jumpObstacle = root.querySelector('[data-ft-dash-jump-obstacle]');
+      const jumpScoreNode = root.querySelector('[data-ft-dash-jump-score]');
+      const jumpBestNode = root.querySelector('[data-ft-dash-jump-best]');
+      const playerLeft = 54;
+      let jumpBest = 0;
+      let jumpScore = 0;
+      let jumpRunning = false;
+      let jumpFrame = null;
+      let playerY = 0;
+      let playerVelocity = 0;
+      let obstacleX = 0;
+      let stageWidth = 0;
+
+      function paintJump() {
+        if (!jumpPlayer || !jumpObstacle) {
+          return;
+        }
+        jumpPlayer.style.transform = `translateY(${-playerY}px)`;
+        jumpObstacle.style.left = `${obstacleX}px`;
+        if (jumpScoreNode) {
+          jumpScoreNode.textContent = 'Score ' + jumpScore;
+        }
+        if (jumpBestNode) {
+          jumpBestNode.textContent = 'Meilleur ' + jumpBest;
+        }
+      }
+
+      function stopJump() {
+        jumpRunning = false;
+        if (jumpFrame) {
+          cancelAnimationFrame(jumpFrame);
+          jumpFrame = null;
+        }
+      }
+
+      function resetJump() {
+        stopJump();
+        playerY = 0;
+        playerVelocity = 0;
+        stageWidth = jumpStage ? jumpStage.clientWidth : 640;
+        obstacleX = stageWidth - 32;
+        jumpScore = 0;
+        paintJump();
+      }
+
+      function jumpNow() {
+        if (!jumpRunning || playerY > 0) {
+          return;
+        }
+        playerVelocity = 12;
+      }
+
+      function loopJump() {
+        if (!jumpRunning) {
+          return;
+        }
+        playerVelocity -= 0.65;
+        playerY = Math.max(0, playerY + playerVelocity);
+        if (playerY === 0 && playerVelocity < 0) {
+          playerVelocity = 0;
+        }
+        obstacleX -= 5.5;
+        if (obstacleX < -28) {
+          obstacleX = stageWidth - 32;
+          jumpScore += 1;
+          jumpBest = Math.max(jumpBest, jumpScore);
+          reward(9);
+          if (jumpScore >= 8) {
+            paintJump();
+            finishSession('complete');
+            return;
+          }
+        }
+        const collision = obstacleX < (playerLeft + 28) && (obstacleX + 22) > playerLeft && playerY < 32;
+        if (collision) {
+          paintJump();
+          finishSession('collision');
+          return;
+        }
+        paintJump();
+        jumpFrame = requestAnimationFrame(loopJump);
+      }
+
+      function startJump() {
+        resetJump();
+        jumpRunning = true;
+        jumpFrame = requestAnimationFrame(loopJump);
+        jumpStage?.focus();
+      }
+
+      jumpStage?.addEventListener('click', () => {
+        if (gamify.finished && gamify.activeGame === 'jump') {
+          startSession('jump');
+        }
+        if (!jumpRunning) {
+          startJump();
+          return;
+        }
+        jumpNow();
+      });
+      jumpStage?.addEventListener('keydown', (event) => {
+        if (event.code === 'Space') {
+          event.preventDefault();
+          if (gamify.finished && gamify.activeGame === 'jump') {
+            startSession('jump');
+          }
+          if (!jumpRunning) {
+            startJump();
+            return;
+          }
+          jumpNow();
+        }
+      });
+      window.addEventListener('resize', () => {
+        if (!jumpRunning) {
+          resetJump();
+        }
+      });
+
+      resetButton?.addEventListener('click', () => {
+        const game = resetButton.dataset.currentGame;
+        if (game === 'chess') {
+          resetChess();
+        } else if (game === 'memory') {
+          resetMemory();
+        } else if (game === 'jump') {
+          resetJump();
+        }
+        if (game) {
+          startSession(game);
+        }
+      });
+
+      resetChess();
+      resetMemory();
+      resetJump();
+    })();
+  </script>
   <script>
     (function () {
       const drawer = document.querySelector('[data-ft-assistant-drawer]');
