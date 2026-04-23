@@ -1,3 +1,0 @@
-TRACE
-TEST_OUTPUT_DIR=/app/tmp/test_output
-INSIDE_DOCKER=true
