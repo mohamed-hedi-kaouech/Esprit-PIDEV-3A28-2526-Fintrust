@@ -12,6 +12,10 @@ parameters:
     fintrust.public_url: '%env(string:FINTRUST_PUBLIC_URL)%'
     openai.api_key: '%env(string:OPENAI_API_KEY)%'
     openai.moderation_model: '%env(string:OPENAI_MODERATION_MODEL)%'
+    twilio.account_sid: '%env(TWILIO_ACCOUNT_SID)%'
+    twilio.auth_token: '%env(TWILIO_AUTH_TOKEN)%'
+    twilio.from: '%env(TWILIO_VERIFY_SERVICE_SID)%'
+
 
 services:
     # default configuration for services in *this* file
@@ -21,14 +25,18 @@ services:
         bind:
             string $appSecret: '%kernel.secret%'
             string $kernelEnvironment: '%kernel.environment%'
-            string $fintrustMailerFrom: '%fintrust.mailer_from%'
-            string $fintrustLoginUrl: '%fintrust.login_url%'
+            string $firstMailerFrom: '%fintrust.mailer_from%'
+            string $firstLoginUrl: '%fintrust.login_url%'
             string $apiKey: '%docraptor_api_key%'
             string $testUserEmail: '%test_user_email%'
             string $openRouterKey: '%openRouterKey%'
-            string $fintrustPublicUrl: '%fintrust.public_url%'
+            string $firstPublicUrl: '%fintrust.public_url%'
             string $openAiApiKey: '%openai.api_key%'
             string $openAiModerationModel: '%openai.moderation_model%'
+            string $twilioSid: '%twilio.account_sid%'
+            string $twilioAuthToken: '%twilio.auth_token%'
+            string $twilioFrom: '%twilio.from%'
+            string $exchangeRateApiKey: '%env(EXCHANGE_RATE_API_KEY)%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
