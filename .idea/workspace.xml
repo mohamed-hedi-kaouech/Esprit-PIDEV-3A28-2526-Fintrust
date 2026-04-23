@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="00ffaf57-a179-485e-8320-f54135f23827" name="Changes" comment="update composer">
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Merge_at_23_04_2026_14_43__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Controller/LoanController/ChatBotController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/LoanController/ChatBotController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Service/Loan/ChatBotService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/Loan/ChatBotService.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/html/loan/User/my_loans.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/html/loan/User/my_loans.html.twig" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
