@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User\Admin;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -35,7 +35,7 @@ class AdminReward
     #[ORM\Column(name: 'updated_at', type: 'datetime')]
     private \DateTimeInterface $updatedAt;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'admin_id', referencedColumnName: 'id')]
     private User $admin;
 

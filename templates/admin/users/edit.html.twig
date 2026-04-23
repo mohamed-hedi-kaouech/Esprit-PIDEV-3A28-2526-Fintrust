@@ -1,0 +1,212 @@
+{# Édition utilisateur Admin — BackOffice | Hérite de admin/back.html.twig #}
+{% extends 'admin/back.html.twig' %}
+{% block title %}Modifier {{ user.fullName }}{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_user_list') }}" class="text-muted small text-decoration-none">Utilisateurs</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">{{ user.fullName }}</span>
+{% endblock %}
+
+{% block admin_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="ft-admin-page-title mb-0">
+    <i class="bi bi-person-gear me-2 text-primary"></i>Modifier l'utilisateur
+  </h1>
+  <a href="{{ path('admin_user_list') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Retour
+  </a>
+</div>
+
+<div class="row g-4">
+
+  {# ---- Formulaire édition ---- #}
+  <div class="col-lg-7">
+    <div class="ft-admin-card">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-pencil-square me-2 text-primary"></i>Informations du compte
+      </div>
+      <div class="ft-admin-card-body">
+
+        {{ form_start(form, {attr: {novalidate: 'novalidate', id: 'editForm', class: 'needs-validation'}}) }}
+
+          {{ form_errors(form) }}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              {{ form_label(form.nom, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+              {{ form_widget(form.nom, {attr: {class: 'form-control ft-input'}}) }}
+              {% if form.nom.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(form.nom) }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              {{ form_label(form.prenom, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+              {{ form_widget(form.prenom, {attr: {class: 'form-control ft-input'}}) }}
+              {% if form.prenom.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(form.prenom) }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            {{ form_label(form.email, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+            {{ form_widget(form.email, {attr: {class: 'form-control ft-input'}}) }}
+            {% if form.email.vars.errors|length > 0 %}
+              <div class="text-danger small mt-1">{{ form_errors(form.email) }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            {{ form_label(form.numTel, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+            {{ form_widget(form.numTel, {attr: {class: 'form-control ft-input'}}) }}
+            {% if form.numTel.vars.errors|length > 0 %}
+              <div class="text-danger small mt-1">{{ form_errors(form.numTel) }}</div>
+            {% endif %}
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              {{ form_label(form.role, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+              {{ form_widget(form.role, {attr: {class: 'form-select ft-input'}}) }}
+              {% if form.role.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(form.role) }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              {{ form_label(form.status, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+              {{ form_widget(form.status, {attr: {class: 'form-select ft-input'}}) }}
+              {% if form.status.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(form.status) }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              {{ form_label(form.kycStatus, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+              {{ form_widget(form.kycStatus, {attr: {class: 'form-select ft-input'}}) }}
+              {% if form.kycStatus.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(form.kycStatus) }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              {{ form_label(form.plainPassword, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+              {{ form_widget(form.plainPassword, {attr: {class: 'form-control ft-input'}}) }}
+              {% if form.plainPassword.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(form.plainPassword) }}</div>
+              {% endif %}
+              <div class="small text-muted mt-1">Laissez vide pour conserver le mot de passe actuel.</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn ft-btn-primary">
+            <i class="bi bi-check-lg me-2"></i>Enregistrer les modifications
+          </button>
+
+        {{ form_end(form) }}
+
+      </div>
+    </div>
+  </div>
+
+  {# ---- Panneau latéral ---- #}
+  <div class="col-lg-5">
+
+    {# QR Code #}
+    <div class="ft-admin-card mb-4 text-center">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-qr-code me-2 text-primary"></i>QR Code client
+      </div>
+      <div class="ft-admin-card-body">
+        {% if qrUrl %}
+          <img src="{{ qrUrl }}" alt="QR {{ user.fullName }}" class="img-fluid rounded border" style="max-width:160px"/>
+          <p class="text-muted small mt-2 mb-0 text-break">{{ user.qrToken }}</p>
+        {% else %}
+          <div class="text-muted py-3">
+            <i class="bi bi-qr-code fs-2 d-block mb-2"></i>Non disponible
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# KYC résumé #}
+    {% if kyc %}
+    <div class="ft-admin-card mb-4">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-shield-check me-2 text-primary"></i>Dossier KYC
+      </div>
+      <div class="ft-admin-card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-5 text-muted">Statut</dt>
+          <dd class="col-7">
+            <span class="badge {{ kyc.statut == 'APPROUVE' ? 'ft-badge-success' : (kyc.statut == 'REFUSE' ? 'ft-badge-danger' : 'ft-badge-warning') }}">
+              {{ kyc.statut }}
+            </span>
+          </dd>
+          <dt class="col-5 text-muted">Soumis le</dt>
+          <dd class="col-7">{{ kyc.dateSubmission|date('d/m/Y') }}</dd>
+          <dt class="col-5 text-muted">Fichiers</dt>
+          <dd class="col-7">{{ kyc.files|length }} fichier(s)</dd>
+        </dl>
+        <a href="{{ path('admin_kyc_view', {id: kyc.id}) }}" class="btn btn-sm ft-btn-outline-primary mt-3 w-100">
+          <i class="bi bi-eye me-1"></i>Voir le dossier complet
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Notification manuelle #}
+    <div class="ft-admin-card mb-4">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-bell me-2 text-primary"></i>Envoyer une notification
+      </div>
+      <div class="ft-admin-card-body">
+        <form method="post" action="{{ path('admin_user_notify', {id: user.id}) }}" id="notifyForm">
+          <input type="hidden" name="_token" value="{{ csrf_token('notify_' ~ user.id) }}"/>
+          <div class="mb-3">
+            <select name="type" class="form-select ft-input">
+              <option value="INFO">Information</option>
+              <option value="SUCCESS">Succès</option>
+              <option value="WARNING">Avertissement</option>
+              <option value="ERROR">Erreur</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <textarea name="message" class="form-control ft-input" rows="3"
+                      placeholder="Message à envoyer à {{ user.prenom }}…"
+                      required minlength="5" maxlength="500"></textarea>
+          </div>
+          <button type="submit" class="btn ft-btn-primary w-100">
+            <i class="bi bi-send me-2"></i>Envoyer
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {# Zone dangereuse #}
+    <div class="ft-admin-card ft-admin-card-danger">
+      <div class="ft-admin-card-header text-danger">
+        <i class="bi bi-exclamation-triangle me-2"></i>Zone dangereuse
+      </div>
+      <div class="ft-admin-card-body">
+        <p class="text-muted small mb-3">
+          La suppression est <strong>irréversible</strong>. Toutes les données de cet utilisateur seront perdues.
+        </p>
+        <form method="post" action="{{ path('admin_user_delete', {id: user.id}) }}"
+              onsubmit="return confirm('Supprimer définitivement {{ user.fullName|e('js') }} ? Cette action est irréversible.')">
+          <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}"/>
+          <button type="submit" class="btn btn-danger w-100">
+            <i class="bi bi-trash3 me-2"></i>Supprimer ce compte
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

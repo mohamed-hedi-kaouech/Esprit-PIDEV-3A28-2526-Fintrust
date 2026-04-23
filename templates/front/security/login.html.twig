@@ -1,0 +1,170 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block body %}
+<div class="ft-auth-page">
+  <div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100 py-5">
+      <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+        <div class="ft-auth-card">
+          <div class="ft-auth-header text-center mb-4">
+            <div class="ft-auth-logo mb-3">
+              <a href="{{ path('app') }}" class="d-inline-flex text-decoration-none" title="Retour à l'accueil">
+                <svg viewBox="0 0 40 40" fill="none" width="48" height="48">
+                  <rect width="40" height="40" rx="10" fill="#1560BD"/>
+                  <path d="M10 28V18l10-8 10 8v10H24v-6h-8v6H10Z" fill="white"/>
+                </svg>
+              </a>
+            </div>
+            <h1 class="ft-auth-title">Bon retour</h1>
+            <p class="text-muted">Connectez-vous à votre espace client FinTrust</p>
+          </div>
+
+          {% if error %}
+            <div class="alert alert-danger d-flex align-items-center" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
+            </div>
+          {% endif %}
+
+          <form method="post" action="{{ path('app_login') }}" id="loginForm" novalidate="novalidate">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}"/>
+
+            <div class="mb-3">
+              <label for="email" class="form-label fw-semibold">
+                <i class="bi bi-envelope me-1 text-primary"></i>Adresse e-mail
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value="{{ last_username }}"
+                class="form-control ft-input"
+                placeholder="vous@exemple.com"
+                autocomplete="email"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <label for="password" class="form-label fw-semibold">
+                  <i class="bi bi-lock me-1 text-primary"></i>Mot de passe
+                </label>
+              </div>
+              <div class="input-group">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  class="form-control ft-input"
+                  placeholder="••••••••"
+                  autocomplete="current-password"
+                  required
+                />
+                <button class="btn btn-outline-secondary ft-toggle-pwd" type="button" id="togglePwd" tabindex="-1">
+                  <i class="bi bi-eye" id="togglePwdIcon"></i>
+                </button>
+              </div>
+            </div>
+
+            {% if captcha_required %}
+              <div class="ft-captcha-card mb-3">
+                <label class="form-label fw-semibold mb-2">
+                  <i class="bi bi-shield-check me-1 text-primary"></i>Verification anti-bot
+                </label>
+                <input type="hidden" name="captcha_token" value="{{ captcha.token }}">
+                <label class="ft-captcha-checkbox" for="captcha_confirm">
+                  <input type="checkbox" id="captcha_confirm" name="captcha_confirm" value="1">
+                  <span class="ft-captcha-box"><i class="bi bi-check-lg"></i></span>
+                  <span class="ft-captcha-label">{{ captcha.label }}</span>
+                </label>
+                <div class="form-text">La verification s'active apres plusieurs tentatives echouees.</div>
+              </div>
+            {% endif %}
+
+            <button type="submit" class="btn ft-btn-primary w-100 py-2 fw-semibold mt-2">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+            </button>
+          </form>
+
+          <div class="text-center mt-4">
+            <span class="text-muted small">Pas encore de compte ?</span>
+            <a href="{{ path('app_register') }}" class="ms-1 fw-semibold text-primary text-decoration-none">
+              Créer un compte
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+  document.getElementById('togglePwd')?.addEventListener('click', function() {
+    const pwd = document.getElementById('password');
+    const icon = document.getElementById('togglePwdIcon');
+    if (pwd.type === 'password') {
+      pwd.type = 'text';
+      icon.className = 'bi bi-eye-slash';
+    } else {
+      pwd.type = 'password';
+      icon.className = 'bi bi-eye';
+    }
+  });
+</script>
+<style>
+  .ft-captcha-card {
+    padding: 1rem 1.05rem;
+    border-radius: 1.1rem;
+    border: 1px solid #dbe7f7;
+    background: linear-gradient(135deg, #f8fbff, #eef5ff);
+  }
+
+  .ft-captcha-checkbox {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .85rem .95rem;
+    border-radius: .95rem;
+    background: #fff;
+    border: 1px dashed #bfd4f5;
+    cursor: pointer;
+  }
+
+  .ft-captcha-checkbox input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ft-captcha-box {
+    width: 28px;
+    height: 28px;
+    border-radius: .55rem;
+    border: 1.5px solid #93c5fd;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    background: #eff6ff;
+    transition: all .2s ease;
+    flex-shrink: 0;
+  }
+
+  .ft-captcha-label {
+    color: #123c8d;
+    font-weight: 700;
+  }
+
+  .ft-captcha-checkbox input:checked + .ft-captcha-box {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    border-color: transparent;
+    color: #fff;
+  }
+</style>
+{% endblock %}

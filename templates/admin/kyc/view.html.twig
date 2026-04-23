@@ -1,0 +1,159 @@
+{# Vue dossier KYC Admin — BackOffice | Hérite de admin/back.html.twig #}
+{% extends 'admin/back.html.twig' %}
+{% block title %}KYC — {{ kyc.user.fullName }}{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_kyc_list') }}" class="text-muted small text-decoration-none">KYC</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">{{ kyc.user.fullName }}</span>
+{% endblock %}
+
+{% block admin_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="ft-admin-page-title mb-0">
+    <i class="bi bi-shield-check me-2 text-primary"></i>Dossier KYC — {{ kyc.user.fullName }}
+  </h1>
+  <a href="{{ path('admin_kyc_list') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Retour
+  </a>
+</div>
+
+<div class="row g-4">
+
+  {# ---- Informations KYC ---- #}
+  <div class="col-lg-6">
+    <div class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-person-vcard me-2 text-primary"></i>Informations soumises
+      </div>
+      <div class="ft-admin-card-body">
+        <dl class="row">
+          <dt class="col-5 text-muted small">Client</dt>
+          <dd class="col-7 fw-semibold">{{ kyc.user.fullName }}</dd>
+
+          <dt class="col-5 text-muted small">Email</dt>
+          <dd class="col-7 small">{{ kyc.user.email }}</dd>
+
+          <dt class="col-5 text-muted small">CIN</dt>
+          <dd class="col-7"><code>{{ kyc.cin }}</code></dd>
+
+          <dt class="col-5 text-muted small">Adresse</dt>
+          <dd class="col-7 small">{{ kyc.adresse }}</dd>
+
+          <dt class="col-5 text-muted small">Date de naissance</dt>
+          <dd class="col-7 small">{{ kyc.dateNaissance|date('d/m/Y') }}</dd>
+
+          <dt class="col-5 text-muted small">Soumis le</dt>
+          <dd class="col-7 small">{{ kyc.dateSubmission|date('d/m/Y à H:i') }}</dd>
+
+          <dt class="col-5 text-muted small">Statut</dt>
+          <dd class="col-7">
+            <span class="badge {{ kyc.statut == 'APPROUVE' ? 'ft-badge-success' : (kyc.statut == 'REFUSE' ? 'ft-badge-danger' : 'ft-badge-warning') }}">
+              {{ kyc.statut }}
+            </span>
+          </dd>
+
+          {% if kyc.commentaireAdmin %}
+            <dt class="col-5 text-muted small">Commentaire</dt>
+            <dd class="col-7 small">{{ kyc.commentaireAdmin }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  {# ---- Actions (uniquement si EN_ATTENTE) ---- #}
+  {% if kyc.statut == 'EN_ATTENTE' %}
+  <div class="col-lg-6">
+
+    {# Approuver #}
+    <div class="ft-admin-card ft-admin-card-success mb-4">
+      <div class="ft-admin-card-header text-success">
+        <i class="bi bi-check-circle me-2"></i>Approuver le dossier
+      </div>
+      <div class="ft-admin-card-body">
+        <form method="post" action="{{ path('admin_kyc_approve', {id: kyc.id}) }}">
+          <input type="hidden" name="_token" value="{{ csrf_token('kyc_approve_' ~ kyc.id) }}"/>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Commentaire (optionnel)</label>
+            <textarea name="commentaire" class="form-control ft-input" rows="2"
+                      placeholder="Dossier conforme, identité vérifiée…"></textarea>
+          </div>
+          <button type="submit" class="btn btn-success w-100 fw-semibold">
+            <i class="bi bi-check-lg me-2"></i>Approuver et activer le compte
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {# Refuser #}
+    <div class="ft-admin-card ft-admin-card-danger">
+      <div class="ft-admin-card-header text-danger">
+        <i class="bi bi-x-circle me-2"></i>Refuser le dossier
+      </div>
+      <div class="ft-admin-card-body">
+        <form method="post" action="{{ path('admin_kyc_refuse', {id: kyc.id}) }}">
+          <input type="hidden" name="_token" value="{{ csrf_token('kyc_refuse_' ~ kyc.id) }}"/>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">
+              Motif de refus <span class="text-danger">*</span>
+            </label>
+            <textarea name="commentaire" class="form-control ft-input" rows="3"
+                      placeholder="Documents illisibles, CIN expiré, photo non conforme…"
+                      required minlength="10"></textarea>
+            <div class="form-text text-danger">Le motif est obligatoire et sera communiqué au client.</div>
+          </div>
+          <button type="submit" class="btn btn-danger w-100 fw-semibold">
+            <i class="bi bi-x-lg me-2"></i>Refuser le dossier
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
+
+</div>
+
+{# ---- Fichiers justificatifs ---- #}
+{% if filesData is not empty %}
+<div class="ft-admin-card mt-4">
+  <div class="ft-admin-card-header">
+    <i class="bi bi-paperclip me-2 text-primary"></i>
+    Pièces justificatives ({{ filesData|length }} fichier(s))
+  </div>
+  <div class="ft-admin-card-body">
+    <div class="row g-3">
+      {% for item in filesData %}
+        <div class="col-sm-6 col-md-4 col-lg-3">
+          <div class="ft-kyc-file-card">
+            <div class="ft-kyc-file-name text-truncate" title="{{ item.file.fileName }}">
+              <i class="bi {{ item.file.fileType == 'application/pdf' ? 'bi-file-earmark-pdf text-danger' : 'bi-file-earmark-image text-primary' }} me-1"></i>
+              {{ item.file.fileName }}
+            </div>
+            <div class="text-muted" style="font-size:.75rem">{{ (item.file.fileSize / 1024)|round(1) }} Ko</div>
+
+            {% if item.file.fileType starts with 'image/' %}
+              <img src="data:{{ item.file.fileType }};base64,{{ item.base64 }}"
+                   alt="{{ item.file.fileName }}"
+                   class="img-fluid rounded mt-2 border"
+                   style="max-height:160px; object-fit:cover; width:100%"/>
+            {% else %}
+              <a href="data:application/pdf;base64,{{ item.base64 }}"
+                 download="{{ item.file.fileName }}"
+                 class="btn btn-sm ft-btn-outline-primary mt-2 w-100">
+                <i class="bi bi-download me-1"></i>Télécharger le PDF
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

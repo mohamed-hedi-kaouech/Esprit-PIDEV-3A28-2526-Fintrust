@@ -1,29 +1,57 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User\Client;
 
+use App\Entity\User\User;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'kyc')]
+#[UniqueEntity(fields: ['cin'], message: 'Un dossier KYC existe deja avec ce CIN.')]
 class Kyc
 {
+    public const STATUT_EN_ATTENTE = 'EN_ATTENTE';
+    public const STATUT_APPROUVE = 'APPROUVE';
+    public const STATUT_REFUSE = 'REFUSE';
+
     #[ORM\Id]
     #[ORM\Column(type: 'integer')]
     #[ORM\GeneratedValue]
     private int $id;
 
-    #[ORM\Column(type: 'string', length: 20, unique: true)]
+    #[ORM\Column(type: 'string', length: 8, unique: true)]
+    #[Assert\NotBlank(message: 'Le CIN est obligatoire.')]
+    #[Assert\Length(
+        min: 8,
+        max: 8,
+        exactMessage: 'Le CIN doit contenir exactement {{ limit }} chiffres.'
+    )]
+    #[Assert\Regex(
+        pattern: '/^\d{8}$/',
+        message: 'Le CIN doit contenir exactement 8 chiffres, sans lettres ni caractères spéciaux.'
+    )]
     private string $cin;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank(message: 'L’adresse complète est obligatoire.')]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'L’adresse ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private string $adresse;
 
     #[ORM\Column(name: 'date_naissance', type: 'date')]
-    private \DateTimeInterface $dateNaissance;
+    #[Assert\NotNull(message: 'La date de naissance est obligatoire.')]
+    #[Assert\LessThanOrEqual(
+        value: '-18 years',
+        message: 'Vous devez avoir au moins 18 ans.'
+    )]
+    private ?\DateTimeInterface $dateNaissance = null;
 
     #[ORM\Column(name: 'signature_path', type: 'string', length: 255, nullable: true)]
     private string|null $signaturePath = null;
@@ -32,7 +60,7 @@ class Kyc
     private \DateTimeInterface|null $signatureUploadedAt = null;
 
     #[ORM\Column(type: 'string')]
-    private string $statut = 'EN_ATTENTE';
+    private string $statut = self::STATUT_EN_ATTENTE;
 
     #[ORM\Column(name: 'commentaire_admin', type: 'text', nullable: true)]
     private string|null $commentaireAdmin = null;
@@ -40,11 +68,11 @@ class Kyc
     #[ORM\Column(name: 'date_submission', type: 'datetime')]
     private \DateTimeInterface $dateSubmission;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
     private User $user;
 
-    #[ORM\OneToMany(targetEntity: KycFile::class, mappedBy: 'kyc')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\User\Client\KycFile::class, mappedBy: 'kyc')]
     private Collection $files;
 
     public function __construct()
@@ -79,12 +107,12 @@ class Kyc
         return $this;
     }
 
-    public function getDateNaissance(): \DateTimeInterface
+    public function getDateNaissance(): ?\DateTimeInterface
     {
         return $this->dateNaissance;
     }
 
-    public function setDateNaissance(\DateTimeInterface $dateNaissance): static
+    public function setDateNaissance(?\DateTimeInterface $dateNaissance): static
     {
         $this->dateNaissance = $dateNaissance;
         return $this;
@@ -165,13 +193,16 @@ class Kyc
     {
         if (!$this->files->contains($file)) {
             $this->files->add($file);
+            $file->setKyc($this);
         }
         return $this;
     }
 
     public function removeFile(KycFile $file): static
     {
-        $this->files->removeElement($file);
+        if ($this->files->removeElement($file) && $file->getKyc() === $this) {
+            $file->setKyc(null);
+        }
         return $this;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User\Client;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -31,7 +31,7 @@ class PasswordReset
     #[ORM\Column(type: 'integer')]
     private int $attempts = 0;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
     private User $user;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -29,11 +29,11 @@ class Feedback
     private \DateTimeInterface|null $dateFeedback;
 
     // FIX: added inversedBy: 'feedbacks' to match Publication#feedbacks OneToMany
-    #[ORM\ManyToOne(targetEntity: Publication::class, inversedBy: 'feedbacks')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Publication\Publication::class, inversedBy: 'feedbacks')]
     #[ORM\JoinColumn(name: 'id_publication', referencedColumnName: 'id_publication', onDelete: 'CASCADE')]
     private Publication $publication;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private User $user;
 

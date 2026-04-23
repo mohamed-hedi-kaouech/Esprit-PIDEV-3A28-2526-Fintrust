@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User\Admin;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -26,7 +26,7 @@ class Book
     #[ORM\Column(name: 'publication_date', type: 'date')]
     private \DateTimeInterface $publicationDate;
 
-    #[ORM\ManyToOne(targetEntity: Author::class, inversedBy:'books')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\Admin\Author::class, inversedBy:'books')]
     #[ORM\JoinColumn(name: 'author_id', referencedColumnName: 'id', nullable: true)]
     private Author|null $author = null;
 

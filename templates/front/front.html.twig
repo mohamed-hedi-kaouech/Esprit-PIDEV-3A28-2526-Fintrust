@@ -1,0 +1,248 @@
+{#
+  LAYOUT PRINCIPAL — FRONT OFFICE
+  Toutes les pages client héritent de ce layout.
+  Bootstrap 5 + thème bleu FinTrust.
+#}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}FinTrust{% endblock %} — FinTrust Banking</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ asset('css/fintrust-front.css') }}"/>
+  {% block stylesheets %}{% endblock %}
+</head>
+<body class="ft-front-body{% if app.user and app.user.themeMode == 'dark' %} ft-theme-dark{% endif %}">
+
+  {# ---- NAVBAR ---- #}
+  {% if app.user %}
+    {# Navbar connecté avec tous les modules #}
+    <nav class="navbar navbar-expand-lg ft-navbar-app sticky-top">
+      <div class="container-fluid px-4">
+
+        <a class="navbar-brand ft-brand" href="{{ path('front_dashboard') }}">
+          <svg viewBox="0 0 40 40" fill="none" width="32" height="32">
+            <rect width="40" height="40" rx="10" fill="#1560BD"/>
+            <path d="M10 28V18l10-8 10 8v10H24v-6h-8v6H10Z" fill="white"/>
+          </svg>
+          <span class="ft-brand-name ms-2">FinTrust</span>
+        </a>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#appNav">
+          <i class="bi bi-list fs-4"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="appNav">
+          <ul class="navbar-nav me-auto ms-3 gap-1">
+
+            <li class="nav-item">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_profile' %}active{% endif %}"
+                 href="{{ path('front_profile') }}">
+                <i class="bi bi-person-circle me-1"></i>Profile
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link ft-app-link {% if 'front_kyc' in app.request.attributes.get('_route') %}active{% endif %}"
+                 href="{% if app.user.kycStatus in ['EN_ATTENTE', 'APPROUVE'] %}{{ path('front_kyc_status') }}{% else %}{{ path('front_kyc_submit') }}{% endif %}">
+                <i class="bi bi-shield-check me-1"></i>KYC
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'wallet' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_module', {slug: 'wallet'}) : path('front_kyc_status') }}">
+                <i class="bi bi-wallet2 me-1"></i>Wallet
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'product' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_module', {slug: 'product'}) : path('front_kyc_status') }}">
+                <i class="bi bi-box-seam me-1"></i>Product
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'loan' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_module', {slug: 'loan'}) : path('front_kyc_status') }}">
+                <i class="bi bi-bank me-1"></i>Loan
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'budget' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_module', {slug: 'budget'}) : path('front_kyc_status') }}">
+                <i class="bi bi-calculator me-1"></i>Budget
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'publications' %}active{% endif %}" href="{{ path('front_module', {slug: 'publications'}) }}">
+                <i class="bi bi-newspaper me-1"></i>Publications
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link ft-app-link text-danger" href="{{ path('app_logout') }}?from=client">
+                <i class="bi bi-box-arrow-right me-1"></i>Log Out
+              </a>
+            </li>
+
+          </ul>
+
+          {# Droite : notifications + avatar #}
+          <div class="d-flex align-items-center gap-2">
+
+            {# Notifications #}
+            <a href="{{ path('front_notifications') }}"
+               class="btn ft-app-icon-btn {% if app.request.attributes.get('_route') == 'front_notifications' %}active{% endif %}"
+               title="Notifications">
+              <i class="bi bi-bell"></i>
+            </a>
+
+            {# Avatar + dropdown #}
+            <div class="dropdown">
+              <button class="btn ft-app-avatar-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <div class="ft-app-avatar">
+                  {{ app.user.prenom|first|upper }}{{ app.user.nom|first|upper }}
+                </div>
+                <span class="d-none d-lg-inline ms-2 small fw-semibold">{{ app.user.prenom }}</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end ft-app-dropdown shadow-lg">
+                <li>
+                  <div class="px-3 py-2 border-bottom">
+                    <div class="fw-semibold small">{{ app.user.fullName }}</div>
+                    <div class="text-muted" style="font-size:.75rem">{{ app.user.email }}</div>
+                    <div class="mt-1">
+                      {% if app.user.kycStatus == 'APPROUVE' %}
+                        <span class="badge ft-badge-success" style="font-size:.65rem">KYC Vérifié</span>
+                      {% elseif app.user.kycStatus == 'EN_ATTENTE' %}
+                        <span class="badge ft-badge-warning" style="font-size:.65rem">KYC En attente</span>
+                      {% else %}
+                        <span class="badge ft-badge-neutral" style="font-size:.65rem">KYC Non soumis</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2" href="{{ path('front_profile') }}">
+                    <i class="bi bi-person me-2 text-primary"></i>Profile
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2" href="{% if app.user.kycStatus in ['EN_ATTENTE', 'APPROUVE'] %}{{ path('front_kyc_status') }}{% else %}{{ path('front_kyc_submit') }}{% endif %}">
+                    <i class="bi bi-shield-check me-2 text-primary"></i>KYC
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_module', {slug: 'wallet'}) : path('front_kyc_status') }}">
+                    <i class="bi bi-wallet2 me-2 text-primary"></i>Wallet
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_module', {slug: 'product'}) : path('front_kyc_status') }}">
+                    <i class="bi bi-box-seam me-2 text-primary"></i>Product
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_module', {slug: 'loan'}) : path('front_kyc_status') }}">
+                    <i class="bi bi-bank me-2 text-primary"></i>Loan
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_module', {slug: 'budget'}) : path('front_kyc_status') }}">
+                    <i class="bi bi-calculator me-2 text-primary"></i>Budget
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2" href="{{ path('front_module', {slug: 'publications'}) }}">
+                    <i class="bi bi-newspaper me-2 text-primary"></i>Publications
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"/></li>
+                <li>
+                  <a class="dropdown-item py-2 text-danger" href="{{ path('app_logout') }}?from=client">
+                    <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </nav>
+
+  {% else %}
+    {# Navbar publique (landing page, login, register) #}
+    <nav class="navbar navbar-expand-lg ft-navbar sticky-top">
+      <div class="container-xl">
+        <a class="navbar-brand ft-brand" href="{{ path('app') }}">
+          <svg viewBox="0 0 40 40" fill="none" width="32" height="32">
+            <rect width="40" height="40" rx="10" fill="#1560BD"/>
+            <path d="M10 28V18l10-8 10 8v10H24v-6h-8v6H10Z" fill="white"/>
+          </svg>
+          <span class="ft-brand-name ms-2">FinTrust</span>
+        </a>
+        <div class="ms-auto d-flex gap-2">
+          <a href="{{ path('app_login') }}" class="btn ft-btn-outline-primary btn-sm">Connexion</a>
+          <a href="{{ path('app_register') }}" class="btn ft-btn-primary btn-sm">S'inscrire</a>
+        </div>
+      </div>
+    </nav>
+  {% endif %}
+
+  {# ---- FLASH MESSAGES ---- #}
+  {% if app.flashes|length > 0 %}
+    <div class="position-fixed top-0 end-0 p-3" style="z-index:1100;margin-top:70px">
+      {% for type, messages in app.flashes %}
+        {% set bsType = type == 'error' ? 'danger' : type %}
+        {% for message in messages %}
+          <div class="toast align-items-center text-bg-{{ bsType }} border-0 show mb-2" role="alert">
+            <div class="d-flex">
+              <div class="toast-body fw-semibold">
+                {% if type == 'success' %}<i class="bi bi-check-circle me-2"></i>
+                {% elseif type == 'error' %}<i class="bi bi-x-circle me-2"></i>
+                {% elseif type == 'warning' %}<i class="bi bi-exclamation-triangle me-2"></i>
+                {% else %}<i class="bi bi-info-circle me-2"></i>{% endif %}
+                {{ message }}
+              </div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {# ---- CONTENU ---- #}
+  <main class="ft-main">
+    {% block body %}{% endblock %}
+  </main>
+
+  {# ---- FOOTER (uniquement si non connecté) ---- #}
+  {% if not app.user %}
+  <footer class="ft-footer mt-auto">
+    <div class="container-xl">
+      <div class="row align-items-center py-3">
+        <div class="col-md-6">
+          <p class="text-muted small mb-0">© {{ "now"|date("Y") }} FinTrust. Tous droits réservés.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <a href="#" class="text-muted small me-3">Confidentialité</a>
+          <a href="#" class="text-muted small">Contact</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  {% endif %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.querySelectorAll('.toast').forEach(function(el) {
+      new bootstrap.Toast(el, { delay: 5000 }).show();
+    });
+  </script>
+  {% block javascripts %}{% endblock %}
+</body>
+</html>

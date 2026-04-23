@@ -29,29 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Login triggers
-  const loginTriggers = [
-    document.getElementById('loginBtn'),
-    document.getElementById('mobileLoginBtn'),
-    document.getElementById('ctaLoginBtn'),
-  ];
-  loginTriggers.forEach(btn => {
-    if (btn) btn.addEventListener('click', () => openModal(loginModal));
-  });
-
-  // Signup triggers
-  const signupTriggers = [
-    document.getElementById('signupBtn'),
-    document.getElementById('mobileSignupBtn'),
-    document.getElementById('heroSignupBtn'),
-    document.getElementById('stepsSignupBtn'),
-    document.getElementById('ctaSignupBtn'),
-    document.getElementById('starterBtn'),
-    document.getElementById('proBtn'),
-  ];
-  signupTriggers.forEach(btn => {
-    if (btn) btn.addEventListener('click', () => openModal(signupModal));
-  });
-
   // Close buttons
   document.getElementById('closeLogin')?.addEventListener('click',  () => closeModal(loginModal));
   document.getElementById('closeSignup')?.addEventListener('click', () => closeModal(signupModal));
@@ -79,17 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeAllModals();
   });
-
-  // Business plan → contact
-  document.getElementById('businessBtn')?.addEventListener('click', () => {
-    alert('Thanks for your interest in FinTrust Business! Our team will reach out shortly.');
-  });
-
-  // Watch demo button
-  document.getElementById('heroLearnBtn')?.addEventListener('click', () => {
-    showToast('🎬 Demo video coming soon!', 'info');
-  });
-
 
   /* ──────────────────────────────────────────
      NAVBAR: SCROLL BEHAVIOR & MOBILE MENU
@@ -147,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
      SCROLL REVEAL ANIMATIONS
   ────────────────────────────────────────── */
   const revealElements = document.querySelectorAll(
-    '.feature-card, .step, .testimonial-card, .pricing-card'
+    '.feature-card, .step, .testimonial-card, .pricing-card, .smart-card, .security-card, .impact-card, .dashboard-window, .dashboard-point'
   );
 
   const revealObserver = new IntersectionObserver((entries) => {
@@ -201,14 +167,59 @@ document.addEventListener('DOMContentLoaded', () => {
     if (entries[0].isIntersecting && !statsAnimated) {
       statsAnimated = true;
       const statNums = document.querySelectorAll('.stat-num');
-      // [0] = $0, [1] = 4.9★, [2] = 2M+
+      // [0] = $0, [1] = 4.9*, [2] = 2M+
       // We skip $0 (it's already 0), animate the others
-      if (statNums[1]) animateCounter(statNums[1], 4.9, '★');
+      if (statNums[1]) animateCounter(statNums[1], 4.9, '*');
       if (statNums[2]) animateCounter(statNums[2], 2, 'M+');
       statsObserver.disconnect();
     }
   }, { threshold: 0.5 });
   if (statsSection) statsObserver.observe(statsSection);
+
+  const impactSection = document.querySelector('.impact-stats');
+  let impactAnimated = false;
+  const impactObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !impactAnimated) {
+      impactAnimated = true;
+      document.querySelectorAll('.impact-number').forEach((el) => {
+        const target = Number(el.dataset.target || '0');
+        const suffix = el.dataset.suffix || '';
+        const prefix = el.dataset.prefix || '';
+        animateCounter(el, target, suffix, prefix);
+      });
+      impactObserver.disconnect();
+    }
+  }, { threshold: 0.35 });
+  if (impactSection) impactObserver.observe(impactSection);
+
+  const heroBadge = document.querySelector('[data-hero-badge]');
+  if (heroBadge) {
+    const badgeMessages = [
+      'AI Powered Banking',
+      'Fraud Detection In Real Time',
+      'Secure KYC And Smart Insights',
+      'Built For Trust And Conversion'
+    ];
+    let badgeIndex = Math.floor(Math.random() * badgeMessages.length);
+
+    const setBadgeMessage = (message) => {
+      heroBadge.innerHTML = '<span class="badge-dot"></span> ' + message;
+    };
+
+    setBadgeMessage(badgeMessages[badgeIndex]);
+
+    setInterval(() => {
+      badgeIndex = (badgeIndex + 1) % badgeMessages.length;
+      heroBadge.style.opacity = '0';
+      heroBadge.style.transform = 'translateY(-6px)';
+
+      setTimeout(() => {
+        setBadgeMessage(badgeMessages[badgeIndex]);
+        heroBadge.style.opacity = '1';
+        heroBadge.style.transform = 'translateY(0)';
+      }, 220);
+    }, 4500);
+  }
 
 
   /* ──────────────────────────────────────────

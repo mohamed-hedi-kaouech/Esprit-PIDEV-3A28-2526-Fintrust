@@ -1,0 +1,80 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Détails de la Catégorie{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-gray-800">{{ categorie.nomCategorie }}</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('admin_categorie_edit', {'idCategorie': categorie.idCategorie}) }}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{{ path('admin_categorie_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary">
+                    <h5 class="text-white mb-0">Informations Catégorie</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>ID :</strong></td>
+                            <td>{{ categorie.idCategorie }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nom :</strong></td>
+                            <td>{{ categorie.nomCategorie }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Budget Prévu :</strong></td>
+                            <td>{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Seuil d'Alerte :</strong></td>
+                            <td>{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} DT</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-info">
+                    <h5 class="text-white mb-0">Items Associés</h5>
+                </div>
+                <div class="card-body">
+                    {% if categorie.items|length > 0 %}
+                        <div class="list-group">
+                            {% for item in categorie.items %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ item.libelle }}</h6>
+                                        <small class="text-muted">Montant: {{ item.montant|number_format(2, ',', ' ') }} DT</small>
+                                    </div>
+                                    <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" class="btn btn-sm btn-info">
+                                        Voir
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Aucun item associé à cette catégorie.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

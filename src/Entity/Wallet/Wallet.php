@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Wallet;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -58,16 +58,16 @@ class Wallet
     #[ORM\Column(name: 'est_bloque', type: 'boolean', nullable: true)]
     private bool|null $estBloque = false;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', nullable: true)]
     private User|null $user = null;
 
     // FIX: added OneToMany for transactions (was referenced in error but missing from entity)
-    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'wallet')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\Wallet\Transaction::class, mappedBy: 'wallet')]
     private Collection $transactions;
 
     // FIX: added OneToMany for cheques (was referenced in error but missing from entity)
-    #[ORM\OneToMany(targetEntity: Cheque::class, mappedBy: 'wallet')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\Wallet\Cheque::class, mappedBy: 'wallet')]
     private Collection $cheques;
 
     public function __construct()

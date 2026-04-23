@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Produit;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -31,12 +31,12 @@ class ProductSubscription
     #[ORM\Column(name: 'status', type: 'string')]
     private string $status;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'client', referencedColumnName: 'id')]
     private User $clientUser;
 
     // FIX: added inversedBy: 'subscriptions' to match Product#subscriptions OneToMany
-    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'subscriptions')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Produit\Product::class, inversedBy: 'subscriptions')]
     #[ORM\JoinColumn(name: 'product', referencedColumnName: 'productId')]
     private Product $productObj;
 

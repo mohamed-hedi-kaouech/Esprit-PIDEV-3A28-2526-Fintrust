@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User\Client;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -12,9 +12,6 @@ class KycFile
     #[ORM\Column(type: 'integer')]
     #[ORM\GeneratedValue]
     private int $id;
-
-    #[ORM\Column(name: 'kyc_id', type: 'integer')]
-    private int $kycId;
 
     #[ORM\Column(name: 'file_name', type: 'string', length: 255)]
     private string $fileName;
@@ -29,30 +26,19 @@ class KycFile
     private int $fileSize;
 
     #[ORM\Column(name: 'file_data', type: 'blob')]
-    private string $fileData;
+    private $fileData;
 
     #[ORM\Column(name: 'updated_at', type: 'datetime')]
     private \DateTimeInterface $updatedAt;
 
     // FIX: added inversedBy: 'files' to match Kyc#files OneToMany
-    #[ORM\ManyToOne(targetEntity: Kyc::class, inversedBy: 'files')]
-    #[ORM\JoinColumn(name: 'kyc_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    private Kyc $kyc;
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\Client\Kyc::class, inversedBy: 'files')]
+    #[ORM\JoinColumn(name: 'kyc_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    private ?Kyc $kyc = null;
 
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function getKycId(): int
-    {
-        return $this->kycId;
-    }
-
-    public function setKycId(int $kycId): static
-    {
-        $this->kycId = $kycId;
-        return $this;
     }
 
     public function getFileName(): string
@@ -99,12 +85,12 @@ class KycFile
         return $this;
     }
 
-    public function getFileData(): string
+    public function getFileData()
     {
         return $this->fileData;
     }
 
-    public function setFileData(string $fileData): static
+    public function setFileData($fileData): static
     {
         $this->fileData = $fileData;
         return $this;
@@ -121,12 +107,12 @@ class KycFile
         return $this;
     }
 
-    public function getKyc(): Kyc
+    public function getKyc(): ?Kyc
     {
         return $this->kyc;
     }
 
-    public function setKyc(Kyc $kyc): static
+    public function setKyc(?Kyc $kyc): static
     {
         $this->kyc = $kyc;
         return $this;

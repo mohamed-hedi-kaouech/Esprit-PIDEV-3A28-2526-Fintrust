@@ -1,0 +1,196 @@
+{#
+  Page d'inscription — FrontOffice
+  Hérite de : templates/front/front.html.twig
+
+  Validation : Symfony Assert côté serveur uniquement.
+  Les erreurs sont affichées dans le template via form_errors().
+#}
+{% extends 'front/front.html.twig' %}
+
+{% block title %}Créer un compte{% endblock %}
+
+{% block body %}
+<div class="ft-auth-page">
+  <div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100 py-5">
+      <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+
+        <div class="ft-auth-card">
+
+          {# En-tête #}
+          <div class="ft-auth-header text-center mb-4">
+            <div class="ft-auth-logo mb-3">
+              <svg viewBox="0 0 40 40" fill="none" width="48" height="48">
+                <rect width="40" height="40" rx="10" fill="#1560BD"/>
+                <path d="M10 28V18l10-8 10 8v10H24v-6h-8v6H10Z" fill="white"/>
+              </svg>
+            </div>
+            <h1 class="ft-auth-title">Créer votre compte</h1>
+            <p class="text-muted">Rejoignez FinTrust — gratuit et sans engagement</p>
+          </div>
+
+          {# Validation Symfony côté serveur uniquement. #}
+          {{ form_start(registrationForm, {
+            attr: {
+              id: 'registerForm',
+              novalidate: 'novalidate',
+              class: 'needs-validation'
+            }
+          }) }}
+
+            {# Erreurs globales du formulaire #}
+            {{ form_errors(registrationForm) }}
+
+            {# Nom + Prénom #}
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold" for="{{ registrationForm.nom.vars.id }}">
+                  <i class="bi bi-person me-1 text-primary"></i>{{ form_label(registrationForm.nom) }}
+                </label>
+                {{ form_widget(registrationForm.nom, {attr: {class: 'form-control ft-input', placeholder: 'Votre nom'}}) }}
+                {# Erreurs Symfony côté serveur #}
+                {% if registrationForm.nom.vars.errors|length > 0 %}
+                  <div class="text-danger small mt-1">
+                    {{ form_errors(registrationForm.nom) }}
+                  </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold" for="{{ registrationForm.prenom.vars.id }}">
+                  {{ form_label(registrationForm.prenom) }}
+                </label>
+                {{ form_widget(registrationForm.prenom, {attr: {class: 'form-control ft-input', placeholder: 'Votre prénom'}}) }}
+                {% if registrationForm.prenom.vars.errors|length > 0 %}
+                  <div class="text-danger small mt-1">{{ form_errors(registrationForm.prenom) }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            {# Email #}
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="{{ registrationForm.email.vars.id }}">
+                <i class="bi bi-envelope me-1 text-primary"></i>{{ form_label(registrationForm.email) }}
+              </label>
+              {{ form_widget(registrationForm.email, {attr: {class: 'form-control ft-input', placeholder: 'exemple@fintrust.tn'}}) }}
+              {% if registrationForm.email.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(registrationForm.email) }}</div>
+              {% endif %}
+            </div>
+
+            {# Téléphone #}
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="{{ registrationForm.numTel.vars.id }}">
+                <i class="bi bi-telephone me-1 text-primary"></i>{{ form_label(registrationForm.numTel) }}
+                <span class="text-muted fw-normal small">(optionnel)</span>
+              </label>
+              {{ form_widget(registrationForm.numTel, {attr: {class: 'form-control ft-input', placeholder: '+216 XX XXX XXX'}}) }}
+              {% if registrationForm.numTel.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(registrationForm.numTel) }}</div>
+              {% endif %}
+            </div>
+
+            {# Mot de passe #}
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="{{ registrationForm.plainPassword.first.vars.id }}">
+                <i class="bi bi-lock me-1 text-primary"></i>{{ form_label(registrationForm.plainPassword.first) }}
+              </label>
+              <div class="input-group">
+                {{ form_widget(registrationForm.plainPassword.first, {attr: {class: 'form-control ft-input', placeholder: 'Minimum 8 caractères', id: 'pwd1'}}) }}
+                <button class="btn btn-outline-secondary" type="button" id="togglePwd1" tabindex="-1">
+                  <i class="bi bi-eye" id="togglePwd1Icon"></i>
+                </button>
+              </div>
+              {# Indicateur de force du mot de passe #}
+              <div class="ft-pwd-strength mt-1" id="pwdStrength">
+                <div class="ft-pwd-bar" id="pwdBar"></div>
+              </div>
+              <small class="text-muted">Majuscule, minuscule et chiffre requis.</small>
+              {% if registrationForm.plainPassword.first.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(registrationForm.plainPassword.first) }}</div>
+              {% endif %}
+            </div>
+
+            {# Confirmation mot de passe #}
+            <div class="mb-4">
+              <label class="form-label fw-semibold" for="{{ registrationForm.plainPassword.second.vars.id }}">
+                <i class="bi bi-lock-fill me-1 text-primary"></i>{{ form_label(registrationForm.plainPassword.second) }}
+              </label>
+              <div class="input-group">
+                {{ form_widget(registrationForm.plainPassword.second, {attr: {class: 'form-control ft-input', placeholder: 'Répétez votre mot de passe', id: 'pwd2'}}) }}
+                <button class="btn btn-outline-secondary" type="button" id="togglePwd2" tabindex="-1">
+                  <i class="bi bi-eye" id="togglePwd2Icon"></i>
+                </button>
+              </div>
+              <div id="pwdMatchFeedback" class="small mt-1"></div>
+              {% if registrationForm.plainPassword.second.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(registrationForm.plainPassword.second) }}</div>
+              {% endif %}
+              {# Erreurs globales du champ repeated (ex: mots de passe différents) #}
+              {% if registrationForm.plainPassword.vars.errors|length > 0 %}
+                <div class="text-danger small mt-1">{{ form_errors(registrationForm.plainPassword) }}</div>
+              {% endif %}
+            </div>
+
+            {# Bouton soumettre #}
+            <button type="submit" class="btn ft-btn-primary w-100 py-2 fw-semibold">
+              <i class="bi bi-person-check me-2"></i>Créer mon compte gratuitement
+            </button>
+
+          {{ form_end(registrationForm) }}
+
+          <div class="text-center mt-4">
+            <span class="text-muted small">Déjà membre ?</span>
+            <a href="{{ path('app_login') }}" class="ms-1 fw-semibold text-primary text-decoration-none">
+              Se connecter
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+  // ---- Toggle affichage mots de passe ----
+  function togglePassword(btnId, inputId, iconId) {
+    document.getElementById(btnId)?.addEventListener('click', function() {
+      const input = document.getElementById(inputId);
+      const icon  = document.getElementById(iconId);
+      input.type  = input.type === 'password' ? 'text' : 'password';
+      icon.className = input.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+    });
+  }
+  togglePassword('togglePwd1', 'pwd1', 'togglePwd1Icon');
+  togglePassword('togglePwd2', 'pwd2', 'togglePwd2Icon');
+
+  // ---- Indicateur de force du mot de passe ----
+  document.getElementById('pwd1')?.addEventListener('input', function() {
+    const val = this.value;
+    const bar = document.getElementById('pwdBar');
+    let score = 0;
+    if (val.length >= 8)              score++;
+    if (/[A-Z]/.test(val))            score++;
+    if (/[a-z]/.test(val))            score++;
+    if (/\d/.test(val))               score++;
+    if (/[^A-Za-z0-9]/.test(val))     score++;
+    const colors = ['#dc2626','#f97316','#eab308','#22c55e','#16a34a'];
+    const widths = ['20%','40%','60%','80%','100%'];
+    bar.style.width     = score > 0 ? widths[score - 1] : '0';
+    bar.style.background = score > 0 ? colors[score - 1] : 'transparent';
+  });
+
+  // ---- Vérification correspondance mots de passe ----
+  document.getElementById('pwd2')?.addEventListener('input', function() {
+    const feedback = document.getElementById('pwdMatchFeedback');
+    if (this.value === document.getElementById('pwd1').value) {
+      feedback.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Les mots de passe correspondent.</span>';
+    } else {
+      feedback.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Les mots de passe ne correspondent pas.</span>';
+    }
+  });
+</script>
+{% endblock %}

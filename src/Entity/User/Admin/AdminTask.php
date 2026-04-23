@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User\Admin;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -58,17 +58,17 @@ class AdminTask
     #[ORM\Column(name: 'updated_at', type: 'datetime')]
     private \DateTimeInterface $updatedAt;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'created_by', referencedColumnName: 'id')]
     private User $creator;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'assigned_to', referencedColumnName: 'id')]
     private User $assignee;
     
 
 
-    #[ORM\OneToMany(targetEntity: AdminTaskHistory::class, mappedBy: 'task')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\User\Admin\AdminTaskHistory::class, mappedBy: 'task')]
     private Collection $history;
 
     public function __construct()

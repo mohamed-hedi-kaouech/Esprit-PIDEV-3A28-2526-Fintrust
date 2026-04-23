@@ -1,0 +1,427 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Dépôt KYC{% endblock %}
+
+{% block body %}
+<div class="container py-5" style="max-width: 820px">
+
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <div class="ft-page-icon ft-page-icon-green"><i class="bi bi-shield-check"></i></div>
+      <div>
+        <h1 class="ft-page-title mb-0">Vérification d'identité (KYC)</h1>
+        <p class="text-muted mb-0 small">Complétez votre dossier, ajoutez votre signature et déposez plusieurs justificatifs si nécessaire.</p>
+      </div>
+    </div>
+    <button type="button" class="btn btn-outline-primary rounded-pill px-3" id="voiceGuideBtn">
+      <i class="bi bi-volume-up me-2"></i>Lire les infos
+    </button>
+  </div>
+
+  <div class="ft-steps mb-4">
+    <div class="ft-step ft-step-active">
+      <div class="ft-step-num">1</div>
+      <div class="ft-step-label">Informations</div>
+    </div>
+    <div class="ft-step-line"></div>
+    <div class="ft-step ft-step-active">
+      <div class="ft-step-num">2</div>
+      <div class="ft-step-label">Documents & signature</div>
+    </div>
+    <div class="ft-step-line"></div>
+    <div class="ft-step">
+      <div class="ft-step-num">3</div>
+      <div class="ft-step-label">Validation admin</div>
+    </div>
+  </div>
+
+  <div class="ft-card">
+    <div class="ft-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span><i class="bi bi-file-earmark-person me-2 text-primary"></i>Formulaire KYC</span>
+      <span class="badge rounded-pill text-bg-light border text-primary px-3 py-2">Plusieurs images autorisées</span>
+    </div>
+    <div class="ft-card-body">
+
+      {{ form_start(form, {
+        attr: {
+          novalidate: 'novalidate',
+          enctype: 'multipart/form-data',
+          id: 'kycForm',
+          class: 'needs-validation'
+        }
+      }) }}
+
+        {{ form_errors(form) }}
+
+        <div class="mb-3">
+          {{ form_label(form.cin, null, {label_attr: {class: 'form-label fw-semibold'}}) }}
+          {{ form_widget(form.cin, {attr: {class: 'form-control ft-input', placeholder: 'Ex : 12345678'}}) }}
+          {% if form.cin.vars.errors|length > 0 %}
+            <div class="text-danger small mt-1">{{ form_errors(form.cin) }}</div>
+          {% endif %}
+          <div class="form-text">Le CIN doit contenir exactement 8 chiffres.</div>
+        </div>
+
+        <div class="mb-3">
+          {{ form_label(form.adresse, null, {label_attr: {class: 'form-label fw-semibold'}}) }}
+          {{ form_widget(form.adresse, {attr: {class: 'form-control ft-input', placeholder: 'Numéro, Rue, Ville, Code postal', rows: 3}}) }}
+          {% if form.adresse.vars.errors|length > 0 %}
+            <div class="text-danger small mt-1">{{ form_errors(form.adresse) }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-4">
+          {{ form_label(form.dateNaissance, null, {label_attr: {class: 'form-label fw-semibold'}}) }}
+          {{ form_widget(form.dateNaissance, {attr: {class: 'form-control ft-input'}}) }}
+          {% if form.dateNaissance.vars.errors|length > 0 %}
+            <div class="text-danger small mt-1">{{ form_errors(form.dateNaissance) }}</div>
+          {% endif %}
+          <div class="form-text">Vous devez avoir au moins 18 ans.</div>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <div class="col-lg-7">
+            {{ form_label(form.documents, null, {label_attr: {class: 'form-label fw-semibold'}}) }}
+            <div class="ft-upload-zone" id="uploadZone">
+              {{ form_widget(form.documents, {attr: {class: 'ft-file-input', id: 'kycFiles', accept: '.jpg,.jpeg,.png,.pdf', multiple: 'multiple'}}) }}
+              <div class="ft-upload-placeholder" id="uploadPlaceholder">
+                <i class="bi bi-images fs-2 text-primary mb-2 d-block"></i>
+                <strong>Déposez plusieurs fichiers ici</strong> ou cliquez pour sélectionner
+                <div class="text-muted small mt-1">JPG, PNG, PDF — 5 Mo max par fichier</div>
+                <div class="text-muted small">Vous pouvez envoyer plusieurs images de vos justificatifs.</div>
+              </div>
+              <div id="fileList" class="mt-3"></div>
+            </div>
+            <div class="form-text">Au moins un justificatif est obligatoire pour continuer vers la page d'attente.</div>
+            {% if form.documents.vars.errors|length > 0 %}
+              <div class="text-danger small mt-1">{{ form_errors(form.documents) }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-lg-5">
+            <label class="form-label fw-semibold">Signature manuscrite</label>
+            <div class="ft-signature-card">
+              <canvas id="signaturePad" class="ft-signature-canvas" width="320" height="200"></canvas>
+              <div class="d-flex gap-2 mt-3">
+                <button type="button" class="btn btn-outline-secondary btn-sm flex-grow-1" id="clearSignatureBtn">
+                  <i class="bi bi-eraser me-1"></i>Effacer
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm flex-grow-1" id="saveSignatureBtn">
+                  <i class="bi bi-check2 me-1"></i>Marquer comme valide
+                </button>
+              </div>
+              <div class="form-text mt-2">Dessinez votre signature avec la souris ou le doigt. Elle est enregistrée automatiquement dès que vous terminez le tracé.</div>
+              {{ form_widget(form.signatureData, {attr: {id: 'signatureDataField'}}) }}
+              {% if form.signatureData.vars.errors|length > 0 %}
+                <div class="text-danger small mt-2">{{ form_errors(form.signatureData) }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="ft-voice-helper mb-4">
+          <div class="d-flex align-items-start gap-3">
+            <div class="ft-voice-helper-icon"><i class="bi bi-megaphone"></i></div>
+            <div>
+              <div class="fw-semibold text-primary mb-1">Aide vocale intégrée</div>
+              <div class="text-muted small">Le bouton “Lire les infos” peut relire les consignes et les données déjà saisies pour aider l’utilisateur pendant le dépôt.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ft-captcha-card mb-4">
+          <label class="form-label fw-semibold mb-2">
+            <i class="bi bi-shield-lock me-1 text-primary"></i>Verification finale
+          </label>
+          <input type="hidden" name="captcha_token" value="{{ captcha.token }}">
+          <label class="ft-captcha-checkbox" for="captcha_confirm">
+            <input type="checkbox" id="captcha_confirm" name="captcha_confirm" value="1">
+            <span class="ft-captcha-box"><i class="bi bi-check-lg"></i></span>
+            <span class="ft-captcha-label">{{ captcha.label }}</span>
+          </label>
+          <div class="form-text">Ce CAPTCHA protege la soumission KYC contre les envois automatises.</div>
+        </div>
+
+        <button type="submit" class="btn ft-btn-primary w-100 py-2 fw-semibold">
+          <i class="bi bi-send me-2"></i>Soumettre mon dossier KYC
+        </button>
+
+      {{ form_end(form) }}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+  const fileInput = document.getElementById('kycFiles');
+  const fileList = document.getElementById('fileList');
+  const placeholder = document.getElementById('uploadPlaceholder');
+  const signatureCanvas = document.getElementById('signaturePad');
+  const signatureField = document.getElementById('signatureDataField');
+  const clearSignatureBtn = document.getElementById('clearSignatureBtn');
+  const saveSignatureBtn = document.getElementById('saveSignatureBtn');
+  const ctx = signatureCanvas?.getContext('2d');
+  let drawing = false;
+  let hasSignature = false;
+
+  const renderFiles = (files) => {
+    fileList.innerHTML = '';
+
+    if (!files.length) {
+      placeholder.style.display = '';
+      return;
+    }
+
+    placeholder.style.display = 'none';
+
+    Array.from(files).forEach((file) => {
+      const isPdf = file.type === 'application/pdf';
+      const icon = isPdf ? 'bi-file-earmark-pdf text-danger' : 'bi-file-earmark-image text-primary';
+      const size = (file.size / 1024).toFixed(1) + ' Ko';
+
+      const item = document.createElement('div');
+      item.className = 'd-flex align-items-center gap-2 py-2 px-3 mb-2 rounded-4 border bg-white';
+      item.innerHTML = `
+        <i class="bi ${icon}"></i>
+        <div class="flex-grow-1 min-w-0">
+          <div class="small fw-semibold text-truncate">${file.name}</div>
+          <div class="text-muted small">${size}</div>
+        </div>
+        <span class="badge rounded-pill text-bg-light border">${isPdf ? 'PDF' : 'Image'}</span>
+      `;
+      fileList.appendChild(item);
+    });
+  };
+
+  fileInput?.addEventListener('change', function() {
+    renderFiles(this.files);
+  });
+
+  const initializeCanvas = () => {
+    if (!ctx || !signatureCanvas) return;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+  };
+
+  const canvasHasDrawing = () => {
+    if (!ctx || !signatureCanvas) return false;
+    const pixels = ctx.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height).data;
+    for (let i = 0; i < pixels.length; i += 4) {
+      if (pixels[i] !== 255 || pixels[i + 1] !== 255 || pixels[i + 2] !== 255 || pixels[i + 3] !== 255) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const persistSignature = () => {
+    if (!signatureCanvas || !canvasHasDrawing()) return false;
+    signatureField.value = signatureCanvas.toDataURL('image/png');
+    saveSignatureBtn?.classList.remove('btn-outline-primary');
+    saveSignatureBtn?.classList.add('btn-primary');
+    hasSignature = true;
+    return true;
+  };
+
+  const restoreSignature = () => {
+    if (!ctx || !signatureCanvas || !signatureField?.value) return;
+    const image = new Image();
+    image.onload = function() {
+      initializeCanvas();
+      ctx.drawImage(image, 0, 0, signatureCanvas.width, signatureCanvas.height);
+      hasSignature = true;
+      saveSignatureBtn?.classList.remove('btn-outline-primary');
+      saveSignatureBtn?.classList.add('btn-primary');
+    };
+    image.src = signatureField.value;
+  };
+
+  const getPos = (event) => {
+    const rect = signatureCanvas.getBoundingClientRect();
+    const touch = event.touches ? event.touches[0] : null;
+    const clientX = touch ? touch.clientX : event.clientX;
+    const clientY = touch ? touch.clientY : event.clientY;
+
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  };
+
+  const startDrawing = (event) => {
+    if (!ctx) return;
+    drawing = true;
+    const pos = getPos(event);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    event.preventDefault();
+  };
+
+  const draw = (event) => {
+    if (!drawing || !ctx) return;
+    const pos = getPos(event);
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#123c8d';
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    hasSignature = true;
+    event.preventDefault();
+  };
+
+  const stopDrawing = () => {
+    if (!ctx) return;
+    drawing = false;
+    ctx.closePath();
+    persistSignature();
+  };
+
+  initializeCanvas();
+  restoreSignature();
+
+  signatureCanvas?.addEventListener('mousedown', startDrawing);
+  signatureCanvas?.addEventListener('mousemove', draw);
+  window.addEventListener('mouseup', stopDrawing);
+  signatureCanvas?.addEventListener('touchstart', startDrawing, { passive: false });
+  signatureCanvas?.addEventListener('touchmove', draw, { passive: false });
+  window.addEventListener('touchend', stopDrawing);
+
+  clearSignatureBtn?.addEventListener('click', function() {
+    initializeCanvas();
+    signatureField.value = '';
+    hasSignature = false;
+    saveSignatureBtn?.classList.remove('btn-primary');
+    saveSignatureBtn?.classList.add('btn-outline-primary');
+  });
+
+  saveSignatureBtn?.addEventListener('click', function() {
+    persistSignature();
+  });
+
+  document.getElementById('kycForm')?.addEventListener('submit', function(e) {
+    persistSignature();
+  });
+
+  document.getElementById('voiceGuideBtn')?.addEventListener('click', function() {
+    if (!('speechSynthesis' in window)) {
+      alert('La lecture vocale n’est pas prise en charge sur ce navigateur.');
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const cin = document.getElementById('{{ form.cin.vars.id }}')?.value || 'non renseigné';
+    const adresse = document.getElementById('{{ form.adresse.vars.id }}')?.value || 'non renseignée';
+    const dateNaissance = document.getElementById('{{ form.dateNaissance.vars.id }}')?.value || 'non renseignée';
+    const filesCount = fileInput?.files?.length || 0;
+
+    const message = [
+      'Formulaire K Y C FinTrust.',
+      'Le numéro C I N doit contenir exactement huit chiffres.',
+      'Vous pouvez déposer plusieurs images ou fichiers P D F comme pièces justificatives.',
+      'Une signature manuscrite dessinée est demandée avant la soumission.',
+      `C I N saisi: ${cin}.`,
+      `Adresse saisie: ${adresse}.`,
+      `Date de naissance saisie: ${dateNaissance}.`,
+      `Nombre de fichiers sélectionnés: ${filesCount}.`
+    ].join(' ');
+
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.lang = 'fr-FR';
+    utterance.rate = 0.97;
+    window.speechSynthesis.speak(utterance);
+  });
+</script>
+
+<style>
+  .ft-signature-card {
+    padding: 1rem;
+    border: 1px solid #dbe7f7;
+    border-radius: 1.25rem;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .ft-signature-canvas {
+    width: 100%;
+    height: 200px;
+    border: 2px dashed #bfd4f5;
+    border-radius: 1rem;
+    background: #fff;
+    touch-action: none;
+    cursor: crosshair;
+  }
+
+  .ft-voice-helper {
+    padding: 1rem 1.1rem;
+    border-radius: 1.25rem;
+    border: 1px solid #dbe7f7;
+    background: linear-gradient(135deg, #f8fbff, #eef5ff);
+  }
+
+  .ft-voice-helper-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1d4ed8;
+    flex-shrink: 0;
+  }
+
+  .ft-captcha-card {
+    padding: 1rem 1.1rem;
+    border-radius: 1.25rem;
+    border: 1px solid #dbe7f7;
+    background: linear-gradient(135deg, #f8fbff, #eef5ff);
+  }
+
+  .ft-captcha-checkbox {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .9rem .95rem;
+    border-radius: 1rem;
+    background: #fff;
+    border: 1px dashed #bfd4f5;
+    cursor: pointer;
+  }
+
+  .ft-captcha-checkbox input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ft-captcha-box {
+    width: 28px;
+    height: 28px;
+    border-radius: .6rem;
+    border: 1.5px solid #93c5fd;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eff6ff;
+    color: transparent;
+    transition: all .2s ease;
+    flex-shrink: 0;
+  }
+
+  .ft-captcha-label {
+    color: #123c8d;
+    font-weight: 700;
+  }
+
+  .ft-captcha-checkbox input:checked + .ft-captcha-box {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    border-color: transparent;
+  }
+</style>
+{% endblock %}

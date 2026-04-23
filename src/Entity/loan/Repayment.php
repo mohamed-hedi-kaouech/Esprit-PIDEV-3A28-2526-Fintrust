@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\loan;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -37,7 +37,7 @@ class Repayment
     #[ORM\Column(name: 'status', type: 'string', length: 20)]
     private string $status;
 
-    #[ORM\ManyToOne(targetEntity: Loan::class, inversedBy: "repayments")]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\loan\Loan::class, inversedBy: "repayments")]
     #[ORM\JoinColumn(name: 'loanId', referencedColumnName: 'loanId', onDelete: 'CASCADE')]
     private Loan $loan;
 

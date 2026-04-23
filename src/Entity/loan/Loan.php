@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\loan;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -40,11 +40,11 @@ class Loan
     #[ORM\Column(name: 'id_user', type: 'integer', nullable: true)]
     private int|null $idUser = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
     private User|null $user = null;
 
-    #[ORM\OneToMany(targetEntity: Repayment::class, mappedBy: 'loan')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\loan\Repayment::class, mappedBy: 'loan')]
     private Collection $repayments;
 
     public function __construct()

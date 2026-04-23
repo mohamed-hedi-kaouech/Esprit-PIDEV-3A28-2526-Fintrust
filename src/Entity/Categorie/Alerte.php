@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Categorie;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -25,11 +25,14 @@ class Alerte
     #[ORM\Column(name: 'active', type: 'boolean', nullable: true)]
     private bool|null $active = true;
 
+    #[ORM\Column(name: 'read_status', type: 'boolean', nullable: false, options: ['default' => false])]
+    private bool $read = false;
+
     #[ORM\Column(name: 'created_at', type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
     // FIX: added inversedBy: 'alertes' to match Categorie#alertes OneToMany
-    #[ORM\ManyToOne(targetEntity: Categorie::class, inversedBy: 'alertes')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Categorie\Categorie::class, inversedBy: 'alertes')]
     #[ORM\JoinColumn(name: 'idCategorie', referencedColumnName: 'idCategorie', onDelete: 'CASCADE')]
     private Categorie $categorie;
 
@@ -79,6 +82,17 @@ class Alerte
     public function setActive(bool|null $active): static
     {
         $this->active = $active;
+        return $this;
+    }
+
+    public function isRead(): bool
+    {
+        return $this->read;
+    }
+
+    public function setRead(bool $read): static
+    {
+        $this->read = $read;
         return $this;
     }
 

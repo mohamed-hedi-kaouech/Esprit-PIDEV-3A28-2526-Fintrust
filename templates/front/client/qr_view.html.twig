@@ -1,0 +1,29 @@
+{# Vue publique QR Code — FrontOffice | Hérite de front/front.html.twig #}
+{% extends 'front/front.html.twig' %}
+{% block title %}Profil — {{ user.fullName }}{% endblock %}
+
+{% block body %}
+<div class="container py-5" style="max-width:480px">
+  <div class="ft-card text-center">
+    <div class="ft-card-body py-5">
+      <div class="ft-avatar ft-avatar-lg mx-auto mb-3">
+        {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
+      </div>
+      <h1 class="h3 fw-bold mb-1">{{ user.fullName }}</h1>
+      <p class="text-muted mb-3">Client FinTrust</p>
+      {% if user.kycApproved %}
+        <span class="badge ft-badge-success mb-3">
+          <i class="bi bi-patch-check me-1"></i>Identité vérifiée
+        </span>
+      {% endif %}
+      <ul class="list-unstyled text-start mt-3">
+        <li class="py-2 border-bottom"><i class="bi bi-envelope me-2 text-primary"></i>{{ user.email }}</li>
+        {% if user.numTel %}
+          <li class="py-2 border-bottom"><i class="bi bi-telephone me-2 text-primary"></i>{{ user.numTel }}</li>
+        {% endif %}
+        <li class="py-2"><i class="bi bi-calendar me-2 text-primary"></i>Membre depuis {{ user.createdAt|date('d/m/Y') }}</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

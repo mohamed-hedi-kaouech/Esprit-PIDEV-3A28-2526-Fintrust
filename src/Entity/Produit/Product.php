@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Produit;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -28,7 +28,7 @@ class Product
     #[ORM\Column(name: 'createdAt', type: 'date')]
     private \DateTimeInterface $createdAt;
 
-    #[ORM\OneToMany(targetEntity: ProductSubscription::class, mappedBy: 'productObj')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\Produit\ProductSubscription::class, mappedBy: 'productObj')]
     private Collection $subscriptions;
 
     public function __construct()

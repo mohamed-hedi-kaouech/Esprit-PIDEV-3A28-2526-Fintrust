@@ -1,0 +1,194 @@
+{# Profil Client — hérite de front/front.html.twig #}
+{% extends 'front/front.html.twig' %}
+{% block title %}Mon profil{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4" style="max-width:1100px">
+
+    {# En-tête #}
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <div class="ft-page-icon-lg"><i class="bi bi-person-circle"></i></div>
+      <div>
+        <h1 class="ft-page-title mb-0">Mon profil</h1>
+        <p class="text-muted mb-0 small">Gérez vos informations personnelles</p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      {# ---- Formulaire de modification ---- #}
+      <div class="col-lg-7">
+        <div class="ft-app-card">
+          <div class="ft-app-card-header">
+            <i class="bi bi-pencil-square me-2 text-primary"></i>Informations personnelles
+          </div>
+          <div class="ft-app-card-body">
+
+            {# Validation Symfony côté serveur uniquement. #}
+            {{ form_start(form, {attr: {
+              novalidate: 'novalidate',
+              id: 'profileForm',
+              class: 'needs-validation'
+            }}) }}
+
+              {{ form_errors(form) }}
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  {{ form_label(form.nom, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                  {{ form_widget(form.nom, {attr: {class: 'form-control ft-input'}}) }}
+                  {% if form.nom.vars.errors|length > 0 %}
+                    <div class="text-danger small mt-1">{{ form_errors(form.nom) }}</div>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  {{ form_label(form.prenom, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                  {{ form_widget(form.prenom, {attr: {class: 'form-control ft-input'}}) }}
+                  {% if form.prenom.vars.errors|length > 0 %}
+                    <div class="text-danger small mt-1">{{ form_errors(form.prenom) }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="mb-3">
+                {{ form_label(form.email, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                {{ form_widget(form.email, {attr: {class: 'form-control ft-input'}}) }}
+                {% if form.email.vars.errors|length > 0 %}
+                  <div class="text-danger small mt-1">{{ form_errors(form.email) }}</div>
+                {% endif %}
+              </div>
+
+              <div class="mb-4">
+                {{ form_label(form.numTel, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                {{ form_widget(form.numTel, {attr: {class: 'form-control ft-input', placeholder: '+216 XX XXX XXX'}}) }}
+                {% if form.numTel.vars.errors|length > 0 %}
+                  <div class="text-danger small mt-1">{{ form_errors(form.numTel) }}</div>
+                {% endif %}
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  {{ form_label(form.preferredLanguage, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                  {{ form_widget(form.preferredLanguage, {attr: {class: 'form-select ft-input'}}) }}
+                  {% if form.preferredLanguage.vars.errors|length > 0 %}
+                    <div class="text-danger small mt-1">{{ form_errors(form.preferredLanguage) }}</div>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  {{ form_label(form.themeMode, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
+                  {{ form_widget(form.themeMode, {attr: {class: 'form-select ft-input'}}) }}
+                  {% if form.themeMode.vars.errors|length > 0 %}
+                    <div class="text-danger small mt-1">{{ form_errors(form.themeMode) }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <button type="submit" class="btn ft-btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Enregistrer les modifications
+              </button>
+
+            {{ form_end(form) }}
+
+          </div>
+        </div>
+      </div>
+
+      {# ---- Panneau latéral ---- #}
+      <div class="col-lg-5">
+
+        {# Résumé du compte #}
+        <div class="ft-app-card mb-4">
+          <div class="ft-app-card-header">
+            <i class="bi bi-info-circle me-2 text-primary"></i>Informations du compte
+          </div>
+          <div class="ft-app-card-body p-0">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Rôle</span>
+                <span class="badge ft-badge-blue">{{ user.role }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Statut</span>
+                {% if user.status == 'ACTIF' %}<span class="badge ft-badge-success">Actif</span>
+                {% elseif user.status == 'EN_ATTENTE' %}<span class="badge ft-badge-warning">En attente</span>
+                {% else %}<span class="badge ft-badge-danger">Suspendu</span>{% endif %}
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">KYC</span>
+                {% if user.kycStatus == 'APPROUVE' %}<span class="badge ft-badge-success">Approuvé</span>
+                {% elseif user.kycStatus == 'EN_ATTENTE' %}<span class="badge ft-badge-warning">En attente</span>
+                {% elseif user.kycStatus == 'REFUSE' %}<span class="badge ft-badge-danger">Refusé</span>
+                {% else %}<span class="badge ft-badge-neutral">Non soumis</span>{% endif %}
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Membre depuis</span>
+                <span class="small fw-semibold">{{ user.createdAt|date('d/m/Y') }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ft-app-card mb-4">
+          <div class="ft-app-card-header">
+            <i class="bi bi-sliders me-2 text-primary"></i>Préférences & profil intelligent
+          </div>
+          <div class="ft-app-card-body p-0">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Langue</span>
+                <span class="badge ft-badge-blue">{{ user.preferredLanguage|upper }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Mode</span>
+                <span class="badge ft-badge-neutral">{{ user.themeMode == 'dark' ? 'Sombre' : 'Clair' }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Fréquence transactions</span>
+                <span class="small fw-semibold">{{ user.transactionFrequency|number_format(2, ',', ' ') }}/jour</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Montant moyen</span>
+                <span class="small fw-semibold">{{ user.averageTransactionAmount|number_format(2, ',', ' ') }} TND</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Score de risque</span>
+                <span class="badge {{ user.riskLevel in ['HIGH', 'CRITICAL'] ? 'ft-badge-danger' : (user.riskLevel == 'MEDIUM' ? 'ft-badge-warning' : 'ft-badge-success') }}">{{ user.riskScore|number_format(1, ',', ' ') }}/100 · {{ user.riskLevel }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Fraud score</span>
+                <span class="badge {{ user.fraudScore >= 70 ? 'ft-badge-danger' : (user.fraudScore >= 35 ? 'ft-badge-warning' : 'ft-badge-blue') }}">{{ user.fraudScore|number_format(1, ',', ' ') }}/100</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                <span class="text-muted small">Segment</span>
+                <span class="badge {{ user.clientSegment == 'VIP' ? 'ft-badge-success' : (user.clientSegment == 'A_RISQUE' ? 'ft-badge-danger' : 'ft-badge-blue') }}">{{ user.clientSegment }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {# QR Code #}
+        <div class="ft-app-card text-center">
+          <div class="ft-app-card-header">
+            <i class="bi bi-qr-code me-2 text-primary"></i>Mon QR Code
+          </div>
+          <div class="ft-app-card-body">
+            {% if qrUrl %}
+              <img src="{{ qrUrl }}" alt="QR Code {{ user.fullName }}"
+                   class="img-fluid rounded border" style="max-width:160px"/>
+              <p class="text-muted small mt-2 mb-0">Scannez pour voir votre profil public</p>
+            {% else %}
+              <div class="text-muted py-3">
+                <i class="bi bi-qr-code fs-2 d-block mb-2"></i>Non disponible
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+

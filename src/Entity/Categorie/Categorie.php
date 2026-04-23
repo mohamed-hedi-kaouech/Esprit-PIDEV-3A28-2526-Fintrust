@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Categorie;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'categorie')]
@@ -16,18 +17,28 @@ class Categorie
     private int $idCategorie;
 
     #[ORM\Column(name: 'nomCategorie', type: 'string', length: 255)]
+    #[Assert\NotBlank(message: 'Le nom de la catégorie ne peut pas être vide')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Le nom doit contenir au moins 3 caractères', maxMessage: 'Le nom ne peut pas dépasser 255 caractères')]
     private string $nomCategorie;
 
     #[ORM\Column(name: 'budgetPrevu', type: 'float')]
+    #[Assert\NotBlank(message: 'Le budget prévu ne peut pas être vide')]
+    #[Assert\Positive(message: 'Le budget prévu doit être un nombre positif')]
     private float $budgetPrevu;
 
     #[ORM\Column(name: 'seuilAlerte', type: 'float')]
+    #[Assert\NotBlank(message: 'Le seuil d\'alerte ne peut pas être vide')]
+    #[Assert\Positive(message: 'Le seuil d\'alerte doit être un nombre positif')]
     private float $seuilAlerte;
 
-    #[ORM\OneToMany(targetEntity: Alerte::class, mappedBy: 'categorie')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
+    private ?\App\Entity\User\User $user = null;
+
+    #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Alerte::class, mappedBy: 'categorie')]
     private Collection $alertes;
 
-    #[ORM\OneToMany(targetEntity: Item::class, mappedBy: 'categorieRel')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Item::class, mappedBy: 'categorie')]
     private Collection $items;
 
     public function __construct()
@@ -71,6 +82,17 @@ class Categorie
     public function setSeuilAlerte(float $seuilAlerte): static
     {
         $this->seuilAlerte = $seuilAlerte;
+        return $this;
+    }
+
+    public function getUser(): ?\App\Entity\User\User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?\App\Entity\User\User $user): static
+    {
+        $this->user = $user;
         return $this;
     }
 

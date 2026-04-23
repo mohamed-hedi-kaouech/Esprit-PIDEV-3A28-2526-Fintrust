@@ -1,0 +1,112 @@
+{# Notifications - FrontOffice | Herite de front/front.html.twig #}
+{% extends 'front/front.html.twig' %}
+{% block title %}Notifications{% endblock %}
+
+{% block body %}
+<div class="container-xl py-4 py-lg-5" style="max-width: 980px">
+
+  <section class="ft-notif-hero mb-4 mb-lg-5">
+    <div class="ft-notif-hero-copy">
+      <span class="ft-notif-kicker">
+        <i class="bi bi-bell-fill"></i>
+        Centre de notifications
+      </span>
+      <h1 class="ft-page-title mb-2">Mes notifications</h1>
+      <p class="ft-notif-hero-text mb-0">
+        Suivez ici les mises a jour importantes de votre compte, de votre KYC et des actions liees a votre espace FinTrust.
+      </p>
+    </div>
+    <div class="ft-notif-hero-side">
+      {% if unreadCount > 0 %}
+        <form method="post" action="{{ path('front_notifications_read_all') }}" class="ft-notif-hero-action">
+          <input type="hidden" name="_token" value="{{ csrf_token('read_all_notifications') }}">
+          <button type="submit" class="btn ft-btn-primary ft-notif-read-all-btn">
+            <i class="bi bi-check2-all me-2"></i>Tout marquer comme lu
+          </button>
+        </form>
+      {% endif %}
+      <div class="ft-notif-stat-card">
+        <span class="ft-notif-stat-label">Total</span>
+        <strong class="ft-notif-stat-value">{{ notifications|length }}</strong>
+        <span class="ft-notif-stat-meta">
+          {{ notifications|length > 1 ? 'notifications recues' : 'notification recue' }}
+        </span>
+        <div class="ft-notif-stat-unread">
+          {{ unreadCount }} non lue{{ unreadCount > 1 ? 's' : '' }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {% if notifications is empty %}
+    <div class="ft-empty-state ft-notif-empty text-center">
+      <div class="ft-notif-empty-icon">
+        <i class="bi bi-bell-slash"></i>
+      </div>
+      <h3 class="h4 mb-2">Aucune notification pour le moment</h3>
+      <p class="text-muted mb-0">
+        Vos alertes de securite, l'avancement du KYC et les informations utiles apparaitront ici.
+      </p>
+    </div>
+  {% else %}
+    <div class="ft-notif-list">
+      {% for notif in notifications %}
+        {% set notifType = notif.type|lower %}
+        <article class="ft-notif-card {{ not notif.read ? 'ft-notif-card-unread' }} ft-notif-{{ notifType }}">
+          <div class="ft-notif-card-accent"></div>
+
+          <div class="ft-notif-card-icon">
+            {% if notif.type == 'SUCCESS' %}
+              <i class="bi bi-check2-circle"></i>
+            {% elseif notif.type == 'ERROR' %}
+              <i class="bi bi-x-octagon"></i>
+            {% elseif notif.type == 'WARNING' %}
+              <i class="bi bi-exclamation-triangle"></i>
+            {% else %}
+              <i class="bi bi-info-circle"></i>
+            {% endif %}
+          </div>
+
+          <div class="ft-notif-card-body">
+            <div class="ft-notif-card-top">
+              <span class="ft-notif-type-badge ft-notif-type-{{ notifType }}">
+                {% if notif.type == 'SUCCESS' %}
+                  Confirmation
+                {% elseif notif.type == 'ERROR' %}
+                  Incident
+                {% elseif notif.type == 'WARNING' %}
+                  Vigilance
+                {% else %}
+                  Information
+                {% endif %}
+              </span>
+
+              <time class="ft-notif-date" datetime="{{ notif.createdAt|date('c') }}">
+                <i class="bi bi-clock-history"></i>
+                {{ notif.createdAt|date('d/m/Y a H:i') }}
+              </time>
+            </div>
+
+            <p class="ft-notif-message mb-0">{{ notif.message }}</p>
+          </div>
+
+          <div class="ft-notif-card-status">
+            {% if not notif.read %}
+              <span class="ft-notif-pill ft-notif-pill-live">Non lue</span>
+              <form method="post" action="{{ path('front_notifications_read', {id: notif.id}) }}" class="ft-notif-read-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('read_notification_' ~ notif.id) }}">
+                <button type="submit" class="btn ft-notif-read-btn">
+                  <i class="bi bi-check2 me-1"></i>Marquer comme lue
+                </button>
+              </form>
+            {% else %}
+              <span class="ft-notif-pill ft-notif-pill-muted">Lue</span>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

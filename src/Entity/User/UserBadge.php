@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -22,7 +22,7 @@ class UserBadge
     #[ORM\Column(name: 'awarded_at', type: 'datetime')]
     private \DateTimeInterface $awardedAt;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
     private User $user;
 

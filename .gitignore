@@ -18,5 +18,6 @@
 ###< symfony/phpunit-bridge ###
 
 ###> symfony/asset-mapper ###
-
+/var/cache/
+/var/log/
 ###< symfony/asset-mapper ###

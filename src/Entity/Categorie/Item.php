@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Categorie;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'item')]
@@ -14,9 +15,13 @@ class Item
     private int $idItem;
 
     #[ORM\Column(name: 'libelle', type: 'string', length: 255)]
+    #[Assert\NotBlank(message: 'Le libellé ne peut pas être vide')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Le libellé doit contenir au moins 3 caractères', maxMessage: 'Le libellé ne peut pas dépasser 255 caractères')]
     private string $libelle;
 
     #[ORM\Column(name: 'montant', type: 'float')]
+    #[Assert\NotBlank(message: 'Le montant ne peut pas être vide')]
+    #[Assert\Positive(message: 'Le montant doit être un nombre positif')]
     private float $montant;
 
     // FIX: renamed column to avoid conflict with the association property below
@@ -29,7 +34,23 @@ class Item
     // FIX: added inversedBy: 'items' to match Categorie#items OneToMany
     #[ORM\ManyToOne(targetEntity: Categorie::class, inversedBy: 'items')]
     #[ORM\JoinColumn(name: 'idCategorie', referencedColumnName: 'idCategorie')]
-    private Categorie $categorieRel;
+    private Categorie $categorie;
+
+    #[ORM\Column(name: 'dateCreation', type: 'datetime', nullable: true)]
+    private \DateTimeInterface|null $dateCreation = null;
+
+    #[ORM\Column(name: 'quantite', type: 'float', nullable: true, options: ['default' => 1])]
+    #[Assert\Positive(message: 'La quantité doit être un nombre positif')]
+    private float|null $quantite = 1;
+
+    #[ORM\Column(name: 'tva', type: 'float', nullable: true, options: ['default' => 0])]
+    #[Assert\PositiveOrZero(message: 'La TVA ne peut pas être négative')]
+    #[Assert\LessThanOrEqual(value: 100, message: 'La TVA ne peut pas dépasser 100%')]
+    private float|null $tva = 0;
+
+    #[ORM\Column(name: 'prix_unitaire', type: 'float', nullable: true)]
+    #[Assert\Positive(message: 'Le prix unitaire doit être positif')]
+    private float|null $prixUnitaire = null;
 
     public function getIdItem(): int
     {
@@ -80,14 +101,47 @@ class Item
         return $this;
     }
 
-    public function getCategorieRel(): Categorie
+    public function getCategorie(): Categorie
     {
-        return $this->categorieRel;
+        return $this->categorie;
     }
 
-    public function setCategorieRel(Categorie $categorieRel): static
+    public function setCategorie(Categorie $categorie): static
     {
-        $this->categorieRel = $categorieRel;
+        $this->categorie = $categorie;
         return $this;
+    }
+
+    public function getDateCreation(): \DateTimeInterface|null
+    {
+        return $this->dateCreation;
+    }
+
+    public function setDateCreation(\DateTimeInterface|null $dateCreation): static
+    {
+        $this->dateCreation = $dateCreation;
+        return $this;
+    }
+
+    public function getName(): string
+    {
+        return $this->libelle;
+    }
+
+    public function getQuantite(): float|null { return $this->quantite; }
+    public function setQuantite(float|null $quantite): static { $this->quantite = $quantite; return $this; }
+
+    public function getTva(): float|null { return $this->tva; }
+    public function setTva(float|null $tva): static { $this->tva = $tva; return $this; }
+
+    public function getPrixUnitaire(): float|null { return $this->prixUnitaire; }
+    public function setPrixUnitaire(float|null $v): static { $this->prixUnitaire = $v; return $this; }
+
+    /** Montant TTC calculé = prixUnitaire * quantite * (1 + tva/100) */
+    public function getMontantTtc(): float
+    {
+        $q   = $this->quantite ?? 1;
+        $tva = $this->tva ?? 0;
+        return round($this->montant * $q * (1 + $tva / 100), 3);
     }
 }

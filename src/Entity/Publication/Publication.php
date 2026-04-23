@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Publication;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -34,7 +34,7 @@ class Publication
     #[ORM\Column(name: 'date_publication', type: 'datetime', nullable: true)]
     private \DateTimeInterface|null $datePublication = null;
 
-    #[ORM\OneToMany(targetEntity: Feedback::class, mappedBy: 'publication')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\User\Feedback::class, mappedBy: 'publication')]
     private Collection $feedbacks;
 
     public function __construct()
