@@ -9,7 +9,12 @@
 /phpunit.xml
 .phpunit.result.cache
 ###< phpunit/phpunit ###
+<<<<<<< HEAD
+
+var/
+=======
 /var/
+>>>>>>> origin/dev
 /migrations/
 ###> symfony/phpunit-bridge ###
 ###< symfony/phpunit-bridge ###

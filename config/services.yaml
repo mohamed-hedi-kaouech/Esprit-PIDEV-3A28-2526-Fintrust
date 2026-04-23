@@ -6,7 +6,9 @@
 parameters:
     fintrust.mailer_from: '%env(string:FINTRUST_SMTP_FROM)%'
     fintrust.login_url: '%env(string:FINTRUST_LOGIN_URL)%'
-
+    docraptor_api_key: '%env(DOCRAPTOR_API_KEY)%'
+    test_user_email: '%env(TEST_USER_EMAIL)%'
+    openRouterKey: '%env(OPENROUTER_API_KEY)%'
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -17,7 +19,9 @@ services:
             string $kernelEnvironment: '%kernel.environment%'
             string $fintrustMailerFrom: '%fintrust.mailer_from%'
             string $fintrustLoginUrl: '%fintrust.login_url%'
-
+            string $apiKey: '%docraptor_api_key%'
+            string $testUserEmail: '%test_user_email%'
+            string $openRouterKey: '%openRouterKey%'
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
     App\:

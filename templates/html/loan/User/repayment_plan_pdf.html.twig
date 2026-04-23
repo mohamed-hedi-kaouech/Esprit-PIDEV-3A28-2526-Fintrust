@@ -1,0 +1,272 @@
+{# templates/html/Loan/User/repayment_plan_pdf.html.twig #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Plan de Remboursement - Prêt #{{ loan.loanId  }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @top-center {
+                content: "Fintech - Plan de Remboursement";
+                font-size: 10pt;
+                color: #666;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " sur " counter(pages);
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #15803d;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #15803d;
+            font-size: 24pt;
+            margin: 0 0 10px 0;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 12pt;
+        }
+
+        .info-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .info-row {
+            display: table-row;
+        }
+
+        .info-cell {
+            display: table-cell;
+            width: 50%;
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #15803d;
+            font-size: 10pt;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 14pt;
+            color: #000;
+        }
+
+        .summary-box {
+            background: #f0fdf4;
+            border: 2px solid #15803d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-title {
+            color: #15803d;
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .summary-grid {
+            display: table;
+            width: 100%;
+        }
+
+        .summary-item {
+            display: table-cell;
+            text-align: center;
+            width: 33.33%;
+        }
+
+        .summary-item .label {
+            font-size: 10pt;
+            color: #666;
+            display: block;
+        }
+
+        .summary-item .value {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #15803d;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 10pt;
+        }
+
+        thead {
+            background: #15803d;
+            color: white;
+        }
+
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 9pt;
+            color: #666;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 10pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-personnel { background: #22c55e; color: white; }
+        .badge-voiture { background: #38bdf8; color: white; }
+        .badge-logement { background: #f87171; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Plan de Remboursement</h1>
+        <div class="subtitle">
+            Généré le {{ generatedAt|date('d/m/Y à H:i') }}
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-row">
+            <div class="info-cell">
+                <div class="info-label">Type de Prêt</div>
+                <div class="info-value">
+                    <span class="badge badge-{{ loan.loanType|lower }}">
+                        {{ loan.loanType == 'PERSONNEL' ? 'Personnel' : 
+                           loan.loanType == 'VOITURE' ? 'Voiture' : 'Logement' }}
+                    </span>
+                </div>
+            </div>
+            <div class="info-cell">
+                <div class="info-label">Date de Création</div>
+                <div class="info-value">{{ loan.createdAt|date('d/m/Y') }}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-cell">
+                <div class="info-label">Montant Emprunté</div>
+                <div class="info-value">{{ loan.amount|number_format(2, ',', ' ') }} TND</div>
+            </div>
+            <div class="info-cell">
+                <div class="info-label">Durée</div>
+                <div class="info-value">{{ loan.duration }} mois</div>
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-cell">
+                <div class="info-label">Taux d'Intérêt</div>
+                <div class="info-value">{{ loan.interestRate }}%</div>
+            </div>
+            <div class="info-cell">
+                <div class="info-label">Mensualité</div>
+                <div class="info-value">{{ monthlyPayment|number_format(2, ',', ' ') }} TND</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-box">
+        <div class="summary-title">Résumé Financier</div>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span class="label">Montant Total</span>
+                <span class="value">{{ totalCost|number_format(2, ',', ' ') }} TND</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Intérêts Totaux</span>
+                <span class="value">{{ totalInterest|number_format(2, ',', ' ') }} TND</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Coût du Crédit</span>
+                <span class="value">{{ ((totalInterest / loan.amount) * 100)|number_format(2) }}%</span>
+            </div>
+        </div>
+    </div>
+
+    <h2 style="color: #15803d; font-size: 14pt; margin-bottom: 15px;">Tableau d'Amortissement</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Mois</th>
+                <th>Date d'échéance</th>
+                <th class="text-right">Mensualité</th>
+                <th class="text-right">Intérêts</th>
+                <th class="text-right">Capital</th>
+                <th class="text-right">Solde Restant</th>
+            </tr>
+        </thead>
+            <tbody>
+                {% for payment in repaymentPlan %}
+                <tr>
+                    <td>{{ payment.month }}</td>
+                    <td>Mois {{ payment.month }}</td>
+                    <td class="text-right">{{ payment.monthlyPayment|number_format(2, ',', ' ') }}</td>
+                    <td class="text-right">{{ payment.interestPart|number_format(2, ',', ' ') }}</td>
+                    <td class="text-right">{{ payment.capitalPart|number_format(2, ',', ' ') }}</td>
+                    <td class="text-right">{{ payment.remainingBalance|number_format(2, ',', ' ') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+    </table>
+
+    <div class="footer">
+        <p><strong>Fintech</strong> - République Tunisienne</p>
+        <p>Ce document est généré automatiquement et ne constitue pas un engagement contractuel.</p>
+        <p>Pour toute question, contactez notre service client.</p>
+    </div>
+
+</body>
+</html>
