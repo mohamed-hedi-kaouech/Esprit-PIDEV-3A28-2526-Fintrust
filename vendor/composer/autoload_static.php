@@ -39,6 +39,7 @@ class ComposerStaticInit54c05e64f01f49eb136e9af7b3075bdd
         ),
         'T' =>
         array (
+            'Twilio\\' => 7,
             'Twig\\Extra\\TwigExtraBundle\\' => 27,
             'Twig\\' => 5,
         ),
@@ -177,6 +178,10 @@ class ComposerStaticInit54c05e64f01f49eb136e9af7b3075bdd
         'Webmozart\\Assert\\' =>
         array (
             0 => __DIR__ . '/..' . '/webmozart/assert/src',
+        ),
+        'Twilio\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/twilio/sdk/src/Twilio',
         ),
         'Twig\\Extra\\TwigExtraBundle\\' =>
         array (

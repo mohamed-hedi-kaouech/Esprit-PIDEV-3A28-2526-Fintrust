@@ -133,6 +133,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Choice(choices: [self::SEGMENT_STANDARD, self::SEGMENT_VIP, self::SEGMENT_AT_RISK], message: 'Le segment client est invalide.')]
     private string $clientSegment = self::SEGMENT_STANDARD;
 
+    #[ORM\Column(name: 'budget_total', type: 'decimal', precision: 15, scale: 2, nullable: true)]
+    private ?string $budgetTotal = null;
+
     #[ORM\Column(name: 'behavior_updated_at', type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $behaviorUpdatedAt = null;
 
@@ -302,6 +305,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getClientSegment(): string { return $this->clientSegment; }
     public function setClientSegment(string $v): static { $this->clientSegment = $v; return $this; }
+
+    public function getBudgetTotal(): ?string { return $this->budgetTotal; }
+    public function setBudgetTotal(?string $v): static { $this->budgetTotal = $v; return $this; }
 
     public function getBehaviorUpdatedAt(): ?\DateTimeInterface { return $this->behaviorUpdatedAt; }
     public function setBehaviorUpdatedAt(?\DateTimeInterface $v): static { $this->behaviorUpdatedAt = $v; return $this; }

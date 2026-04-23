@@ -14,6 +14,7 @@ use App\Service\CaptchaService;
 use App\Service\KycService;
 use App\Service\NotificationService;
 use App\Service\QrCodeService;
+use App\Service\RewardService;
 use App\Service\UserService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -66,6 +67,7 @@ class ClientController extends AbstractController
         private readonly RiskAccessChecker $riskAccessChecker,
         private readonly ValidatorInterface $validator,
         private readonly BehavioralProfileService $behavioralProfileService,
+        private readonly RewardService $rewardService,
     ) {}
 
     #[Route('/tableau-de-bord', name: 'dashboard')]
@@ -80,7 +82,38 @@ class ClientController extends AbstractController
         return $this->render('front/client/dashboard.html.twig', [
             'user' => $user,
             'kyc' => $kyc,
+            'isEligible' => $this->rewardService->isEligibleForReward($user),
         ]);
+    }
+
+    #[Route('/verifier-recompense', name: 'check_reward', methods: ['POST'])]
+    public function checkReward(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$this->isCsrfTokenValid('check_reward', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Requête invalide.');
+            return $this->redirectToRoute('front_dashboard');
+        }
+
+        if (!$user->getNumTel()) {
+            $this->addFlash('warning', 'Aucun numéro de téléphone enregistré sur votre compte. Mettez à jour votre profil.');
+            return $this->redirectToRoute('front_dashboard');
+        }
+
+        if (!$this->rewardService->isEligibleForReward($user)) {
+            $this->addFlash('info', 'Vous n\'êtes pas encore éligible à une récompense. Respectez votre budget et vos seuils de catégories.');
+            return $this->redirectToRoute('front_dashboard');
+        }
+
+        if ($this->rewardService->grantReward($user)) {
+            $this->addFlash('success', '🎉 Félicitations ! Un SMS avec votre code promo a été envoyé au ' . $user->getNumTel());
+        } else {
+            $this->addFlash('error', 'Une erreur est survenue lors de l\'envoi du SMS. Vérifiez votre numéro de téléphone.');
+        }
+
+        return $this->redirectToRoute('front_dashboard');
     }
 
     #[Route('/profil', name: 'profile', methods: ['GET', 'POST'])]

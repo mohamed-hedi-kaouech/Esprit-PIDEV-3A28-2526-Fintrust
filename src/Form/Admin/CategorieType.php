@@ -33,7 +33,7 @@ class CategorieType extends AbstractType
                 ]
             ])
             ->add('budgetPrevu', NumberType::class, [
-                'label' => 'Budget Prévu (€)',
+                'label' => 'Budget Prévu (DT)',
                 'attr' => ['class' => 'form-control', 'placeholder' => 'Entrez le budget prévu'],
                 'invalid_message' => 'Le budget prévu doit être un nombre valide',
                 'constraints' => [
@@ -45,7 +45,7 @@ class CategorieType extends AbstractType
                     ]),
                     new Assert\LessThanOrEqual([
                         'value' => 1000000,
-                        'message' => 'Le budget prévu ne peut pas dépasser 1 000 000 €'
+                        'message' => 'Le budget prévu ne peut pas dépasser 1 000 000 DT'
                     ]),
                     new Assert\Regex([
                         'pattern' => '/^[0-9]+(\.[0-9]{1,2})?$/',
@@ -54,7 +54,7 @@ class CategorieType extends AbstractType
                 ]
             ])
             ->add('seuilAlerte', NumberType::class, [
-                'label' => 'Seuil d\'Alerte (€)',
+                'label' => 'Seuil d\'Alerte (DT)',
                 'attr' => ['class' => 'form-control', 'placeholder' => 'Entrez le seuil d\'alerte'],
                 'invalid_message' => 'Le seuil d\'alerte doit être un nombre valide',
                 'constraints' => [
@@ -66,7 +66,7 @@ class CategorieType extends AbstractType
                     ]),
                     new Assert\LessThanOrEqual([
                         'value' => 1000000,
-                        'message' => 'Le seuil d\'alerte ne peut pas dépasser 1 000 000 €'
+                        'message' => 'Le seuil d\'alerte ne peut pas dépasser 1 000 000 DT'
                     ]),
                     new Assert\Regex([
                         'pattern' => '/^[0-9]+(\.[0-9]{1,2})?$/',

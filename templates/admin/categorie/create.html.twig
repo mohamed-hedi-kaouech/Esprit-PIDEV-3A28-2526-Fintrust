@@ -97,8 +97,8 @@
 
                         <div class="form-group">
                             <label for="{{ form.budgetPrevu.vars.id }}" class="form-label">
-                                <i class="fas fa-euro-sign text-success me-2"></i>
-                                Budget Prévu (€)
+                                <i class="fas fa-coins text-success me-2"></i>
+                                Budget Prévu (DT)
                                 <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
@@ -130,7 +130,7 @@
                         <div class="form-group">
                             <label for="{{ form.seuilAlerte.vars.id }}" class="form-label">
                                 <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                                Seuil d'Alerte (€)
+                                Seuil d'Alerte (DT)
                                 <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
@@ -169,15 +169,15 @@
                         <div class="preview-content">
                             <div class="preview-item">
                                 <span class="preview-label">Budget Prévu :</span>
-                                <span class="preview-value" id="budget-preview">0.00 €</span>
+                                <span class="preview-value" id="budget-preview">0.00 DT</span>
                             </div>
                             <div class="preview-item">
                                 <span class="preview-label">Seuil d'Alerte :</span>
-                                <span class="preview-value" id="seuil-preview">0.00 €</span>
+                                <span class="preview-value" id="seuil-preview">0.00 DT</span>
                             </div>
                             <div class="preview-item">
                                 <span class="preview-label">Marge de Sécurité :</span>
-                                <span class="preview-value" id="marge-preview">0.00 €</span>
+                                <span class="preview-value" id="marge-preview">0.00 DT</span>
                             </div>
                         </div>
                     </div>
@@ -212,7 +212,7 @@
                             <span>Choisissez un nom clair et descriptif pour faciliter la navigation</span>
                         </div>
                         <div class="info-item">
-                            <i class="fas fa-euro-sign text-success me-2"></i>
+                            <i class="fas fa-coins text-success me-2"></i>
                             <span>Le budget prévu doit couvrir tous les items de cette catégorie</span>
                         </div>
                         <div class="info-item">
@@ -480,9 +480,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const seuil = parseFloat(seuilInput.value) || 0;
         const marge = budget - seuil;
 
-        budgetPreview.textContent = budget.toFixed(2) + ' €';
-        seuilPreview.textContent = seuil.toFixed(2) + ' €';
-        margePreview.textContent = marge.toFixed(2) + ' €';
+        budgetPreview.textContent = budget.toFixed(2) + ' DT';
+        seuilPreview.textContent = seuil.toFixed(2) + ' DT';
+        margePreview.textContent = marge.toFixed(2) + ' DT';
 
         // Validation visuelle
         if (seuil >= budget && budget > 0) {

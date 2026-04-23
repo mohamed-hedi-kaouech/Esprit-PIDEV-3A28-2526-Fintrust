@@ -36,6 +36,33 @@
         </div>
     </div>
 
+    {# Bannière récompense SMS #}
+    {% if isEligible %}
+    <div class="alert d-flex align-items-center justify-content-between mb-4" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #10b981; border-radius: 16px; padding: 1.25rem 1.5rem;">
+        <div class="d-flex align-items-center gap-3">
+            <span style="font-size: 2rem;">🎉</span>
+            <div>
+                <strong style="color: #065f46; font-size: 1.1rem;">Félicitations ! Vous êtes éligible à une récompense</strong>
+                <p class="mb-0 text-muted small">Vous avez respecté votre budget et tous vos seuils de catégories ce mois-ci.</p>
+            </div>
+        </div>
+        <form method="post" action="{{ path('admin_categorie_send_reward_sms') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('send_reward_sms') }}">
+            <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; font-weight: 700; white-space: nowrap;">
+                <i class="fas fa-sms me-2"></i>Recevoir mon code promo par SMS
+            </button>
+        </form>
+    </div>
+    {% else %}
+    <div class="alert d-flex align-items-center gap-3 mb-4" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 16px; padding: 1.25rem 1.5rem;">
+        <span style="font-size: 2rem;">📊</span>
+        <div>
+            <strong style="color: #92400e;">Récompense non encore débloquée</strong>
+            <p class="mb-0 text-muted small">Respectez votre budget total et les seuils de chaque catégorie pour recevoir un code promo par SMS.</p>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Statistiques globales -->
     <div class="row g-4 mb-5">
         {% set totalBudget = 0 %}
@@ -53,10 +80,10 @@
         <div class="col-xl-3 col-lg-6 col-md-6">
             <div class="stats-overview-card budget-card">
                 <div class="stats-icon">
-                    <i class="fas fa-euro-sign"></i>
+                    <i class="fas fa-coins"></i>
                 </div>
                 <div class="stats-content">
-                    <div class="stats-value">{{ totalBudget|number_format(2, ',', ' ') }} €</div>
+                    <div class="stats-value">{{ totalBudget|number_format(2, ',', ' ') }} DT</div>
                     <div class="stats-label">Budget Total</div>
                     <div class="stats-trend">
                         <i class="fas fa-coins text-success"></i>
@@ -72,7 +99,7 @@
                     <i class="fas fa-shopping-cart"></i>
                 </div>
                 <div class="stats-content">
-                    <div class="stats-value">{{ totalSpent|number_format(2, ',', ' ') }} €</div>
+                    <div class="stats-value">{{ totalSpent|number_format(2, ',', ' ') }} DT</div>
                     <div class="stats-label">Total Dépensé</div>
                     <div class="stats-trend">
                         <i class="fas fa-arrow-up text-primary"></i>
@@ -138,7 +165,7 @@
                                     <div class="legend-color" style="background: linear-gradient(135deg, #3b82f6, #1f6feb);"></div>
                                     <div class="legend-text">
                                         <strong>{{ stat.categorie.nomCategorie }}</strong>
-                                        <small>{{ stat.totalAmount|number_format(2, ',', ' ') }} € / {{ stat.categorie.budgetPrevu|number_format(2, ',', ' ') }} € ({{ percentage|number_format(1) }}%)</small>
+                                        <small>{{ stat.totalAmount|number_format(2, ',', ' ') }} DT / {{ stat.categorie.budgetPrevu|number_format(2, ',', ' ') }} DT ({{ percentage|number_format(1) }}%)</small>
                                     </div>
                                 </div>
                             {% endfor %}
@@ -179,10 +206,10 @@
                         <div class="stats-grid">
                             <div class="stat-item">
                                 <div class="stat-icon">
-                                    <i class="fas fa-euro-sign text-success"></i>
+                                    <i class="fas fa-coins text-success"></i>
                                 </div>
                                 <div class="stat-details">
-                                    <div class="stat-value">{{ stat.categorie.budgetPrevu|number_format(2, ',', ' ') }} €</div>
+                                    <div class="stat-value">{{ stat.categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</div>
                                     <div class="stat-label">Budget prévu</div>
                                 </div>
                             </div>
@@ -192,7 +219,7 @@
                                     <i class="fas fa-shopping-cart text-primary"></i>
                                 </div>
                                 <div class="stat-details">
-                                    <div class="stat-value">{{ stat.totalAmount|number_format(2, ',', ' ') }} €</div>
+                                    <div class="stat-value">{{ stat.totalAmount|number_format(2, ',', ' ') }} DT</div>
                                     <div class="stat-label">Total dépensé</div>
                                 </div>
                             </div>
@@ -237,13 +264,13 @@
                                     {% set remaining = stat.categorie.budgetPrevu - stat.totalAmount %}
                                     <span class="remaining-label">Restant :</span>
                                     <span class="remaining-value {{ remaining < 0 ? 'text-danger' : 'text-success' }}">
-                                        {{ remaining|number_format(2, ',', ' ') }} €
+                                        {{ remaining|number_format(2, ',', ' ') }} DT
                                     </span>
                                 </div>
                                 <div class="threshold-info">
                                     {% set threshold = stat.categorie.seuilAlerte %}
                                     <span class="threshold-label">Seuil d'alerte :</span>
-                                    <span class="threshold-value">{{ threshold|number_format(2, ',', ' ') }} €</span>
+                                    <span class="threshold-value">{{ threshold|number_format(2, ',', ' ') }} DT</span>
                                 </div>
                             </div>
                         </div>

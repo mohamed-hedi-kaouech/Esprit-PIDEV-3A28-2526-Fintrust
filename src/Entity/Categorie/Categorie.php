@@ -31,10 +31,14 @@ class Categorie
     #[Assert\Positive(message: 'Le seuil d\'alerte doit être un nombre positif')]
     private float $seuilAlerte;
 
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
+    private ?\App\Entity\User\User $user = null;
+
     #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Alerte::class, mappedBy: 'categorie')]
     private Collection $alertes;
 
-    #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Item::class, mappedBy: 'categorieRel')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Item::class, mappedBy: 'categorie')]
     private Collection $items;
 
     public function __construct()
@@ -78,6 +82,17 @@ class Categorie
     public function setSeuilAlerte(float $seuilAlerte): static
     {
         $this->seuilAlerte = $seuilAlerte;
+        return $this;
+    }
+
+    public function getUser(): ?\App\Entity\User\User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?\App\Entity\User\User $user): static
+    {
+        $this->user = $user;
         return $this;
     }
 

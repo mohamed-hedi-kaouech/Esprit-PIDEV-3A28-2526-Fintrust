@@ -68,9 +68,9 @@
 
                         <div class="info-item">
                             <div class="info-label">
-                                <i class="fas fa-euro-sign text-success me-2"></i>Montant
+                                <i class="fas fa-coins text-success me-2"></i>Montant
                             </div>
-                            <div class="info-value amount-highlight">{{ item.montant|number_format(2, ',', ' ') }} €</div>
+                            <div class="info-value amount-highlight">{{ item.montant|number_format(2, ',', ' ') }} DT</div>
                         </div>
                     </div>
                 </div>
@@ -92,21 +92,21 @@
 
                 <div class="card-body-custom">
                     <div class="category-info">
-                        <div class="category-name">{{ item.categorieRel.nomCategorie }}</div>
-                        <div class="category-id">ID: {{ item.categorieRel.idCategorie }}</div>
+                        <div class="category-name">{{ item.categorie.nomCategorie }}</div>
+                        <div class="category-id">ID: {{ item.categorie.idCategorie }}</div>
 
                         <div class="category-details mt-3">
                             <div class="detail-row">
                                 <span class="detail-label">Budget prévu:</span>
-                                <span class="detail-value">{{ item.categorieRel.budgetPrevu|number_format(2, ',', ' ') }} €</span>
+                                <span class="detail-value">{{ item.categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</span>
                             </div>
                             <div class="detail-row">
                                 <span class="detail-label">Seuil d'alerte:</span>
-                                <span class="detail-value text-warning">{{ item.categorieRel.seuilAlerte|number_format(2, ',', ' ') }} €</span>
+                                <span class="detail-value text-warning">{{ item.categorie.seuilAlerte|number_format(2, ',', ' ') }} DT</span>
                             </div>
                         </div>
 
-                        <a href="{{ path('admin_categorie_show', {'idCategorie': item.categorieRel.idCategorie}) }}"
+                        <a href="{{ path('admin_categorie_show', {'idCategorie': item.categorie.idCategorie}) }}"
                            class="btn btn-outline-primary btn-sm w-100 mt-3">
                             <i class="fas fa-external-link-alt me-2"></i>Voir la catégorie complète
                         </a>
@@ -128,7 +128,7 @@
 
                 <div class="card-body-custom">
                     {% set categoryTotal = 0 %}
-                    {% for catItem in item.categorieRel.items %}
+                    {% for catItem in item.categorie.items %}
                         {% set categoryTotal = categoryTotal + catItem.montant %}
                     {% endfor %}
                     {% set percentage = categoryTotal > 0 ? (item.montant / categoryTotal * 100) : 0 %}
@@ -140,7 +140,7 @@
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Total catégorie</div>
-                            <div class="stat-value">{{ categoryTotal|number_format(2, ',', ' ') }} €</div>
+                            <div class="stat-value">{{ categoryTotal|number_format(2, ',', ' ') }} DT</div>
                         </div>
                     </div>
 

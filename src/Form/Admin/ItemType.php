@@ -7,8 +7,7 @@ use App\Entity\Categorie\Item;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\Extension\Core\Type\TextType;use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -28,14 +27,10 @@ class ItemType extends AbstractType
                         'minMessage' => 'Le libellé doit contenir au moins {{ limit }} caractères',
                         'maxMessage' => 'Le libellé ne peut pas dépasser {{ limit }} caractères'
                     ]),
-                    new Assert\Regex([
-                        'pattern' => '/^[a-zA-Z\s\-_\(\)]+$/',
-                        'message' => 'Le libellé ne peut contenir que des lettres, espaces, tirets, underscores et parenthèses'
-                    ])
                 ]
             ])
             ->add('montant', NumberType::class, [
-                'label' => 'Montant (€)',
+                'label' => 'Montant (DT)',
                 'attr' => ['class' => 'form-control', 'placeholder' => 'Entrez le montant'],
                 'invalid_message' => 'Le montant doit être un nombre valide',
                 'constraints' => [
@@ -47,7 +42,7 @@ class ItemType extends AbstractType
                     ]),
                     new Assert\LessThanOrEqual([
                         'value' => 500000,
-                        'message' => 'Le montant ne peut pas dépasser 500 000 €'
+                        'message' => 'Le montant ne peut pas dépasser 500 000 DT'
                     ]),
                     new Assert\Regex([
                         'pattern' => '/^[0-9]+(\.[0-9]{1,2})?$/',
@@ -61,8 +56,36 @@ class ItemType extends AbstractType
                 'choice_label' => 'nomCategorie',
                 'attr' => ['class' => 'form-control'],
                 'placeholder' => 'Sélectionnez une catégorie',
+                'property_path' => 'categorie',
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'La sélection d\'une catégorie est obligatoire'])
+                ]
+            ])
+            ->add('quantite', NumberType::class, [
+                'label' => 'Quantité',
+                'required' => false,
+                'data' => 1,
+                'attr' => ['class' => 'form-control', 'placeholder' => '1', 'step' => '0.01', 'min' => '0.01'],
+                'constraints' => [
+                    new Assert\Positive(['message' => 'La quantité doit être positive']),
+                ]
+            ])
+            ->add('prixUnitaire', NumberType::class, [
+                'label' => 'Prix Unitaire (TND)',
+                'required' => false,
+                'attr' => ['class' => 'form-control', 'placeholder' => '0.000', 'step' => '0.001', 'min' => '0'],
+                'constraints' => [
+                    new Assert\Positive(['message' => 'Le prix unitaire doit être positif']),
+                ]
+            ])
+            ->add('tva', NumberType::class, [
+                'label' => 'TVA (%)',
+                'required' => false,
+                'data' => 0,
+                'attr' => ['class' => 'form-control', 'placeholder' => '0', 'step' => '0.1', 'min' => '0', 'max' => '100'],
+                'constraints' => [
+                    new Assert\PositiveOrZero(['message' => 'La TVA ne peut pas être négative']),
+                    new Assert\LessThanOrEqual(['value' => 100, 'message' => 'La TVA ne peut pas dépasser 100%']),
                 ]
             ]);
 
@@ -79,7 +102,7 @@ class ItemType extends AbstractType
 
                     if ($montant > $budgetPrevu) {
                         $form->get('montant')->addError(new \Symfony\Component\Form\FormError(
-                            'Le montant de l\'item (' . number_format($montant, 2, ',', ' ') . ' €) ne peut pas dépasser le budget prévu de la catégorie (' . number_format($budgetPrevu, 2, ',', ' ') . ' €)'
+                            'Le montant de l\'item (' . number_format($montant, 2, ',', ' ') . ' DT) ne peut pas dépasser le budget prévu de la catégorie (' . number_format($budgetPrevu, 2, ',', ' ') . ' DT)'
                         ));
                     }
                 }
