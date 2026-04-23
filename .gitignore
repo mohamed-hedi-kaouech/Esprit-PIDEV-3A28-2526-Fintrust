@@ -14,7 +14,7 @@
 /migrations/
 ###> symfony/phpunit-bridge ###
 ###< symfony/phpunit-bridge ###
-
+/assets/vendor/
 ###> symfony/asset-mapper ###
 /var/cache/
 /var/log/
