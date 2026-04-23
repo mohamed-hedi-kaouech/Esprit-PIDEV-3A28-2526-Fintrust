@@ -2,22 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="00ffaf57-a179-485e-8320-f54135f23827" name="Changes" comment="update composer">
-      <change beforePath="$PROJECT_DIR$/.env.local" beforeDir="false" afterPath="$PROJECT_DIR$/.env.local" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Merge_at_23_04_2026_14_43__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Controller/LoanController/LoanSimulatorController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/LoanController/LoanSimulatorController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Entity/Loan/Loan.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entity/Loan/Loan.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Entity/Loan/Repayment.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entity/Loan/Repayment.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/front/front.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/front/front.html.twig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/html/loan/User/loan_details.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/html/loan/User/loan_details.html.twig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/html/loan/User/preview.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/html/loan/User/preview.html.twig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/html/loan/admin/dashboard.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/html/loan/admin/dashboard.html.twig" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendor/composer/autoload_files.php" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/composer/autoload_files.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendor/composer/autoload_psr4.php" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/composer/autoload_psr4.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendor/composer/autoload_static.php" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/composer/autoload_static.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendor/composer/installed.json" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/composer/installed.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vendor/composer/installed.php" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/composer/installed.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Controller/LoanController/ChatBotController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/LoanController/ChatBotController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Service/Loan/ChatBotService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/Loan/ChatBotService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/html/loan/User/my_loans.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/html/loan/User/my_loans.html.twig" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -223,24 +212,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
-    "DefaultHtmlFileTemplate": "HTML File",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "disable.download.node.interpreter.editor.notification": "true",
-    "git-widget-placeholder": "dev-produit-loan",
-    "last_opened_file_path": "C:/Users/Lenovo/Desktop/Hedi/Esprit-PIDEV-Symfony-3A28-2026-FinTrust",
-    "list.type.of.created.stylesheet": "CSS",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;disable.download.node.interpreter.editor.notification&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev-produit-loan&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Lenovo/Desktop/Hedi/Esprit-PIDEV-Symfony-3A28-2026-FinTrust&quot;,
+    &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Lenovo\Desktop\Hedi\Esprit-PIDEV-Symfony-3A28-2026-FinTrust" />
@@ -300,6 +289,7 @@
       <workItem from="1776851421237" duration="100000" />
       <workItem from="1776873939954" duration="2172000" />
       <workItem from="1776947616393" duration="421000" />
+      <workItem from="1776951710903" duration="607000" />
     </task>
     <task id="LOCAL-00001" summary="gitignore var">
       <option name="closed" value="true" />
@@ -405,7 +395,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776798071837</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="update composer">
+      <option name="closed" value="true" />
+      <created>1776951277421</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1776951277421</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -488,6 +486,7 @@
     <MESSAGE value="correction twig + controller product" />
     <MESSAGE value="integration AI dans un rapport financier par mail + n8n workflow" />
     <MESSAGE value="package update" />
-    <option name="LAST_COMMIT_MESSAGE" value="package update" />
+    <MESSAGE value="update composer" />
+    <option name="LAST_COMMIT_MESSAGE" value="update composer" />
   </component>
 </project>

@@ -17,42 +17,105 @@ class ChatBotController extends AbstractController
         private UserRepository $userRepository
     ) {}
 
-#[Route('/ask', name: 'chatbot_ask', methods: ['POST'])]
-public function ask(Request $request): JsonResponse
-{
-    $question = trim($request->get('question', ''));
-    $loanId = $request->get('loanId') ? (int) $request->get('loanId') : null;
-    
-    // ✅ Utiliser findOneBy (méthode Doctrine standard)
-    $securityUser = $this->getUser();
-    $userId = null;
-    
-    if ($securityUser) {
-        $email = $securityUser->getUserIdentifier();
-        $fullUser = $this->userRepository->findOneBy(['email' => $email]);
-        
-        if ($fullUser) {
-            $userId = (int) $fullUser->getId();
+    #[Route('/ask', name: 'chatbot_ask', methods: ['POST'])]
+    public function ask(Request $request): JsonResponse
+    {
+        // ✅ 1. CLEAN INPUT (POST only)
+        $question = trim((string) $request->request->get('question', ''));
+        $loanId = $request->request->get('loanId')
+            ? (int) $request->request->get('loanId')
+            : null;
+
+        if (!$question) {
+            return $this->json([
+                'success' => false,
+                'answer' => "Veuillez saisir une question."
+            ], 400);
+        }
+
+        // ✅ 2. NORMALIZE QUESTION (important)
+        $question = $this->normalizeQuestion($question);
+
+        // ✅ 3. GET USER ID (cleaner)
+        $userId = null;
+        if ($this->getUser()) {
+            $email = $this->getUser()->getUserIdentifier();
+            $user = $this->userRepository->findOneBy(['email' => $email]);
+            $userId = $user?->getId();
+        }
+
+        // ✅ 4. HANDLE AMBIGUOUS QUESTIONS
+        if (!$loanId && $this->isLoanSpecificQuestion($question)) {
+            return $this->json([
+                'success' => true,
+                'answer' => "Veuillez sélectionner un prêt pour répondre précisément."
+            ]);
+        }
+
+        try {
+            $result = $this->chatBotService->processQuestion(
+                $question,
+                $loanId,
+                $userId
+            );
+
+            // ✅ 5. SAFETY FALLBACK
+            $answer = $result['answer'] ?? '';
+
+            if (!$answer || strlen($answer) < 5) {
+                $answer = "Je n'ai pas compris votre demande. Pouvez-vous reformuler ?";
+            }
+
+            return $this->json([
+                'success' => true,
+                'answer' => $answer,
+                'context_used' => $result['context_used'] ?? false,
+            ]);
+
+        } catch (\Throwable $e) {
+            return $this->json([
+                'success' => false,
+                'answer' => "Erreur serveur. Veuillez réessayer plus tard."
+            ], 500);
         }
     }
 
-    if (empty($question)) {
-        return $this->json(['error' => 'Question vide'], 400);
+    // ================================
+    // HELPERS
+    // ================================
+
+    private function normalizeQuestion(string $q): string
+    {
+        $q = strtolower(trim($q));
+        $q = preg_replace('/\s+/', ' ', $q);
+
+        // normalize common phrases
+        $q = str_replace([
+            'combien je dois payer',
+            'je dois payer combien',
+            'paiement combien'
+        ], 'paiement', $q);
+
+        return $q;
     }
 
-    try {
-        $result = $this->chatBotService->processQuestion($question, $loanId, $userId);
-        
-        return $this->json([
-            'success' => true,
-            'answer' => $result['answer'],
-        ]);
+    private function isLoanSpecificQuestion(string $q): bool
+    {
+        $keywords = [
+            'payer',
+            'mensualité',
+            'échéance',
+            'reste',
+            'capital',
+            'remboursement'
+        ];
 
-    } catch (\Exception $e) {
-        return $this->json([
-            'success' => false,
-            'error' => $e->getMessage(),
-        ], 500);
+        foreach ($keywords as $word) {
+            if (str_contains($q, $word)) {
+                return true;
+            }
+        }
+
+        return false;
     }
-}
 }

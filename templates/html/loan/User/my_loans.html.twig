@@ -127,150 +127,210 @@
 {{ parent() }}
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// DONNÉES DES PRÊTS (injectées depuis Twig)
-// ═══════════════════════════════════════════════════════════
-const loansData = [
-    {% for item in loansData %}
-    {
-        loanId: {{ item.Loan.getLoanId() }},
-        type: "{{ item.Loan.getLoanType() }}",
-        amount: "{{ item.Loan.getAmount() }}",
-        monthlyPayment: "{{ item.monthlyPayment|number_format(3) }}",
-        status: "{{ item.Loan.getStatus() }}"
-    }{% if not loop.last %},{% endif %}
-    {% endfor %}
-];
+    // ═══════════════════════════════════════════════════════════
+    // LOANS DATA
+    // ═══════════════════════════════════════════════════════════
+    const loansData = [
+        {% for item in loansData %}
+        {
+            loanId: {{ item.Loan.getLoanId() }},
+            type: "{{ item.Loan.getLoanType() }}",
+            amount: "{{ item.Loan.getAmount() }}",
+            monthlyPayment: "{{ item.monthlyPayment|number_format(3) }}",
+            status: "{{ item.Loan.getStatus() }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
 
-// Prêt actif par défaut (premier prêt actif, ou le premier disponible)
-const activeLoan = loansData.find(l => l.status === 'ACTIVE') || loansData[0];
-const activeLoanId = activeLoan ? activeLoan.loanId : null;
+    // ✅ FIX: must be let (not const)
+    let activeLoan = loansData.find(l => l.status === 'ACTIVE') || loansData[0];
+    let activeLoanId = activeLoan ? activeLoan.loanId : null;
 
-// ═══════════════════════════════════════════════════════════
-// FONCTIONS CHAT (votre code existant)
-// ═══════════════════════════════════════════════════════════
 
-// Toggle chat window
-function toggleChat() {
-    const chatWindow = document.getElementById('chat-window');
-    chatWindow.classList.toggle('hidden');
-    
-    if (!chatWindow.classList.contains('hidden')) {
-        document.getElementById('chat-input').focus();
+    // ═══════════════════════════════════════════════════════════
+    // CHAT UI
+    // ═══════════════════════════════════════════════════════════
+
+    function toggleChat() {
+        const chatWindow = document.getElementById('chat-window');
+        chatWindow.classList.toggle('hidden');
+
+        if (!chatWindow.classList.contains('hidden')) {
+            document.getElementById('chat-input').focus();
+
+            // Show suggestions first time
+            if (document.getElementById('chat-messages').children.length <= 1) {
+                showSuggestions();
+            }
+        }
     }
-}
 
-// Quick ask from buttons
-function quickAsk(question) {
-    document.getElementById('chat-input').value = question;
-    sendMessage();
-}
 
-// Add message to chat
-function addMessage(content, isUser = false) {
-    const messagesDiv = document.getElementById('chat-messages');
-    const div = document.createElement('div');
-    div.className = 'flex items-start gap-2 ' + (isUser ? 'flex-row-reverse' : '');
-    
-    const avatar = isUser 
-        ? '<div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center text-xs flex-shrink-0">👤</div>'
-        : '<div class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-xs flex-shrink-0">🤖</div>';
-    
-    const bubbleColor = isUser ? 'bg-blue-50 text-blue-900' : 'bg-gray-100 text-gray-800';
-    const bubble = `<div class="${bubbleColor} rounded-lg p-2 max-w-[85%] text-sm">${content}</div>`;
-    
-    div.innerHTML = avatar + bubble;
-    messagesDiv.appendChild(div);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
+    // ═══════════════════════════════════════════════════════════
+    // SUGGESTIONS (🔥 VERY IMPORTANT FOR AI QUALITY)
+    // ═══════════════════════════════════════════════════════════
 
-// Show loading
-function showLoading() {
-    const messagesDiv = document.getElementById('chat-messages');
-    const div = document.createElement('div');
-    div.id = 'chat-loading';
-    div.className = 'flex items-start gap-2';
-    div.innerHTML = `
-        <div class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-xs flex-shrink-0">🤖</div>
+    function showSuggestions() {
+        const suggestions = [
+            "💰 Combien je paie par mois ?",
+            "📊 Combien il reste à payer ?",
+            "📅 Quand est mon prochain paiement ?",
+            "📁 Donne-moi les détails de mon prêt",
+            "💳 Comment payer ?"
+        ];
+
+        const container = document.createElement('div');
+        container.className = "flex flex-wrap gap-2 mt-2";
+
+        suggestions.forEach(q => {
+            const btn = document.createElement('button');
+            btn.className = "bg-gray-200 hover:bg-gray-300 text-xs px-2 py-1 rounded";
+            btn.innerText = q;
+            btn.onclick = () => quickAsk(q);
+            container.appendChild(btn);
+        });
+
+        document.getElementById('chat-messages').appendChild(container);
+    }
+
+
+    // ═══════════════════════════════════════════════════════════
+    // MESSAGE HANDLING
+    // ═══════════════════════════════════════════════════════════
+
+    function addMessage(content, isUser = false) {
+        const messagesDiv = document.getElementById('chat-messages');
+
+        const div = document.createElement('div');
+        div.className = 'flex items-start gap-2 ' + (isUser ? 'flex-row-reverse' : '');
+
+        const avatar = isUser
+            ? '<div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center text-xs">👤</div>'
+            : '<div class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-xs">🤖</div>';
+
+        const bubbleColor = isUser ? 'bg-blue-50 text-blue-900' : 'bg-gray-100 text-gray-800';
+
+        div.innerHTML = `
+        ${avatar}
+        <div class="${bubbleColor} rounded-lg p-2 max-w-[85%] text-sm">
+            ${content}
+        </div>
+    `;
+
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+
+    // ═══════════════════════════════════════════════════════════
+    // LOADING
+    // ═══════════════════════════════════════════════════════════
+
+    function showLoading() {
+        const div = document.createElement('div');
+        div.id = 'chat-loading';
+        div.className = 'flex items-start gap-2';
+
+        div.innerHTML = `
+        <div class="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-xs">🤖</div>
         <div class="bg-gray-100 rounded-lg p-2">
             <span class="animate-pulse text-gray-500 text-sm">● ● ●</span>
         </div>
     `;
-    messagesDiv.appendChild(div);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
 
-// Hide loading
-function hideLoading() {
-    document.getElementById('chat-loading')?.remove();
-}
-
-// ═══════════════════════════════════════════════════════════
-// ENVOI MESSAGE (MODIFIÉ avec loanId)
-// ═══════════════════════════════════════════════════════════
-
-async function sendMessage() {
-    const input = document.getElementById('chat-input');
-    const question = input.value.trim();
-    
-    if (!question) return;
-    
-    // Add user message
-    addMessage(question, true);
-    input.value = '';
-    
-    // Show loading
-    showLoading();
-    
-    try {
-        // Construction du body avec question + loanId
-        const bodyParams = new URLSearchParams();
-        bodyParams.append('question', question);
-        
-        // Ajoute loanId si un prêt actif existe
-        if (activeLoanId) {
-            bodyParams.append('loanId', activeLoanId);
-        }
-        
-        const response = await fetch('{{ path("chatbot_ask") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: bodyParams.toString(),  // ← Envoie question + loanId
-        });
-        
-        const data = await response.json();
-        hideLoading();
-        
-        if (data.success) {
-            addMessage(data.answer);
-        } else {
-            addMessage('Désolé, une erreur est survenue. Veuillez réessayer.');
-        }
-        
-    } catch (error) {
-        hideLoading();
-        addMessage('Service temporairement indisponible. Réessayez plus tard.');
+        document.getElementById('chat-messages').appendChild(div);
     }
-}
 
-// Form submit
-document.getElementById('chat-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    sendMessage();
-});
+    function hideLoading() {
+        document.getElementById('chat-loading')?.remove();
+    }
 
-// ═══════════════════════════════════════════════════════════
-// SÉLECTEUR DE PRÊT (optionnel - si plusieurs prêts)
-// ═══════════════════════════════════════════════════════════
 
-function switchLoan(loanId) {
-    const selected = loansData.find(l => l.loanId === loanId);
-    if (selected) {
-        activeLoanId = selected.loanId;
-        addMessage(`🔄 Contexte changé : ${selected.type} de ${selected.amount} TND`, false);
+    // ═══════════════════════════════════════════════════════════
+    // SEND MESSAGE (🔥 IMPROVED)
+    // ═══════════════════════════════════════════════════════════
+
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        let question = input.value.trim();
+
+        if (!question) return;
+
+        addMessage(question, true);
+        input.value = '';
+
+        showLoading();
+
+        try {
+            const bodyParams = new URLSearchParams();
+            bodyParams.append('question', question);
+
+            if (activeLoanId) {
+                bodyParams.append('loanId', activeLoanId);
+            }
+
+            const response = await fetch('{{ path("chatbot_ask") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: bodyParams.toString(),
+            });
+
+            const data = await response.json();
+            hideLoading();
+
+            if (data.success) {
+                addMessage(data.answer);
+
+                // 🔥 After answer → suggest next actions
+                setTimeout(showSuggestions, 500);
+            } else {
+                addMessage("❌ Erreur serveur");
+            }
+
+        } catch (error) {
+            hideLoading();
+            addMessage("⚠️ Service indisponible");
+        }
+    }
+
+
+    // ═══════════════════════════════════════════════════════════
+    // QUICK ASK
+    // ═══════════════════════════════════════════════════════════
+
+    function quickAsk(question) {
+        document.getElementById('chat-input').value = question;
+        sendMessage();
+    }
+
+
+    // ═══════════════════════════════════════════════════════════
+    // FORM
+    // ═══════════════════════════════════════════════════════════
+
+    document.getElementById('chat-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        sendMessage();
+    });
+
+
+    // ═══════════════════════════════════════════════════════════
+    // SWITCH LOAN (FIXED)
+    // ═══════════════════════════════════════════════════════════
+
+    function switchLoan(loanId) {
+        const selected = loansData.find(l => l.loanId === loanId);
+
+        if (selected) {
+            activeLoanId = selected.loanId;
+
+            addMessage(
+                `🔄 Prêt sélectionné : ${selected.type} (${selected.amount} TND)`,
+            false
+        );
     }
 }
 
