@@ -1,464 +1,730 @@
 {% extends 'admin/back.html.twig' %}
 
-{% block title %}Statistiques des Categories{% endblock %}
+{% block title %}Statistiques Budgétaires{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid mt-4">
-    {% set totalBudgets = 0 %}
-    {% set totalDepenses = 0 %}
-    {% set totalAlertes = 0 %}
-    {% set categoriesActives = stats|length %}
-    {% set warningCount = 0 %}
-    {% set dangerCount = 0 %}
-    {% set okCount = 0 %}
-    {% set maxUsage = 0 %}
-    {% set topCategorie = null %}
-    {% set donutLabels = [] %}
-    {% set donutValues = [] %}
-    {% set barBudgets = [] %}
-    {% set barDepenses = [] %}
-    {% set lineValues = [] %}
-    {% set usageLabels = [] %}
-
-    {% for stat in stats %}
-        {% set totalBudgets = totalBudgets + stat.categorie.budgetPrevu %}
-        {% set totalDepenses = totalDepenses + stat.totalAmount %}
-        {% set totalAlertes = totalAlertes + stat.alertesCount %}
-        {% set usage = stat.budgetUsage > 100 ? 100 : stat.budgetUsage %}
-        {% set usageLabels = usageLabels|merge([stat.categorie.nomCategorie]) %}
-        {% set donutLabels = donutLabels|merge([stat.categorie.nomCategorie]) %}
-        {% set donutValues = donutValues|merge([stat.totalAmount]) %}
-        {% set barBudgets = barBudgets|merge([stat.categorie.budgetPrevu]) %}
-        {% set barDepenses = barDepenses|merge([stat.totalAmount]) %}
-        {% set lineValues = lineValues|merge([usage|round(1)]) %}
-
-        {% if stat.budgetUsage > maxUsage %}
-            {% set maxUsage = stat.budgetUsage %}
-            {% set topCategorie = stat %}
-        {% endif %}
-
-        {% if stat.budgetUsage > 90 %}
-            {% set dangerCount = dangerCount + 1 %}
-        {% elseif stat.budgetUsage > 75 %}
-            {% set warningCount = warningCount + 1 %}
-        {% else %}
-            {% set okCount = okCount + 1 %}
-        {% endif %}
-    {% endfor %}
-
-    {% set globalUsage = totalBudgets > 0 ? (totalDepenses / totalBudgets) * 100 : 0 %}
-    {% set insightText = topCategorie
-        ? 'La categorie ' ~ topCategorie.categorie.nomCategorie ~ ' concentre la pression la plus forte avec ' ~ topCategorie.budgetUsage|round(1) ~ '% du budget utilise.'
-        : 'Commencez par ajouter des categories et des budgets pour activer les analyses intelligentes.' %}
-
-    <section class="ft-category-stats-hero mb-4">
-        <div class="ft-category-stats-hero-copy">
-            <span class="ft-category-stats-kicker">
-                <i class="fa-solid fa-chart-pie"></i>
-                Analyse intelligente active
-            </span>
-            <h1 class="ft-category-stats-title">Statistiques des Categories</h1>
-            <p class="ft-category-stats-subtitle">
-                Centralisez vos budgets, vos depenses et vos alertes dans une vue analytique claire,
-                moderne et orientee pilotage.
-            </p>
-
-            <div class="ft-category-stats-meta-row">
-                <span class="ft-admin-meta">
-                    <i class="fa-regular fa-calendar"></i>
-                    Derniere mise a jour : aujourd hui
-                </span>
-                <span class="ft-admin-meta">
-                    <i class="fa-solid fa-brain"></i>
-                    Monitoring budgetaire premium
-                </span>
-            </div>
-
-            <div class="d-flex flex-wrap gap-2 mt-4">
-                <a href="{{ path('admin_item_list') }}" class="btn ft-btn-primary">
-                    <i class="fa-solid fa-list-check me-2"></i>Voir les items
-                </a>
-                <a href="{{ path('admin_item_export_csv') }}" class="btn ft-btn-outline-primary">
-                    <i class="fa-solid fa-file-csv me-2"></i>Export CSV
-                </a>
-                <a href="{{ path('admin_item_export') }}" class="btn ft-btn-outline-primary">
-                    <i class="fa-solid fa-file-pdf me-2"></i>Export PDF
-                </a>
-            </div>
+<div class="container-fluid mt-5">
+    <!-- Header avec navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('admin_dashboard') }}" class="text-decoration-none">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('admin_categorie_list') }}" class="text-decoration-none">Catégories</a>
+                    </li>
+                    <li class="breadcrumb-item active">Statistiques</li>
+                </ol>
+            </nav>
+            <h1 class="h2 fw-bold text-dark mb-2">
+                <i class="fas fa-chart-bar text-primary me-3"></i>
+                Statistiques Budgétaires
+            </h1>
+            <p class="text-muted">Analyse détaillée des budgets et performances par catégorie</p>
         </div>
-
-        <div class="ft-category-stats-hero-side">
-            <div class="ft-category-stats-filter-card">
-                <div class="ft-category-stats-filter-label">Vue rapide</div>
-                <div class="ft-category-stats-filter-chip-row">
-                    <span class="ft-category-stats-filter-chip is-active">Mois</span>
-                    <span class="ft-category-stats-filter-chip">Semaine</span>
-                    <span class="ft-category-stats-filter-chip">Global</span>
-                </div>
-                <div class="ft-category-stats-filter-date">
-                    <i class="fa-regular fa-clock"></i>
-                    {{ "now"|date("d/m/Y") }}
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {% if stats is empty %}
-        <section class="ft-category-stats-empty-card">
-            <div class="ft-category-stats-empty-icon">
-                <i class="fa-solid fa-chart-line"></i>
-            </div>
-            <h2>Aucune donnee disponible pour le moment</h2>
-            <p class="ft-category-stats-empty-text">
-                Les categories sont maintenant gerees dans la partie client. L administration conserve
-                ici uniquement la lecture analytique, les alertes et le suivi des items.
-            </p>
-            <a href="{{ path('admin_item_list') }}" class="btn ft-btn-primary">
-                <i class="fa-solid fa-list-check me-2"></i>Consulter les items
+        <div class="d-flex gap-3">
+            <a href="{{ path('admin_categorie_list') }}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i>Retour aux catégories
             </a>
-        </section>
+            <a href="{{ path('admin_item_list') }}" class="btn btn-success btn-lg">
+                <i class="fas fa-list me-2"></i>Voir tous les items
+            </a>
+        </div>
+    </div>
+
+    {# Bannière récompense SMS #}
+    {% if isEligible %}
+    <div class="alert d-flex align-items-center justify-content-between mb-4" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #10b981; border-radius: 16px; padding: 1.25rem 1.5rem;">
+        <div class="d-flex align-items-center gap-3">
+            <span style="font-size: 2rem;">🎉</span>
+            <div>
+                <strong style="color: #065f46; font-size: 1.1rem;">Félicitations ! Vous êtes éligible à une récompense</strong>
+                <p class="mb-0 text-muted small">Vous avez respecté votre budget et tous vos seuils de catégories ce mois-ci.</p>
+            </div>
+        </div>
+        <form method="post" action="{{ path('admin_categorie_send_reward_sms') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('send_reward_sms') }}">
+            <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; font-weight: 700; white-space: nowrap;">
+                <i class="fas fa-sms me-2"></i>Recevoir mon code promo par SMS
+            </button>
+        </form>
+    </div>
     {% else %}
-        <section class="row g-3 mb-4">
-            <div class="col-12 col-md-6 col-xl-3">
-                <article class="ft-category-kpi-card ft-category-kpi-blue">
-                    <span class="ft-category-kpi-icon"><i class="fa-solid fa-wallet"></i></span>
-                    <div class="ft-category-kpi-value">{{ totalBudgets|number_format(0, ',', ' ') }}</div>
-                    <div class="ft-category-kpi-label">Total budgets</div>
-                    <p class="ft-category-kpi-text">Capacite budgetaire allouee a l'ensemble des categories.</p>
-                </article>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3">
-                <article class="ft-category-kpi-card ft-category-kpi-cyan">
-                    <span class="ft-category-kpi-icon"><i class="fa-solid fa-chart-column"></i></span>
-                    <div class="ft-category-kpi-value">{{ totalDepenses|number_format(0, ',', ' ') }}</div>
-                    <div class="ft-category-kpi-label">Total depenses</div>
-                    <p class="ft-category-kpi-text">Montant global deja consomme sur les enveloppes surveillees.</p>
-                </article>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3">
-                <article class="ft-category-kpi-card ft-category-kpi-amber">
-                    <span class="ft-category-kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
-                    <div class="ft-category-kpi-value">{{ totalAlertes }}</div>
-                    <div class="ft-category-kpi-label">Alertes declenchees</div>
-                    <p class="ft-category-kpi-text">Nombre d'alertes actives remontees par le monitoring budgetaire.</p>
-                </article>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3">
-                <article class="ft-category-kpi-card ft-category-kpi-green">
-                    <span class="ft-category-kpi-icon"><i class="fa-solid fa-folder-tree"></i></span>
-                    <div class="ft-category-kpi-value">{{ categoriesActives }}</div>
-                    <div class="ft-category-kpi-label">Categories actives</div>
-                    <p class="ft-category-kpi-text">Nombre de categories suivies dans l'analyse courante.</p>
-                </article>
-            </div>
-        </section>
+    <div class="alert d-flex align-items-center gap-3 mb-4" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 16px; padding: 1.25rem 1.5rem;">
+        <span style="font-size: 2rem;">📊</span>
+        <div>
+            <strong style="color: #92400e;">Récompense non encore débloquée</strong>
+            <p class="mb-0 text-muted small">Respectez votre budget total et les seuils de chaque catégorie pour recevoir un code promo par SMS.</p>
+        </div>
+    </div>
+    {% endif %}
 
-        <section class="row g-4 mb-4">
-            <div class="col-12 col-xl-4">
-                <article class="ft-category-chart-card">
-                    <div class="ft-category-chart-head">
-                        <div>
-                            <span class="ft-category-chart-kicker">Repartition</span>
-                            <h2>Depenses par categorie</h2>
-                        </div>
-                    </div>
-                    <div class="ft-chart-container-small">
-                        <canvas id="categoryDonutChart"></canvas>
-                    </div>
-                </article>
-            </div>
+    <!-- Statistiques globales -->
+    <div class="row g-4 mb-5">
+        {% set totalBudget = 0 %}
+        {% set totalSpent = 0 %}
+        {% set totalItems = 0 %}
+        {% set totalAlertes = 0 %}
+        {% for stat in stats %}
+            {% set totalBudget = totalBudget + stat.categorie.budgetPrevu %}
+            {% set totalSpent = totalSpent + stat.totalAmount %}
+            {% set totalItems = totalItems + stat.itemCount %}
+            {% set totalAlertes = totalAlertes + stat.alertesCount %}
+        {% endfor %}
+        {% set globalUsage = totalBudget > 0 ? (totalSpent / totalBudget * 100) : 0 %}
 
-            <div class="col-12 col-xl-8">
-                <article class="ft-category-chart-card">
-                    <div class="ft-category-chart-head">
-                        <div>
-                            <span class="ft-category-chart-kicker">Comparatif</span>
-                            <h2>Budget vs depenses</h2>
-                        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-overview-card budget-card">
+                <div class="stats-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="stats-content">
+                    <div class="stats-value">{{ totalBudget|number_format(2, ',', ' ') }} DT</div>
+                    <div class="stats-label">Budget Total</div>
+                    <div class="stats-trend">
+                        <i class="fas fa-coins text-success"></i>
+                        Prévu global
                     </div>
-                    <div class="ft-chart-container">
-                        <canvas id="categoryBudgetChart"></canvas>
-                    </div>
-                </article>
-            </div>
-
-            <div class="col-12">
-                <article class="ft-category-chart-card">
-                    <div class="ft-category-chart-head">
-                        <div>
-                            <span class="ft-category-chart-kicker">Tendance</span>
-                            <h2>Evolution du taux d utilisation</h2>
-                        </div>
-                    </div>
-                    <div class="ft-chart-container-medium">
-                        <canvas id="categoryUsageChart"></canvas>
-                    </div>
-                </article>
-            </div>
-        </section>
-
-        <section class="row g-4 mb-4">
-            <div class="col-12 col-xl-8">
-                <article class="ft-category-table-card">
-                    <div class="ft-category-chart-head">
-                        <div>
-                            <span class="ft-category-chart-kicker">Vue analytique</span>
-                            <h2>Performance par categorie</h2>
-                        </div>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table ft-admin-table align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Categorie</th>
-                                    <th>Budget</th>
-                                    <th>Depenses</th>
-                                    <th>% utilise</th>
-                                    <th>Statut</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for stat in stats %}
-                                    {% set usage = stat.budgetUsage %}
-                                    <tr>
-                                        <td>
-                                            <div class="ft-category-table-name">
-                                                <span class="ft-category-table-icon">
-                                                    <i class="fa-solid fa-folder-open"></i>
-                                                </span>
-                                                <div>
-                                                    <strong>{{ stat.categorie.nomCategorie }}</strong>
-                                                    <span>{{ stat.itemCount }} item(s) suivis</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>{{ stat.categorie.budgetPrevu|number_format(2, ',', ' ') }} TND</td>
-                                        <td>{{ stat.totalAmount|number_format(2, ',', ' ') }} TND</td>
-                                        <td>
-                                            <div class="ft-category-progress-wrap">
-                                                <div class="ft-admin-progress {% if usage > 90 %}ft-admin-progress-danger{% elseif usage <= 75 %}ft-admin-progress-success{% endif %}">
-                                                    <span style="width: {{ usage > 100 ? 100 : usage }}%"></span>
-                                                </div>
-                                                <strong>{{ usage|round(1) }}%</strong>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {% if usage > 90 %}
-                                                <span class="ft-badge-danger">Depassement</span>
-                                            {% elseif usage > 75 %}
-                                                <span class="ft-badge-warning">Attention</span>
-                                            {% else %}
-                                                <span class="ft-badge-success">OK</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </article>
-            </div>
-
-            <div class="col-12 col-xl-4">
-                <div class="ft-category-side-stack">
-                    <article class="ft-category-insight-card">
-                        <div class="ft-category-insight-header">
-                            <span class="ft-category-insight-icon"><i class="fa-solid fa-brain"></i></span>
-                            <div>
-                                <span class="ft-category-chart-kicker">Insight IA</span>
-                                <h3>Lecture intelligente</h3>
-                            </div>
-                        </div>
-                        <p>{{ insightText }}</p>
-                        <div class="ft-category-insight-footer">
-                            <span class="ft-badge-blue">{{ globalUsage|round(1) }}% d'utilisation globale</span>
-                        </div>
-                    </article>
-
-                    <article class="ft-category-insight-card">
-                        <div class="ft-category-insight-header">
-                            <span class="ft-category-insight-icon is-amber"><i class="fa-solid fa-shield-halved"></i></span>
-                            <div>
-                                <span class="ft-category-chart-kicker">Synthese</span>
-                                <h3>Etat du portefeuille</h3>
-                            </div>
-                        </div>
-                        <ul class="ft-category-summary-list">
-                            <li><strong>{{ okCount }}</strong><span>categorie(s) en zone saine</span></li>
-                            <li><strong>{{ warningCount }}</strong><span>categorie(s) a surveiller</span></li>
-                            <li><strong>{{ dangerCount }}</strong><span>categorie(s) en depassement critique</span></li>
-                        </ul>
-                    </article>
                 </div>
             </div>
-        </section>
-    {% endif %}
-</div>
-{% endblock %}
+        </div>
 
-{% block javascripts %}
-    {{ parent() }}
-    {% if stats is not empty %}
-        {% set chartLabels = [] %}
-        {% set chartDonutValues = [] %}
-        {% set chartBudgetValues = [] %}
-        {% set chartDepenseValues = [] %}
-        {% set chartUsageValues = [] %}
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-overview-card spent-card">
+                <div class="stats-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="stats-content">
+                    <div class="stats-value">{{ totalSpent|number_format(2, ',', ' ') }} DT</div>
+                    <div class="stats-label">Total Dépensé</div>
+                    <div class="stats-trend">
+                        <i class="fas fa-arrow-up text-primary"></i>
+                        {{ globalUsage|number_format(1) }}% utilisé
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-overview-card items-card">
+                <div class="stats-icon">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <div class="stats-content">
+                    <div class="stats-value">{{ totalItems }}</div>
+                    <div class="stats-label">Articles Total</div>
+                    <div class="stats-trend">
+                        <i class="fas fa-list text-info"></i>
+                        {{ stats|length }} catégories
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-overview-card categories-card">
+                <div class="stats-icon">
+                    <i class="fas fa-folder"></i>
+                </div>
+                <div class="stats-content">
+                    <div class="stats-value">{{ stats|length }}</div>
+                    <div class="stats-label">Total Catégories</div>
+                    <div class="stats-trend">
+                        <i class="fas fa-layer-group text-purple"></i>
+                        Budgétaires
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphique global -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="global-chart-card">
+                <div class="card-header-custom">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Répartition Budgétaire Globale</h5>
+                        <small class="text-muted">Utilisation par catégorie</small>
+                    </div>
+                </div>
+
+                <div class="card-body-custom">
+                    <div class="global-progress">
+                        <div class="progress-legend">
+                            {% for stat in stats %}
+                                {% set percentage = stat.categorie.budgetPrevu > 0 ? (stat.totalAmount / stat.categorie.budgetPrevu * 100) : 0 %}
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: linear-gradient(135deg, #3b82f6, #1f6feb);"></div>
+                                    <div class="legend-text">
+                                        <strong>{{ stat.categorie.nomCategorie }}</strong>
+                                        <small>{{ stat.totalAmount|number_format(2, ',', ' ') }} DT / {{ stat.categorie.budgetPrevu|number_format(2, ',', ' ') }} DT ({{ percentage|number_format(1) }}%)</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques par catégorie -->
+    <div class="row g-4">
         {% for stat in stats %}
-            {% set chartLabels = chartLabels|merge([stat.categorie.nomCategorie]) %}
-            {% set chartDonutValues = chartDonutValues|merge([stat.totalAmount]) %}
-            {% set chartBudgetValues = chartBudgetValues|merge([stat.categorie.budgetPrevu]) %}
-            {% set chartDepenseValues = chartDepenseValues|merge([stat.totalAmount]) %}
-            {% set chartUsageValues = chartUsageValues|merge([(stat.budgetUsage > 100 ? 100 : stat.budgetUsage)|round(1)]) %}
+            <div class="col-xl-6 col-lg-6">
+                <div class="category-stats-card">
+                    <div class="card-header-custom">
+                        <div class="card-icon">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                        <div class="category-info">
+                            <h5 class="mb-0">{{ stat.categorie.nomCategorie }}</h5>
+                            <small class="text-muted">ID: {{ stat.categorie.idCategorie }}</small>
+                        </div>
+                        <div class="category-status">
+                            {% if stat.alertesCount > 0 %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ stat.alertesCount }} alerte(s)
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>OK
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card-body-custom">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-coins text-success"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <div class="stat-value">{{ stat.categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</div>
+                                    <div class="stat-label">Budget prévu</div>
+                                </div>
+                            </div>
+
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-shopping-cart text-primary"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <div class="stat-value">{{ stat.totalAmount|number_format(2, ',', ' ') }} DT</div>
+                                    <div class="stat-label">Total dépensé</div>
+                                </div>
+                            </div>
+
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-tags text-info"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <div class="stat-value">{{ stat.itemCount }}</div>
+                                    <div class="stat-label">Nombre d'items</div>
+                                </div>
+                            </div>
+
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <div class="stat-value">{{ stat.alertesCount }}</div>
+                                    <div class="stat-label">Alertes actives</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="budget-analysis">
+                            <div class="analysis-header">
+                                <span class="analysis-title">Utilisation du budget</span>
+                                <span class="analysis-percentage">{{ stat.budgetUsage|number_format(1) }}%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar {{ stat.budgetUsage > 90 ? 'bg-danger' : (stat.budgetUsage > 75 ? 'bg-warning' : 'bg-success') }}"
+                                     role="progressbar"
+                                     style="width: {{ stat.budgetUsage }}%"
+                                     aria-valuenow="{{ stat.budgetUsage }}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            <div class="analysis-details">
+                                <div class="remaining-budget">
+                                    {% set remaining = stat.categorie.budgetPrevu - stat.totalAmount %}
+                                    <span class="remaining-label">Restant :</span>
+                                    <span class="remaining-value {{ remaining < 0 ? 'text-danger' : 'text-success' }}">
+                                        {{ remaining|number_format(2, ',', ' ') }} DT
+                                    </span>
+                                </div>
+                                <div class="threshold-info">
+                                    {% set threshold = stat.categorie.seuilAlerte %}
+                                    <span class="threshold-label">Seuil d'alerte :</span>
+                                    <span class="threshold-value">{{ threshold|number_format(2, ',', ' ') }} DT</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-actions">
+                            <a href="{{ path('admin_categorie_show', {'idCategorie': stat.categorie.idCategorie}) }}"
+                               class="btn btn-sm btn-outline-info action-btn">
+                                <i class="fas fa-eye me-1"></i>Voir détails
+                            </a>
+                            <a href="{{ path('admin_categorie_edit', {'idCategorie': stat.categorie.idCategorie}) }}"
+                               class="btn btn-sm btn-outline-warning action-btn">
+                                <i class="fas fa-edit me-1"></i>Modifier
+                            </a>
+                            <a href="{{ path('admin_item_list') }}?categorie={{ stat.categorie.idCategorie }}"
+                               class="btn btn-sm btn-outline-primary action-btn">
+                                <i class="fas fa-list me-1"></i>Voir items
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
+    </div>
+</div>
 
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        <script>
-            const categoryLabels = {{ chartLabels|json_encode|raw }};
-            const donutValues = {{ chartDonutValues|json_encode|raw }};
-            const budgetValues = {{ chartBudgetValues|json_encode|raw }};
-            const depenseValues = {{ chartDepenseValues|json_encode|raw }};
-            const usageValues = {{ chartUsageValues|json_encode|raw }};
+<style>
+.stats-overview-card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.75rem;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    position: relative;
+    overflow: hidden;
+}
 
-            const palette = ['#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa', '#22c55e', '#f59e0b', '#ef4444', '#7c3aed'];
+.stats-overview-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
 
-            const sharedGrid = {
-                color: 'rgba(148, 163, 184, 0.18)',
-                drawBorder: false
-            };
+.stats-overview-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.2);
+}
 
-            const sharedTicks = {
-                color: '#64748b',
-                font: {
-                    family: 'Inter',
-                    size: 12,
-                    weight: '600'
-                }
-            };
+/* Carte Budget - Dégradé vert émeraude */
+.budget-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+    border: 2px solid rgba(34, 197, 94, 0.2);
+}
 
-            const donutCtx = document.getElementById('categoryDonutChart');
-            if (donutCtx) {
-                new Chart(donutCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: categoryLabels,
-                        datasets: [{
-                            data: donutValues,
-                            backgroundColor: palette,
-                            borderWidth: 0,
-                            hoverOffset: 10
-                        }]
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-                        cutout: '68%',
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    usePointStyle: true,
-                                    boxWidth: 10,
-                                    color: '#475569',
-                                    font: {
-                                        family: 'Inter',
-                                        weight: '700'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
+.budget-card::before {
+    background: linear-gradient(90deg, #10b981, #059669, #047857);
+}
 
-            const budgetCtx = document.getElementById('categoryBudgetChart');
-            if (budgetCtx) {
-                new Chart(budgetCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: categoryLabels,
-                        datasets: [
-                            {
-                                label: 'Budget',
-                                data: budgetValues,
-                                borderRadius: 12,
-                                backgroundColor: '#bfdbfe',
-                                borderSkipped: false
-                            },
-                            {
-                                label: 'Depenses',
-                                data: depenseValues,
-                                borderRadius: 12,
-                                backgroundColor: '#2563eb',
-                                borderSkipped: false
-                            }
-                        ]
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    color: '#475569',
-                                    font: { family: 'Inter', weight: '700' }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { grid: { display: false }, ticks: sharedTicks },
-                            y: { grid: sharedGrid, ticks: sharedTicks }
-                        }
-                    }
-                });
-            }
+.budget-card .stats-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
 
-            const usageCtx = document.getElementById('categoryUsageChart');
-            if (usageCtx) {
-                new Chart(usageCtx, {
-                    type: 'line',
-                    data: {
-                        labels: categoryLabels,
-                        datasets: [{
-                            label: 'Taux d utilisation',
-                            data: usageValues,
-                            fill: true,
-                            tension: 0.35,
-                            borderWidth: 3,
-                            borderColor: '#1d4ed8',
-                            backgroundColor: 'rgba(59, 130, 246, 0.14)',
-                            pointBackgroundColor: '#ffffff',
-                            pointBorderColor: '#1d4ed8',
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        }]
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    color: '#475569',
-                                    font: { family: 'Inter', weight: '700' }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { grid: { display: false }, ticks: sharedTicks },
-                            y: {
-                                min: 0,
-                                suggestedMax: 100,
-                                grid: sharedGrid,
-                                ticks: {
-                                    ...sharedTicks,
-                                    callback: (value) => value + '%'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        </script>
-    {% endif %}
+.budget-card:hover {
+    box-shadow: 0 20px 50px rgba(16, 185, 129, 0.25);
+}
+
+/* Carte Dépensé - Dégradé bleu océan */
+.spent-card {
+    background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+    border: 2px solid rgba(59, 130, 246, 0.2);
+}
+
+.spent-card::before {
+    background: linear-gradient(90deg, #3b82f6, #2563eb, #1d4ed8);
+}
+
+.spent-card .stats-icon {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.spent-card:hover {
+    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.25);
+}
+
+/* Carte Items - Dégradé violet créatif */
+.items-card {
+    background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+    border: 2px solid rgba(147, 51, 234, 0.2);
+}
+
+.items-card::before {
+    background: linear-gradient(90deg, #9333ea, #7c3aed, #6d28d9);
+}
+
+.items-card .stats-icon {
+    background: linear-gradient(135deg, #9333ea, #7c3aed);
+    box-shadow: 0 8px 20px rgba(147, 51, 234, 0.3);
+}
+
+.items-card:hover {
+    box-shadow: 0 20px 50px rgba(147, 51, 234, 0.25);
+}
+
+/* Carte Catégories - Dégradé orange solaire */
+.categories-card {
+    background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+    border: 2px solid rgba(245, 158, 11, 0.2);
+}
+
+.categories-card::before {
+    background: linear-gradient(90deg, #f59e0b, #d97706, #b45309);
+}
+
+.categories-card .stats-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+}
+
+.categories-card:hover {
+    box-shadow: 0 20px 50px rgba(245, 158, 11, 0.25);
+}
+
+.stats-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.75rem;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.stats-icon:hover {
+    transform: scale(1.1);
+}
+
+.stats-content {
+    flex: 1;
+    position: relative;
+    z-index: 2;
+}
+
+.stats-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: linear-gradient(135deg, #1e293b, #334155);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stats-label {
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    opacity: 0.9;
+}
+
+.stats-trend {
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stats-trend i {
+    font-size: 0.9rem;
+}
+
+/* Animations subtiles */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.stats-overview-card:hover .stats-icon {
+    animation: float 2s ease-in-out infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-overview-card {
+        padding: 1.25rem;
+        gap: 1rem;
+    }
+
+    .stats-icon {
+        width: 55px;
+        height: 55px;
+        font-size: 1.5rem;
+    }
+
+    .stats-value {
+        font-size: 1.5rem;
+    }
+
+    .stats-label {
+        font-size: 0.8rem;
+    }
+}
+}
+
+.stats-trend {
+    font-size: 0.75rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.global-chart-card,
+.category-stats-card {
+    background: white;
+    border: 1px solid rgba(167, 180, 248, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.global-chart-card:hover,
+.category-stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.12);
+}
+
+.card-header-custom {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: rgba(248, 250, 252, 0.8);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.card-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #3b82f6, #1f6feb);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    margin-right: 1rem;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.category-info h5 {
+    margin-bottom: 0.25rem;
+}
+
+.category-status {
+    margin-left: auto;
+}
+
+.card-body-custom {
+    padding: 1.5rem;
+}
+
+.global-progress {
+    margin-top: 1rem;
+}
+
+.progress-legend {
+    display: grid;
+    gap: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+.legend-text strong {
+    display: block;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.legend-text small {
+    color: #64748b;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.stat-details {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.budget-analysis {
+    margin-bottom: 2rem;
+}
+
+.analysis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.analysis-title {
+    font-weight: 600;
+    color: #374151;
+}
+
+.analysis-percentage {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 1.1rem;
+}
+
+.progress {
+    height: 10px;
+    background-color: #e5e7eb;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+.analysis-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.remaining-budget,
+.threshold-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.remaining-label,
+.threshold-label {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.remaining-value,
+.threshold-value {
+    font-weight: 700;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.breadcrumb-item a {
+    color: #64748b;
+}
+
+.breadcrumb-item.active {
+    color: #1e293b;
+    font-weight: 600;
+}
+</style>
 {% endblock %}

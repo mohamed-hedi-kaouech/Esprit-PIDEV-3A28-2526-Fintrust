@@ -23,6 +23,7 @@ use App\Service\DynamicClientNotificationService;
 use App\Service\KycService;
 use App\Service\NotificationService;
 use App\Service\QrCodeService;
+use App\Service\RewardService;
 use App\Service\UserService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -97,6 +98,7 @@ class ClientController extends AbstractController
         return $this->render('front/client/dashboard.html.twig', [
             'user' => $user,
             'kyc' => $kyc,
+            'isEligible' => $this->rewardService->isEligibleForReward($user),
         ]);
     }
 

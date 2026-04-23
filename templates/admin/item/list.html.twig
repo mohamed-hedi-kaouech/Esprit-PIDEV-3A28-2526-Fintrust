@@ -2,335 +2,137 @@
 
 {% block title %}Liste des Items{% endblock %}
 
-{% block breadcrumb %}
-  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
-  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
-  <span class="fw-semibold small">Items budgetaires</span>
-{% endblock %}
-
 {% block admin_content %}
-{% set totalItems = items|length %}
-{% set totalCategories = groupedItems|keys|length %}
-{% set totalAmount = 0 %}
-{% set maxItemAmount = 0 %}
-{% for item in items %}
-  {% set totalAmount = totalAmount + item.montant %}
-  {% if item.montant > maxItemAmount %}
-    {% set maxItemAmount = item.montant %}
-  {% endif %}
-{% endfor %}
-{% set averageAmount = totalItems > 0 ? (totalAmount / totalItems) : 0 %}
-
-<section class="ft-admin-hero mb-4">
-  <div class="ft-admin-hero-grid">
-    <div>
-      <span class="ft-admin-hero-kicker">
-        <i class="bi bi-grid-1x2-fill me-1"></i>Pilotage budgetaire
-      </span>
-      <h1 class="ft-admin-page-title mb-3">Gestion des items</h1>
-      <p class="ft-admin-hero-subtitle mb-0">
-        Structurez vos lignes budgetaires, filtrez rapidement les montants et gardez une vue claire sur chaque categorie.
-      </p>
+<div class="container-fluid mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="h2 fw-bold text-dark mb-2">Gestion des Items</h1>
+            <p class="text-muted">Créez et gérez vos articles budgétaires</p>
+        </div>
+        <div>
+            <a href="{{ path('admin_item_create') }}" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-plus me-2"></i>Nouvel Item
+            </a>
+            <a href="{{ path('admin_item_export') ~ '?' ~ app.request.queryString }}" class="btn btn-success btn-lg">
+                <i class="fas fa-file-pdf me-2"></i>Exporter PDF
+            </a>
+        </div>
     </div>
-    <div class="ft-admin-hero-panel">
-      <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
-        <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
-          <i class="bi bi-plus-circle me-2"></i>Nouvel item
-        </a>
-        <a href="{{ path('admin_item_export_csv') ~ '?' ~ app.request.queryString }}" class="btn ft-btn-outline-primary">
-          <i class="bi bi-filetype-csv me-2"></i>Exporter CSV
-        </a>
-        <a href="{{ path('admin_item_export') ~ '?' ~ app.request.queryString }}" class="btn ft-btn-outline-primary">
-          <i class="bi bi-file-earmark-pdf me-2"></i>Exporter PDF
-        </a>
-      </div>
-      <div class="ft-admin-meta justify-content-lg-end">
-        <span><i class="bi bi-collection"></i>{{ totalItems }} item(s) visibles</span>
-        <span><i class="bi bi-folder2-open"></i>{{ totalCategories }} categorie(s)</span>
-      </div>
-    </div>
-  </div>
-</section>
 
-<section class="row g-3 mb-4">
-  <div class="col-sm-6 col-xl-3">
-    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue">
-      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-list-ul"></i></div>
-      <div class="ft-admin-kpi-mini-label">Total items</div>
-      <div class="ft-admin-kpi-mini-value">{{ totalItems }}</div>
-      <div class="ft-admin-kpi-mini-text">Lignes budgetaires actuellement affichees.</div>
-    </article>
-  </div>
-  <div class="col-sm-6 col-xl-3">
-    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-green">
-      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-cash-stack"></i></div>
-      <div class="ft-admin-kpi-mini-label">Montant cumule</div>
-      <div class="ft-admin-kpi-mini-value">{{ totalAmount|number_format(2, ',', ' ') }} €</div>
-      <div class="ft-admin-kpi-mini-text">Somme totale des montants filtres.</div>
-    </article>
-  </div>
-  <div class="col-sm-6 col-xl-3">
-    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-amber">
-      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-bar-chart-line"></i></div>
-      <div class="ft-admin-kpi-mini-label">Montant moyen</div>
-      <div class="ft-admin-kpi-mini-value">{{ averageAmount|number_format(2, ',', ' ') }} €</div>
-      <div class="ft-admin-kpi-mini-text">Ticket moyen par item sur cette vue.</div>
-    </article>
-  </div>
-  <div class="col-sm-6 col-xl-3">
-    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-red">
-      <div class="ft-admin-kpi-mini-icon"><i class="bi bi-graph-up-arrow"></i></div>
-      <div class="ft-admin-kpi-mini-label">Plus haut montant</div>
-      <div class="ft-admin-kpi-mini-value">{{ maxItemAmount|number_format(2, ',', ' ') }} €</div>
-      <div class="ft-admin-kpi-mini-text">Point de vigilance le plus eleve de la selection.</div>
-    </article>
-  </div>
-</section>
-
-{% for message in app.flashes('success') %}
-  <div class="alert alert-success alert-dismissible fade show ft-item-alert mb-4" role="alert">
-    <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-  </div>
-{% endfor %}
-
-<section class="ft-admin-card mb-4">
-  <div class="ft-admin-card-header">
-    <i class="bi bi-funnel me-2 text-primary"></i>Filtres et recherche
-  </div>
-  <div class="ft-admin-card-body">
-    <form method="get" action="{{ path('admin_item_list') }}" class="row g-3 g-xl-2 align-items-end">
-      <div class="col-xl-4">
-        <label for="search" class="form-label small fw-semibold text-muted">Recherche par libelle</label>
-        <div class="input-group">
-          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-          <input
-            type="text"
-            class="form-control ft-input border-start-0"
-            id="search"
-            name="search"
-            value="{{ search }}"
-            placeholder="Ex: alimentation, loyer, transport"
-          >
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        <div class="form-text ft-filter-help">Affinez la liste par nom d item.</div>
-      </div>
-      <div class="col-sm-6 col-xl-3">
-        <label for="categorie" class="form-label small fw-semibold text-muted">Categorie</label>
-        <select class="form-select ft-input" id="categorie" name="categorie">
-          <option value="">Toutes les categories</option>
-          {% for categorie in categories %}
-            <option value="{{ categorie.idCategorie }}" {% if categorieId == categorie.idCategorie %}selected{% endif %}>
-              {{ categorie.nomCategorie }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-sm-6 col-xl-2">
-        <label for="min_amount" class="form-label small fw-semibold text-muted">Montant min</label>
-        <input
-          type="number"
-          step="0.01"
-          class="form-control ft-input"
-          id="min_amount"
-          name="min_amount"
-          value="{{ minAmount }}"
-          placeholder="0.00"
-        >
-      </div>
-      <div class="col-sm-6 col-xl-2">
-        <label for="max_amount" class="form-label small fw-semibold text-muted">Montant max</label>
-        <input
-          type="number"
-          step="0.01"
-          class="form-control ft-input"
-          id="max_amount"
-          name="max_amount"
-          value="{{ maxAmount }}"
-          placeholder="0.00"
-        >
-      </div>
-      <div class="col-sm-6 col-xl-1">
-        <button type="submit" class="btn ft-btn-primary w-100 ft-filter-btn">
-          <i class="bi bi-search me-1"></i>Filtrer
-        </button>
-      </div>
-      <div class="col-sm-6 col-xl-1">
-        <a href="{{ path('admin_item_list') }}" class="btn btn-outline-secondary w-100 ft-filter-reset" title="Reinitialiser">
-          <i class="bi bi-arrow-counterclockwise"></i>
-        </a>
-      </div>
-    </form>
-  </div>
-</section>
-
-{% if groupedItems|length > 0 %}
-  <div class="d-grid gap-4">
-    {% for categoryName, categoryItems in groupedItems %}
-      {% set categoryTotal = 0 %}
-      {% for item in categoryItems %}
-        {% set categoryTotal = categoryTotal + item.montant %}
-      {% endfor %}
-
-      <section class="ft-admin-card ft-item-category-card">
-        <div class="ft-admin-card-header ft-item-category-header">
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100">
-            <div class="d-flex align-items-center gap-3">
-              <span class="ft-item-category-icon"><i class="bi bi-folder2-open"></i></span>
-              <div>
-                <div class="fw-semibold text-dark">{{ categoryName }}</div>
-                <div class="text-muted small">{{ categoryItems|length }} item(s) · {{ categoryTotal|number_format(2, ',', ' ') }} €</div>
-              </div>
-            </div>
-            <span class="ft-admin-status-chip ft-admin-status-info">{{ categoryItems|length }} resultat(s)</span>
-          </div>
-        </div>
-        <div class="ft-admin-card-body p-0">
-          <div class="table-responsive">
-            <table class="table ft-admin-table align-middle mb-0">
-              <thead>
-                <tr>
-                  <th style="width: 110px;">ID</th>
-                  <th>Libelle</th>
-                  <th style="width: 220px;">Montant</th>
-                  <th style="width: 180px;">Categorie</th>
-                  <th class="text-center" style="width: 170px;">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for item in categoryItems %}
-                  <tr>
-                    <td>
-                      <span class="ft-item-id-chip">#{{ item.idItem }}</span>
-                    </td>
-                    <td>
-                      <div class="fw-semibold text-dark">{{ item.libelle }}</div>
-                      <div class="text-muted small">Article budgetaire rattache a {{ categoryName|lower }}</div>
-                    </td>
-                    <td>
-                      <div class="fw-semibold text-dark">{{ item.montant|number_format(2, ',', ' ') }} €</div>
-                    </td>
-                    <td>
-                      <span class="badge ft-badge-blue">{{ categoryName }}</span>
-                    </td>
-                    <td>
-                      <div class="d-flex gap-1 justify-content-center flex-wrap">
-                        <a
-                          href="{{ path('admin_item_show', {'idItem': item.idItem}) }}"
-                          class="btn btn-sm ft-btn-icon ft-btn-icon-blue"
-                          data-bs-toggle="tooltip"
-                          title="Voir"
-                        >
-                          <i class="bi bi-eye"></i>
-                        </a>
-                        <a
-                          href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}"
-                          class="btn btn-sm ft-btn-icon ft-btn-icon-yellow"
-                          data-bs-toggle="tooltip"
-                          title="Modifier"
-                        >
-                          <i class="bi bi-pencil"></i>
-                        </a>
-                        <form
-                          method="post"
-                          action="{{ path('admin_item_delete', {'idItem': item.idItem}) }}"
-                          class="d-inline"
-                          onsubmit="return confirm('Supprimer cet item de la categorie {{ categoryName|e('js') }} ?')"
-                        >
-                          <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.idItem) }}">
-                          <button
-                            type="submit"
-                            class="btn btn-sm ft-btn-icon ft-btn-icon-red"
-                            data-bs-toggle="tooltip"
-                            title="Supprimer"
-                          >
-                            <i class="bi bi-trash"></i>
-                          </button>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
     {% endfor %}
-  </div>
-{% else %}
-  <section class="ft-admin-card">
-    <div class="ft-admin-card-body text-center py-5">
-      <div class="ft-item-empty-icon mb-3">
-        <i class="bi bi-inboxes"></i>
-      </div>
-      <h2 class="h4 fw-bold mb-2">Aucun item trouve</h2>
-      <p class="text-muted mb-4">Ajustez vos filtres ou creez une nouvelle ligne budgetaire pour demarrer.</p>
-      <div class="d-flex justify-content-center gap-2 flex-wrap">
-        <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
-          <i class="bi bi-plus-circle me-2"></i>Creer un item
-        </a>
-        <a href="{{ path('admin_item_list') }}" class="btn ft-btn-outline-primary">
-          <i class="bi bi-arrow-counterclockwise me-2"></i>Reinitialiser les filtres
-        </a>
-      </div>
+
+    <!-- Filtre -->
+    <div class="card shadow-lg mb-4 border-0" style="border-radius: 12px;">
+        <div class="card-header bg-secondary text-white" style="border-radius: 12px 12px 0 0; padding: 1.5rem;">
+            <h5 class="m-0"><i class="fas fa-filter me-2"></i>Filtres et recherche</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="search" class="form-label">Recherche par libellé</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ search }}" placeholder="Entrez un libellé...">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="categorie" class="form-label">Catégorie</label>
+                        <select class="form-control" id="categorie" name="categorie">
+                            <option value="">Toutes les catégories</option>
+                            {% for categorie in categories %}
+                            <option value="{{ categorie.idCategorie }}" 
+                                    {% if categorieId == categorie.idCategorie %}selected{% endif %}>
+                                {{ categorie.nomCategorie }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                        <label for="min_amount" class="form-label">Montant min</label>
+                        <input type="number" step="0.01" class="form-control" id="min_amount" 
+                               name="min_amount" value="{{ minAmount }}" placeholder="0.00">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="max_amount" class="form-label">Montant max</label>
+                        <input type="number" step="0.01" class="form-control" id="max_amount" 
+                               name="max_amount" value="{{ maxAmount }}" placeholder="0.00">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Rechercher
+                        </button>
+                        <a href="{{ path('admin_item_list') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Réinitialiser
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
-  </section>
-{% endif %}
 
-<style>
-  .ft-item-alert {
-    border: 1px solid rgba(34, 197, 94, .18);
-    box-shadow: 0 12px 30px rgba(15, 23, 42, .06);
-    border-radius: 18px;
-  }
+    {% if groupedItems|length > 0 %}
+    {% for categoryName, categoryItems in groupedItems %}
+    <div class="card shadow-lg mb-4 border-0" style="border-radius: 12px;">
+        <div class="card-header bg-info text-white" style="border-radius: 12px 12px 0 0; padding: 1.5rem;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="m-0"><i class="fas fa-folder me-2"></i>{{ categoryName }}</h5>
+                <span class="badge bg-light text-info">{{ categoryItems|length }} item(s)</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Libellé</th>
+                            <th>Montant</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in categoryItems %}
+                        <tr>
+                            <td>{{ item.idItem }}</td>
+                            <td>{{ item.libelle }}</td>
+                            <td>{{ item.montant|number_format(2, ',', ' ') }} DT</td>
+                            <td>
+                                <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" 
+                                   class="btn btn-sm btn-info" title="Voir">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ path('admin_item_delete', {'idItem': item.idItem}) }}" 
+                                      class="d-inline" 
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet item ?')">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.idItem) }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="fas fa-info-circle"></i> Aucun item trouvé. <a href="{{ path('admin_item_create') }}">Créer un nouveau</a>
+    </div>
+    {% endif %}
+</div>
 
-  .ft-item-category-card {
-    overflow: hidden;
-  }
-
-  .ft-item-category-header {
-    background:
-      radial-gradient(circle at top right, rgba(59, 130, 246, .12), transparent 34%),
-      linear-gradient(135deg, #ffffff, #eef5ff);
-  }
-
-  .ft-item-category-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-    color: #1d4ed8;
-    font-size: 1.15rem;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.75);
-  }
-
-  .ft-item-id-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 62px;
-    padding: .35rem .7rem;
-    border-radius: 999px;
-    background: #eff6ff;
-    color: #1d4ed8;
-    font-weight: 700;
-    font-size: .84rem;
-  }
-
-  .ft-item-empty-icon {
-    width: 82px;
-    height: 82px;
-    margin: 0 auto;
-    border-radius: 24px;
-    display: grid;
-    place-items: center;
-    background: linear-gradient(135deg, #eff6ff, #dbeafe);
-    color: #1d4ed8;
-    font-size: 2rem;
-  }
-</style>
 {% endblock %}

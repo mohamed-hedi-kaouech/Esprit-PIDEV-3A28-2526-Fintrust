@@ -32,11 +32,24 @@ class Item
     private int $idCategorie;
 
     // FIX: added inversedBy: 'items' to match Categorie#items OneToMany
-    #[ORM\ManyToOne(targetEntity: \App\Entity\Categorie\Categorie::class, inversedBy: 'items')]
+    #[ORM\ManyToOne(targetEntity: Categorie::class, inversedBy: 'items')]
     #[ORM\JoinColumn(name: 'idCategorie', referencedColumnName: 'idCategorie')]
-    private Categorie $categorieRel;
+    private Categorie $categorie;
 
     private \DateTimeInterface|null $dateCreation = null;
+
+    #[ORM\Column(name: 'quantite', type: 'float', nullable: true, options: ['default' => 1])]
+    #[Assert\Positive(message: 'La quantité doit être un nombre positif')]
+    private float|null $quantite = 1;
+
+    #[ORM\Column(name: 'tva', type: 'float', nullable: true, options: ['default' => 0])]
+    #[Assert\PositiveOrZero(message: 'La TVA ne peut pas être négative')]
+    #[Assert\LessThanOrEqual(value: 100, message: 'La TVA ne peut pas dépasser 100%')]
+    private float|null $tva = 0;
+
+    #[ORM\Column(name: 'prix_unitaire', type: 'float', nullable: true)]
+    #[Assert\Positive(message: 'Le prix unitaire doit être positif')]
+    private float|null $prixUnitaire = null;
 
     public function getIdItem(): int
     {
@@ -87,14 +100,14 @@ class Item
         return $this;
     }
 
-    public function getCategorieRel(): Categorie
+    public function getCategorie(): Categorie
     {
-        return $this->categorieRel;
+        return $this->categorie;
     }
 
-    public function setCategorieRel(Categorie $categorieRel): static
+    public function setCategorie(Categorie $categorie): static
     {
-        $this->categorieRel = $categorieRel;
+        $this->categorie = $categorie;
         return $this;
     }
 
@@ -107,5 +120,27 @@ class Item
     {
         $this->dateCreation = $dateCreation;
         return $this;
+    }
+
+    public function getName(): string
+    {
+        return $this->libelle;
+    }
+
+    public function getQuantite(): float|null { return $this->quantite; }
+    public function setQuantite(float|null $quantite): static { $this->quantite = $quantite; return $this; }
+
+    public function getTva(): float|null { return $this->tva; }
+    public function setTva(float|null $tva): static { $this->tva = $tva; return $this; }
+
+    public function getPrixUnitaire(): float|null { return $this->prixUnitaire; }
+    public function setPrixUnitaire(float|null $v): static { $this->prixUnitaire = $v; return $this; }
+
+    /** Montant TTC calculé = prixUnitaire * quantite * (1 + tva/100) */
+    public function getMontantTtc(): float
+    {
+        $q   = $this->quantite ?? 1;
+        $tva = $this->tva ?? 0;
+        return round($this->montant * $q * (1 + $tva / 100), 3);
     }
 }

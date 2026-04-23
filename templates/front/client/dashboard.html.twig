@@ -542,6 +542,26 @@
                 <span>Insights</span>
               </a>
             </div>
+
+            {# Bouton récompense SMS #}
+            <div class="mt-4">
+              <div class="ft-smart-note {{ isEligible ? 'note-green' : 'note-orange' }} mb-3">
+                <strong>{{ isEligible ? '🎉 Vous êtes éligible à une récompense !' : '📊 Continuez vos efforts budgétaires' }}</strong>
+                <p class="mb-0">
+                  {{ isEligible
+                    ? 'Vous avez respecté votre budget et tous vos seuils de catégories. Réclamez votre code promo !'
+                    : 'Respectez votre budget total et les seuils de chaque catégorie pour débloquer une récompense.' }}
+                </p>
+              </div>
+              {% if isEligible %}
+                <form method="post" action="{{ path('front_check_reward') }}">
+                  <input type="hidden" name="_token" value="{{ csrf_token('check_reward') }}">
+                  <button type="submit" class="btn ft-btn-primary w-100">
+                    <i class="bi bi-gift me-2"></i>Recevoir mon code promo par SMS
+                  </button>
+                </form>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>

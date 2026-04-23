@@ -54,6 +54,54 @@
                         </div>
                     {% endfor %}
 
+                    {# ── ZONE OCR ─────────────────────────────────────────────────── #}
+                    <div class="ocr-zone mb-4" id="ocrZone">
+                        <div class="ocr-zone-header">
+                            <div class="ocr-zone-icon"><i class="fas fa-magic"></i></div>
+                            <div>
+                                <div class="ocr-zone-title">Remplissage automatique par OCR</div>
+                                <div class="ocr-zone-sub">Importez une facture (image ou PDF) — les champs se remplissent automatiquement</div>
+                            </div>
+                        </div>
+                        <div class="ocr-drop-area" id="ocrDropArea">
+                            <input type="file" id="ocrFileInput" accept="image/*,.pdf" style="display:none"/>
+                            <div class="ocr-drop-content" id="ocrDropContent">
+                                <i class="fas fa-cloud-upload-alt ocr-drop-icon"></i>
+                                <div class="ocr-drop-text">Glissez votre facture ici</div>
+                                <div class="ocr-drop-sub">ou</div>
+                                <button type="button" class="btn ocr-btn-upload" onclick="document.getElementById('ocrFileInput').click()">
+                                    <i class="fas fa-folder-open me-2"></i>Choisir un fichier
+                                </button>
+                                <div class="ocr-drop-hint">JPG, PNG, PDF · Max 5 Mo</div>
+                            </div>
+                        </div>
+                        <div class="ocr-loading d-none" id="ocrLoading">
+                            <div class="ocr-spinner"></div>
+                            <span>Analyse en cours...</span>
+                        </div>
+                        <div class="ocr-result d-none" id="ocrResult">
+                            <div class="ocr-result-header">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Données détectées — vérifiez et confirmez</strong>
+                            </div>
+                            <div class="ocr-result-fields" id="ocrResultFields"></div>
+                            <div class="ocr-result-actions">
+                                <button type="button" class="btn ocr-btn-apply" id="ocrApplyBtn">
+                                    <i class="fas fa-check me-2"></i>Appliquer au formulaire
+                                </button>
+                                <button type="button" class="btn ocr-btn-reset" id="ocrResetBtn">
+                                    <i class="fas fa-redo me-2"></i>Réessayer
+                                </button>
+                            </div>
+                        </div>
+                        <div class="ocr-error d-none" id="ocrError">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span id="ocrErrorMsg"></span>
+                            <button type="button" class="btn btn-sm ocr-btn-reset ms-3" id="ocrErrorReset">Réessayer</button>
+                        </div>
+                    </div>
+                    {# ── FIN ZONE OCR ─────────────────────────────────────────────── #}
+
                     {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
 
                     <div class="form-section">
@@ -89,8 +137,8 @@
 
                         <div class="form-group">
                             <label for="{{ form.montant.vars.id }}" class="form-label">
-                                <i class="fas fa-euro-sign text-success me-2"></i>
-                                Montant (€)
+                                <i class="fas fa-coins text-success me-2"></i>
+                                Montant (DT)
                                 <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
@@ -126,26 +174,60 @@
                                 <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-list"></i>
-                                </span>
-                                {{ form_widget(form.categorieRel, {
-                                    'attr': {
-                                        'class': 'form-select form-select-lg'
-                                    }
-                                }) }}
+                                <span class="input-group-text"><i class="fas fa-list"></i></span>
+                                {{ form_widget(form.categorieRel, {'attr': {'class': 'form-select form-select-lg'}}) }}
                             </div>
                             {% if form.categorieRel.vars.errors|length > 0 %}
                                 <div class="invalid-feedback d-block">
-                                    {% for error in form.categorieRel.vars.errors %}
-                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error.message }}
-                                    {% endfor %}
+                                    {% for error in form.categorieRel.vars.errors %}<i class="fas fa-exclamation-circle me-1"></i>{{ error.message }}{% endfor %}
                                 </div>
                             {% endif %}
-                            <small class="form-text text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Choisissez la catégorie budgétaire appropriée
-                            </small>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.quantite.vars.id }}" class="form-label">
+                                        <i class="fas fa-sort-numeric-up text-info me-2"></i>Quantité
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                                        {{ form_widget(form.quantite, {'attr': {'class': 'form-control form-control-lg', 'placeholder': '1', 'id': 'field_quantite'}}) }}
+                                    </div>
+                                    {% if form.quantite.vars.errors|length > 0 %}
+                                        <div class="invalid-feedback d-block">{% for e in form.quantite.vars.errors %}{{ e.message }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.prixUnitaire.vars.id }}" class="form-label">
+                                        <i class="fas fa-tag text-warning me-2"></i>Prix Unitaire (TND)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                                        {{ form_widget(form.prixUnitaire, {'attr': {'class': 'form-control form-control-lg', 'placeholder': '0.000', 'id': 'field_prix_unitaire'}}) }}
+                                    </div>
+                                    {% if form.prixUnitaire.vars.errors|length > 0 %}
+                                        <div class="invalid-feedback d-block">{% for e in form.prixUnitaire.vars.errors %}{{ e.message }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.tva.vars.id }}" class="form-label">
+                                        <i class="fas fa-percent text-secondary me-2"></i>TVA (%)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-percent"></i></span>
+                                        {{ form_widget(form.tva, {'attr': {'class': 'form-control form-control-lg', 'placeholder': '0'}}) }}
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    {% if form.tva.vars.errors|length > 0 %}
+                                        <div class="invalid-feedback d-block">{% for e in form.tva.vars.errors %}{{ e.message }}{% endfor %}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -247,9 +329,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const newTotal = currentTotal + montant;
 
             document.getElementById('selectedCategory').textContent = category.nom;
-            document.getElementById('categoryBudget').textContent = category.budget.toFixed(2) + ' €';
-            document.getElementById('currentTotal').textContent = currentTotal.toFixed(2) + ' €';
-            document.getElementById('newTotal').textContent = newTotal.toFixed(2) + ' €';
+            document.getElementById('categoryBudget').textContent = category.budget.toFixed(2) + ' DT';
+            document.getElementById('currentTotal').textContent = currentTotal.toFixed(2) + ' DT';
+            document.getElementById('newTotal').textContent = newTotal.toFixed(2) + ' DT';
 
             budgetPreview.style.display = 'block';
         } else {
@@ -491,5 +573,233 @@ document.addEventListener('DOMContentLoaded', function() {
         grid-template-columns: 1fr;
     }
 }
+
+/* ── OCR STYLES ─────────────────────────────────────────────────────────── */
+.ocr-zone { background:#f0f7ff; border:2px dashed #93c5fd; border-radius:14px; padding:20px; }
+.ocr-zone-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.ocr-zone-icon { width:40px;height:40px;background:linear-gradient(135deg,#1560BD,#3b82f6);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem; }
+.ocr-zone-title { font-weight:700;color:#1e293b;font-size:.95rem; }
+.ocr-zone-sub { color:#64748b;font-size:.8rem; }
+.ocr-drop-area { border:2px dashed #bfdbfe;border-radius:10px;background:#fff;padding:28px;text-align:center;cursor:pointer;transition:all .2s; }
+.ocr-drop-area.drag-over { border-color:#1560BD;background:#eff6ff; }
+.ocr-drop-icon { font-size:2.5rem;color:#93c5fd;margin-bottom:10px; }
+.ocr-drop-text { font-weight:600;color:#1e293b;margin-bottom:4px; }
+.ocr-drop-sub { color:#94a3b8;font-size:.82rem;margin-bottom:10px; }
+.ocr-drop-hint { color:#94a3b8;font-size:.75rem;margin-top:8px; }
+.ocr-btn-upload { background:#1560BD;color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:.85rem;font-weight:600; }
+.ocr-btn-upload:hover { background:#0f4a9c;color:#fff; }
+.ocr-loading { display:flex;align-items:center;gap:12px;padding:16px;color:#1560BD;font-weight:600; }
+.ocr-spinner { width:24px;height:24px;border:3px solid #bfdbfe;border-top-color:#1560BD;border-radius:50%;animation:spin .8s linear infinite; }
+@keyframes spin{to{transform:rotate(360deg)}}
+.ocr-result { background:#fff;border:1px solid #bbf7d0;border-radius:10px;padding:16px; }
+.ocr-result-header { display:flex;align-items:center;margin-bottom:14px;font-size:.9rem; }
+.ocr-result-fields { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px; }
+.ocr-field { background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px; }
+.ocr-field-label { font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:4px; }
+.ocr-field-value { font-size:.9rem;font-weight:600;color:#1e293b; }
+.ocr-field-value.empty { color:#94a3b8;font-style:italic; }
+.ocr-result-actions { display:flex;gap:10px; }
+.ocr-btn-apply { background:#16a34a;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:.85rem;font-weight:600; }
+.ocr-btn-apply:hover { background:#15803d;color:#fff; }
+.ocr-btn-reset { background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:8px 18px;font-size:.85rem;font-weight:600; }
+.ocr-btn-reset:hover { background:#e2e8f0;color:#1e293b; }
+.ocr-error { background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;color:#dc2626;display:flex;align-items:center; }
 </style>
+
+<script>
+const ocrUrl = '{{ path("admin_ocr_extract") }}';
+let ocrData  = {};
+
+const dropArea    = document.getElementById('ocrDropArea');
+const fileInput   = document.getElementById('ocrFileInput');
+const loading     = document.getElementById('ocrLoading');
+const result      = document.getElementById('ocrResult');
+const errorBox    = document.getElementById('ocrError');
+const dropContent = document.getElementById('ocrDropContent');
+
+// Drag & drop
+dropArea.addEventListener('dragover',  e => { e.preventDefault(); dropArea.classList.add('drag-over'); });
+dropArea.addEventListener('dragleave', () => dropArea.classList.remove('drag-over'));
+dropArea.addEventListener('drop', e => {
+    e.preventDefault(); dropArea.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) processFile(f);
+});
+dropArea.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) processFile(fileInput.files[0]); });
+
+function showState(state) {
+    dropContent.classList.toggle('d-none', state !== 'drop');
+    loading.classList.toggle('d-none',     state !== 'loading');
+    result.classList.toggle('d-none',      state !== 'result');
+    errorBox.classList.toggle('d-none',    state !== 'error');
+}
+
+async function processFile(file) {
+    showState('loading');
+
+    // Compression cote client si image > 900 KB
+    let fileToSend = file;
+    if (file.type.startsWith('image/') && file.size > 900 * 1024) {
+        try {
+            fileToSend = await compressImage(file, 900 * 1024);
+        } catch(e) {
+            // Si compression echoue, on envoie l original
+            fileToSend = file;
+        }
+    }
+
+    const fd = new FormData();
+    fd.append('invoice', fileToSend, 'invoice.jpg');
+    try {
+        const res  = await fetch(ocrUrl, { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+            document.getElementById('ocrErrorMsg').textContent = data.error || 'Erreur inconnue.';
+            showState('error');
+            return;
+        }
+        ocrData = data;
+        renderResult(data);
+        showState('result');
+    } catch(e) {
+        document.getElementById('ocrErrorMsg').textContent = 'Erreur réseau. Vérifiez votre connexion.';
+        showState('error');
+    }
+}
+
+// Compression image cote client via Canvas
+function compressImage(file, maxBytes) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                let w = img.width;
+                let h = img.height;
+                // Reduire si trop grand
+                const maxW = 1200;
+                if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+
+                // Reduire la qualite progressivement
+                let quality = 0.8;
+                const tryCompress = () => {
+                    canvas.toBlob(blob => {
+                        if (!blob) { reject('Compression echouee'); return; }
+                        if (blob.size <= maxBytes || quality <= 0.2) {
+                            resolve(new File([blob], 'invoice.jpg', { type: 'image/jpeg' }));
+                        } else {
+                            quality -= 0.15;
+                            tryCompress();
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                tryCompress();
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderResult(data) {
+    const fields = [
+        { label: 'Libellé détecté',   value: data.libelle,   key: 'libelle' },
+        { label: 'Montant détecté',   value: data.montant,   key: 'montant' },
+        { label: 'Date détectée',     value: data.date,      key: 'date' },
+        { label: 'Catégorie suggérée',value: data.categorie, key: 'categorie' },
+        { label: 'Quantité',          value: data.quantite,     key: 'quantite' },
+        { label: 'Prix Unitaire',     value: data.prixUnitaire, key: 'prixUnitaire' },
+        { label: 'TVA (%)',           value: data.tva,          key: 'tva' },
+    ];
+    document.getElementById('ocrResultFields').innerHTML = fields.map(f =>
+        `<div class="ocr-field">
+            <div class="ocr-field-label">${f.label}</div>
+            <div class="ocr-field-value ${f.value ? '' : 'empty'}">${f.value || 'Non détecté'}</div>
+        </div>`
+    ).join('') +
+    `<div class="ocr-field" style="grid-column:1/-1">
+        <div class="ocr-field-label">Texte brut OCR (pour vérification)</div>
+        <details><summary style="cursor:pointer;color:#1560BD;font-size:.75rem">Voir le texte extrait</summary>
+        <pre style="font-size:.7rem;max-height:120px;overflow:auto;background:#f8fafc;padding:8px;border-radius:6px;margin-top:4px">${(data.rawText||'').replace(/</g,'&lt;')}</pre>
+        </details>
+    </div>`;
+}
+
+// Appliquer au formulaire
+const libelleId   = '{{ form.libelle.vars.id }}';
+const montantId   = '{{ form.montant.vars.id }}';
+const categorieId = '{{ form.categorieRel.vars.id }}';
+const quantiteId  = '{{ form.quantite.vars.id }}';
+const tvaId       = '{{ form.tva.vars.id }}';
+const prixUnitId  = '{{ form.prixUnitaire.vars.id }}';
+
+document.getElementById('ocrApplyBtn').addEventListener('click', () => {
+    if (ocrData.libelle) {
+        const el = document.getElementById(libelleId);
+        if (el) el.value = ocrData.libelle;
+    }
+    if (ocrData.montant) {
+        const el = document.getElementById(montantId);
+        if (el) el.value = ocrData.montant;
+    }
+    if (ocrData.quantite) {
+        const el = document.getElementById(quantiteId);
+        if (el) el.value = ocrData.quantite;
+    }
+    if (ocrData.tva !== undefined && ocrData.tva !== null) {
+        const el = document.getElementById(tvaId);
+        if (el) el.value = ocrData.tva;
+    }
+    if (ocrData.prixUnitaire) {
+        const el = document.getElementById(prixUnitId);
+        if (el) el.value = ocrData.prixUnitaire;
+    }
+    if (ocrData.date) {
+        // Convertir la date detectee en format HTML date (YYYY-MM-DD)
+        const raw = ocrData.date.trim();
+        let formatted = '';
+        // Format DD/MM/YYYY ou DD-MM-YYYY ou DD.MM.YYYY
+        const m1 = raw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+        // Format YYYY/MM/DD ou YYYY-MM-DD
+        const m2 = raw.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+        if (m1) formatted = `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+        else if (m2) formatted = `${m2[1]}-${m2[2].padStart(2,'0')}-${m2[3].padStart(2,'0')}`;
+        if (formatted) {
+            // Cherche le champ date (type=date ou type=datetime-local)
+            const dateEl = document.querySelector('input[type="date"], input[type="datetime-local"]');
+            if (dateEl) dateEl.value = formatted;
+        }
+    }
+    if (ocrData.categorie) {
+        const catSelect = document.getElementById(categorieId);
+        if (catSelect) {
+            const opts = Array.from(catSelect.options);
+            const match = opts.find(o => o.text.toLowerCase().includes(ocrData.categorie.toLowerCase()));
+            if (match) catSelect.value = match.value;
+        }
+    }
+    // Flash visuel
+    document.querySelectorAll('.form-control, .form-select').forEach(el => {
+        el.style.transition = 'background .4s';
+        el.style.background = '#f0fdf4';
+        setTimeout(() => el.style.background = '', 1200);
+    });
+    // Scroll vers le formulaire
+    document.querySelector('.form-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+// Reset
+document.getElementById('ocrResetBtn').addEventListener('click',      () => { fileInput.value=''; ocrData={}; showState('drop'); });
+document.getElementById('ocrErrorReset').addEventListener('click',    () => { fileInput.value=''; showState('drop'); });
+</script>
 {% endblock %}

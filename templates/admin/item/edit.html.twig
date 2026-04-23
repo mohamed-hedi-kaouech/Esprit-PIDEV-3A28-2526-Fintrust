@@ -106,8 +106,8 @@
 
                         <div class="form-group">
                             <label for="{{ form.montant.vars.id }}" class="form-label">
-                                <i class="fas fa-euro-sign text-success me-2"></i>
-                                Montant (€)
+                                <i class="fas fa-coins text-success me-2"></i>
+                                Montant (DT)
                                 <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
@@ -152,10 +152,10 @@
                                     }
                                 }) }}
                             </div>
-                            {% if item.categorieRel %}
+                            {% if item.categorie %}
                                 <small class="form-text">
                                     <i class="fas fa-external-link-alt me-1"></i>
-                                    <a href="{{ path('admin_categorie_edit', {'idCategorie': item.categorieRel.idCategorie}) }}" target="_blank" class="text-decoration-none">
+                                    <a href="{{ path('admin_categorie_edit', {'idCategorie': item.categorie.idCategorie}) }}" target="_blank" class="text-decoration-none">
                                         Modifier la catégorie actuelle
                                     </a>
                                 </small>
@@ -187,11 +187,11 @@
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Montant actuel :</span>
-                                <span class="info-value">{{ item.montant|number_format(2, ',', ' ') }} €</span>
+                                <span class="info-value">{{ item.montant|number_format(2, ',', ' ') }} DT</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Catégorie actuelle :</span>
-                                <span class="info-value">{{ item.categorieRel.nomCategorie }}</span>
+                                <span class="info-value">{{ item.categorie.nomCategorie }}</span>
                             </div>
                         </div>
                     </div>
