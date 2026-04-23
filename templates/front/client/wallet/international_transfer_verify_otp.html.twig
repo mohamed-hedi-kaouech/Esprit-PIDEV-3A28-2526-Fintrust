@@ -78,6 +78,13 @@
         {% elseif preview %}
           {% include 'front/client/wallet/_international_transfer_summary.html.twig' with {transfer: preview, mode: 'preview'} %}
         {% endif %}
+
+        <div class="mt-4">
+          {% include 'front/client/wallet/_market_insights.html.twig' with {
+            marketInsights: marketInsights,
+            title: 'Contexte marche avant validation'
+          } %}
+        </div>
       </div>
     </div>
   </div>

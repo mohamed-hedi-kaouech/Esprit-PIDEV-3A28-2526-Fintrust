@@ -12,6 +12,8 @@ use App\Security\RiskAccessChecker;
 use App\Service\ExchangeRateApiService;
 use App\Service\InternationalTransferService;
 use App\Service\KycService;
+use App\Service\MarketPredictorService;
+use App\Service\MarketSentimentService;
 use App\Service\OtpVerificationService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -34,6 +36,8 @@ class InternationalTransferController extends AbstractController
         private readonly KycService $kycService,
         private readonly InternationalTransferService $internationalTransferService,
         private readonly ExchangeRateApiService $exchangeRateApiService,
+        private readonly MarketPredictorService $marketPredictorService,
+        private readonly MarketSentimentService $marketSentimentService,
         private readonly OtpVerificationService $otpVerificationService,
         private readonly LoggerInterface $logger,
     ) {
@@ -102,6 +106,7 @@ class InternationalTransferController extends AbstractController
             'wallets' => $wallets,
             'preview' => $preview,
             'completedTransfer' => $completedTransfer,
+            'marketInsights' => $this->buildMarketInsightsForWallets($wallets),
         ]);
     }
 
@@ -172,6 +177,7 @@ class InternationalTransferController extends AbstractController
             'demoCode' => $pendingTransfer['demo_code'] ?? null,
             'otpTechnicalReason' => $pendingTransfer['technical_reason'] ?? null,
             'completedTransfer' => $completedTransfer,
+            'marketInsights' => $this->buildMarketInsightsForWallets($this->internationalTransferService->findWalletsForUser($user)),
         ]);
     }
 
@@ -370,5 +376,20 @@ class InternationalTransferController extends AbstractController
             ->setTargetCurrency(isset($payload['targetCurrency']) ? (string) $payload['targetCurrency'] : null)
             ->setBeneficiary(isset($payload['beneficiary']) ? (string) $payload['beneficiary'] : null)
             ->setReference(isset($payload['reference']) ? (string) $payload['reference'] : null);
+    }
+
+    /**
+     * @param array<int, \App\Entity\Wallet\Wallet> $wallets
+     * @return array<string, mixed>
+     */
+    private function buildMarketInsightsForWallets(array $wallets): array
+    {
+        $wallet = $wallets[0] ?? null;
+        $marketData = $this->marketPredictorService->buildMarketPredictions($wallet);
+
+        return array_merge(
+            $marketData,
+            $this->marketSentimentService->buildSummary($marketData, $wallet)
+        );
     }
 }

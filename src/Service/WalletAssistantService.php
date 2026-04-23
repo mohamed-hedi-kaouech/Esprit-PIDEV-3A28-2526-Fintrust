@@ -14,6 +14,8 @@ class WalletAssistantService
         private readonly WalletAnalyticsService $walletAnalyticsService,
         private readonly AnomalyDetectionService $anomalyDetectionService,
         private readonly RiskScoringService $riskScoringService,
+        private readonly MarketPredictorService $marketPredictorService,
+        private readonly MarketSentimentService $marketSentimentService,
     ) {
     }
 
@@ -26,6 +28,7 @@ class WalletAssistantService
         $anomalyReport = $this->anomalyDetectionService->detectAnomalies($wallet, $analytics);
         $risk = $this->riskScoringService->scoreWallet($wallet, $analytics, $anomalyReport);
         $loanAdvice = $this->buildLoanAdvice($wallet, $analytics, $risk);
+        $marketOverview = $this->buildMarketOverview($wallet);
 
         return match ($intent) {
             'balance' => [
@@ -33,6 +36,7 @@ class WalletAssistantService
                 'message' => sprintf('Votre solde actuel est de %.2f %s.', (float) $wallet->getSolde(), $wallet->getDevise()),
                 'details' => ['Statut: ' . $wallet->getStatut(), 'Wallet #' . $wallet->getIdWallet()],
                 'loanAdvice' => $loanAdvice,
+                'marketOverview' => $marketOverview,
             ],
             'transactions' => $this->transactionsAnswer($wallet, $loanAdvice),
             'status' => [
@@ -46,6 +50,7 @@ class WalletAssistantService
                     'Tentatives echouees: ' . (int) ($wallet->getTentativesEchouees() ?? 0),
                 ],
                 'loanAdvice' => $loanAdvice,
+                'marketOverview' => $marketOverview,
             ],
             'profile' => [
                 'title' => 'Analyse du profil',
@@ -55,12 +60,38 @@ class WalletAssistantService
                     array_slice($risk['factors'] ?? [], 0, 4)
                 ),
                 'loanAdvice' => $loanAdvice,
+                'marketOverview' => $marketOverview,
+            ],
+            'market' => [
+                'title' => 'Predictions de marche',
+                'message' => sprintf(
+                    'Sentiment %s. %s',
+                    strtoupper((string) $marketOverview['market_sentiment']),
+                    (string) ($marketOverview['recommended_actions'][0] ?? 'Surveillez les actifs relies a vos prochains transferts.')
+                ),
+                'details' => array_slice(array_merge(
+                    array_map(
+                        static fn (array $asset): string => sprintf(
+                            '%s: actuel %.4f | 3 mois %.4f | tendance %s | confiance %d%%',
+                            (string) ($asset['asset'] ?? 'ACTIF'),
+                            (float) ($asset['value_current'] ?? 0.0),
+                            (float) ($asset['predicted_3m'] ?? 0.0),
+                            (string) ($asset['trend'] ?? 'STABLE'),
+                            (int) ($asset['confidence'] ?? 0)
+                        ),
+                        array_values(is_array($marketOverview['assets'] ?? null) ? $marketOverview['assets'] : [])
+                    ),
+                    is_array($marketOverview['alerts'] ?? null) ? $marketOverview['alerts'] : []
+                ), 0, 6),
+                'loanAdvice' => $loanAdvice,
+                'marketOverview' => $marketOverview,
             ],
             default => [
                 'title' => 'Conseil pret',
                 'message' => $loanAdvice['explanation'],
                 'details' => $loanAdvice['signals'],
                 'loanAdvice' => $loanAdvice,
+                'marketOverview' => $marketOverview,
             ],
         };
     }
@@ -166,6 +197,20 @@ class WalletAssistantService
                 $transactions
             ),
             'loanAdvice' => $loanAdvice,
+            'marketOverview' => $this->buildMarketOverview($wallet),
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildMarketOverview(Wallet $wallet): array
+    {
+        $marketData = $this->marketPredictorService->buildMarketPredictions($wallet);
+
+        return array_merge(
+            $marketData,
+            $this->marketSentimentService->buildSummary($marketData, $wallet)
+        );
     }
 }

@@ -88,7 +88,7 @@
       </div>
 
       <div class="col-xl-5">
-        <div class="ft-app-card ft-premium-card h-100">
+        <div class="ft-app-card ft-premium-card mb-4">
           <div class="ft-app-card-header">
             <i class="bi bi-info-circle me-2 text-primary"></i>Principes de la demo
           </div>
@@ -119,6 +119,11 @@
             </div>
           </div>
         </div>
+
+        {% include 'front/client/wallet/_market_insights.html.twig' with {
+          marketInsights: marketInsights,
+          title: 'Aide marche pour vos transferts'
+        } %}
       </div>
     </div>
 

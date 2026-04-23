@@ -443,7 +443,7 @@ class WalletController extends AbstractController
         }
 
         $intent = (string) $request->request->get('intent', $request->query->get('intent', 'profile'));
-        $allowedIntents = ['balance', 'transactions', 'status', 'profile', 'loan'];
+        $allowedIntents = ['balance', 'transactions', 'status', 'profile', 'loan', 'market'];
         if (!in_array($intent, $allowedIntents, true)) {
             $intent = 'profile';
         }

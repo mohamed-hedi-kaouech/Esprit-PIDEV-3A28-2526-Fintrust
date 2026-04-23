@@ -35,6 +35,7 @@
                 transactions: ['bi-clock-history', 'Dernieres transactions'],
                 status: ['bi-shield-check', 'Etat du wallet'],
                 profile: ['bi-activity', 'Analyse de mon profil'],
+                market: ['bi-graph-up-arrow', 'Predictions marche'],
                 loan: ['bi-bank', 'Conseil demande de pret']
               } %}
               {% for key, item in choices %}
@@ -93,6 +94,15 @@
             </div>
           </div>
         </div>
+
+        {% if assistantAnswer.marketOverview is defined %}
+          <div class="mt-4">
+            {% include 'front/client/wallet/_market_insights.html.twig' with {
+              marketInsights: assistantAnswer.marketOverview,
+              title: 'Predictions utiles pour votre wallet'
+            } %}
+          </div>
+        {% endif %}
       </div>
     </section>
   </div>
