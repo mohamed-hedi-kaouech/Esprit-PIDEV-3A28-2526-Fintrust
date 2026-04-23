@@ -1,0 +1,245 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}AML — Wallet #{{ wallet.idWallet }}{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_aml_dashboard') }}" class="text-muted small text-decoration-none">Surveillance AML</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Wallet #{{ wallet.idWallet }}</span>
+{% endblock %}
+
+{% block admin_content %}
+{% set aml = amlAnalysis %}
+{% set profile = aml.profile %}
+{% set reco = aml.recommendation %}
+
+{# ── Header ───────────────────────────────────────────────────────────── #}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <h1 class="ft-admin-page-title mb-1">
+      <i class="bi bi-shield-lock me-2 text-primary"></i>Analyse AML — Wallet #{{ wallet.idWallet }}
+    </h1>
+    <p class="text-muted mb-0">{{ wallet.nomProprietaire }} — {{ wallet.devise }} — Généré le {{ aml.generated_at|date('d/m/Y H:i') }}</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{{ path('admin_aml_dashboard') }}" class="btn ft-btn-outline-primary">
+      <i class="bi bi-arrow-left me-2"></i>Dashboard AML
+    </a>
+    <a href="{{ path('admin_wallet_show', {id: wallet.idWallet}) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-wallet2 me-2"></i>Fiche wallet
+    </a>
+  </div>
+</div>
+
+{# ── Score + Profil + Recommandation (top row) ─────────────────────────── #}
+<section class="row g-4 mb-4">
+
+  {# Score AML #}
+  <div class="col-12 col-xl-4">
+    <article class="ft-admin-card h-100 text-center">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-speedometer2 me-2 text-primary"></i>Score AML
+      </div>
+      <div class="ft-admin-card-body d-flex flex-column align-items-center justify-content-center gap-3 py-4">
+        <div style="position:relative;width:140px;height:140px;">
+          <svg viewBox="0 0 36 36" class="w-100 h-100" style="transform:rotate(-90deg)">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" stroke-width="3"/>
+            <circle cx="18" cy="18" r="15.9" fill="none"
+              stroke="{{ aml.level == 'critique' ? '#dc2626' : (aml.level == 'eleve' ? '#d97706' : (aml.level == 'moyen' ? '#2563eb' : '#16a34a')) }}"
+              stroke-width="3"
+              stroke-dasharray="{{ aml.score }}, 100"
+              stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+            <div class="fw-bold fs-2">{{ aml.score }}</div>
+            <div class="small text-muted">/100</div>
+          </div>
+        </div>
+        <span class="badge {{ aml.level_badge }} fs-6 px-3 py-2">{{ aml.level_label }}</span>
+        <div class="text-muted small">Analysé le {{ aml.generated_at|date('d/m/Y à H:i') }}</div>
+      </div>
+    </article>
+  </div>
+
+  {# Profil AML #}
+  <div class="col-12 col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="{{ profile.icon }} me-2 text-primary"></i>Profil de conformité
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <i class="{{ profile.icon }} fs-2" style="color:{{ profile.color }}"></i>
+          <div>
+            <div class="fw-bold fs-5">{{ profile.label }}</div>
+            <span class="badge {{ profile.badge }}">{{ profile.code|replace({'_': ' '})|upper }}</span>
+          </div>
+        </div>
+        <p class="text-muted mb-2">{{ profile.description }}</p>
+        <div class="ft-admin-card-body p-3 rounded" style="background:rgba(37,99,235,.06);border-left:3px solid {{ profile.color }}">
+          <div class="small fw-semibold mb-1"><i class="bi bi-info-circle me-1"></i>Note conformité</div>
+          <div class="small text-muted">{{ profile.compliance_note }}</div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  {# Recommandation #}
+  <div class="col-12 col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-check2-square me-2 text-primary"></i>Recommandation admin
+      </div>
+      <div class="ft-admin-card-body">
+        {% set recoBg = reco.priority == 'critical' ? 'rgba(220,38,38,.08)' : (reco.priority == 'high' ? 'rgba(217,119,6,.08)' : 'rgba(37,99,235,.06)') %}
+        {% set recoColor = reco.priority == 'critical' ? '#dc2626' : (reco.priority == 'high' ? '#d97706' : '#2563eb') %}
+        <div class="p-3 rounded mb-3" style="background:{{ recoBg }};border-left:3px solid {{ recoColor }}">
+          <div class="fw-bold mb-1">{{ reco.label }}</div>
+          <div class="small text-muted">{{ reco.regulatory_basis }}</div>
+        </div>
+        <ul class="list-unstyled mb-0">
+          {% for step in reco.steps %}
+            <li class="d-flex gap-2 mb-2">
+              <i class="bi bi-arrow-right-circle text-primary mt-1 flex-shrink-0"></i>
+              <span class="small">{{ step }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </article>
+  </div>
+
+</section>
+
+{# ── Alertes ──────────────────────────────────────────────────────────── #}
+<section class="ft-admin-card mb-4">
+  <div class="ft-admin-card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-bell-fill me-2 text-primary"></i>Alertes AML détectées</span>
+    <span class="ft-admin-status-chip {{ aml.alert_count > 0 ? 'ft-admin-status-warning' : 'ft-admin-status-ok' }}">
+      {{ aml.alert_count }} alerte(s)
+    </span>
+  </div>
+  <div class="ft-admin-card-body">
+    {% if aml.alerts is empty %}
+      <div class="text-muted text-center py-3">
+        <i class="bi bi-shield-check fs-2 text-success d-block mb-2"></i>
+        Aucune alerte AML détectée pour ce wallet.
+      </div>
+    {% else %}
+      <div class="row g-3">
+        {% for alert in aml.alerts %}
+          {% set alertBg    = alert.severity == 'critical' ? 'rgba(220,38,38,.07)' : (alert.severity == 'high' ? 'rgba(217,119,6,.07)' : (alert.severity == 'medium' ? 'rgba(37,99,235,.07)' : 'rgba(100,116,139,.07)')) %}
+          {% set alertColor = alert.severity == 'critical' ? '#dc2626' : (alert.severity == 'high' ? '#d97706' : (alert.severity == 'medium' ? '#2563eb' : '#64748b')) %}
+          {% set alertIcon  = alert.severity == 'critical' ? 'bi-shield-x' : (alert.severity == 'high' ? 'bi-shield-exclamation' : (alert.severity == 'medium' ? 'bi-shield-half' : 'bi-info-circle')) %}
+          {% set alertBadge = alert.severity == 'critical' ? 'ft-badge-danger' : (alert.severity == 'high' ? 'ft-badge-warning' : (alert.severity == 'medium' ? 'ft-badge-info' : 'ft-badge-neutral')) %}
+          <div class="col-12 col-lg-6">
+            <div class="p-3 rounded h-100" style="background:{{ alertBg }};border-left:3px solid {{ alertColor }}">
+              <div class="d-flex align-items-start gap-2 mb-1">
+                <i class="{{ alertIcon }} mt-1 flex-shrink-0" style="color:{{ alertColor }}"></i>
+                <div class="flex-grow-1">
+                  <div class="fw-semibold">{{ alert.title }}</div>
+                  <div class="d-flex gap-2 mb-1">
+                    <span class="badge {{ alertBadge }} small">{{ alert.severity|upper }}</span>
+                    <span class="text-muted small">{{ alert.code }}</span>
+                  </div>
+                  <p class="small text-muted mb-0">{{ alert.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{# ── Facteurs de risque AML ───────────────────────────────────────────── #}
+<section class="ft-admin-card mb-4">
+  <div class="ft-admin-card-header">
+    <i class="bi bi-bar-chart-line me-2 text-primary"></i>Facteurs contributifs au score AML
+  </div>
+  <div class="ft-admin-card-body">
+    {% if aml.factors is empty %}
+      <div class="text-muted small">Aucun facteur de risque identifié.</div>
+    {% else %}
+      <div class="row g-3">
+        {% for factor in aml.factors %}
+          {% set rawBarPct = factor.points * 2 %}
+          {% set barPct = rawBarPct > 100 ? 100 : rawBarPct %}
+          {% set barColor = factor.points >= 12 ? '#dc2626' : (factor.points >= 7 ? '#d97706' : (factor.points >= 3 ? '#2563eb' : '#16a34a')) %}
+          <div class="col-12 col-md-6">
+            <div class="d-flex flex-column gap-1">
+              <div class="d-flex justify-content-between">
+                <span class="small fw-semibold">{{ factor.label }}</span>
+                <span class="small fw-bold" style="color:{{ barColor }}">+{{ factor.points }} pts</span>
+              </div>
+              <div class="progress" style="height:6px;">
+                <div class="progress-bar" style="width:{{ barPct }}%;background:{{ barColor }};"></div>
+              </div>
+              <div class="small text-muted">{{ factor.detail }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{# ── Indicateurs analytiques clés ─────────────────────────────────────── #}
+{% set metrics = analytics.metrics|default({}) %}
+<section class="ft-admin-card mb-4">
+  <div class="ft-admin-card-header">
+    <i class="bi bi-activity me-2 text-primary"></i>Indicateurs comportementaux clés
+  </div>
+  <div class="ft-admin-card-body">
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Transactions total</div>
+        <div class="fw-bold fs-5">{{ metrics.total_transactions|default(0) }}</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Tx nocturnes</div>
+        <div class="fw-bold fs-5 {{ metrics.night_transaction_count|default(0) >= 3 ? 'text-danger' : '' }}">
+          {{ metrics.night_transaction_count|default(0) }}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Tx en rafale</div>
+        <div class="fw-bold fs-5 {{ metrics.rapid_transaction_count|default(0) >= 2 ? 'text-warning' : '' }}">
+          {{ metrics.rapid_transaction_count|default(0) }}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Rapport retrait/dépôt</div>
+        <div class="fw-bold fs-5 {{ metrics.withdrawal_to_deposit_amount_ratio|default(0) >= 2 ? 'text-danger' : '' }}">
+          ×{{ metrics.withdrawal_to_deposit_amount_ratio|default(0)|number_format(2) }}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Indice d'activité</div>
+        <div class="fw-bold fs-5 {{ metrics.recent_vs_historical_activity_index|default(1) >= 2 ? 'text-warning' : '' }}">
+          ×{{ metrics.recent_vs_historical_activity_index|default(1)|number_format(2) }}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Chèques refusés</div>
+        <div class="fw-bold fs-5 {{ metrics.refused_cheques|default(0) >= 2 ? 'text-danger' : '' }}">
+          {{ metrics.refused_cheques|default(0) }}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Montant moyen</div>
+        <div class="fw-bold fs-5">{{ metrics.average_transaction_amount|default(0)|number_format(2) }} {{ wallet.devise }}</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="text-muted small">Instabilité solde</div>
+        <div class="fw-bold fs-5 {{ metrics.balance_instability_index|default(0) >= 1 ? 'text-warning' : '' }}">
+          {{ metrics.balance_instability_index|default(0)|number_format(2) }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

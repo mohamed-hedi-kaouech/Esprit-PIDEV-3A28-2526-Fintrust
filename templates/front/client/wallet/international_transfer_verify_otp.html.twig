@@ -1,0 +1,92 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Verification OTP du transfert international{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="ft-page-icon-lg"><i class="bi bi-shield-lock"></i></div>
+        <div>
+          <h1 class="ft-page-title mb-0">Verification OTP du transfert international</h1>
+          <p class="text-muted mb-0 small">Saisissez le code recu sur {{ maskedPhone }} pour confirmer l execution du transfert.</p>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('front_wallet_international_transfer_new') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-arrow-left me-1"></i>Retour au formulaire
+        </a>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-xl-5">
+        <div class="ft-app-card ft-premium-card">
+          <div class="ft-app-card-header">
+            <i class="bi bi-phone me-2 text-primary"></i>Code OTP
+          </div>
+          <div class="ft-app-card-body">
+            <div class="alert alert-light border">
+              <div class="fw-semibold">Canal de verification</div>
+              {% if otpMode == 'demo' %}
+                <div class="badge ft-badge-warning mb-2">MODE DEMO OTP</div>
+                <div class="small text-muted">Twilio n a pas pu envoyer le SMS. Pour la soutenance, utilisez le code de demo affiche ci-dessous.</div>
+                {% if otpTechnicalReason %}
+                  <div class="small text-muted mt-1">Raison technique : {{ otpTechnicalReason }}</div>
+                {% endif %}
+              {% else %}
+                <div class="small text-muted">Un code OTP a ete envoye par SMS sur {{ maskedPhone }}.</div>
+              {% endif %}
+              {% if expiresAt %}
+                <div class="small text-muted mt-1">Expiration : {{ expiresAt|date('d/m/Y H:i') }}</div>
+              {% endif %}
+            </div>
+
+            {% if otpMode == 'demo' and demoCode %}
+              <div class="alert alert-warning border-warning">
+                <div class="fw-semibold"><i class="bi bi-key me-1"></i>Code de demo</div>
+                <div class="display-6 fw-bold mb-0">{{ demoCode }}</div>
+              </div>
+            {% endif %}
+
+            {{ form_start(form) }}
+              <div class="mb-3">
+                {{ form_label(form.otp_code, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                {{ form_widget(form.otp_code) }}
+                {{ form_errors(form.otp_code) }}
+              </div>
+
+              <div class="d-flex flex-wrap gap-2">
+                <button type="submit" class="btn ft-btn-primary">
+                  <i class="bi bi-check2-circle me-1"></i>Verifier et confirmer
+                </button>
+              </div>
+            {{ form_end(form) }}
+
+            <form method="post" action="{{ path('front_wallet_international_transfer_resend_otp') }}" class="mt-3">
+              <button type="submit" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-repeat me-1"></i>Renvoyer le code OTP
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-7">
+        {% if completedTransfer %}
+          {% include 'front/client/wallet/_international_transfer_summary.html.twig' with {transfer: completedTransfer, mode: 'success'} %}
+        {% elseif preview %}
+          {% include 'front/client/wallet/_international_transfer_summary.html.twig' with {transfer: preview, mode: 'preview'} %}
+        {% endif %}
+
+        <div class="mt-4">
+          {% include 'front/client/wallet/_market_insights.html.twig' with {
+            marketInsights: marketInsights,
+            title: 'Contexte marche avant validation'
+          } %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

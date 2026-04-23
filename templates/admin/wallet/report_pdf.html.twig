@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Rapport wallet #{{ wallet.idWallet }}</title>
+  <style>
+    body { font-family: DejaVu Sans, Arial, sans-serif; color: #122033; margin: 0; font-size: 12px; }
+    .page { padding: 28px 30px 34px; }
+    .header { border-bottom: 2px solid #dbeafe; padding-bottom: 18px; margin-bottom: 18px; }
+    .brand { font-size: 24px; font-weight: 700; color: #1d4ed8; }
+    .subtitle { color: #475569; margin-top: 4px; }
+    .meta { margin-top: 10px; color: #64748b; font-size: 11px; }
+    .grid { width: 100%; border-collapse: separate; border-spacing: 10px; margin: 0 -10px 10px; }
+    .card { background: #f8fbff; border: 1px solid #dbeafe; border-radius: 14px; padding: 12px 14px; vertical-align: top; }
+    .card h3 { margin: 0 0 8px; font-size: 13px; color: #0f3c8a; }
+    .kpi { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+    .muted { color: #64748b; }
+    .section-title { margin: 20px 0 10px; font-size: 15px; color: #0f3c8a; border-left: 4px solid #2563eb; padding-left: 10px; }
+    .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .table th, .table td { border: 1px solid #dbe3ef; padding: 8px; text-align: left; vertical-align: top; }
+    .table th { background: #eff6ff; color: #12336e; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
+    .list { margin: 8px 0 0; padding-left: 18px; }
+    .list li { margin-bottom: 6px; }
+    .footer { margin-top: 20px; font-size: 10px; color: #64748b; text-align: right; }
+  </style>
+</head>
+<body>
+  {% set metrics = analytics.metrics %}
+  {% set chequeStats = analytics.breakdown.cheques %}
+  {% set anomalies = anomalyReport.anomalies_detected ?? [] %}
+  {% set statusTone = wallet.statut == 'actif' ? 'success' : (wallet.statut == 'bloque' ? 'danger' : 'warning') %}
+  <div class="page">
+    <div class="header">
+      <div class="brand">FinTrust</div>
+      <div class="subtitle">Rapport bancaire d analyse wallet</div>
+      <div class="meta">
+        Wallet #{{ wallet.idWallet }} | Genere le {{ generatedAt|date('d/m/Y H:i') }} | Client {{ wallet.nomProprietaire }}
+      </div>
+    </div>
+
+    <table class="grid">
+      <tr>
+        <td class="card" style="width: 34%;">
+          <h3>Wallet</h3>
+          <div class="kpi">{{ wallet.solde }} {{ wallet.devise }}</div>
+          <div class="muted">Solde disponible</div>
+          <p style="margin: 10px 0 0;">
+            <span class="badge badge-{{ statusTone }}">{{ wallet.statut|upper }}</span>
+          </p>
+        </td>
+        <td class="card" style="width: 22%;">
+          <h3>Score de risque</h3>
+          <div class="kpi">{{ riskAnalysis.score }}/100</div>
+          <div class="muted">Niveau {{ riskAnalysis.level|upper }}</div>
+        </td>
+        <td class="card" style="width: 22%;">
+          <h3>Classe wallet</h3>
+          <div class="kpi">C{{ classification.class_number }}</div>
+          <div class="muted">{{ classification.class_label }}</div>
+        </td>
+        <td class="card" style="width: 22%;">
+          <h3>Projection</h3>
+          <div class="kpi">{{ prediction.block_probability }}%</div>
+          <div class="muted">{{ prediction.admin_recommendation|upper }}</div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="section-title">Informations wallet</div>
+    <table class="table">
+      <tr>
+        <th>ID wallet</th>
+        <td>#{{ wallet.idWallet }}</td>
+        <th>Proprietaire</th>
+        <td>{{ wallet.nomProprietaire }}</td>
+      </tr>
+      <tr>
+        <th>Email</th>
+        <td>{{ wallet.email ?: '-' }}</td>
+        <th>Telephone</th>
+        <td>{{ wallet.telephone ?: '-' }}</td>
+      </tr>
+      <tr>
+        <th>Date creation</th>
+        <td>{{ wallet.dateCreation ? wallet.dateCreation|date('d/m/Y H:i') : '-' }}</td>
+        <th>Tentatives echouees</th>
+        <td>{{ wallet.tentativesEchouees ?? 0 }}</td>
+      </tr>
+    </table>
+
+    <div class="section-title">Synthese analytique</div>
+    <table class="grid">
+      <tr>
+        <td class="card" style="width: 50%;">
+          <h3>Resume transactions</h3>
+          <ul class="list">
+            <li>{{ metrics.total_transactions }} transactions au total, dont {{ metrics.transactions_last_7d }} sur 7 jours.</li>
+            <li>Montant moyen {{ metrics.average_transaction_amount|number_format(2, '.', ' ') }} {{ wallet.devise }}, max {{ metrics.max_transaction_amount|number_format(2, '.', ' ') }} {{ wallet.devise }}.</li>
+            <li>Type dominant : {{ metrics.dominant_transaction_type ?: 'Aucun' }}.</li>
+            <li>Ratio retraits / depots : {{ metrics.withdrawal_to_deposit_amount_ratio|number_format(2, '.', ' ') }}.</li>
+          </ul>
+        </td>
+        <td class="card" style="width: 50%;">
+          <h3>Resume statistique</h3>
+          <ul class="list">
+            <li>Activite recente : {{ metrics.recent_activity_label|upper }} avec indice {{ metrics.recent_vs_historical_activity_index|number_format(2, '.', ' ') }}.</li>
+            <li>{{ chequeStats.accepted_cheques }} cheque(s) acceptes, {{ chequeStats.refused_cheques }} refuse(s), {{ chequeStats.pending_cheques }} en attente.</li>
+            <li>Taux de rejet cheque : {{ chequeStats.cheque_rejection_rate|number_format(2, '.', ' ') }}%.</li>
+            <li>Tendance du solde : {{ prediction.balance_trend.label|upper }}.</li>
+          </ul>
+        </td>
+      </tr>
+    </table>
+
+    <div class="section-title">Lecture risque et recommandation</div>
+    <table class="grid">
+      <tr>
+        <td class="card" style="width: 50%;">
+          <h3>Explication du score</h3>
+          <p style="margin: 0;">{{ riskAnalysis.explanation }}</p>
+        </td>
+        <td class="card" style="width: 50%;">
+          <h3>Recommandation admin</h3>
+          <p style="margin: 0 0 8px;">{{ classification.recommendation }}</p>
+          <p style="margin: 0;">Projection backend : {{ prediction.admin_recommendation|upper }} avec risque futur {{ prediction.future_risk_7d|upper }}.</p>
+        </td>
+      </tr>
+    </table>
+
+    <div class="section-title">Anomalies detectees</div>
+    {% if anomalies is empty %}
+      <p class="muted">Aucune anomalie metier significative n a ete detectee sur ce wallet.</p>
+    {% else %}
+      <ul class="list">
+        {% for anomaly in anomalies %}
+          <li><strong>{{ anomaly.title }}</strong> : {{ anomaly.details }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <div class="section-title">Activite recente</div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Type</th>
+          <th>Montant</th>
+          <th>Description</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for transaction in latestTransactions %}
+          <tr>
+            <td>#{{ transaction.idTransaction }}</td>
+            <td>{{ transaction.type|upper }}</td>
+            <td>{{ transaction.montant|number_format(2, '.', ' ') }} {{ wallet.devise }}</td>
+            <td>{{ transaction.description ?: '-' }}</td>
+            <td>{{ transaction.dateTransaction|date('d/m/Y H:i') }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5">Aucune transaction recente.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="section-title">Cheques lies</div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID cheque</th>
+          <th>Numero</th>
+          <th>Beneficiaire</th>
+          <th>Montant</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cheque in latestCheques %}
+          <tr>
+            <td>#{{ cheque.idCheque }}</td>
+            <td>{{ cheque.numeroCheque }}</td>
+            <td>{{ cheque.beneficiaire ?: '-' }}</td>
+            <td>{{ cheque.montant|number_format(2, '.', ' ') }} {{ wallet.devise }}</td>
+            <td>{{ cheque.statut|upper }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5">Aucun cheque lie.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="footer">FinTrust Admin | Rapport confidentiel wallet</div>
+  </div>
+</body>
+</html>

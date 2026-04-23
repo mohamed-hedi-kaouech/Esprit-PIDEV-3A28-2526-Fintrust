@@ -37,6 +37,18 @@ class Cheque
     #[ORM\Column(name: 'motif_rejet', type: 'string', length: 255, nullable: true)]
     private string|null $motifRejet = null;
 
+    #[ORM\Column(name: 'yousign_procedure_id', type: 'string', length: 255, nullable: true)]
+    private ?string $yousignProcedureId = null;
+
+    #[ORM\Column(name: 'yousign_status', type: 'string', length: 50, nullable: true)]
+    private ?string $yousignStatus = null;
+
+    #[ORM\Column(name: 'yousign_signing_link', type: 'text', nullable: true)]
+    private ?string $yousignSigningLink = null;
+
+    #[ORM\Column(name: 'yousign_signed_at', type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $yousignSignedAt = null;
+
     // FIX: added ManyToOne relation with inversedBy: 'cheques' to match Wallet#cheques OneToMany
     #[ORM\ManyToOne(targetEntity: \App\Entity\Wallet\Wallet::class, inversedBy: 'cheques')]
     #[ORM\JoinColumn(name: 'id_wallet', referencedColumnName: 'id_wallet')]
@@ -143,6 +155,50 @@ class Cheque
     public function setWallet(Wallet $wallet): static
     {
         $this->wallet = $wallet;
+        return $this;
+    }
+
+    public function getYousignProcedureId(): ?string
+    {
+        return $this->yousignProcedureId;
+    }
+
+    public function setYousignProcedureId(?string $yousignProcedureId): static
+    {
+        $this->yousignProcedureId = $yousignProcedureId;
+        return $this;
+    }
+
+    public function getYousignStatus(): ?string
+    {
+        return $this->yousignStatus;
+    }
+
+    public function setYousignStatus(?string $yousignStatus): static
+    {
+        $this->yousignStatus = $yousignStatus;
+        return $this;
+    }
+
+    public function getYousignSigningLink(): ?string
+    {
+        return $this->yousignSigningLink;
+    }
+
+    public function setYousignSigningLink(?string $yousignSigningLink): static
+    {
+        $this->yousignSigningLink = $yousignSigningLink;
+        return $this;
+    }
+
+    public function getYousignSignedAt(): ?\DateTimeInterface
+    {
+        return $this->yousignSignedAt;
+    }
+
+    public function setYousignSignedAt(?\DateTimeInterface $yousignSignedAt): static
+    {
+        $this->yousignSignedAt = $yousignSignedAt;
         return $this;
     }
 }

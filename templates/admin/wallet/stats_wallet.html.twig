@@ -1,0 +1,243 @@
+{% extends 'admin/back.html.twig' %}
+{% block title %}Statistiques Wallet #{{ wallet.idWallet }}{% endblock %}
+
+{% block breadcrumb %}
+  <a href="{{ path('admin_dashboard') }}" class="text-muted small text-decoration-none">Dashboard</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_wallet_index') }}" class="text-muted small text-decoration-none">Pilotage Wallet</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <a href="{{ path('admin_wallet_show', {id: wallet.idWallet}) }}" class="text-muted small text-decoration-none">Wallet #{{ wallet.idWallet }}</a>
+  <i class="bi bi-chevron-right mx-1 text-muted small"></i>
+  <span class="fw-semibold small">Statistiques detaillees</span>
+{% endblock %}
+
+{% block admin_content %}
+{% set metrics = analytics.metrics %}
+{% set chequeStats = analytics.breakdown.cheques %}
+{% set anomalies = anomalyReport.anomalies_detected ?? [] %}
+
+<section class="ft-admin-hero mb-4">
+  <div class="ft-admin-hero-grid">
+    <div>
+      <span class="ft-admin-hero-kicker">
+        <i class="bi bi-graph-up-arrow me-1"></i>Symfony UX Chart.js
+      </span>
+      <h1 class="ft-admin-page-title mb-3">Analyses graphiques du wallet #{{ wallet.idWallet }}</h1>
+      <p class="ft-admin-hero-subtitle mb-0">
+        Tableau de bord bancaire centre sur l activite transactionnelle, le risque 7 jours et la situation cheque du wallet de {{ wallet.nomProprietaire }}.
+      </p>
+    </div>
+    <div class="ft-admin-hero-panel">
+      <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
+        <a href="{{ path('admin_wallet_show', {id: wallet.idWallet}) }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-arrow-left me-2"></i>Retour detail
+        </a>
+        <a href="{{ path('admin_wallet_report_pdf', {id: wallet.idWallet}) }}" class="btn ft-btn-primary">
+          <i class="bi bi-file-earmark-pdf me-2"></i>Rapport PDF
+        </a>
+      </div>
+      <div class="ft-admin-meta justify-content-lg-end">
+        <span><i class="bi bi-wallet2"></i>{{ wallet.solde }} {{ wallet.devise }}</span>
+        <span><i class="bi bi-shield-check"></i>Score {{ riskAnalysis.score }}/100</span>
+        <span><i class="bi bi-diagram-3"></i>Classe {{ classification.class_number }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="row g-3 mb-4">
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue h-100">
+      <div class="ft-admin-kpi-mini-label">Transactions sur 7 jours</div>
+      <div class="ft-admin-kpi-mini-value">{{ metrics.transactions_last_7d }}</div>
+      <div class="ft-admin-kpi-mini-text">Activite recente du wallet.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-green h-100">
+      <div class="ft-admin-kpi-mini-label">Type dominant</div>
+      <div class="ft-admin-kpi-mini-value">{{ metrics.dominant_transaction_type ?: 'Aucun' }}</div>
+      <div class="ft-admin-kpi-mini-text">Lecture operationnelle principale.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini ft-admin-kpi-mini-amber h-100">
+      <div class="ft-admin-kpi-mini-label">Cheques en attente</div>
+      <div class="ft-admin-kpi-mini-value">{{ chequeStats.pending_cheques }}</div>
+      <div class="ft-admin-kpi-mini-text">Demandes encore ouvertes.</div>
+    </article>
+  </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <article class="ft-admin-kpi-mini {{ classification.class_number >= 4 ? 'ft-admin-kpi-mini-red' : 'ft-admin-kpi-mini-green' }} h-100">
+      <div class="ft-admin-kpi-mini-label">Recommendation admin</div>
+      <div class="ft-admin-kpi-mini-value">{{ prediction.admin_recommendation|upper }}</div>
+      <div class="ft-admin-kpi-mini-text">Projection 7 jours : {{ prediction.future_risk_7d|upper }}</div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4 mb-4">
+  <div class="col-12 col-xl-8">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-activity me-2 text-primary"></i>Evolution du nombre de transactions par jour
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container">
+          {{ render_chart(charts.dailyTransactions) }}
+        </div>
+      </div>
+    </article>
+  </div>
+  <div class="col-12 col-xl-4">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-pie-chart me-2 text-primary"></i>Repartition par type
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container-small">
+          {{ render_chart(charts.transactionTypes) }}
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4 mb-4">
+  <div class="col-12 col-xl-6">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-arrow-down-up me-2 text-primary"></i>Volume depot vs retrait
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container-small">
+          {{ render_chart(charts.depositWithdrawal) }}
+        </div>
+      </div>
+    </article>
+  </div>
+  <div class="col-12 col-xl-6">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-shield-exclamation me-2 text-primary"></i>Score de risque sur 7 jours
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container-small">
+          {{ render_chart(charts.riskTrend) }}
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4 mb-4">
+  <div class="col-12 col-xl-5">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-journal-bookmark me-2 text-primary"></i>Repartition des cheques
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="ft-chart-container-small">
+          {{ render_chart(charts.chequeStatus) }}
+        </div>
+      </div>
+    </article>
+  </div>
+  <div class="col-12 col-xl-7">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-bank2 me-2 text-primary"></i>Lecture metier
+      </div>
+      <div class="ft-admin-card-body">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <div class="ft-admin-insight-item h-100">
+              <strong>Risque</strong>
+              <span>{{ riskAnalysis.explanation }}</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="ft-admin-insight-item h-100">
+              <strong>Classification</strong>
+              <span>Classe {{ classification.class_number }} - {{ classification.class_label }}. {{ classification.recommendation }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="ft-admin-insight-item h-100">
+              <strong>Activite recente</strong>
+              <span>{{ metrics.recent_activity_label|upper }}, indice {{ metrics.recent_vs_historical_activity_index|number_format(2, '.', ' ') }}, moyenne {{ metrics.average_transaction_amount|number_format(2, '.', ' ') }} {{ wallet.devise }}.</span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="ft-admin-insight-item h-100">
+              <strong>Cheques</strong>
+              <span>{{ chequeStats.accepted_cheques }} acceptes, {{ chequeStats.refused_cheques }} refuses, {{ chequeStats.pending_cheques }} en attente. Taux de rejet {{ chequeStats.cheque_rejection_rate|number_format(2, '.', ' ') }}%.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="row g-4">
+  <div class="col-12 col-xl-6">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-exclamation-triangle me-2 text-primary"></i>Anomalies detectees
+      </div>
+      <div class="ft-admin-card-body">
+        {% if anomalies is empty %}
+          <p class="text-muted mb-0">Aucune anomalie significative n a ete detectee pour ce wallet.</p>
+        {% else %}
+          <div class="ft-admin-insight-list">
+            {% for anomaly in anomalies %}
+              <div class="ft-admin-insight-item">
+                <strong>{{ anomaly.title }}</strong>
+                <span>{{ anomaly.details }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </article>
+  </div>
+  <div class="col-12 col-xl-6">
+    <article class="ft-admin-card h-100">
+      <div class="ft-admin-card-header">
+        <i class="bi bi-clock-history me-2 text-primary"></i>Activite recente
+      </div>
+      <div class="ft-admin-card-body p-0">
+        <div class="table-responsive">
+          <table class="table ft-admin-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Montant</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for transaction in latestTransactions %}
+                <tr>
+                  <td>#{{ transaction.idTransaction }}</td>
+                  <td>{{ transaction.type|upper }}</td>
+                  <td>{{ transaction.montant|number_format(2, '.', ' ') }} {{ wallet.devise }}</td>
+                  <td>{{ transaction.dateTransaction|date('d/m/Y H:i') }}</td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="4" class="text-center py-4 text-muted">Aucune transaction recente.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,12 @@
+knp_snappy:
+    pdf:
+        enabled: true
+        binary: '"%env(resolve:WKHTMLTOPDF_PATH)%"'
+        options:
+            encoding: 'UTF-8'
+            enable-local-file-access: true
+            margin-top: 12mm
+            margin-right: 10mm
+            margin-bottom: 12mm
+            margin-left: 10mm
+            print-media-type: true
