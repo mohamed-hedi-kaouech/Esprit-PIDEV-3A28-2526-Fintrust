@@ -23,7 +23,7 @@ class ItemController extends AbstractController
 
     private function createAlerteIfThresholdReached(Item $item, float $oldTotal, float $newTotal): void
     {
-        $categorie = $item->getCategorieRel();
+        $categorie = $item->getCategorie();
         $seuil = $categorie->getSeuilAlerte();
 
         if ($oldTotal < $seuil && $newTotal >= $seuil) {
@@ -32,7 +32,7 @@ class ItemController extends AbstractController
             $alerte->setIdCategorie($categorie->getIdCategorie());
             $alerte->setSeuil($seuil);
             $alerte->setMessage(sprintf(
-                'Le seuil d\'alerte de la catégorie "%s" a été atteint (%.2f € / %.2f €).',
+                'Le seuil d\'alerte de la catégorie "%s" a été atteint (%.2f DT / %.2f DT).',
                 $categorie->getNomCategorie(),
                 $newTotal,
                 $seuil
@@ -54,7 +54,7 @@ class ItemController extends AbstractController
         $maxAmount = $request->query->get('max_amount', '');
 
         $queryBuilder = $repository->createQueryBuilder('i')
-            ->leftJoin('i.categorieRel', 'c')
+            ->leftJoin('i.categorie', 'c')
             ->addSelect('c');
 
         if (!empty($search)) {
@@ -82,7 +82,7 @@ class ItemController extends AbstractController
         // Group items by category
         $groupedItems = [];
         foreach ($items as $item) {
-            $catName = $item->getCategorieRel()->getNomCategorie();
+            $catName = $item->getCategorie()->getNomCategorie();
             $groupedItems[$catName][] = $item;
         }
 
@@ -116,7 +116,7 @@ class ItemController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $categorie = $item->getCategorieRel();
+            $categorie = $item->getCategorie();
             $existingTotal = $repository->getTotalMontantByCategorie($categorie->getIdCategorie());
             $newTotal = $existingTotal + $item->getMontant();
 
@@ -144,7 +144,7 @@ class ItemController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $categorie = $item->getCategorieRel();
+            $categorie = $item->getCategorie();
             $existingTotal = $repository->getTotalMontantByCategorie($categorie->getIdCategorie(), $item->getIdItem());
             $newTotal = $existingTotal + $item->getMontant();
 
@@ -218,7 +218,7 @@ class ItemController extends AbstractController
         $maxAmount = $request->query->get('max_amount', '');
 
         $queryBuilder = $repository->createQueryBuilder('i')
-            ->leftJoin('i.categorieRel', 'c')
+            ->leftJoin('i.categorie', 'c')
             ->addSelect('c');
 
         if (!empty($search)) {
@@ -261,7 +261,7 @@ class ItemController extends AbstractController
 
         // Données
         foreach ($items as $item) {
-            $categorieName = $item->getCategorieRel() ? $item->getCategorieRel()->getNomCategorie() : 'N/A';
+            $categorieName = $item->getCategorie() ? $item->getCategorie()->getNomCategorie() : 'N/A';
             $libelle = $item->getLibelle() ?? 'N/A';
             $montant = $item->getMontant() ?? 0.00;
             $dateCreation = $item->getDateCreation() ? $item->getDateCreation()->format('Y-m-d H:i:s') : 'N/A';

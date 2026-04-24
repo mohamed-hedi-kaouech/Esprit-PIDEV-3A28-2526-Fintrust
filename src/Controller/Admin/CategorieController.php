@@ -6,10 +6,13 @@ use App\Entity\Categorie\Categorie;
 use App\Form\Admin\CategorieType;
 use App\Repository\CategorieRepository;
 use App\Repository\ItemRepository;
+use App\Service\PdfGeneratorService;
+use App\Service\RewardService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/admin/categorie', name: 'admin_categorie_')]
@@ -20,45 +23,12 @@ class CategorieController extends AbstractController
     }
 
     #[Route('', name: 'list', methods: ['GET'])]
-    public function list(Request $request, CategorieRepository $repository): Response
+    public function list(CategorieRepository $repository): Response
     {
-        $search = trim((string) $request->query->get('search', ''));
-        $status = trim((string) $request->query->get('status', 'all'));
-        $budgetRange = trim((string) $request->query->get('budget_range', 'all'));
-        $itemsRange = trim((string) $request->query->get('items_range', 'all'));
-        $sort = trim((string) $request->query->get('sort', 'nom'));
-
-        if (!in_array($status, ['all', 'ok', 'danger', 'warning'], true)) {
-            $status = 'all';
-        }
-
-        if (!in_array($budgetRange, ['all', '0-500', '500-1000', '1000+'], true)) {
-            $budgetRange = 'all';
-        }
-
-        if (!in_array($itemsRange, ['all', '0', '1-5', '6+'], true)) {
-            $itemsRange = 'all';
-        }
-
-        if (!in_array($sort, ['nom', 'budget', 'depenses', 'creation', 'usage', 'items'], true)) {
-            $sort = 'nom';
-        }
-
-        $categories = $repository->searchByFilters(
-            $search,
-            $status === 'all' ? null : $status,
-            $budgetRange === 'all' ? null : $budgetRange,
-            $itemsRange === 'all' ? null : $itemsRange,
-            $sort
-        );
+        $categories = $repository->findAll();
 
         return $this->render('admin/categorie/list.html.twig', [
             'categories' => $categories,
-            'search' => $search,
-            'status' => $status,
-            'budget_range' => $budgetRange,
-            'items_range' => $itemsRange,
-            'sort' => $sort,
         ]);
     }
 
@@ -70,15 +40,6 @@ class CategorieController extends AbstractController
         ]);
     }
 
-    #[Route('/{idCategorie}/items', name: 'items', methods: ['GET'])]
-    public function items(Categorie $categorie): Response
-    {
-        return $this->render('admin/categorie/items.html.twig', [
-            'categorie' => $categorie,
-            'items' => $categorie->getItems(),
-        ]);
-    }
-
     #[Route('/create', name: 'create', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
@@ -87,16 +48,11 @@ class CategorieController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if ($categorie->getSeuilAlerte() >= $categorie->getBudgetPrevu()) {
-                $this->addFlash('error', 'Seuil invalide');
-            } else {
-                $this->entityManager->persist($categorie);
-                $this->entityManager->flush();
+            $this->entityManager->persist($categorie);
+            $this->entityManager->flush();
 
-                $this->addFlash('success', 'Categorie creee avec succes.');
-
-                return $this->redirectToRoute('admin_categorie_list');
-            }
+            $this->addFlash('success', 'Catégorie créée avec succès!');
+            return $this->redirectToRoute('admin_categorie_list');
         }
 
         return $this->render('admin/categorie/create.html.twig', [
@@ -111,15 +67,10 @@ class CategorieController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if ($categorie->getSeuilAlerte() >= $categorie->getBudgetPrevu()) {
-                $this->addFlash('error', 'Seuil invalide');
-            } else {
-                $this->entityManager->flush();
+            $this->entityManager->flush();
 
-                $this->addFlash('success', 'Categorie modifiee avec succes.');
-
-                return $this->redirectToRoute('admin_categorie_list');
-            }
+            $this->addFlash('success', 'Catégorie modifiée avec succès!');
+            return $this->redirectToRoute('admin_categorie_list');
         }
 
         return $this->render('admin/categorie/edit.html.twig', [
@@ -129,9 +80,9 @@ class CategorieController extends AbstractController
     }
 
     #[Route('/stats', name: 'stats', methods: ['GET'])]
-    public function stats(ItemRepository $itemRepository): Response
+    public function stats(ItemRepository $itemRepository, RewardService $rewardService): Response
     {
-        $categories = $this->entityManager->getRepository(Categorie::class)->findAll();
+        $categories = $this->entityManager->getRepository(\App\Entity\Categorie\Categorie::class)->findAll();
         $stats = [];
 
         foreach ($categories as $categorie) {
@@ -150,33 +101,86 @@ class CategorieController extends AbstractController
             ];
         }
 
+        /** @var \App\Entity\User\User $user */
+        $user = $this->getUser();
+        $isEligible = $rewardService->isEligibleForReward($user);
+
         return $this->render('admin/categorie/stats.html.twig', [
             'stats' => $stats,
+            'isEligible' => $isEligible,
         ]);
     }
 
-    #[Route('/delete/{idCategorie}', name: 'delete', methods: ['GET', 'POST'])]
+    #[Route('/send-reward-sms', name: 'send_reward_sms', methods: ['POST'])]
+    public function sendRewardSms(Request $request, RewardService $rewardService): Response
+    {
+        if (!$this->isCsrfTokenValid('send_reward_sms', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Requête invalide.');
+            return $this->redirectToRoute('admin_categorie_stats');
+        }
+
+        /** @var \App\Entity\User\User $user */
+        $user = $this->getUser();
+
+        if (!$user->getNumTel()) {
+            $this->addFlash('warning', 'Aucun numéro de téléphone enregistré sur votre compte.');
+            return $this->redirectToRoute('admin_categorie_stats');
+        }
+
+        if (!$rewardService->isEligibleForReward($user)) {
+            $this->addFlash('info', 'Vous n\'êtes pas éligible à une récompense. Respectez votre budget et vos seuils de catégories.');
+            return $this->redirectToRoute('admin_categorie_stats');
+        }
+
+        if ($rewardService->grantReward($user)) {
+            $this->addFlash('success', '🎉 Félicitations ! Un SMS avec votre code promo a été envoyé au ' . $user->getNumTel());
+        } else {
+            $this->addFlash('error', 'Erreur lors de l\'envoi du SMS. Vérifiez votre numéro de téléphone.');
+        }
+
+        return $this->redirectToRoute('admin_categorie_stats');
+    }
+
+    #[Route('/delete/{idCategorie}', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, Categorie $categorie): Response
     {
         if ($request->isMethod('POST')) {
             if ($this->isCsrfTokenValid('delete' . $categorie->getIdCategorie(), $request->request->get('_token'))) {
+                // Vérifier si la catégorie a des items associés
                 if (!$categorie->getItems()->isEmpty()) {
-                    $this->addFlash('error', 'Impossible de supprimer cette categorie car elle contient des items.');
-
+                    $this->addFlash('error', 'Impossible de supprimer cette catégorie car elle contient des items. Supprimez d\'abord les items associés.');
                     return $this->redirectToRoute('admin_categorie_list');
                 }
 
                 $this->entityManager->remove($categorie);
                 $this->entityManager->flush();
 
-                $this->addFlash('success', 'Categorie supprimee avec succes.');
+                $this->addFlash('success', 'Catégorie supprimée avec succès!');
             }
 
             return $this->redirectToRoute('admin_categorie_list');
         }
 
+        // Afficher la page de confirmation
         return $this->render('admin/categorie/delete.html.twig', [
             'categorie' => $categorie,
+        ]);
+    }
+
+    #[Route('/pdf', name: 'pdf', methods: ['GET'])]
+    public function downloadPdf(\App\Service\BudgetInvoiceService $budgetInvoiceService): Response
+    {
+        $user = $this->getUser();
+        $pdfContent = $budgetInvoiceService->generate(
+            $user instanceof \App\Entity\User\User ? $user : null
+        );
+
+        $filename = 'facture_budget_' . date('Ymd_His') . '.pdf';
+
+        return new Response($pdfContent, Response::HTTP_OK, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Length'      => strlen($pdfContent),
         ]);
     }
 }

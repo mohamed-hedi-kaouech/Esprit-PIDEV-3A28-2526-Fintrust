@@ -106,8 +106,8 @@
 
                         <div class="form-group">
                             <label for="{{ form.budgetPrevu.vars.id }}" class="form-label">
-                                <i class="fas fa-euro-sign text-success me-2"></i>
-                                Budget Prévu (€)
+                                <i class="fas fa-coins text-success me-2"></i>
+                                Budget Prévu (DT)
                                 <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
@@ -139,7 +139,7 @@
                         <div class="form-group">
                             <label for="{{ form.seuilAlerte.vars.id }}" class="form-label">
                                 <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                                Seuil d'Alerte (€)
+                                Seuil d'Alerte (DT)
                                 <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
@@ -182,15 +182,15 @@
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Budget prévu :</span>
-                                <span class="info-value">{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} €</span>
+                                <span class="info-value">{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Seuil d'alerte :</span>
-                                <span class="info-value">{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} €</span>
+                                <span class="info-value">{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} DT</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Marge de sécurité :</span>
-                                <span class="info-value">{{ (categorie.budgetPrevu - categorie.seuilAlerte)|number_format(2, ',', ' ') }} €</span>
+                                <span class="info-value">{{ (categorie.budgetPrevu - categorie.seuilAlerte)|number_format(2, ',', ' ') }} DT</span>
                             </div>
                         </div>
                     </div>
@@ -204,15 +204,15 @@
                         <div class="preview-content">
                             <div class="preview-item">
                                 <span class="preview-label">Nouveau Budget :</span>
-                                <span class="preview-value" id="budget-preview">{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} €</span>
+                                <span class="preview-value" id="budget-preview">{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</span>
                             </div>
                             <div class="preview-item">
                                 <span class="preview-label">Nouveau Seuil :</span>
-                                <span class="preview-value" id="seuil-preview">{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} €</span>
+                                <span class="preview-value" id="seuil-preview">{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} DT</span>
                             </div>
                             <div class="preview-item">
                                 <span class="preview-label">Nouvelle Marge :</span>
-                                <span class="preview-value" id="marge-preview">{{ (categorie.budgetPrevu - categorie.seuilAlerte)|number_format(2, ',', ' ') }} €</span>
+                                <span class="preview-value" id="marge-preview">{{ (categorie.budgetPrevu - categorie.seuilAlerte)|number_format(2, ',', ' ') }} DT</span>
                             </div>
                         </div>
                     </div>
@@ -572,9 +572,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const seuil = parseFloat(seuilInput.value) || 0;
         const marge = budget - seuil;
 
-        budgetPreview.textContent = budget.toFixed(2).replace('.', ',') + ' €';
-        seuilPreview.textContent = seuil.toFixed(2).replace('.', ',') + ' €';
-        margePreview.textContent = marge.toFixed(2).replace('.', ',') + ' €';
+        budgetPreview.textContent = budget.toFixed(2).replace('.', ',') + ' DT';
+        seuilPreview.textContent = seuil.toFixed(2).replace('.', ',') + ' DT';
+        margePreview.textContent = marge.toFixed(2).replace('.', ',') + ' DT';
 
         // Validation visuelle
         if (seuil >= budget && budget > 0) {

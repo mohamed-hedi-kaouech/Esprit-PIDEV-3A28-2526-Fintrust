@@ -101,7 +101,7 @@
                         <tr>
                             <td>{{ item.idItem }}</td>
                             <td>{{ item.libelle }}</td>
-                            <td>{{ item.montant|number_format(2, ',', ' ') }} €</td>
+                            <td>{{ item.montant|number_format(2, ',', ' ') }} DT</td>
                             <td>
                                 <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" 
                                    class="btn btn-sm btn-info" title="Voir">

@@ -2,9 +2,9 @@
 
 namespace App\Entity\Categorie;
 
+use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
@@ -17,37 +17,28 @@ class Categorie
     private int $idCategorie;
 
     #[ORM\Column(name: 'nomCategorie', type: 'string', length: 255)]
-    #[Assert\NotBlank(message: 'Le nom est obligatoire')]
-    #[Assert\Length(
-        min: 3,
-        max: 255,
-        minMessage: 'Le nom doit contenir au moins {{ limit }} caracteres',
-        maxMessage: 'Le nom ne peut pas depasser {{ limit }} caracteres'
-    )]
-    #[Assert\Regex(
-        pattern: '/^[A-Za-zÀ-ÿ\s]+$/u',
-        message: 'Le libelle doit contenir uniquement des lettres'
-    )]
+    #[Assert\NotBlank(message: 'Le nom de la catégorie ne peut pas être vide')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Le nom doit contenir au moins 3 caractères', maxMessage: 'Le nom ne peut pas dépasser 255 caractères')]
     private string $nomCategorie;
 
     #[ORM\Column(name: 'budgetPrevu', type: 'float')]
-    #[Assert\NotBlank(message: 'Le budget est obligatoire')]
-    #[Assert\Positive(message: 'Le budget doit etre un nombre positif')]
+    #[Assert\NotBlank(message: 'Le budget prévu ne peut pas être vide')]
+    #[Assert\Positive(message: 'Le budget prévu doit être un nombre positif')]
     private float $budgetPrevu;
 
     #[ORM\Column(name: 'seuilAlerte', type: 'float')]
-    #[Assert\NotBlank(message: 'Le seuil est obligatoire')]
-    #[Assert\Positive(message: 'Le seuil doit etre un nombre positif')]
-    #[Assert\LessThan(
-        propertyPath: 'budgetPrevu',
-        message: 'Le seuil doit etre inferieur au budget'
-    )]
+    #[Assert\NotBlank(message: 'Le seuil d\'alerte ne peut pas être vide')]
+    #[Assert\Positive(message: 'Le seuil d\'alerte doit être un nombre positif')]
     private float $seuilAlerte;
 
-    #[ORM\OneToMany(targetEntity: Alerte::class, mappedBy: 'categorie')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
+    private ?\App\Entity\User\User $user = null;
+
+    #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Alerte::class, mappedBy: 'categorie')]
     private Collection $alertes;
 
-    #[ORM\OneToMany(targetEntity: Item::class, mappedBy: 'categorieRel')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Item::class, mappedBy: 'categorie')]
     private Collection $items;
 
     public function __construct()
@@ -69,7 +60,6 @@ class Categorie
     public function setNomCategorie(string $nomCategorie): static
     {
         $this->nomCategorie = $nomCategorie;
-
         return $this;
     }
 
@@ -81,7 +71,6 @@ class Categorie
     public function setBudgetPrevu(float $budgetPrevu): static
     {
         $this->budgetPrevu = $budgetPrevu;
-
         return $this;
     }
 
@@ -93,7 +82,17 @@ class Categorie
     public function setSeuilAlerte(float $seuilAlerte): static
     {
         $this->seuilAlerte = $seuilAlerte;
+        return $this;
+    }
 
+    public function getUser(): ?\App\Entity\User\User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?\App\Entity\User\User $user): static
+    {
+        $this->user = $user;
         return $this;
     }
 
@@ -107,14 +106,12 @@ class Categorie
         if (!$this->alertes->contains($alerte)) {
             $this->alertes->add($alerte);
         }
-
         return $this;
     }
 
     public function removeAlerte(Alerte $alerte): static
     {
         $this->alertes->removeElement($alerte);
-
         return $this;
     }
 
@@ -128,14 +125,12 @@ class Categorie
         if (!$this->items->contains($item)) {
             $this->items->add($item);
         }
-
         return $this;
     }
 
     public function removeItem(Item $item): static
     {
         $this->items->removeElement($item);
-
         return $this;
     }
 }
