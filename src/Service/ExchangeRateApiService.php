@@ -28,8 +28,8 @@ class ExchangeRateApiService
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
-        private readonly string $exchangeRateApiKey,
-        private readonly string $exchangeRateApiBaseUrl,
+        private readonly ?string $exchangeRateApiKey,
+        private readonly ?string $exchangeRateApiBaseUrl,
     ) {
     }
 
@@ -93,8 +93,8 @@ class ExchangeRateApiService
     {
         $url = sprintf(
             '%s/%s/pair/%s/%s',
-            rtrim(trim($this->exchangeRateApiBaseUrl), '/'),
-            rawurlencode(trim($this->exchangeRateApiKey)),
+            rtrim(trim((string) $this->exchangeRateApiBaseUrl), '/'),
+            rawurlencode(trim((string) $this->exchangeRateApiKey)),
             rawurlencode($sourceCurrency),
             rawurlencode($targetCurrency)
         );
@@ -141,9 +141,9 @@ class ExchangeRateApiService
         ];
     }
 
-    private function isMissingOrPlaceholder(string $value): bool
+    private function isMissingOrPlaceholder(?string $value): bool
     {
-        $normalized = trim($value);
+        $normalized = trim((string) $value);
 
         return $normalized === ''
             || str_contains($normalized, 'REMPLACE_PAR')

@@ -41,8 +41,8 @@ class CommentModerationService
         private readonly HttpClientInterface $httpClient,
         private readonly UserRepository $userRepository,
         private readonly NotificationService $notificationService,
-        private readonly string $openAiApiKey,
-        private readonly string $openAiModerationModel,
+        private readonly ?string $openAiApiKey,
+        private readonly ?string $openAiModerationModel,
 
     ) {
     }
@@ -65,18 +65,18 @@ class CommentModerationService
             return $this->buildAcceptedResult();
         }
 
-        if ($this->openAiApiKey === '') {
+        if (trim((string) $this->openAiApiKey) === '') {
             return $this->buildKeywordModerationResult($normalizedText, 'Configuration OpenAI absente');
         }
 
         try {
             $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/moderations', [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $this->openAiApiKey,
+                    'Authorization' => 'Bearer ' . (string) $this->openAiApiKey,
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'model' => $this->openAiModerationModel,
+                    'model' => $this->getConfiguredModerationModel(),
                     'input' => $normalizedText,
                 ],
                 'timeout' => 20,
@@ -148,11 +148,18 @@ class CommentModerationService
                 'severity' => $severity,
                 'decision' => $decision,
                 'message' => $message,
-                'provider' => 'openai:' . $this->openAiModerationModel,
+                'provider' => 'openai:' . $this->getConfiguredModerationModel(),
             ];
         } catch (ExceptionInterface|\Throwable) {
             return $this->buildKeywordModerationResult($normalizedText, 'Service moderation indisponible');
         }
+    }
+
+    private function getConfiguredModerationModel(): string
+    {
+        $model = trim((string) $this->openAiModerationModel);
+
+        return $model !== '' ? $model : 'omni-moderation-latest';
     }
 
     public function handleDecision(string $text, User $author, string $contextLabel): array

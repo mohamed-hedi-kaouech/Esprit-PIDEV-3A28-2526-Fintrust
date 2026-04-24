@@ -1,16 +1,16 @@
 {
-    "requestId": "deact_15_20260419225534",
+    "requestId": "deact_15_20260424023445",
     "userId": 15,
-    "userName": "ines hmani",
+    "userName": "Ines hmani",
     "userEmail": "ineshmani5@gmail.com",
-    "reason": "je veux desactiver mon compte c fini entre nous",
-    "impactSummary": "inutile pr le moment",
-    "status": "REJECTED",
-    "submittedAt": "2026-04-19T22:55:34+00:00",
-    "reviewedAt": "2026-04-20T00:22:18+00:00",
-    "reviewedById": 2,
-    "reviewedByName": "Admin FinTrust",
-    "adminNote": "non on peut pas pour le moment reessayez une autre fois",
+    "reason": "je veux prendre une pause",
+    "impactSummary": "Le client souhaite fermer son acces FinTrust et interrompre son utilisation du compte.",
+    "status": "PENDING",
+    "submittedAt": "2026-04-24T02:34:45+00:00",
+    "reviewedAt": null,
+    "reviewedById": null,
+    "reviewedByName": null,
+    "adminNote": null,
     "riskSnapshot": {
         "userId": 15,
         "dropoffRiskScore": 40,
@@ -20,6 +20,6 @@
             "Baisse nette de frequence d utilisation recente."
         ],
         "recommendedIntervention": "Suivi standard avec mise en avant des prochaines actions utiles.",
-        "lastEngagementDate": "2026-04-19T22:54:53+00:00"
+        "lastEngagementDate": "2026-04-24T02:34:28+00:00"
     }
 }

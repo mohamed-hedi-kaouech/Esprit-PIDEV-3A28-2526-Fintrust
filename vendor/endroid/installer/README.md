@@ -18,15 +18,12 @@ for more information on why I created this plugin.
 ## Installation
 
 ``` bash
-composer config allow-plugins.endroid/installer true
-composer require endroid/installer
+$ composer require endroid/installer
 ```
 
 ## Usage
 
-Add the configuration files you want to be copied upon installation and update
-of the package to the .install directory in the root of your package. The files
-will be copied to the corresponding directories in the project.
+Add the configuration files you want to be copied upon installation.
 
 ```
 .install
@@ -38,15 +35,11 @@ will be copied to the corresponding directories in the project.
                 package_name.yaml
 ```
 
-Please note that the installer will only copy files that are not yet present in
-the project to make sure user made changes will not be overwritten. If you want
-the latest default configuration just remove the files locally before update.
-
-## Disabling auto installation for a package
+## Configuration
 
 Generally you want the files to be installed automatically but if you
-experience issues with the installer or don't want some package to be auto
-installed you can add the package name to the excludes in `composer.json`.
+experience issues with the installer or just don't want some package to be
+auto installed you can specify this via your composer.json.
 
 ```
 "extra": {
@@ -61,7 +54,7 @@ installed you can add the package name to the excludes in `composer.json`.
     }
 }
 ```
- 
+
 ## Versioning
 
 Version numbers follow the MAJOR.MINOR.PATCH scheme. Backwards compatible

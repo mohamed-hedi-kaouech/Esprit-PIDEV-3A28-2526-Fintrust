@@ -31,8 +31,6 @@ class Categorie
     #[Assert\Positive(message: 'Le seuil d\'alerte doit être un nombre positif')]
     private float $seuilAlerte;
 
-    #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
-    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
     private ?\App\Entity\User\User $user = null;
 
     #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Alerte::class, mappedBy: 'categorie')]

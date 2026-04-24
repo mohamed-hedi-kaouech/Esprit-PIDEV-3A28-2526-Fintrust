@@ -84,6 +84,25 @@ class CategorieController extends AbstractController
     {
         $categories = $this->entityManager->getRepository(\App\Entity\Categorie\Categorie::class)->findAll();
         $stats = [];
+        $categoryLabels = [];
+        $budgetSeries = [];
+        $spentSeries = [];
+        $thresholdSeries = [];
+        $remainingSeries = [];
+        $usageSeries = [];
+        $itemSeries = [];
+        $alertSeries = [];
+        $healthSeries = [];
+
+        $totalBudget = 0.0;
+        $totalSpent = 0.0;
+        $totalItems = 0;
+        $totalAlertes = 0;
+        $overThresholdCount = 0;
+        $criticalCount = 0;
+        $healthyCount = 0;
+        $vigilanceCount = 0;
+        $zeroSpendCount = 0;
 
         foreach ($categories as $categorie) {
             $totalAmount = $itemRepository->getTotalMontantByCategorie($categorie->getIdCategorie());
@@ -91,14 +110,79 @@ class CategorieController extends AbstractController
                 ->count(['idCategorie' => $categorie->getIdCategorie()]);
             $alertesCount = $this->entityManager->getRepository(\App\Entity\Categorie\Alerte::class)
                 ->count(['idCategorie' => $categorie->getIdCategorie(), 'active' => true]);
+            $budget = (float) $categorie->getBudgetPrevu();
+            $threshold = (float) $categorie->getSeuilAlerte();
+            $remaining = $budget - $totalAmount;
+            $budgetUsage = $budget > 0 ? ($totalAmount / $budget) * 100 : 0;
+            $thresholdUsage = $threshold > 0 ? ($totalAmount / $threshold) * 100 : 0;
+            $healthScore = max(0, min(100, 100 - ($budgetUsage * 0.65) - ($alertesCount * 18) + min(20, $itemCount * 4)));
+
+            if ($totalAmount <= 0.0) {
+                $zeroSpendCount++;
+            }
+
+            if ($totalAmount >= $threshold) {
+                $overThresholdCount++;
+            }
+
+            if ($budgetUsage >= 90 || $alertesCount > 0) {
+                $criticalCount++;
+                $status = 'critical';
+            } elseif ($budgetUsage >= 65 || $thresholdUsage >= 90) {
+                $vigilanceCount++;
+                $status = 'warning';
+            } else {
+                $healthyCount++;
+                $status = 'healthy';
+            }
 
             $stats[] = [
                 'categorie' => $categorie,
                 'totalAmount' => $totalAmount,
                 'itemCount' => $itemCount,
                 'alertesCount' => $alertesCount,
-                'budgetUsage' => $categorie->getBudgetPrevu() > 0 ? ($totalAmount / $categorie->getBudgetPrevu()) * 100 : 0,
+                'budgetUsage' => $budgetUsage,
+                'remaining' => $remaining,
+                'thresholdUsage' => $thresholdUsage,
+                'healthScore' => $healthScore,
+                'status' => $status,
             ];
+
+            $categoryLabels[] = $categorie->getNomCategorie();
+            $budgetSeries[] = round($budget, 2);
+            $spentSeries[] = round($totalAmount, 2);
+            $thresholdSeries[] = round($threshold, 2);
+            $remainingSeries[] = round($remaining, 2);
+            $usageSeries[] = round($budgetUsage, 1);
+            $itemSeries[] = $itemCount;
+            $alertSeries[] = $alertesCount;
+            $healthSeries[] = round($healthScore, 1);
+
+            $totalBudget += $budget;
+            $totalSpent += $totalAmount;
+            $totalItems += $itemCount;
+            $totalAlertes += $alertesCount;
+        }
+
+        usort($stats, static fn (array $left, array $right): int => $right['budgetUsage'] <=> $left['budgetUsage']);
+
+        $globalUsage = $totalBudget > 0 ? ($totalSpent / $totalBudget) * 100 : 0.0;
+        $remainingBudget = $totalBudget - $totalSpent;
+        $categoryCount = count($stats);
+        $averageBudget = $categoryCount > 0 ? $totalBudget / $categoryCount : 0.0;
+        $averageSpend = $categoryCount > 0 ? $totalSpent / $categoryCount : 0.0;
+        $averageUsage = $categoryCount > 0 ? array_sum($usageSeries) / $categoryCount : 0.0;
+        $engagementPerItem = $totalItems > 0 ? $totalSpent / $totalItems : 0.0;
+        $topSpender = $stats[0] ?? null;
+        $bestManaged = null;
+
+        if ($stats !== []) {
+            $bestManagedCandidates = $stats;
+            usort(
+                $bestManagedCandidates,
+                static fn (array $left, array $right): int => $right['healthScore'] <=> $left['healthScore']
+            );
+            $bestManaged = $bestManagedCandidates[0] ?? null;
         }
 
         /** @var \App\Entity\User\User $user */
@@ -108,6 +192,37 @@ class CategorieController extends AbstractController
         return $this->render('admin/categorie/stats.html.twig', [
             'stats' => $stats,
             'isEligible' => $isEligible,
+            'overview' => [
+                'totalBudget' => $totalBudget,
+                'totalSpent' => $totalSpent,
+                'totalItems' => $totalItems,
+                'totalAlertes' => $totalAlertes,
+                'remainingBudget' => $remainingBudget,
+                'globalUsage' => $globalUsage,
+                'averageBudget' => $averageBudget,
+                'averageSpend' => $averageSpend,
+                'averageUsage' => $averageUsage,
+                'engagementPerItem' => $engagementPerItem,
+                'overThresholdCount' => $overThresholdCount,
+                'criticalCount' => $criticalCount,
+                'healthyCount' => $healthyCount,
+                'vigilanceCount' => $vigilanceCount,
+                'zeroSpendCount' => $zeroSpendCount,
+                'topSpender' => $topSpender,
+                'bestManaged' => $bestManaged,
+            ],
+            'chartData' => [
+                'labels' => $categoryLabels,
+                'budgets' => $budgetSeries,
+                'spent' => $spentSeries,
+                'thresholds' => $thresholdSeries,
+                'remaining' => $remainingSeries,
+                'usage' => $usageSeries,
+                'items' => $itemSeries,
+                'alerts' => $alertSeries,
+                'health' => $healthSeries,
+                'statusBreakdown' => [$healthyCount, $vigilanceCount, $criticalCount],
+            ],
         ]);
     }
 

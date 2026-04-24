@@ -21,8 +21,8 @@ class OpenAIWalletAnalysisService
         private readonly WalletClassificationService $walletClassificationService,
         private readonly PredictionService $predictionService,
         private readonly LoggerInterface $logger,
-        private readonly string $openAiApiKey,
-        private readonly string $openAiModel,
+        private readonly ?string $openAiApiKey,
+        private readonly ?string $openAiModel,
     ) {
     }
 
@@ -51,7 +51,7 @@ class OpenAIWalletAnalysisService
             'snapshot' => $snapshot,
             'analysis' => $analysis,
             'raw_text' => $rawText,
-            'model' => $this->openAiModel,
+            'model' => $this->getConfiguredModel(),
         ];
     }
 
@@ -101,7 +101,7 @@ class OpenAIWalletAnalysisService
             }
 
             $rawText = $remoteText;
-            $model = $this->openAiModel;
+            $model = $this->getConfiguredModel();
             $explanationSource = 'openai';
             $openAiAvailable = true;
         } catch (\Throwable $exception) {
@@ -187,7 +187,7 @@ class OpenAIWalletAnalysisService
      */
     private function requestAnalysis(array $snapshot): array
     {
-        if (trim($this->openAiApiKey) === '') {
+        if (trim((string) $this->openAiApiKey) === '') {
             throw new \RuntimeException('Configuration OpenAI invalide : la cle API est absente. Configurez OPENAI_API_KEY dans votre environnement.');
         }
 
@@ -207,12 +207,12 @@ class OpenAIWalletAnalysisService
         try {
             $response = $this->httpClient->request('POST', self::API_URL, [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $this->openAiApiKey,
+                    'Authorization' => 'Bearer ' . (string) $this->openAiApiKey,
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'model' => $this->openAiModel,
+                    'model' => $this->getConfiguredModel(),
                     'instructions' => $instructions,
                     'input' => [[
                         'role' => 'user',
@@ -270,7 +270,7 @@ class OpenAIWalletAnalysisService
 
             $this->logger->error('Erreur reseau OpenAI pendant l analyse IA du wallet.', [
                 'message' => $exception->getMessage(),
-                'model' => $this->openAiModel,
+                'model' => $this->getConfiguredModel(),
                 'url' => self::API_URL,
                 'wallet_id' => $snapshot['wallet_id'] ?? null,
                 'exception' => $exception,
@@ -280,7 +280,7 @@ class OpenAIWalletAnalysisService
         } catch (\Throwable $exception) {
             $this->logger->error('Erreur pendant l analyse IA du wallet.', [
                 'message' => $exception->getMessage(),
-                'model' => $this->openAiModel,
+                'model' => $this->getConfiguredModel(),
                 'url' => self::API_URL,
                 'wallet_id' => $snapshot['wallet_id'] ?? null,
                 'exception' => $exception,
@@ -619,5 +619,12 @@ class OpenAIWalletAnalysisService
         };
 
         return new \RuntimeException($message);
+    }
+
+    private function getConfiguredModel(): string
+    {
+        $model = trim((string) $this->openAiModel);
+
+        return $model !== '' ? $model : self::LOCAL_FALLBACK_MODEL;
     }
 }

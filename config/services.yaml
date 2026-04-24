@@ -2,9 +2,28 @@
 # Files in the packages/ subdirectory configure your dependencies.
 
 parameters:
+    env(FINTRUST_PUBLIC_URL): ''
+    env(OPENAI_API_KEY): ''
+    env(OPENAI_MODERATION_MODEL): 'omni-moderation-latest'
+    env(OPENAI_MODEL): 'gpt-4o-mini'
+    env(EXCHANGE_RATE_API_KEY): ''
+    env(EXCHANGE_RATE_API_BASE_URL): 'https://v6.exchangerate-api.com/v6'
+    env(TWILIO_ACCOUNT_SID): ''
+    env(TWILIO_AUTH_TOKEN): ''
+    env(TWILIO_VERIFY_SERVICE_SID): ''
+    env(TWILIO_VERIFY_CHANNEL): 'sms'
+    env(TWILIO_TEST_VERIFIED_PHONE): ''
+    env(OTP_DEMO_CODE): ''
+    env(TWILIO_FROM): ''
+    env(OPENROUTER_API_KEY): ''
+    env(YOUSIGN_API_KEY): ''
+    env(YOUSIGN_BASE_URL): ''
+    env(YOUSIGN_WEBHOOK_SECRET): ''
+    env(APP_URL): ''
+    env(DOCRAPTOR_API_KEY): ''
     fintrust.mailer_from: '%env(string:FINTRUST_SMTP_FROM)%'
     fintrust.login_url: '%env(string:FINTRUST_LOGIN_URL)%'
-    fintrust.public_url: '%env(default::FINTRUST_PUBLIC_URL)%'
+    fintrust.public_url: '%env(string:FINTRUST_PUBLIC_URL)%'
     fintrust.mailer_dsn: '%env(string:MAILER_DSN)%'
 
 services:
@@ -13,11 +32,33 @@ services:
         autoconfigure: true
         bind:
             string $appSecret: '%kernel.secret%'
+            string $kernelEnvironment: '%kernel.environment%'
             string $projectDir: '%kernel.project_dir%'
             string $fintrustMailerFrom: '%fintrust.mailer_from%'
             string $fintrustLoginUrl: '%fintrust.login_url%'
             string $fintrustPublicUrl: '%fintrust.public_url%'
             string $fintrustMailerDsn: '%fintrust.mailer_dsn%'
+            string $fromEmail: '%fintrust.mailer_from%'
+            string $openAiApiKey: '%env(string:OPENAI_API_KEY)%'
+            string $openAiModerationModel: '%env(string:OPENAI_MODERATION_MODEL)%'
+            string $openAiModel: '%env(string:OPENAI_MODEL)%'
+            string $exchangeRateApiKey: '%env(string:EXCHANGE_RATE_API_KEY)%'
+            string $exchangeRateApiBaseUrl: '%env(string:EXCHANGE_RATE_API_BASE_URL)%'
+            string $twilioAccountSid: '%env(string:TWILIO_ACCOUNT_SID)%'
+            string $twilioSid: '%env(string:TWILIO_ACCOUNT_SID)%'
+            string $twilioAuthToken: '%env(string:TWILIO_AUTH_TOKEN)%'
+            string $twilioVerifyServiceSid: '%env(string:TWILIO_VERIFY_SERVICE_SID)%'
+            string $twilioVerifyChannel: '%env(string:TWILIO_VERIFY_CHANNEL)%'
+            string $twilioTestVerifiedPhone: '%env(string:TWILIO_TEST_VERIFIED_PHONE)%'
+            string $otpDemoCode: '%env(string:OTP_DEMO_CODE)%'
+            string $twilioFrom: '%env(string:TWILIO_FROM)%'
+            string $openRouterKey: '%env(string:OPENROUTER_API_KEY)%'
+            string $yousignApiKey: '%env(string:YOUSIGN_API_KEY)%'
+            string $yousignBaseUrl: '%env(string:YOUSIGN_BASE_URL)%'
+            string $yousignWebhookSecret: '%env(string:YOUSIGN_WEBHOOK_SECRET)%'
+            string $appUrl: '%env(string:APP_URL)%'
+            string $apiKey: '%env(string:DOCRAPTOR_API_KEY)%'
+            bool $testMode: false
 
     App\:
         resource: '../src/'

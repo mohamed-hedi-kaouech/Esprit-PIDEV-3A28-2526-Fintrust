@@ -114,13 +114,13 @@
             </li>
 
             <li class="nav-item">
-              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'budget' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_module', {slug: 'budget'}) : path('front_kyc_status') }}">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') starts with 'front_budget_' or (app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'budget') %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_budget_home') : path('front_kyc_status') }}">
                 <i class="bi bi-calculator me-1"></i>Budget
               </a>
             </li>
 
             <li class="nav-item">
-              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'publications' %}active{% endif %}" href="{{ path('front_module', {slug: 'publications'}) }}">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') starts with 'front_publications_' or (app.request.attributes.get('_route') == 'front_module' and app.request.attributes.get('slug') == 'publications') %}active{% endif %}" href="{{ path('front_publications_index') }}">
                 <i class="bi bi-newspaper me-1"></i>Publications
               </a>
             </li>
@@ -181,6 +181,12 @@
                   <div class="px-3 py-2 border-bottom">
                     <div class="fw-semibold small">{{ app.user.fullName }}</div>
                     <div class="text-muted" style="font-size:.75rem">{{ app.user.email }}</div>
+                    <div class="mt-2 small text-muted" data-ft-location-status>
+                      Localisation exacte en cours de verification...
+                    </div>
+                    <button type="button" class="btn btn-link p-0 mt-1 small text-primary text-decoration-none" data-ft-confirm-location>
+                      Actualiser ma localisation exacte
+                    </button>
                     <div class="mt-1">
                       {% if app.user.kycStatus == 'APPROUVE' %}
                         <span class="badge ft-badge-success" style="font-size:.65rem">KYC Vérifié</span>
@@ -238,12 +244,12 @@
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_module', {slug: 'budget'}) : path('front_kyc_status') }}">
+                  <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_budget_home') : path('front_kyc_status') }}">
                     <i class="bi bi-calculator me-2 text-primary"></i>Budget
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item py-2" href="{{ path('front_module', {slug: 'publications'}) }}">
+                  <a class="dropdown-item py-2" href="{{ path('front_publications_index') }}">
                     <i class="bi bi-newspaper me-2 text-primary"></i>Publications
                   </a>
                 </li>
@@ -408,6 +414,9 @@
           document.querySelectorAll('[data-ft-location-status]').forEach((status) => {
             status.textContent = message;
             status.dataset.state = state;
+            status.classList.toggle('text-danger', state === 'error');
+            status.classList.toggle('text-success', state === 'success');
+            status.classList.toggle('text-muted', state !== 'error' && state !== 'success');
           });
         }
 
@@ -451,10 +460,9 @@
                 .then((response) => response.ok ? response.json() : null)
                 .then((payload) => {
                   if (payload && payload.ok) {
-                    if (force) {
-                      const locationLabel = payload.label ? `Position confirmee : ${payload.label}` : 'Position confirmee.';
-                      setLocationStatus(locationLabel, 'success');
-                    }
+                    const detail = payload.detail ? ` (${payload.detail})` : '';
+                    const locationLabel = payload.label ? `Position exacte : ${payload.label}${detail}` : 'Position confirmee.';
+                    setLocationStatus(locationLabel, 'success');
                     if (force) {
                       window.location.reload();
                     }
@@ -507,8 +515,11 @@
               }
 
               if (payload.label) {
-                setLocationStatus(`Position deja confirmee : ${payload.label}`, 'success');
+                const detail = payload.detail ? ` (${payload.detail})` : '';
+                setLocationStatus(`Position exacte : ${payload.label}${detail}`, 'success');
               }
+
+              sendBrowserLocation(false);
             })
             .catch(() => {});
         }

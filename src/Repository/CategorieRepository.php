@@ -58,6 +58,12 @@ class CategorieRepository extends ServiceEntityRepository
         $alertsCountExpr = 'COUNT(DISTINCT a.idAlerte)';
         $usageExpr = '(CASE WHEN c.budgetPrevu > 0 THEN (' . $totalSpentExpr . ' / c.budgetPrevu) * 100 ELSE 0 END)';
 
+        $qb
+            ->addSelect($totalSpentExpr . ' AS HIDDEN totalSpentSort')
+            ->addSelect($itemsCountExpr . ' AS HIDDEN itemsCountSort')
+            ->addSelect($alertsCountExpr . ' AS HIDDEN alertsCountSort')
+            ->addSelect($usageExpr . ' AS HIDDEN usageSort');
+
         if ($keyword !== null && $keyword !== '') {
             $qb->andWhere('c.nomCategorie LIKE :keyword')
                 ->setParameter('keyword', '%' . $keyword . '%');
@@ -92,13 +98,13 @@ class CategorieRepository extends ServiceEntityRepository
                 $qb->orderBy('c.budgetPrevu', 'DESC');
                 break;
             case 'depenses':
-                $qb->orderBy($totalSpentExpr, 'DESC');
+                $qb->orderBy('totalSpentSort', 'DESC');
                 break;
             case 'usage':
-                $qb->orderBy($usageExpr, 'DESC');
+                $qb->orderBy('usageSort', 'DESC');
                 break;
             case 'items':
-                $qb->orderBy($itemsCountExpr, 'DESC');
+                $qb->orderBy('itemsCountSort', 'DESC');
                 break;
             case 'creation':
                 $qb->orderBy('c.idCategorie', 'DESC');

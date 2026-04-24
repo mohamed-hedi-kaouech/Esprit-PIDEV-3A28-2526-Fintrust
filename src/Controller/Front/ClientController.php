@@ -13,10 +13,12 @@ use App\Service\BehavioralProfileService;
 use App\Service\AdvancedAnalyticsService;
 use App\Service\AccountDeactivationRequestService;
 use App\Service\CaptchaService;
+use App\Service\DynamicClientNotificationService;
 use App\Service\EconomicDataService;
 use App\Service\FinancialNewsService;
 use App\Service\KycService;
 use App\Service\MarketWatchService;
+use App\Service\Notification\NotificationQueryService;
 use App\Service\NotificationService;
 use App\Service\KycVerificationCenterService;
 use App\Service\QrCodeService;
@@ -25,6 +27,7 @@ use App\Service\UserService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -68,6 +71,7 @@ class ClientController extends AbstractController
         private readonly KycService $kycService,
         private readonly UserService $userService,
         private readonly NotificationService $notificationService,
+        private readonly NotificationQueryService $notificationQueryService,
         private readonly QrCodeService $qrCodeService,
         private readonly UserIntelligenceService $userIntelligenceService,
         private readonly FinancialNewsService $financialNewsService,
@@ -526,22 +530,69 @@ class ClientController extends AbstractController
             return $redirect;
         }
 
+        if ($slug === 'budget') {
+            return $this->redirectToRoute('front_budget_home');
+        }
+
+        if ($slug === 'publications') {
+            return $this->redirectToRoute('front_publications_index');
+        }
+
         return $this->render('front/client/module.html.twig', [
             'module' => self::FRONT_MODULES[$slug],
         ]);
     }
 
     #[Route('/notifications', name: 'notifications')]
-    public function notifications(): Response
+    public function notifications(Request $request, DynamicClientNotificationService $dynamicClientNotificationService): Response
     {
         /** @var User $user */
         $user = $this->getUser();
-        $notifs = $this->userService->getNotifications($user);
-        $unreadCount = count(array_filter($notifs, static fn ($notif) => !$notif->isRead()));
+        $nativeNotifications = $this->notificationQueryService->serializeList($this->userService->getNotifications($user));
+        $lastCheck = $dynamicClientNotificationService->getLastCheck($request->getSession());
+        $dynamicNotifications = $dynamicClientNotificationService->getNotifications($user, $lastCheck);
+        $dynamicCount = count($dynamicNotifications);
+        $dynamicClientNotificationService->markChecked($request->getSession());
+
+        $notifications = array_map(
+            static fn (array $notification): array => [
+                'id' => 'native-' . $notification['id'],
+                'nativeId' => $notification['id'],
+                'source' => 'native',
+                'title' => $notification['title'],
+                'message' => $notification['message'],
+                'type' => $notification['type'],
+                'date' => new \DateTimeImmutable($notification['created_at']),
+                'read' => (bool) $notification['read'],
+                'actionUrl' => $notification['link'],
+                'actionLabel' => $notification['link'] ? 'Voir plus' : null,
+            ],
+            $nativeNotifications
+        );
+
+        $notifications = array_merge($notifications, $dynamicNotifications);
+        usort(
+            $notifications,
+            static fn (array $left, array $right): int => $right['date'] <=> $left['date']
+        );
+
+        $unreadCount = count(array_filter($notifications, static fn (array $notification): bool => !$notification['read']));
 
         return $this->render('front/client/notifications.html.twig', [
-            'notifications' => $notifs,
+            'notifications' => $notifications,
             'unreadCount' => $unreadCount,
+            'dynamicCount' => $dynamicCount,
+        ]);
+    }
+
+    #[Route('/notifications/count', name: 'notifications_count', methods: ['GET'])]
+    public function notificationsCount(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        return $this->json([
+            'count' => $this->notificationService->countUnreadForUser($user),
         ]);
     }
 

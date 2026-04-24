@@ -202,7 +202,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isVerified(): bool
     {
-        return $this->isVerified;
+        return $this->isVerified || $this->emailVerifiedAt !== null;
     }
 
     public function isEmailVerificationExpired(): bool
@@ -314,7 +314,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getStatus(): string { return $this->status; }
     public function setStatus(string $v): static { $this->status = $v; return $this; }
 
-    public function setIsVerified(bool $v): static { $this->isVerified = $v; return $this; }
+    public function setIsVerified(bool $v): static
+    {
+        $this->isVerified = $v;
+
+        if (!$v) {
+            $this->emailVerifiedAt = null;
+        }
+
+        return $this;
+    }
 
     public function getEmailVerificationCode(): ?string { return $this->emailVerificationCode; }
     public function setEmailVerificationCode(?string $v): static { $this->emailVerificationCode = $v; return $this; }
@@ -323,7 +332,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmailVerificationExpiresAt(?\DateTimeInterface $v): static { $this->emailVerificationExpiresAt = $v; return $this; }
 
     public function getEmailVerifiedAt(): ?\DateTimeInterface { return $this->emailVerifiedAt; }
-    public function setEmailVerifiedAt(?\DateTimeInterface $v): static { $this->emailVerifiedAt = $v; return $this; }
+    public function setEmailVerifiedAt(?\DateTimeInterface $v): static
+    {
+        $this->emailVerifiedAt = $v;
+        $this->isVerified = $v !== null;
+
+        return $this;
+    }
 
     public function getPasswordChangedAt(): ?\DateTimeInterface { return $this->passwordChangedAt; }
     public function setPasswordChangedAt(?\DateTimeInterface $v): static { $this->passwordChangedAt = $v; return $this; }

@@ -3,6 +3,7 @@
 {% block title %}Notifications{% endblock %}
 
 {% block body %}
+{% set dynamicCount = dynamicCount|default(0) %}
 <div class="container-xl py-4 py-lg-5" style="max-width: 980px">
 
   <section class="ft-notif-hero mb-4 mb-lg-5">

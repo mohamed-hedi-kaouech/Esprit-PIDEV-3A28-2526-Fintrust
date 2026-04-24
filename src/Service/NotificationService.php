@@ -5,6 +5,10 @@ namespace App\Service;
 use App\Entity\User\Client\Notification;
 use App\Entity\User\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
 
 /**
  * Service - Notifications internes.
@@ -14,14 +18,25 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class NotificationService
 {
-    public function __construct(private readonly EntityManagerInterface $em) {}
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MailerInterface $mailer,
+        private readonly string $fintrustMailerFrom,
+        private readonly string $fintrustMailerDsn,
+    ) {}
 
     /**
      * Cree une notification interne pour un utilisateur.
      *
      * @param string $type INFO | SUCCESS | WARNING | ERROR
      */
-    public function notify(User $user, string $message, string $type = 'INFO'): void
+    public function notify(
+        User $user,
+        string $message,
+        string $type = 'INFO',
+        string $channel = 'INTERNE',
+        ?string $subject = null,
+    ): void
     {
         $notif = new Notification();
         $notif->setUser($user);
@@ -32,6 +47,12 @@ class NotificationService
 
         $this->em->persist($notif);
         $this->em->flush();
+
+        if (mb_strtoupper($channel) !== 'EMAIL') {
+            return;
+        }
+
+        $this->sendEmailNotification($user, $message, $type, $subject);
     }
 
     public function notifyKycApproved(User $user): void
@@ -211,5 +232,80 @@ class NotificationService
     {
         return $this->em->getRepository(Notification::class)
             ->count(['user' => $user, 'isRead' => false]);
+    }
+
+    public function countUnreadForUser(User $user): int
+    {
+        return $this->getUnreadCountForUser($user);
+    }
+
+    private function sendEmailNotification(User $user, string $message, string $type, ?string $subject): void
+    {
+        if ($this->isMailerDisabled()) {
+            throw new \RuntimeException('Le transport e-mail FinTrust est desactive. Configurez MAILER_DSN pour envoyer cette notification.');
+        }
+
+        $emailAddress = trim($user->getEmail());
+        if ($emailAddress === '') {
+            throw new \RuntimeException('Aucune adresse e-mail valide n est disponible pour ce client.');
+        }
+
+        $resolvedSubject = $this->resolveEmailSubject($type, $subject);
+
+        $email = (new TemplatedEmail())
+            ->from(new Address($this->fintrustMailerFrom, 'FinTrust'))
+            ->to(new Address($emailAddress, $user->getFullName()))
+            ->subject($resolvedSubject)
+            ->htmlTemplate('emails/admin_client_notification.html.twig')
+            ->context([
+                'user' => $user,
+                'message' => $message,
+                'type' => mb_strtoupper($type),
+                'subject' => $resolvedSubject,
+            ])
+            ->text($this->buildPlainTextEmail($user, $message, $resolvedSubject));
+
+        try {
+            $this->mailer->send($email);
+        } catch (TransportExceptionInterface $exception) {
+            throw new \RuntimeException('L e-mail n a pas pu etre envoye. Verifiez la configuration SMTP FinTrust puis reessayez.', 0, $exception);
+        }
+    }
+
+    private function resolveEmailSubject(string $type, ?string $subject): string
+    {
+        $subject = trim((string) $subject);
+        if ($subject !== '') {
+            return $subject;
+        }
+
+        return match (mb_strtoupper($type)) {
+            'SUCCESS' => 'FinTrust - Confirmation importante',
+            'WARNING' => 'FinTrust - Action recommandee',
+            'ERROR' => 'FinTrust - Alerte sur votre compte',
+            default => 'FinTrust - Nouvelle notification',
+        };
+    }
+
+    private function buildPlainTextEmail(User $user, string $message, string $subject): string
+    {
+        return implode("\n", [
+            $subject,
+            '',
+            'Bonjour ' . $user->getPrenom() . ',',
+            '',
+            $message,
+            '',
+            'Connectez-vous a votre espace FinTrust pour consulter les details complets.',
+            '',
+            'Equipe FinTrust',
+        ]);
+    }
+
+    private function isMailerDisabled(): bool
+    {
+        $dsn = trim($this->fintrustMailerDsn);
+
+        return $dsn === '' || $dsn === 'null://null';
     }
 }

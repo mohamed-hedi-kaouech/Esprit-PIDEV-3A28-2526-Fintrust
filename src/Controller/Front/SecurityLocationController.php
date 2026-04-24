@@ -52,7 +52,13 @@ class SecurityLocationController extends AbstractController
 
         $previous = $this->readPreviousContext($user);
         if ($this->isRecentlyConfirmed($previous, $latitude, $longitude, $force)) {
-            return $this->json(['ok' => true, 'message' => 'Localisation deja confirmee recemment.']);
+            return $this->json([
+                'ok' => true,
+                'message' => 'Localisation deja confirmee recemment.',
+                'label' => $previous['label'] ?? null,
+                'detail' => $previous['detail'] ?? null,
+                'coordinates' => $previous['coordinates'] ?? null,
+            ]);
         }
 
         $place = $this->reverseGeocode($latitude, $longitude);

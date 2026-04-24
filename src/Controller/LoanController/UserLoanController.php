@@ -28,8 +28,7 @@ class UserLoanController extends AbstractController
         private RepaymentService $repaymentService,
         private EntityManagerInterface $em,     
         private UserRepository $userRepository,
-        private RepaymentEmailService $emailService,
-        private string $testUserEmail,
+        private RepaymentEmailService $emailService
     ) {}
 
      
@@ -110,6 +109,12 @@ class UserLoanController extends AbstractController
                 return $this->redirectToRoute('app_login');
             }
 
+            $userEmail = $user->getEmail();
+            if (!$userEmail) {
+                $this->addFlash('error', 'Aucune adresse email n\'est associ�e � votre compte.');
+                return $this->redirectToRoute('loan_user_details', ['id' => $loanId]);
+            }
+
               $wallet = $this->em->getRepository(Wallet::class)
             ->findOneBy(['idUser' => $user]);
 
@@ -124,10 +129,9 @@ class UserLoanController extends AbstractController
             // Mark as paid
             $this->repaymentService->markAsPaid($id);
 
-            // Send confirmation email to test email (until user module is ready)
-            $this->emailService->sendPaymentConfirmation($repayment, $loan, $this->testUserEmail);
+            $this->emailService->sendPaymentConfirmation($repayment, $loan, $userEmail);
 
-            $this->addFlash('success', 'Échéance payée avec succès. Un email de confirmation a été envoyé à ' . $this->testUserEmail);
+            $this->addFlash('success', 'Échéance payée avec succès. Un email de confirmation a été envoyé à ' . $userEmail);
             
                         // ── Update wallet ────────────────────────────────────
             $wallet->setSolde($wallet->getSolde() - $repayment->getMonthlyPayment());
@@ -190,3 +194,5 @@ class UserLoanController extends AbstractController
             return $response;
         }
 }
+
+

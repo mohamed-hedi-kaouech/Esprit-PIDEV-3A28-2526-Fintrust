@@ -11,9 +11,9 @@ use Twilio\Rest\Client;
 class SmsService
 {
     public function __construct(
-        private string $twilioSid,
-        private string $twilioAuthToken,
-        private string $twilioFrom,
+        private ?string $twilioSid,
+        private ?string $twilioAuthToken,
+        private ?string $twilioFrom,
         private LoggerInterface $logger,
     ) {}
 
@@ -23,10 +23,22 @@ class SmsService
     public function send(string $to, string $message): bool
     {
         try {
-            $client = new Client($this->twilioSid, $this->twilioAuthToken);
+            $twilioSid = trim((string) $this->twilioSid);
+            $twilioAuthToken = trim((string) $this->twilioAuthToken);
+            $twilioFrom = trim((string) $this->twilioFrom);
+
+            if ($twilioSid === '' || $twilioAuthToken === '' || $twilioFrom === '') {
+                $this->logger->warning('SMS non envoye: configuration Twilio manquante.', [
+                    'to' => $to,
+                ]);
+
+                return false;
+            }
+
+            $client = new Client($twilioSid, $twilioAuthToken);
 
             $client->messages->create($to, [
-                'from' => $this->twilioFrom,
+                'from' => $twilioFrom,
                 'body' => $message,
             ]);
 

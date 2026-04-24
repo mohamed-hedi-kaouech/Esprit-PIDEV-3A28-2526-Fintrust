@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<body style="margin:0;padding:0;background:#f4f8ff;font-family:Arial,sans-serif;color:#15305b;">
+  <div style="max-width:640px;margin:0 auto;padding:32px 20px;">
+    <div style="background:#ffffff;border-radius:20px;padding:32px;border:1px solid #dbe6ff;box-shadow:0 18px 45px rgba(21,48,91,0.08);">
+      <div style="display:inline-block;padding:8px 14px;border-radius:999px;background:#e9f2ff;color:#2563eb;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">
+        Notification FinTrust
+      </div>
+      <h1 style="margin:18px 0 10px;font-size:28px;line-height:1.2;color:#0f1f4d;">{{ subject }}</h1>
+      <p style="margin:0 0 22px;font-size:16px;line-height:1.6;color:#4a628f;">
+        Bonjour {{ user.prenom }},
+      </p>
+      <div style="padding:20px 22px;border-radius:18px;background:#f8fbff;border:1px solid #dbe6ff;">
+        <p style="margin:0;font-size:16px;line-height:1.7;color:#15305b;white-space:pre-line;">{{ message }}</p>
+      </div>
+      <p style="margin:24px 0 0;font-size:14px;line-height:1.7;color:#60759b;">
+        Cette notification a ete envoyee depuis votre espace FinTrust. Vous pouvez egalement retrouver cette information dans vos notifications internes.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

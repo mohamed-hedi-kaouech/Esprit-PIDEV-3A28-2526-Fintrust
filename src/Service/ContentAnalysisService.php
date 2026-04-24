@@ -12,7 +12,7 @@ class ContentAnalysisService
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
-        private readonly string $openAiApiKey,
+        private readonly ?string $openAiApiKey,
     ) {
     }
 
@@ -41,14 +41,14 @@ class ContentAnalysisService
 
         $readingTime = $this->estimateReadingTime($normalizedContent);
 
-        if ($this->openAiApiKey === '') {
+        if (trim((string) $this->openAiApiKey) === '') {
             return $this->buildFallbackAnalysis($normalizedContent, $readingTime);
         }
 
         try {
             $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $this->openAiApiKey,
+                    'Authorization' => 'Bearer ' . (string) $this->openAiApiKey,
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [

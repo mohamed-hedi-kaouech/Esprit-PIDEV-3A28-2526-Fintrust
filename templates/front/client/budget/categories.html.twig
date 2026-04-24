@@ -64,6 +64,68 @@
     .ft-budget-card-status.warning { background: #fef3c7; color: #92400e; }
     .ft-budget-card-status.danger { background: #fee2e2; color: #991b1b; }
 
+    .ft-budget-card-chart {
+      margin: 1rem 0 0.9rem;
+      padding: 0.9rem 1rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(239, 246, 255, 0.95));
+      border: 1px solid #dbeafe;
+    }
+
+    .ft-budget-card-chart-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.65rem;
+      color: #475569;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .ft-budget-card-chart svg {
+      width: 100%;
+      height: 72px;
+      display: block;
+    }
+
+    .ft-budget-card-chart-grid {
+      stroke: rgba(148, 163, 184, 0.26);
+      stroke-width: 1;
+      stroke-dasharray: 4 6;
+    }
+
+    .ft-budget-card-chart-area {
+      fill: url(#ftBudgetSparkGradient);
+    }
+
+    .ft-budget-card-chart-line {
+      fill: none;
+      stroke: #2563eb;
+      stroke-width: 3.25;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .ft-budget-card-chart-line.warning {
+      stroke: #f59e0b;
+    }
+
+    .ft-budget-card-chart-line.danger {
+      stroke: #ef4444;
+    }
+
+    .ft-budget-card-chart-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      color: #64748b;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
     .ft-budget-category-progress {
       height: 12px;
       border-radius: 999px;
@@ -153,10 +215,21 @@
     {% else %}
       <section class="row g-3">
         {% for categorie in categories %}
-          {% set spent = categorie.totalSpent is defined ? categorie.totalSpent : 0 %}
-          {% set itemCount = categorie.itemCount is defined ? categorie.itemCount : categorie.items|length %}
-          {% set usage = categorie.usage is defined ? categorie.usage : (categorie.budgetPrevu > 0 ? (spent / categorie.budgetPrevu) * 100 : 0) %}
-          {% set activeAlertes = categorie.alertCount is defined ? categorie.alertCount : categorie.alertes|filter(a => a.active)|length %}
+          {% set spent = categorie.spent %}
+          {% set itemCount = categorie.itemCount %}
+          {% set usage = categorie.usage %}
+          {% set activeAlertes = categorie.alertCount %}
+          {% set chartWidth = 320 %}
+          {% set chartHeight = 72 %}
+          {% set gradientId = 'ftBudgetSparkGradient-' ~ categorie.idCategorie %}
+          {% set step = (chartWidth / ((categorie.sparkline|length - 1) > 0 ? (categorie.sparkline|length - 1) : 1)) %}
+          {% set points = '' %}
+          {% for value in categorie.sparkline %}
+            {% set x = loop.index0 * step %}
+            {% set y = chartHeight - ((value / 100) * chartHeight) %}
+            {% set points = points ~ (loop.first ? '' : ' ') ~ x|number_format(2, '.', '') ~ ',' ~ y|number_format(2, '.', '') %}
+          {% endfor %}
+          {% set areaPoints = '0,' ~ chartHeight ~ ' ' ~ points ~ ' ' ~ chartWidth ~ ',' ~ chartHeight %}
           <div class="col-12 col-lg-6">
             <article class="ft-budget-category-card h-100">
               <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
@@ -164,8 +237,8 @@
                   <h3 class="h5 mb-1">{{ categorie.nomCategorie }}</h3>
                   <p class="text-muted small mb-0">{{ itemCount }} item(s) • {{ activeAlertes }} alerte(s)</p>
                 </div>
-                <span class="ft-budget-card-status {{ usage >= 100 ? 'danger' : (usage >= 80 ? 'warning' : 'ok') }}">
-                  {{ usage >= 100 ? 'Critique' : (usage >= 80 ? 'Vigilance' : 'Sain') }}
+                <span class="ft-budget-card-status {{ categorie.statusClass }}">
+                  {{ categorie.statusLabel }}
                 </span>
               </div>
 
@@ -187,6 +260,31 @@
                     <span>Seuil</span>
                     <strong>{{ categorie.seuilAlerte|number_format(2, ',', ' ') }}</strong>
                   </div>
+                </div>
+              </div>
+
+              <div class="ft-budget-card-chart">
+                <div class="ft-budget-card-chart-head">
+                  <span><i class="bi bi-graph-up-arrow me-1"></i>Courbe d evolution</span>
+                  <span>{{ categorie.sparkline|last|default(0)|number_format(1, ',', ' ') }}%</span>
+                </div>
+                <svg viewBox="0 0 {{ chartWidth }} {{ chartHeight }}" preserveAspectRatio="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="{{ gradientId }}" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="rgba(37, 99, 235, 0.28)"></stop>
+                      <stop offset="100%" stop-color="rgba(37, 99, 235, 0.02)"></stop>
+                    </linearGradient>
+                  </defs>
+                  <line class="ft-budget-card-chart-grid" x1="0" y1="{{ chartHeight - (chartHeight * 0.25) }}" x2="{{ chartWidth }}" y2="{{ chartHeight - (chartHeight * 0.25) }}"></line>
+                  <line class="ft-budget-card-chart-grid" x1="0" y1="{{ chartHeight - (chartHeight * 0.5) }}" x2="{{ chartWidth }}" y2="{{ chartHeight - (chartHeight * 0.5) }}"></line>
+                  <line class="ft-budget-card-chart-grid" x1="0" y1="{{ chartHeight - (chartHeight * 0.75) }}" x2="{{ chartWidth }}" y2="{{ chartHeight - (chartHeight * 0.75) }}"></line>
+                  <polygon class="ft-budget-card-chart-area" style="fill: url(#{{ gradientId }});" points="{{ areaPoints }}"></polygon>
+                  <polyline class="ft-budget-card-chart-line {{ categorie.statusClass == 'ok' ? '' : categorie.statusClass }}" points="{{ points }}"></polyline>
+                </svg>
+                <div class="ft-budget-card-chart-footer">
+                  <span>Demarrage</span>
+                  <span>Zone d alerte: {{ categorie.seuilAlerte|number_format(0, ',', ' ') }} DT</span>
+                  <span>Maintenant</span>
                 </div>
               </div>
 

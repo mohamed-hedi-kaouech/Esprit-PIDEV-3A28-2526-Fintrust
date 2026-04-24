@@ -741,7 +741,7 @@
                 <i class="bi bi-shield-check"></i>
                 <span>KYC</span>
               </a>
-              <a href="{{ path('front_module', {slug: 'publications'}) }}" class="ft-shortcut-tile">
+              <a href="{{ path('front_publications_index') }}" class="ft-shortcut-tile">
                 <i class="bi bi-journal-richtext"></i>
                 <span>Insights</span>
               </a>
@@ -979,7 +979,7 @@
       </div>
 
       <div class="col-sm-6 col-lg-4">
-        <a href="{{ path('front_module', {slug: 'publications'}) }}" class="ft-module-card text-decoration-none">
+        <a href="{{ path('front_publications_index') }}" class="ft-module-card text-decoration-none">
           <div class="ft-module-icon ft-module-pink"><i class="bi bi-newspaper"></i></div>
           <div class="ft-module-body">
             <div class="ft-module-title">Publications</div>
@@ -990,7 +990,7 @@
       </div>
 
       <div class="col-sm-6 col-lg-4">
-        <a href="{{ user.kycApproved ? path('front_module', {slug: 'budget'}) : path('front_kyc_status') }}" class="ft-module-card text-decoration-none {{ not user.kycApproved ? 'ft-module-locked' }}">
+        <a href="{{ user.kycApproved ? path('front_budget_home') : path('front_kyc_status') }}" class="ft-module-card text-decoration-none {{ not user.kycApproved ? 'ft-module-locked' }}">
           <div class="ft-module-icon ft-module-yellow"><i class="bi bi-calculator"></i></div>
           <div class="ft-module-body">
             <div class="ft-module-title">Budget</div>

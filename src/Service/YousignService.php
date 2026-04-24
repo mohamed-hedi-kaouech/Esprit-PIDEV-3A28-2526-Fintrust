@@ -16,16 +16,16 @@ class YousignService
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
-        private readonly string $yousignApiKey,
-        private readonly string $yousignBaseUrl,
-        private readonly string $yousignWebhookSecret,
-        private readonly string $appUrl,
+        private readonly ?string $yousignApiKey,
+        private readonly ?string $yousignBaseUrl,
+        private readonly ?string $yousignWebhookSecret,
+        private readonly ?string $appUrl,
     ) {
     }
 
     public function isConfigured(): bool
     {
-        return trim($this->yousignApiKey) !== '' && trim($this->yousignBaseUrl) !== '';
+        return trim((string) $this->yousignApiKey) !== '' && trim((string) $this->yousignBaseUrl) !== '';
     }
 
     /**
@@ -41,13 +41,13 @@ class YousignService
         string $signerFirstName,
         string $signerLastName
     ): array {
-        if (trim($this->yousignApiKey) === '') {
+        if (trim((string) $this->yousignApiKey) === '') {
             throw new \RuntimeException('La cle API Yousign n est pas configuree (YOUSIGN_API_KEY manquant dans .env.local).');
         }
-        if (trim($this->yousignBaseUrl) === '') {
+        if (trim((string) $this->yousignBaseUrl) === '') {
             throw new \RuntimeException('L URL Yousign n est pas configuree (YOUSIGN_BASE_URL manquant).');
         }
-        if (trim($this->appUrl) === '') {
+        if (trim((string) $this->appUrl) === '') {
             throw new \RuntimeException('APP_URL n est pas configure. Cette URL est necessaire pour les redirections et le webhook.');
         }
         if (!filter_var($signerEmail, FILTER_VALIDATE_EMAIL)) {
@@ -149,7 +149,7 @@ class YousignService
             $this->apiUrl('/signature_requests/' . $requestId . '/documents'),
             [
                 'headers' => array_merge(
-                    ['Authorization' => 'Bearer ' . trim($this->yousignApiKey)],
+                    ['Authorization' => 'Bearer ' . trim((string) $this->yousignApiKey)],
                     $formData->getPreparedHeaders()->toArray()
                 ),
                 'body' => $formData->bodyToString(),
@@ -334,7 +334,7 @@ class YousignService
     private function jsonHeaders(): array
     {
         return [
-            'Authorization' => 'Bearer ' . trim($this->yousignApiKey),
+            'Authorization' => 'Bearer ' . trim((string) $this->yousignApiKey),
             'Content-Type' => 'application/json',
         ];
     }
@@ -363,7 +363,7 @@ class YousignService
 
     private function normalizedBaseUrl(): string
     {
-        return rtrim(trim($this->yousignBaseUrl), '/');
+        return rtrim(trim((string) $this->yousignBaseUrl), '/');
     }
 
     private function apiUrl(string $path): string
