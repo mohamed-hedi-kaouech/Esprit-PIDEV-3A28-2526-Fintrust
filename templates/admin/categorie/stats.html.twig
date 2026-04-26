@@ -1,427 +1,218 @@
 {% extends 'admin/back.html.twig' %}
 
-{% block title %}Statistiques Budgétaires{% endblock %}
+{% block title %}Statistiques Budget Admin{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid mt-5">
-    <!-- Header avec navigation -->
-    <div class="d-flex justify-content-between align-items-center mb-5">
+<div class="container-fluid mt-4 ft-admin-budget-page">
+    <div class="ft-budget-hero">
         <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-2">
-                    <li class="breadcrumb-item">
-                        <a href="{{ path('admin_dashboard') }}" class="text-decoration-none">
-                            <i class="fas fa-home me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="{{ path('admin_categorie_list') }}" class="text-decoration-none">Catégories</a>
-                    </li>
-                    <li class="breadcrumb-item active">Statistiques</li>
-                </ol>
-            </nav>
-            <h1 class="h2 fw-bold text-dark mb-2">
-                <i class="fas fa-chart-bar text-primary me-3"></i>
-                Statistiques Budgétaires
-            </h1>
-            <p class="text-muted">Analyse détaillée des budgets et performances par catégorie</p>
+            <div class="ft-budget-eyebrow">Budget admin</div>
+            <h1>Centre de pilotage budgetaire</h1>
+            <p>Suivi global des categories, des seuils d alerte, des performances et de la recompense client.</p>
         </div>
-        <div class="d-flex gap-3">
-            <a href="{{ path('admin_categorie_list') }}" class="btn btn-secondary btn-lg">
-                <i class="fas fa-arrow-left me-2"></i>Retour aux catégories
+        <div class="ft-budget-hero-actions">
+            <a href="{{ path('admin_categorie_list') }}" class="btn ft-btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Retour categories
             </a>
-            <a href="{{ path('admin_item_list') }}" class="btn btn-success btn-lg">
-                <i class="fas fa-list me-2"></i>Voir tous les items
+            <a href="{{ path('admin_item_list') }}" class="btn ft-btn-primary">
+                <i class="fas fa-list me-2"></i>Voir les items
             </a>
         </div>
     </div>
 
-    {# Bannière récompense SMS #}
-    {% if isEligible %}
-    <div class="alert d-flex align-items-center justify-content-between mb-4" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #10b981; border-radius: 16px; padding: 1.25rem 1.5rem;">
-        <div class="d-flex align-items-center gap-3">
-            <span style="font-size: 2rem;">🎉</span>
-            <div>
-                <strong style="color: #065f46; font-size: 1.1rem;">Félicitations ! Vous êtes éligible à une récompense</strong>
-                <p class="mb-0 text-muted small">Vous avez respecté votre budget et tous vos seuils de catégories ce mois-ci.</p>
-            </div>
+    <div class="ft-reward-banner {{ isEligible ? 'is-open' : 'is-locked' }}">
+        <div class="ft-reward-banner-icon">
+            <i class="fas {{ isEligible ? 'fa-gift' : 'fa-lock' }}"></i>
         </div>
-        <form method="post" action="{{ path('admin_categorie_send_reward_sms') }}">
-            <input type="hidden" name="_token" value="{{ csrf_token('send_reward_sms') }}">
-            <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; font-weight: 700; white-space: nowrap;">
-                <i class="fas fa-sms me-2"></i>Recevoir mon code promo par SMS
-            </button>
-        </form>
-    </div>
-    {% else %}
-    <div class="alert d-flex align-items-center gap-3 mb-4" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 16px; padding: 1.25rem 1.5rem;">
-        <span style="font-size: 2rem;">📊</span>
-        <div>
-            <strong style="color: #92400e;">Récompense non encore débloquée</strong>
-            <p class="mb-0 text-muted small">Respectez votre budget total et les seuils de chaque catégorie pour recevoir un code promo par SMS.</p>
+        <div class="ft-reward-banner-content">
+            <strong>{{ isEligible ? 'Recompense debloquee' : 'Recompense non encore debloquee' }}</strong>
+            <p>{{ rewardReason }}</p>
         </div>
-    </div>
-    {% endif %}
-
-    <!-- Statistiques globales -->
-    <div class="row g-4 mb-5">
-        {% set totalBudget = 0 %}
-        {% set totalSpent = 0 %}
-        {% set totalItems = 0 %}
-        {% set totalAlertes = 0 %}
-        {% for stat in stats %}
-            {% set totalBudget = totalBudget + stat.categorie.budgetPrevu %}
-            {% set totalSpent = totalSpent + stat.totalAmount %}
-            {% set totalItems = totalItems + stat.itemCount %}
-            {% set totalAlertes = totalAlertes + stat.alertesCount %}
-        {% endfor %}
-        {% set globalUsage = totalBudget > 0 ? (totalSpent / totalBudget * 100) : 0 %}
-
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="stats-overview-card budget-card">
-                <div class="stats-icon">
-                    <i class="fas fa-coins"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-value">{{ totalBudget|number_format(2, ',', ' ') }} DT</div>
-                    <div class="stats-label">Budget Total</div>
-                    <div class="stats-trend">
-                        <i class="fas fa-coins text-success"></i>
-                        Prévu global
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="stats-overview-card spent-card">
-                <div class="stats-icon">
-                    <i class="fas fa-shopping-cart"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-value">{{ totalSpent|number_format(2, ',', ' ') }} DT</div>
-                    <div class="stats-label">Total Dépensé</div>
-                    <div class="stats-trend">
-                        <i class="fas fa-arrow-up text-primary"></i>
-                        {{ globalUsage|number_format(1) }}% utilisé
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="stats-overview-card items-card">
-                <div class="stats-icon">
-                    <i class="fas fa-tags"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-value">{{ totalItems }}</div>
-                    <div class="stats-label">Articles Total</div>
-                    <div class="stats-trend">
-                        <i class="fas fa-list text-info"></i>
-                        {{ stats|length }} catégories
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="stats-overview-card categories-card">
-                <div class="stats-icon">
-                    <i class="fas fa-folder"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-value">{{ stats|length }}</div>
-                    <div class="stats-label">Total Catégories</div>
-                    <div class="stats-trend">
-                        <i class="fas fa-layer-group text-purple"></i>
-                        Budgétaires
-                    </div>
-                </div>
-            </div>
-        </div>
+        {% if isEligible %}
+            <form method="post" action="{{ path('admin_categorie_send_reward_sms') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('send_reward_sms') }}">
+                <button type="submit" class="btn ft-reward-btn">
+                    <i class="fas fa-sms me-2"></i>Envoyer le code promo
+                </button>
+            </form>
+        {% else %}
+            <div class="ft-reward-chip">{{ rewardSnapshot.blockedCount }} blocage(s)</div>
+        {% endif %}
     </div>
 
-    <!-- Graphique global -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="global-chart-card">
-                <div class="card-header-custom">
-                    <div class="card-icon">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-xxl-8">
+            <div class="ft-command-panel">
+                <div class="ft-section-head">
                     <div>
-                        <h5 class="mb-0">Répartition Budgétaire Globale</h5>
-                        <small class="text-muted">Utilisation par catégorie</small>
+                        <span class="ft-section-kicker">Pilotage</span>
+                        <h3>Vue d ensemble instantanee</h3>
                     </div>
+                    <span class="ft-command-state {{ isEligible ? 'is-live' : 'is-locked' }}">
+                        {{ isEligible ? 'Tout est conforme' : 'Action admin requise' }}
+                    </span>
                 </div>
-
-                <div class="card-body-custom">
-                    <div class="global-progress">
-                        <div class="progress-legend">
-                            {% for stat in stats %}
-                                {% set percentage = stat.categorie.budgetPrevu > 0 ? (stat.totalAmount / stat.categorie.budgetPrevu * 100) : 0 %}
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: linear-gradient(135deg, #3b82f6, #1f6feb);"></div>
-                                    <div class="legend-text">
-                                        <strong>{{ stat.categorie.nomCategorie }}</strong>
-                                        <small>{{ stat.totalAmount|number_format(2, ',', ' ') }} DT / {{ stat.categorie.budgetPrevu|number_format(2, ',', ' ') }} DT ({{ percentage|number_format(1) }}%)</small>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
+                <div class="ft-command-grid">
+                    <div class="ft-command-box is-cyan">
+                        <span>Score sante moyen</span>
+                        <strong>{{ overview.averageHealth|number_format(1) }}/100</strong>
+                        <small>{{ overview.healthyCount }} categorie(s) saines</small>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistiques par catégorie -->
-    <div class="row g-4">
-        {% for stat in stats %}
-            <div class="col-xl-6 col-lg-6">
-                <div class="category-stats-card">
-                    <div class="card-header-custom">
-                        <div class="card-icon">
-                            <i class="fas fa-folder"></i>
-                        </div>
-                        <div class="category-info">
-                            <h5 class="mb-0">{{ stat.categorie.nomCategorie }}</h5>
-                            <small class="text-muted">ID: {{ stat.categorie.idCategorie }}</small>
-                        </div>
-                        <div class="category-status">
-                            {% if stat.alertesCount > 0 %}
-                                <span class="badge bg-danger">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ stat.alertesCount }} alerte(s)
-                                </span>
-                            {% else %}
-                                <span class="badge bg-success">
-                                    <i class="fas fa-check-circle me-1"></i>OK
-                                </span>
-                            {% endif %}
-                        </div>
+                    <div class="ft-command-box is-violet">
+                        <span>Taux de conformite</span>
+                        <strong>{{ rewardSnapshot.completionRate|number_format(0) }}%</strong>
+                        <small>{{ rewardSnapshot.safeCount }}/{{ rewardSnapshot.categoriesChecked }} categorie(s) conformes</small>
                     </div>
-
-                    <div class="card-body-custom">
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="stat-icon">
-                                    <i class="fas fa-coins text-success"></i>
-                                </div>
-                                <div class="stat-details">
-                                    <div class="stat-value">{{ stat.categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</div>
-                                    <div class="stat-label">Budget prévu</div>
-                                </div>
-                            </div>
-
-                            <div class="stat-item">
-                                <div class="stat-icon">
-                                    <i class="fas fa-shopping-cart text-primary"></i>
-                                </div>
-                                <div class="stat-details">
-                                    <div class="stat-value">{{ stat.totalAmount|number_format(2, ',', ' ') }} DT</div>
-                                    <div class="stat-label">Total dépensé</div>
-                                </div>
-                            </div>
-
-                            <div class="stat-item">
-                                <div class="stat-icon">
-                                    <i class="fas fa-tags text-info"></i>
-                                </div>
-                                <div class="stat-details">
-                                    <div class="stat-value">{{ stat.itemCount }}</div>
-                                    <div class="stat-label">Nombre d'items</div>
-                                </div>
-                            </div>
-
-                            <div class="stat-item">
-                                <div class="stat-icon">
-                                    <i class="fas fa-exclamation-triangle text-warning"></i>
-                                </div>
-                                <div class="stat-details">
-                                    <div class="stat-value">{{ stat.alertesCount }}</div>
-                                    <div class="stat-label">Alertes actives</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="budget-analysis">
-                            <div class="analysis-header">
-                                <span class="analysis-title">Utilisation du budget</span>
-                                <span class="analysis-percentage">{{ stat.budgetUsage|number_format(1) }}%</span>
-                            </div>
-                            <div class="progress">
-                                <div class="progress-bar {{ stat.budgetUsage > 90 ? 'bg-danger' : (stat.budgetUsage > 75 ? 'bg-warning' : 'bg-success') }}"
-                                     role="progressbar"
-                                     style="width: {{ stat.budgetUsage }}%"
-                                     aria-valuenow="{{ stat.budgetUsage }}"
-                                     aria-valuemin="0"
-                                     aria-valuemax="100">
-                                </div>
-                            </div>
-                            <div class="analysis-details">
-                                <div class="remaining-budget">
-                                    {% set remaining = stat.categorie.budgetPrevu - stat.totalAmount %}
-                                    <span class="remaining-label">Restant :</span>
-                                    <span class="remaining-value {{ remaining < 0 ? 'text-danger' : 'text-success' }}">
-                                        {{ remaining|number_format(2, ',', ' ') }} DT
-                                    </span>
-                                </div>
-                                <div class="threshold-info">
-                                    {% set threshold = stat.categorie.seuilAlerte %}
-                                    <span class="threshold-label">Seuil d'alerte :</span>
-                                    <span class="threshold-value">{{ threshold|number_format(2, ',', ' ') }} DT</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-actions">
-                            <a href="{{ path('admin_categorie_show', {'idCategorie': stat.categorie.idCategorie}) }}"
-                               class="btn btn-sm btn-outline-info action-btn">
-                                <i class="fas fa-eye me-1"></i>Voir détails
-                            </a>
-                            <a href="{{ path('admin_categorie_edit', {'idCategorie': stat.categorie.idCategorie}) }}"
-                               class="btn btn-sm btn-outline-warning action-btn">
-                                <i class="fas fa-edit me-1"></i>Modifier
-                            </a>
-                            <a href="{{ path('admin_item_list') }}?categorie={{ stat.categorie.idCategorie }}"
-                               class="btn btn-sm btn-outline-primary action-btn">
-                                <i class="fas fa-list me-1"></i>Voir items
-                            </a>
-                        </div>
+                    <div class="ft-command-box is-orange">
+                        <span>Seuils franchis</span>
+                        <strong>{{ overview.overThresholdCount }}</strong>
+                        <small>{{ overview.vigilanceCount }} en vigilance</small>
                     </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-
-    <div class="row g-4 mt-2 mb-5">
-        <div class="col-xl-3 col-lg-6">
-            <div class="stats-overview-card" style="background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%); border:2px solid rgba(15,23,42,.08);">
-                <div class="stats-icon" style="background:linear-gradient(135deg,#0f172a,#334155); box-shadow:0 8px 20px rgba(15,23,42,.28);">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-value">{{ overview.remainingBudget|number_format(2, ',', ' ') }} DT</div>
-                    <div class="stats-label">Reste Global</div>
-                    <div class="stats-trend">
-                        <i class="fas fa-shield-heart {{ overview.remainingBudget >= 0 ? 'text-success' : 'text-danger' }}"></i>
-                        {{ overview.averageBudget|number_format(0, ',', ' ') }} DT budget moyen
+                    <div class="ft-command-box is-rose">
+                        <span>Alertes actives</span>
+                        <strong>{{ overview.totalAlertes }}</strong>
+                        <small>{{ overview.criticalCount }} categorie(s) critiques</small>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-6">
-            <div class="stats-overview-card" style="background:linear-gradient(135deg,#ffffff 0%,#f5f3ff 100%); border:2px solid rgba(124,58,237,.14);">
-                <div class="stats-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9); box-shadow:0 8px 20px rgba(109,40,217,.25);">
-                    <i class="fas fa-gauge-high"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-value">{{ overview.averageUsage|number_format(1) }}%</div>
-                    <div class="stats-label">Usage Moyen</div>
-                    <div class="stats-trend">
-                        <i class="fas fa-wave-square text-primary"></i>
-                        {{ overview.engagementPerItem|number_format(2, ',', ' ') }} DT par item
+        <div class="col-12 col-xxl-4">
+            <div class="ft-side-card">
+                <div class="ft-section-head compact">
+                    <div>
+                        <span class="ft-section-kicker">Checklist</span>
+                        <h3>Conditions de recompense</h3>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-lg-6">
-            <div class="stats-overview-card" style="background:linear-gradient(135deg,#ffffff 0%,#fff7ed 100%); border:2px solid rgba(234,88,12,.14);">
-                <div class="stats-icon" style="background:linear-gradient(135deg,#f97316,#ea580c); box-shadow:0 8px 20px rgba(234,88,12,.25);">
-                    <i class="fas fa-triangle-exclamation"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-value">{{ overview.overThresholdCount }}</div>
-                    <div class="stats-label">Seuils Franchis</div>
-                    <div class="stats-trend">
-                        <i class="fas fa-bell {{ overview.criticalCount > 0 ? 'text-danger' : 'text-success' }}"></i>
-                        {{ overview.vigilanceCount }} vigilance
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-lg-6">
-            <div class="stats-overview-card" style="background:linear-gradient(135deg,#ffffff 0%,#ecfeff 100%); border:2px solid rgba(6,182,212,.14);">
-                <div class="stats-icon" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9); box-shadow:0 8px 20px rgba(6,182,212,.25);">
-                    <i class="fas fa-seedling"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-value">{{ overview.healthyCount }}</div>
-                    <div class="stats-label">Categories Saines</div>
-                    <div class="stats-trend">
-                        <i class="fas fa-circle-notch text-info"></i>
-                        {{ overview.zeroSpendCount }} sans depense
-                    </div>
+                <div class="ft-checklist">
+                    {% for check in rewardChecklist %}
+                        <div class="ft-check-item {{ check.ok ? 'is-ok' : 'is-ko' }}">
+                            <i class="fas {{ check.ok ? 'fa-check-circle' : 'fa-circle-exclamation' }}"></i>
+                            <div>
+                                <strong>{{ check.label }}</strong>
+                                <p>{{ check.detail }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="ft-kpi-card is-green">
+                <span>Budget total</span>
+                <strong>{{ overview.totalBudget|number_format(2, ',', ' ') }} DT</strong>
+                <small>Planification globale</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="ft-kpi-card is-blue">
+                <span>Total depense</span>
+                <strong>{{ overview.totalSpent|number_format(2, ',', ' ') }} DT</strong>
+                <small>{{ overview.globalUsage|number_format(1) }}% du budget</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="ft-kpi-card is-purple">
+                <span>Reste global</span>
+                <strong>{{ overview.remainingBudget|number_format(2, ',', ' ') }} DT</strong>
+                <small>{{ overview.averageSpend|number_format(0, ',', ' ') }} DT depense moyenne</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="ft-kpi-card is-gold">
+                <span>Items suivis</span>
+                <strong>{{ overview.totalItems }}</strong>
+                <small>{{ stats|length }} categorie(s)</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
         <div class="col-12 col-xxl-8">
-            <div class="global-chart-card h-100">
-                <div class="card-header-custom">
-                    <div class="card-icon"><i class="fas fa-chart-column"></i></div>
-                    <div><h5 class="mb-0">Budget vs Depense vs Seuil</h5><small class="text-muted">Vue mixte par categorie</small></div>
+            <div class="ft-chart-card h-100">
+                <div class="ft-section-head compact">
+                    <div>
+                        <span class="ft-section-kicker">Graphique mixte</span>
+                        <h3>Budget vs depense vs seuil</h3>
+                    </div>
                 </div>
-                <div class="card-body-custom"><canvas id="budgetMixChart" height="110"></canvas></div>
+                <div class="ft-chart-wrap"><canvas id="budgetMixChart" height="110"></canvas></div>
             </div>
         </div>
         <div class="col-12 col-xxl-4">
-            <div class="global-chart-card h-100">
-                <div class="card-header-custom">
-                    <div class="card-icon"><i class="fas fa-chart-pie"></i></div>
-                    <div><h5 class="mb-0">Repartition des depenses</h5><small class="text-muted">Poids de chaque categorie</small></div>
+            <div class="ft-chart-card h-100">
+                <div class="ft-section-head compact">
+                    <div>
+                        <span class="ft-section-kicker">Donut</span>
+                        <h3>Repartition des depenses</h3>
+                    </div>
                 </div>
-                <div class="card-body-custom"><canvas id="budgetDonutAdminChart" height="240"></canvas></div>
+                <div class="ft-chart-wrap"><canvas id="budgetDonutAdminChart" height="220"></canvas></div>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="global-chart-card h-100">
-                <div class="card-header-custom">
-                    <div class="card-icon"><i class="fas fa-wave-square"></i></div>
-                    <div><h5 class="mb-0">Courbe d'utilisation</h5><small class="text-muted">Evolution du taux d'usage</small></div>
+            <div class="ft-chart-card h-100">
+                <div class="ft-section-head compact">
+                    <div>
+                        <span class="ft-section-kicker">Courbe</span>
+                        <h3>Usage budgetaire</h3>
+                    </div>
                 </div>
-                <div class="card-body-custom"><canvas id="budgetUsageLineChart" height="120"></canvas></div>
+                <div class="ft-chart-wrap"><canvas id="budgetUsageLineChart" height="120"></canvas></div>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="global-chart-card h-100">
-                <div class="card-header-custom">
-                    <div class="card-icon"><i class="fas fa-compass-drafting"></i></div>
-                    <div><h5 class="mb-0">Radar de performance</h5><small class="text-muted">Score de sante par categorie</small></div>
+            <div class="ft-chart-card h-100">
+                <div class="ft-section-head compact">
+                    <div>
+                        <span class="ft-section-kicker">Radar</span>
+                        <h3>Performance par categorie</h3>
+                    </div>
                 </div>
-                <div class="card-body-custom"><canvas id="budgetRadarChart" height="120"></canvas></div>
+                <div class="ft-chart-wrap"><canvas id="budgetRadarChart" height="120"></canvas></div>
             </div>
         </div>
         <div class="col-lg-5">
-            <div class="global-chart-card h-100">
-                <div class="card-header-custom">
-                    <div class="card-icon"><i class="fas fa-bullseye"></i></div>
-                    <div><h5 class="mb-0">Pression des alertes</h5><small class="text-muted">Alertes et densite d'items</small></div>
+            <div class="ft-chart-card h-100">
+                <div class="ft-section-head compact">
+                    <div>
+                        <span class="ft-section-kicker">Polar</span>
+                        <h3>Pression des alertes</h3>
+                    </div>
                 </div>
-                <div class="card-body-custom"><canvas id="budgetPolarChart" height="160"></canvas></div>
+                <div class="ft-chart-wrap"><canvas id="budgetPolarChart" height="160"></canvas></div>
             </div>
         </div>
         <div class="col-lg-7">
-            <div class="global-chart-card h-100">
-                <div class="card-header-custom">
-                    <div class="card-icon"><i class="fas fa-sparkles"></i></div>
-                    <div><h5 class="mb-0">Insights rapides</h5><small class="text-muted">Lecture instantanee de la sante budgetaire</small></div>
-                </div>
-                <div class="card-body-custom">
-                    <div class="row g-3">
-                        <div class="col-md-6"><div class="insight-box"><span class="insight-kicker">Categorie la plus tendue</span><strong>{{ overview.topSpender ? overview.topSpender.categorie.nomCategorie : 'Aucune' }}</strong><p class="mb-0 text-muted small">{{ overview.topSpender ? overview.topSpender.totalAmount|number_format(2, ',', ' ') ~ ' DT pour ' ~ overview.topSpender.budgetUsage|number_format(1) ~ '% d usage.' : 'Pas assez de donnees.' }}</p></div></div>
-                        <div class="col-md-6"><div class="insight-box"><span class="insight-kicker">Categorie la mieux geree</span><strong>{{ overview.bestManaged ? overview.bestManaged.categorie.nomCategorie : 'Aucune' }}</strong><p class="mb-0 text-muted small">{{ overview.bestManaged ? 'Score sante ' ~ overview.bestManaged.healthScore|number_format(1) ~ '/100 avec ' ~ overview.bestManaged.alertesCount ~ ' alerte(s).' : 'Pas assez de donnees.' }}</p></div></div>
-                        <div class="col-md-4"><div class="mini-kpi"><span>Vigilance</span><strong>{{ overview.vigilanceCount }}</strong></div></div>
-                        <div class="col-md-4"><div class="mini-kpi"><span>Critiques</span><strong>{{ overview.criticalCount }}</strong></div></div>
-                        <div class="col-md-4"><div class="mini-kpi"><span>Depense moyenne</span><strong>{{ overview.averageSpend|number_format(0, ',', ' ') }} DT</strong></div></div>
+            <div class="ft-chart-card h-100">
+                <div class="ft-section-head compact">
+                    <div>
+                        <span class="ft-section-kicker">Insights</span>
+                        <h3>Lecture rapide</h3>
                     </div>
+                </div>
+                <div class="ft-insights-grid">
+                    <div class="ft-insight-box">
+                        <span class="ft-insight-label">Categorie la plus tendue</span>
+                        <strong>{{ overview.topSpender ? overview.topSpender.categorie.nomCategorie : 'Aucune' }}</strong>
+                        <p>{{ overview.topSpender ? overview.topSpender.totalAmount|number_format(2, ',', ' ') ~ ' DT pour ' ~ overview.topSpender.budgetUsage|number_format(1) ~ '% d usage.' : 'Pas assez de donnees.' }}</p>
+                    </div>
+                    <div class="ft-insight-box">
+                        <span class="ft-insight-label">Categorie la mieux geree</span>
+                        <strong>{{ overview.bestManaged ? overview.bestManaged.categorie.nomCategorie : 'Aucune' }}</strong>
+                        <p>{{ overview.bestManaged ? 'Score sante ' ~ overview.bestManaged.healthScore|number_format(1) ~ '/100 avec ' ~ overview.bestManaged.alertesCount ~ ' alerte(s).' : 'Pas assez de donnees.' }}</p>
+                    </div>
+                    <div class="ft-mini-kpi"><span>Vigilance</span><strong>{{ overview.vigilanceCount }}</strong></div>
+                    <div class="ft-mini-kpi"><span>Critiques</span><strong>{{ overview.criticalCount }}</strong></div>
+                    <div class="ft-mini-kpi"><span>Sans depense</span><strong>{{ overview.zeroSpendCount }}</strong></div>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -435,6 +226,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const alerts = {{ chartData.alerts|json_encode|raw }};
     const items = {{ chartData.items|json_encode|raw }};
     const health = {{ chartData.health|json_encode|raw }};
+
+    const palette = ['#2563eb', '#8b5cf6', '#06b6d4', '#f97316', '#10b981', '#ef4444', '#f59e0b', '#0ea5e9'];
 
     const sharedLegend = {
         labels: {
@@ -463,9 +256,9 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels,
                 datasets: [
-                    { label: 'Budget', data: budgets, backgroundColor: 'rgba(59,130,246,0.72)', borderRadius: 10 },
-                    { label: 'Depense', data: spent, backgroundColor: 'rgba(6,182,212,0.82)', borderRadius: 10 },
-                    { label: 'Seuil', data: thresholds, type: 'line', borderColor: '#f59e0b', backgroundColor: '#f59e0b', tension: 0.35, pointRadius: 4, pointHoverRadius: 5 }
+                    { label: 'Budget', data: budgets, backgroundColor: 'rgba(37,99,235,0.72)', borderRadius: 12 },
+                    { label: 'Depense', data: spent, backgroundColor: 'rgba(6,182,212,0.82)', borderRadius: 12 },
+                    { label: 'Seuil', data: thresholds, type: 'line', borderColor: '#f59e0b', backgroundColor: '#f59e0b', tension: 0.35, pointRadius: 4 }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: sharedLegend }, scales: sharedScales }
@@ -478,11 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'doughnut',
             data: {
                 labels,
-                datasets: [{
-                    data: spent,
-                    backgroundColor: ['#2563eb', '#7c3aed', '#06b6d4', '#f97316', '#10b981', '#ef4444', '#8b5cf6', '#14b8a6'],
-                    borderWidth: 0
-                }]
+                datasets: [{ data: spent, backgroundColor: palette, borderWidth: 0 }]
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom', ...sharedLegend } } }
         });
@@ -497,11 +286,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 datasets: [{
                     label: 'Usage %',
                     data: usage,
-                    borderColor: '#7c3aed',
-                    backgroundColor: 'rgba(124,58,237,0.16)',
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139,92,246,0.16)',
                     fill: true,
                     tension: 0.36,
-                    pointBackgroundColor: '#7c3aed',
+                    pointBackgroundColor: '#8b5cf6',
                     pointRadius: 4
                 }]
             },
@@ -527,7 +316,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: sharedLegend },
-                scales: { r: { angleLines: { color: 'rgba(148,163,184,0.18)' }, grid: { color: 'rgba(148,163,184,0.18)' }, pointLabels: { color: '#475569' }, ticks: { backdropColor: 'transparent', color: '#64748b' }, suggestedMin: 0, suggestedMax: 100 } }
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(148,163,184,0.18)' },
+                        grid: { color: 'rgba(148,163,184,0.18)' },
+                        pointLabels: { color: '#475569' },
+                        ticks: { backdropColor: 'transparent', color: '#64748b' },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                }
             }
         });
     }
@@ -541,501 +339,428 @@ document.addEventListener('DOMContentLoaded', function () {
                 datasets: [{
                     label: 'Pression',
                     data: labels.map((_, index) => (alerts[index] * 20) + (items[index] * 5) + usage[index]),
-                    backgroundColor: ['rgba(239,68,68,0.72)', 'rgba(249,115,22,0.72)', 'rgba(245,158,11,0.72)', 'rgba(16,185,129,0.72)', 'rgba(59,130,246,0.72)', 'rgba(139,92,246,0.72)'],
+                    backgroundColor: palette.map((color) => color + 'bb'),
                     borderWidth: 0
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', ...sharedLegend } }, scales: { r: { ticks: { backdropColor: 'transparent', color: '#64748b' }, grid: { color: 'rgba(148,163,184,0.18)' } } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', ...sharedLegend } },
+                scales: {
+                    r: {
+                        ticks: { backdropColor: 'transparent', color: '#64748b' },
+                        grid: { color: 'rgba(148,163,184,0.18)' }
+                    }
+                }
+            }
         });
     }
 });
 </script>
 
 <style>
-.stats-overview-card {
-    background: white;
-    border-radius: 20px;
-    padding: 1.75rem;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.ft-admin-budget-page {
+    padding-bottom: 2rem;
+}
+
+.ft-budget-hero {
     display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.stats-overview-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-}
-
-.stats-overview-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.2);
-}
-
-/* Carte Budget - Dégradé vert émeraude */
-.budget-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
-    border: 2px solid rgba(34, 197, 94, 0.2);
-}
-
-.budget-card::before {
-    background: linear-gradient(90deg, #10b981, #059669, #047857);
-}
-
-.budget-card .stats-icon {
-    background: linear-gradient(135deg, #10b981, #059669);
-    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-}
-
-.budget-card:hover {
-    box-shadow: 0 20px 50px rgba(16, 185, 129, 0.25);
-}
-
-/* Carte Dépensé - Dégradé bleu océan */
-.spent-card {
-    background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
-    border: 2px solid rgba(59, 130, 246, 0.2);
-}
-
-.spent-card::before {
-    background: linear-gradient(90deg, #3b82f6, #2563eb, #1d4ed8);
-}
-
-.spent-card .stats-icon {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-}
-
-.spent-card:hover {
-    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.25);
-}
-
-/* Carte Items - Dégradé violet créatif */
-.items-card {
-    background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
-    border: 2px solid rgba(147, 51, 234, 0.2);
-}
-
-.items-card::before {
-    background: linear-gradient(90deg, #9333ea, #7c3aed, #6d28d9);
-}
-
-.items-card .stats-icon {
-    background: linear-gradient(135deg, #9333ea, #7c3aed);
-    box-shadow: 0 8px 20px rgba(147, 51, 234, 0.3);
-}
-
-.items-card:hover {
-    box-shadow: 0 20px 50px rgba(147, 51, 234, 0.25);
-}
-
-/* Carte Catégories - Dégradé orange solaire */
-.categories-card {
-    background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
-    border: 2px solid rgba(245, 158, 11, 0.2);
-}
-
-.categories-card::before {
-    background: linear-gradient(90deg, #f59e0b, #d97706, #b45309);
-}
-
-.categories-card .stats-icon {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
-}
-
-.categories-card:hover {
-    box-shadow: 0 20px 50px rgba(245, 158, 11, 0.25);
-}
-
-.stats-icon {
-    width: 70px;
-    height: 70px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.75rem;
-    position: relative;
-    z-index: 2;
-    transition: all 0.3s ease;
-}
-
-.stats-icon:hover {
-    transform: scale(1.1);
-}
-
-.stats-content {
-    flex: 1;
-    position: relative;
-    z-index: 2;
-}
-
-.stats-value {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #1e293b;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    background: linear-gradient(135deg, #1e293b, #334155);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.stats-label {
-    font-size: 0.9rem;
-    color: #64748b;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.75rem;
-    opacity: 0.9;
-}
-
-.stats-trend {
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.stats-trend i {
-    font-size: 0.9rem;
-}
-
-/* Animations subtiles */
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-}
-
-.stats-overview-card:hover .stats-icon {
-    animation: float 2s ease-in-out infinite;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .stats-overview-card {
-        padding: 1.25rem;
-        gap: 1rem;
-    }
-
-    .stats-icon {
-        width: 55px;
-        height: 55px;
-        font-size: 1.5rem;
-    }
-
-    .stats-value {
-        font-size: 1.5rem;
-    }
-
-    .stats-label {
-        font-size: 0.8rem;
-    }
-}
-}
-
-.stats-trend {
-    font-size: 0.75rem;
-    color: #64748b;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.global-chart-card,
-.category-stats-card {
-    background: white;
-    border: 1px solid rgba(167, 180, 248, 0.35);
-    border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-}
-
-.global-chart-card:hover,
-.category-stats-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.12);
-}
-
-.card-header-custom {
-    display: flex;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    background: rgba(248, 250, 252, 0.8);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
-}
-
-.card-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #3b82f6, #1f6feb);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1rem;
-    margin-right: 1rem;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-}
-
-.category-info h5 {
-    margin-bottom: 0.25rem;
-}
-
-.category-status {
-    margin-left: auto;
-}
-
-.card-body-custom {
-    padding: 1.5rem;
-}
-
-.global-progress {
-    margin-top: 1rem;
-}
-
-.progress-legend {
-    display: grid;
-    gap: 1rem;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: rgba(248, 250, 252, 0.5);
-    border-radius: 12px;
-    border: 1px solid rgba(226, 232, 240, 0.5);
-}
-
-.legend-color {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-}
-
-.legend-text strong {
-    display: block;
-    color: #1e293b;
-    margin-bottom: 0.25rem;
-}
-
-.legend-text small {
-    color: #64748b;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    justify-content: space-between;
     gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.stat-item {
-    display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: rgba(248, 250, 252, 0.5);
-    border-radius: 12px;
-    border: 1px solid rgba(226, 232, 240, 0.5);
+    padding: 1.75rem 1.9rem;
+    border-radius: 28px;
+    margin-bottom: 1.5rem;
+    background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.13), transparent 30%),
+        radial-gradient(circle at top left, rgba(255,255,255,0.18), transparent 24%),
+        linear-gradient(135deg, #ffffff 0%, #f8fbff 35%, #eaf2ff 100%);
+    border: 1px solid rgba(59, 130, 246, 0.14);
+    box-shadow: 0 22px 60px rgba(37, 99, 235, 0.10);
+    color: #0f172a;
 }
 
-.stat-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    background: rgba(255, 255, 255, 0.8);
-}
-
-.stat-details {
-    flex: 1;
-}
-
-.stat-value {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.25rem;
-}
-
-.stat-label {
-    font-size: 0.875rem;
-    color: #64748b;
-    font-weight: 600;
+.ft-budget-eyebrow,
+.ft-section-kicker,
+.ft-insight-label {
+    display: block;
+    font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.12em;
+    font-weight: 800;
+    color: #1d4ed8;
 }
 
-.budget-analysis {
-    margin-bottom: 2rem;
+.ft-budget-hero h1,
+.ft-section-head h3 {
+    margin: 0.35rem 0;
+    font-weight: 800;
 }
 
-.analysis-header {
+.ft-budget-hero p,
+.ft-command-box small,
+.ft-kpi-card small,
+.ft-check-item p,
+.ft-insight-box p {
+    margin: 0;
+    opacity: 0.92;
+}
+
+.ft-budget-hero-actions {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-}
-
-.analysis-title {
-    font-weight: 600;
-    color: #374151;
-}
-
-.analysis-percentage {
-    font-weight: 700;
-    color: #1e293b;
-    font-size: 1.1rem;
-}
-
-.progress {
-    height: 10px;
-    background-color: #e5e7eb;
-    border-radius: 5px;
-    overflow: hidden;
-    margin-bottom: 1rem;
-}
-
-.progress-bar {
-    transition: width 0.3s ease;
-}
-
-.analysis-details {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.875rem;
-}
-
-.remaining-budget,
-.threshold-info {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.remaining-label,
-.threshold-label {
-    color: #64748b;
-    font-weight: 600;
-}
-
-.remaining-value,
-.threshold-value {
-    font-weight: 700;
-}
-
-.card-actions {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: center;
+    gap: 0.85rem;
     flex-wrap: wrap;
 }
 
-.action-btn {
-    border-radius: 8px;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    transition: all 0.2s ease;
-    font-size: 0.875rem;
+.ft-budget-hero-actions .btn {
+    min-height: 46px;
+    border-radius: 16px;
+    font-weight: 700;
+    padding-inline: 1.15rem;
 }
 
-.action-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.ft-reward-banner,
+.ft-command-panel,
+.ft-side-card,
+.ft-priority-card,
+.ft-chart-card,
+.ft-category-card {
+    background: #fff;
+    border-radius: 24px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
 }
 
-.breadcrumb {
-    background: transparent;
-    padding: 0;
+.ft-reward-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.5rem;
+}
+
+.ft-reward-banner.is-open {
+    background: linear-gradient(135deg, #ffffff 0%, #f5f9ff 55%, #ecfeff 100%);
+    border-color: rgba(37, 99, 235, 0.16);
+}
+
+.ft-reward-banner.is-locked {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 64%, #eef6ff 100%);
+    border-color: rgba(59, 130, 246, 0.14);
+}
+
+.ft-reward-banner-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    font-size: 1.4rem;
+    color: #fff;
+    background: linear-gradient(135deg, #2563eb, #1e3a8a);
+}
+
+.ft-reward-banner-content {
+    flex: 1;
+}
+
+.ft-reward-banner-content strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+    color: #0f172a;
+}
+
+.ft-reward-btn,
+.ft-reward-chip,
+.ft-command-state,
+.ft-status-badge {
+    border-radius: 999px;
+    font-weight: 800;
+}
+
+.ft-reward-btn {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border: none;
+    padding: 0.85rem 1.2rem;
+}
+
+.ft-reward-chip,
+.ft-command-state {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.82rem;
+}
+
+.ft-command-state.is-live {
+    background: rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+}
+
+.ft-command-state.is-locked {
+    background: rgba(30, 64, 175, 0.1);
+    color: #1e40af;
+}
+
+.ft-command-panel,
+.ft-side-card,
+.ft-priority-card,
+.ft-chart-card {
+    padding: 1.3rem;
+}
+
+.ft-section-head {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 1rem;
     margin-bottom: 1rem;
 }
 
-.breadcrumb-item a {
-    color: #64748b;
+.ft-section-head.compact {
+    margin-bottom: 1.1rem;
 }
 
-.breadcrumb-item.active {
-    color: #1e293b;
-    font-weight: 600;
+.ft-command-grid,
+.ft-insights-grid,
+.ft-category-grid {
+    display: grid;
+    gap: 1rem;
 }
 
-#budgetMixChart,
-#budgetDonutAdminChart,
-#budgetUsageLineChart,
-#budgetRadarChart,
-#budgetPolarChart {
-    width: 100% !important;
+.ft-command-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.insight-box {
-    height: 100%;
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    border-radius: 16px;
+.ft-command-box,
+.ft-kpi-card,
+.ft-insight-box,
+.ft-mini-kpi,
+.ft-category-metric,
+.ft-priority-chip {
+    border-radius: 20px;
     padding: 1rem 1.1rem;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
 }
 
-.insight-kicker {
+.ft-command-box {
+    color: #fff;
+}
+
+.ft-command-box span,
+.ft-kpi-card span,
+.ft-mini-kpi span,
+.ft-category-metric span {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 700;
-    color: #64748b;
     margin-bottom: 0.45rem;
 }
 
-.insight-box strong {
+.ft-command-box strong,
+.ft-kpi-card strong,
+.ft-mini-kpi strong,
+.ft-category-metric strong {
     display: block;
-    color: #0f172a;
-    margin-bottom: 0.35rem;
-    font-size: 1rem;
+    font-size: 1.35rem;
+    font-weight: 800;
 }
 
-.mini-kpi {
-    border-radius: 14px;
+.is-cyan { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.is-violet { background: linear-gradient(135deg, #1e3a8a, #1d4ed8); }
+.is-orange { background: linear-gradient(135deg, #3b82f6, #1e40af); }
+.is-rose { background: linear-gradient(135deg, #1e293b, #0f172a); }
+
+.ft-checklist {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.ft-check-item {
+    display: flex;
+    gap: 0.85rem;
+    align-items: start;
+    border-radius: 18px;
     padding: 0.95rem 1rem;
-    background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
-    border: 1px solid rgba(59, 130, 246, 0.12);
+}
+
+.ft-check-item i {
+    font-size: 1rem;
+    margin-top: 0.15rem;
+}
+
+.ft-check-item strong {
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.ft-check-item.is-ok {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    color: #1e40af;
+}
+
+.ft-check-item.is-ko {
+    background: linear-gradient(135deg, #f8fbff, #eff6ff);
+    color: #1e3a8a;
+}
+
+.ft-kpi-card {
+    color: #fff;
+    min-height: 154px;
+}
+
+.ft-kpi-card.is-green { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+.ft-kpi-card.is-blue { background: linear-gradient(135deg, #2563eb, #1e40af); }
+.ft-kpi-card.is-purple { background: linear-gradient(135deg, #334155, #1e3a8a); }
+.ft-kpi-card.is-gold { background: linear-gradient(135deg, #1e293b, #0f172a); }
+
+.ft-priority-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.ft-priority-chip {
+    display: grid;
+    gap: 0.28rem;
+    color: #fff;
+}
+
+.ft-priority-chip.is-critical {
+    background: linear-gradient(135deg, #38bdf8, #60a5fa);
+    color: #0f172a;
+}
+
+.ft-priority-chip.is-warning {
+    background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+    color: #0f172a;
+}
+
+.ft-priority-empty {
+    padding: 1rem 1.1rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #f8fbff, #e8f2ff);
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.ft-chart-wrap {
+    min-height: 250px;
+}
+
+.ft-insights-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ft-insight-box,
+.ft-mini-kpi,
+.ft-category-metric {
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.ft-mini-kpi {
     text-align: center;
 }
 
-.mini-kpi span {
-    display: block;
-    font-size: 0.75rem;
-    color: #64748b;
-    margin-bottom: 0.3rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 700;
+.ft-category-card {
+    padding: 1.2rem;
 }
 
-.mini-kpi strong {
-    font-size: 1.15rem;
+.ft-category-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ft-category-head h4 {
+    margin: 0;
+    font-weight: 800;
     color: #0f172a;
 }
+
+.ft-category-head span {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.ft-status-badge {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.8rem;
+}
+
+.ft-status-badge.is-critical {
+    background: rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+}
+
+.ft-status-badge.is-warning {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+.ft-status-badge.is-healthy {
+    background: rgba(224, 242, 254, 0.9);
+    color: #0369a1;
+}
+
+.ft-category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 1rem;
+}
+
+.ft-usage-zone {
+    padding: 1rem 1.1rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f8fbff, #eef4ff);
+    margin-bottom: 1rem;
+}
+
+.ft-usage-head,
+.ft-usage-meta,
+.ft-card-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.ft-usage-head {
+    margin-bottom: 0.6rem;
+}
+
+.ft-progress {
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+    background: rgba(148, 163, 184, 0.18);
+}
+
+.ft-card-actions .btn {
+    border-radius: 999px;
+    font-weight: 700;
+    padding-inline: 1rem;
+}
+
+@media (max-width: 1199px) {
+    .ft-budget-hero,
+    .ft-reward-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ft-command-grid,
+    .ft-insights-grid,
+    .ft-category-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
+{% include 'admin/budget_ai/_widget.html.twig' %}
 {% endblock %}

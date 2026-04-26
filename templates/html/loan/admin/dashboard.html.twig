@@ -6,30 +6,30 @@
 
         <div class="min-h-screen bg-slate-50">
             {# Main Content #}
-            <main class="ml-64 p-8">
+            <main class="p-2 p-lg-3">
                 {# Filter Cards #}
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-                    <a href="{{ path('admin_dashboard', {status: 'all'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'all' ? 'border-emerald-500' : 'border-transparent' }} hover:shadow-md transition-all">
+                    <a href="{{ path('admin_loan_dashboard', {status: 'all'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'all' ? 'border-emerald-500' : 'border-transparent' }} hover:shadow-md transition-all">
                         <p class="text-slate-500 text-xs font-medium uppercase">All</p>
                         <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ counts.all }}</h3>
                     </a>
                     
-                    <a href="{{ path('admin_dashboard', {status: 'pending'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'pending' ? 'border-amber-500' : 'border-transparent' }} hover:shadow-md transition-all">
+                    <a href="{{ path('admin_loan_dashboard', {status: 'pending'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'pending' ? 'border-amber-500' : 'border-transparent' }} hover:shadow-md transition-all">
                         <p class="text-amber-600 text-xs font-medium uppercase">Pending</p>
                         <h3 class="text-2xl font-bold text-amber-600 mt-1">{{ counts.pending }}</h3>
                     </a>
                     
-                    <a href="{{ path('admin_dashboard', {status: 'active'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'active' ? 'border-emerald-500' : 'border-transparent' }} hover:shadow-md transition-all">
+                    <a href="{{ path('admin_loan_dashboard', {status: 'active'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'active' ? 'border-emerald-500' : 'border-transparent' }} hover:shadow-md transition-all">
                         <p class="text-emerald-600 text-xs font-medium uppercase">Active</p>
                         <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ counts.active }}</h3>
                     </a>
                     
-                    <a href="{{ path('admin_dashboard', {status: 'completed'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'completed' ? 'border-purple-500' : 'border-transparent' }} hover:shadow-md transition-all">
+                    <a href="{{ path('admin_loan_dashboard', {status: 'completed'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'completed' ? 'border-purple-500' : 'border-transparent' }} hover:shadow-md transition-all">
                         <p class="text-purple-600 text-xs font-medium uppercase">Completed</p>
                         <h3 class="text-2xl font-bold text-purple-600 mt-1">{{ counts.completed }}</h3>
                     </a>
                     
-                    <a href="{{ path('admin_dashboard', {status: 'rejected'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'rejected' ? 'border-red-500' : 'border-transparent' }} hover:shadow-md transition-all">
+                    <a href="{{ path('admin_loan_dashboard', {status: 'rejected'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'rejected' ? 'border-red-500' : 'border-transparent' }} hover:shadow-md transition-all">
                         <p class="text-red-600 text-xs font-medium uppercase">Rejected</p>
                         <h3 class="text-2xl font-bold text-red-600 mt-1">{{ counts.rejected }}</h3>
                     </a>

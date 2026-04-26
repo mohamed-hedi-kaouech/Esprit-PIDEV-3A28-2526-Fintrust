@@ -1,9 +1,10 @@
 {
-    "latitude": 36.7351091365301,
-    "longitude": 10.291321644448557,
-    "accuracy": 79,
-    "label": "36.73511, 10.29132",
+    "latitude": 36.73503234692244,
+    "longitude": 10.291264249325947,
+    "accuracy": 91,
+    "label": "36.73503, 10.29126",
     "detail": "D\u00e9l\u00e9gation Bou Mhel El Bassatine, El Bassatine, Gouvernorat Ben Arous",
-    "coordinates": "36.735109, 10.291322",
-    "checkedAt": "2026-04-24T02:07:10+00:00"
+    "coordinates": "36.735032, 10.291264",
+    "checkedAt": "2026-04-25T10:07:42+00:00",
+    "distanceMeters": 20547.62
 }

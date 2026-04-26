@@ -1,0 +1,320 @@
+<style>
+  .ft-budget-ai-toggle {
+    position: fixed;
+    right: 28px;
+    bottom: 26px;
+    z-index: 1050;
+    width: 56px;
+    height: 56px;
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(135deg, #1d4ed8, #0f172a);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+
+  .ft-budget-ai-toggle:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.24);
+  }
+
+  .ft-budget-ai-panel {
+    position: fixed;
+    right: 28px;
+    bottom: 96px;
+    z-index: 1049;
+    width: 360px;
+    max-height: 560px;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.16);
+    transform: translateY(18px) scale(.96);
+    opacity: 0;
+    pointer-events: none;
+    transition: all .22s ease;
+  }
+
+  .ft-budget-ai-panel.is-open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .ft-budget-ai-head {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: 1rem 1rem .95rem;
+    color: #fff;
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 46%, #0f172a 100%);
+  }
+
+  .ft-budget-ai-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-size: 1.05rem;
+    background: rgba(255,255,255,.14);
+  }
+
+  .ft-budget-ai-head strong {
+    display: block;
+    font-size: .94rem;
+  }
+
+  .ft-budget-ai-head span {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    margin-top: .2rem;
+    font-size: .74rem;
+    color: rgba(255,255,255,.74);
+  }
+
+  .ft-budget-ai-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+  }
+
+  .ft-budget-ai-messages {
+    min-height: 220px;
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+    padding: 1rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  }
+
+  .ft-budget-ai-msg {
+    display: flex;
+    gap: .65rem;
+    max-width: 92%;
+  }
+
+  .ft-budget-ai-msg.is-user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+  }
+
+  .ft-budget-ai-msg.is-bot {
+    align-self: flex-start;
+  }
+
+  .ft-budget-ai-bubble {
+    padding: .72rem .9rem;
+    border-radius: 16px;
+    font-size: .82rem;
+    line-height: 1.55;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+  }
+
+  .ft-budget-ai-msg.is-bot .ft-budget-ai-bubble {
+    color: #1e293b;
+    background: #fff;
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    border-bottom-left-radius: 6px;
+  }
+
+  .ft-budget-ai-msg.is-user .ft-budget-ai-bubble {
+    color: #fff;
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    border-bottom-right-radius: 6px;
+  }
+
+  .ft-budget-ai-time {
+    margin-top: .25rem;
+    color: #94a3b8;
+    font-size: .66rem;
+  }
+
+  .ft-budget-ai-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    padding: .8rem .9rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    background: #fff;
+  }
+
+  .ft-budget-ai-chip {
+    border: 1px solid rgba(59, 130, 246, 0.16);
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .35rem .68rem;
+  }
+
+  .ft-budget-ai-input-row {
+    display: flex;
+    gap: .7rem;
+    padding: .8rem .9rem 1rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    background: #fff;
+  }
+
+  .ft-budget-ai-input {
+    flex: 1;
+    min-height: 44px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    padding: .7rem .95rem;
+    font-size: .82rem;
+    color: #0f172a;
+  }
+
+  .ft-budget-ai-send {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(135deg, #1d4ed8, #0f172a);
+  }
+
+  @media (max-width: 767.98px) {
+    .ft-budget-ai-panel {
+      right: 14px;
+      left: 14px;
+      width: auto;
+      bottom: 84px;
+    }
+
+    .ft-budget-ai-toggle {
+      right: 16px;
+      bottom: 18px;
+    }
+  }
+</style>
+
+<button type="button" class="ft-budget-ai-toggle" id="ftBudgetAiToggle" title="Assistant budget FinTrust">
+  <i class="bi bi-robot"></i>
+</button>
+
+<div class="ft-budget-ai-panel" id="ftBudgetAiPanel">
+  <div class="ft-budget-ai-head">
+    <div class="ft-budget-ai-avatar"><i class="bi bi-stars"></i></div>
+    <div>
+      <strong>Assistant budget FinTrust</strong>
+      <span><span class="ft-budget-ai-live-dot"></span>Analyse categories, items et alertes</span>
+    </div>
+  </div>
+
+  <div class="ft-budget-ai-messages" id="ftBudgetAiMessages">
+    <div class="ft-budget-ai-msg is-bot">
+      <div class="ft-budget-ai-bubble">
+        Bonjour. Je peux vous aider sur les categories, les items, les depassements et les alertes budgetaires. Ecrivez <strong>aide</strong> pour voir mes usages.
+        <div class="ft-budget-ai-time">Maintenant</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ft-budget-ai-chips">
+    <button type="button" class="ft-budget-ai-chip" data-budget-ai-chip="Budget total">Budget</button>
+    <button type="button" class="ft-budget-ai-chip" data-budget-ai-chip="Mes categories">Categories</button>
+    <button type="button" class="ft-budget-ai-chip" data-budget-ai-chip="Depassements">Depassements</button>
+    <button type="button" class="ft-budget-ai-chip" data-budget-ai-chip="Alertes budget">Alertes</button>
+    <button type="button" class="ft-budget-ai-chip" data-budget-ai-chip="Conseils optimisation">Conseils</button>
+  </div>
+
+  <div class="ft-budget-ai-input-row">
+    <input type="text" id="ftBudgetAiInput" class="ft-budget-ai-input" placeholder="Posez une question budget..." maxlength="500">
+    <button type="button" class="ft-budget-ai-send" id="ftBudgetAiSend">
+      <i class="bi bi-send-fill"></i>
+    </button>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const panel = document.getElementById('ftBudgetAiPanel');
+    const toggle = document.getElementById('ftBudgetAiToggle');
+    const input = document.getElementById('ftBudgetAiInput');
+    const send = document.getElementById('ftBudgetAiSend');
+    const messages = document.getElementById('ftBudgetAiMessages');
+    const askUrl = '{{ path("admin_budget_ai_ask") }}';
+
+    if (!panel || !toggle || !input || !send || !messages) {
+      return;
+    }
+
+    const now = () => new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const escapeHtml = (value) => value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const formatBot = (value) => value.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+
+    const addMessage = (text, role) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = `ft-budget-ai-msg is-${role}`;
+      wrapper.innerHTML = `
+        <div class="ft-budget-ai-bubble">
+          ${role === 'bot' ? formatBot(text) : escapeHtml(text)}
+          <div class="ft-budget-ai-time">${now()}</div>
+        </div>
+      `;
+      messages.appendChild(wrapper);
+      messages.scrollTop = messages.scrollHeight;
+    };
+
+    const ask = async (question) => {
+      const value = question.trim();
+      if (!value) {
+        return;
+      }
+
+      addMessage(value, 'user');
+      input.value = '';
+      send.disabled = true;
+
+      try {
+        const response = await fetch(askUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: value })
+        });
+        const data = await response.json();
+        addMessage(data.answer || data.error || 'Erreur de traitement.', 'bot');
+      } catch (error) {
+        addMessage('Erreur de connexion avec l assistant budget.', 'bot');
+      }
+
+      send.disabled = false;
+      input.focus();
+    };
+
+    toggle.addEventListener('click', () => {
+      panel.classList.toggle('is-open');
+      toggle.innerHTML = panel.classList.contains('is-open')
+        ? '<i class="bi bi-x-lg"></i>'
+        : '<i class="bi bi-robot"></i>';
+    });
+
+    send.addEventListener('click', () => ask(input.value));
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        ask(input.value);
+      }
+    });
+
+    document.querySelectorAll('[data-budget-ai-chip]').forEach((chip) => {
+      chip.addEventListener('click', () => ask(chip.dataset.budgetAiChip || ''));
+    });
+  })();
+</script>

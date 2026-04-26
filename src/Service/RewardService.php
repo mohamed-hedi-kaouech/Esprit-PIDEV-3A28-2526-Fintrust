@@ -2,145 +2,168 @@
 
 namespace App\Service;
 
-use App\Entity\Categorie\Alerte;
 use App\Entity\Categorie\Categorie;
 use App\Entity\Categorie\Item;
 use App\Entity\User\User;
-use App\Repository\CategorieRepository;
-use App\Repository\ItemRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * Service for managing user rewards based on budget compliance.
+ * Service for managing rewards based on actual budget-category compliance.
  */
 class RewardService
 {
     public function __construct(
         private EntityManagerInterface $em,
         private UserRepository $userRepository,
-        private CategorieRepository $categorieRepository,
-        private ItemRepository $itemRepository,
         private SmsService $smsService,
         private LoggerInterface $logger,
     ) {}
 
     /**
-     * Check if a user is eligible for a reward.
-     * A user is eligible if:
-     * - budget_total is set
+     * A reward is granted only when:
      * - at least one category exists
-     * - total expenses do not exceed budget_total
-     * - no category currently exceeds its alert threshold (seuil)
+     * - no category exceeds its planned budget
+     * - no category reaches or exceeds its alert threshold
+     * - no active alert exists on the tracked categories
      */
     public function isEligibleForReward(User $user): bool
     {
-        if (!$user->getBudgetTotal()) {
-            return false;
-        }
-
-        $totalBudget = (float) $user->getBudgetTotal();
-        $totalExpenses = $this->getTotalExpensesForUser($user);
-
-        // Budget total dépassé
-        if ($totalExpenses > $totalBudget) {
-            return false;
-        }
-
-        // Doit avoir au moins une catégorie
-        $categories = $this->em->getRepository(\App\Entity\Categorie\Categorie::class)->findAll();
-        if (empty($categories)) {
-            return false;
-        }
-
-        // Vérifier si les dépenses actuelles dépassent le seuil d'alerte de chaque catégorie
-        foreach ($categories as $category) {
-            $categoryExpenses = $this->getExpensesForCategory($category);
-
-            // Dépenses dépassent le budget prévu
-            if ($categoryExpenses > $category->getBudgetPrevu()) {
-                return false;
-            }
-
-            // Dépenses dépassent le seuil d'alerte
-            if ($category->getSeuilAlerte() !== null && $categoryExpenses >= $category->getSeuilAlerte()) {
-                return false;
-            }
-        }
-
-        return true;
+        return $this->buildRewardSnapshot()['isEligible'];
     }
 
-    /**
-     * Get total expenses for a user.
-     */
-    private function getTotalExpensesForUser(User $user): float
+    public function getCategorySpentAmount(Categorie $category): float
     {
-        $qb = $this->em->createQueryBuilder();
-        $qb->select('SUM(i.montant)')
-            ->from(Item::class, 'i')
-            ->join('i.categorie', 'c')
-            ->where('c.user = :user')
-            ->setParameter('user', $user);
-
-        return (float) $qb->getQuery()->getSingleScalarResult() ?: 0.0;
-    }
-
-    /**
-     * Get expenses for a category.
-     */
-    private function getExpensesForCategory(Categorie $category): float
-    {
-        $qb = $this->em->createQueryBuilder();
-        $qb->select('SUM(i.montant)')
+        return (float) $this->em->createQueryBuilder()
+            ->select('COALESCE(SUM(i.montant), 0)')
             ->from(Item::class, 'i')
             ->where('i.categorie = :category')
-            ->setParameter('category', $category);
-
-        return (float) $qb->getQuery()->getSingleScalarResult() ?: 0.0;
+            ->setParameter('category', $category)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
-    /**
-     * Generate a unique promo code locally.
-     */
     private function generatePromoCode(): string
     {
         return 'FINTRUST-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
     }
 
-    /**
-     * Grant reward to user via SMS.
-     */
     public function grantReward(User $user): bool
     {
         $phone = $user->getNumTel();
 
         if (!$phone) {
             $this->logger->warning('No phone number for user ' . $user->getEmail());
+
             return false;
         }
 
         $code = $this->generatePromoCode();
 
-        $message = "Félicitations {$user->getFullName()} ! 🎉\n"
-            . "Vous avez respecté votre budget ce mois-ci.\n"
+        $message = "Felicitations {$user->getFullName()} !\n"
+            . "Vous avez respecte votre budget et vos seuils d alerte.\n"
             . "Voici votre code promo de 10% : {$code}\n"
-            . "- L'équipe FinTrust";
+            . "- L equipe FinTrust";
 
         return $this->smsService->send($phone, $message);
     }
 
     /**
-     * Get eligible users.
+     * @return array{
+     *     isEligible: bool,
+     *     categoriesChecked: int,
+     *     blockedCount: int,
+     *     safeCount: int,
+     *     completionRate: float,
+     *     blockedCategories: list<string>,
+     *     alertCategories: list<string>,
+     *     thresholdCategories: list<string>,
+     *     budgetOverflowCategories: list<string>,
+     *     safeCategories: list<string>
+     * }
+     */
+    public function buildRewardSnapshot(): array
+    {
+        $categories = $this->em->getRepository(Categorie::class)->findAll();
+
+        if ($categories === []) {
+            return [
+                'isEligible' => false,
+                'categoriesChecked' => 0,
+                'blockedCount' => 0,
+                'safeCount' => 0,
+                'completionRate' => 0.0,
+                'blockedCategories' => [],
+                'alertCategories' => [],
+                'thresholdCategories' => [],
+                'budgetOverflowCategories' => [],
+                'safeCategories' => [],
+            ];
+        }
+
+        $blockedCategories = [];
+        $alertCategories = [];
+        $thresholdCategories = [];
+        $budgetOverflowCategories = [];
+        $safeCategories = [];
+
+        foreach ($categories as $category) {
+            $categoryExpenses = $this->getCategorySpentAmount($category);
+            $activeAlerts = $this->em->getRepository(\App\Entity\Categorie\Alerte::class)
+                ->count(['idCategorie' => $category->getIdCategorie(), 'active' => true]);
+            $isBlocked = false;
+
+            if ($categoryExpenses > $category->getBudgetPrevu()) {
+                $budgetOverflowCategories[] = $category->getNomCategorie();
+                $isBlocked = true;
+            }
+
+            if ($categoryExpenses >= $category->getSeuilAlerte()) {
+                $thresholdCategories[] = $category->getNomCategorie();
+                $isBlocked = true;
+            }
+
+            if ($activeAlerts > 0) {
+                $alertCategories[] = $category->getNomCategorie();
+                $isBlocked = true;
+            }
+
+            if ($isBlocked) {
+                $blockedCategories[] = $category->getNomCategorie();
+            } else {
+                $safeCategories[] = $category->getNomCategorie();
+            }
+        }
+
+        $categoriesChecked = count($categories);
+        $safeCount = count($safeCategories);
+        $blockedCount = count(array_unique($blockedCategories));
+
+        return [
+            'isEligible' => $categoriesChecked > 0 && $blockedCount === 0,
+            'categoriesChecked' => $categoriesChecked,
+            'blockedCount' => $blockedCount,
+            'safeCount' => $safeCount,
+            'completionRate' => $categoriesChecked > 0 ? ($safeCount / $categoriesChecked) * 100 : 0.0,
+            'blockedCategories' => array_values(array_unique($blockedCategories)),
+            'alertCategories' => array_values(array_unique($alertCategories)),
+            'thresholdCategories' => array_values(array_unique($thresholdCategories)),
+            'budgetOverflowCategories' => array_values(array_unique($budgetOverflowCategories)),
+            'safeCategories' => array_values(array_unique($safeCategories)),
+        ];
+    }
+
+    /**
+     * @return User[]
      */
     public function getEligibleUsers(): array
     {
         $users = $this->userRepository->findBy([
-            'role'   => User::ROLE_CLIENT,
+            'role' => User::ROLE_CLIENT,
             'status' => User::STATUS_ACTIF,
         ]);
 
-        return array_filter($users, fn(User $user) => $this->isEligibleForReward($user));
+        return array_values(array_filter($users, fn (User $user): bool => $this->isEligibleForReward($user)));
     }
 }

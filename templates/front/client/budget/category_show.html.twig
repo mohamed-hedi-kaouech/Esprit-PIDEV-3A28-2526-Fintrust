@@ -14,7 +14,7 @@
       <div class="ft-budget-hero-panel">
         <span class="ft-budget-hero-panel-label">Performance</span>
         <strong>{{ usage|round(1) }}%</strong>
-        <span>{{ categorie.items|length }} item(s) • {{ categorie.alertes|filter(a => a.active)|length }} alerte(s)</span>
+        <span>{{ items|length }} item(s) • {{ activeAlerts|length }} alerte(s) • {{ statusLabel }}</span>
       </div>
     </section>
 
@@ -39,9 +39,22 @@
               <div class="ft-budget-progress-value {{ usage >= 100 ? 'is-danger' : (usage >= 80 ? 'is-warning' : '') }}" style="width: {{ usage > 100 ? 100 : usage }}%;"></div>
             </div>
             <div class="text-muted small">Seuil d alerte: {{ categorie.seuilAlerte|number_format(2, ',', ' ') }} TND</div>
+
+            <div class="row g-3 mt-2">
+              <div class="col-md-4">
+                <div class="ft-budget-metric-box"><span>Statut</span><strong>{{ statusLabel }}</strong></div>
+              </div>
+              <div class="col-md-4">
+                <div class="ft-budget-metric-box"><span>Moyenne / item</span><strong>{{ averageItemAmount|number_format(2, ',', ' ') }} TND</strong></div>
+              </div>
+              <div class="col-md-4">
+                <div class="ft-budget-metric-box"><span>Marge avant seuil</span><strong>{{ thresholdRemaining|number_format(2, ',', ' ') }} TND</strong></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
       <div class="col-lg-4">
         <div class="ft-app-card ft-premium-card h-100">
           <div class="ft-app-card-header">Actions</div>
@@ -61,18 +74,44 @@
                 <i class="bi bi-trash me-2"></i>Supprimer la categorie
               </button>
             </form>
+
+            {% if largestItem %}
+              <div class="mt-2 p-3 rounded-4 border bg-light">
+                <div class="small text-muted mb-1">Item le plus important</div>
+                <strong>{{ largestItem.libelle }}</strong>
+                <div class="small text-muted">{{ largestItem.montant|number_format(2, ',', ' ') }} TND</div>
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>
     </section>
 
+    {% if activeAlerts is not empty %}
+      <section class="ft-app-card ft-premium-card mb-4">
+        <div class="ft-app-card-header">Alertes actives</div>
+        <div class="ft-app-card-body">
+          <div class="row g-3">
+            {% for alert in activeAlerts %}
+              <div class="col-12 col-lg-6">
+                <div class="p-3 rounded-4 border border-danger-subtle bg-danger-subtle">
+                  <div class="fw-semibold text-danger mb-1">Vigilance budgetaire</div>
+                  <div class="small">{{ alert.message }}</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
     <section class="ft-app-card ft-premium-card">
       <div class="ft-app-card-header d-flex justify-content-between align-items-center">
         <span>Items de la categorie</span>
-        <span class="badge ft-badge-blue">{{ categorie.items|length }}</span>
+        <span class="badge ft-badge-blue">{{ items|length }}</span>
       </div>
       <div class="ft-app-card-body">
-        {% if categorie.items is empty %}
+        {% if items is empty %}
           <div class="text-center py-4">
             <p class="text-muted mb-3">Aucun item rattache a cette categorie pour le moment.</p>
             <a href="{{ path('front_budget_item_create', {'categorie': categorie.idCategorie}) }}" class="btn ft-btn-primary">Creer le premier item</a>
@@ -88,7 +127,7 @@
                 </tr>
               </thead>
               <tbody>
-                {% for item in categorie.items %}
+                {% for item in items %}
                   <tr>
                     <td>{{ item.libelle }}</td>
                     <td>{{ item.montant|number_format(2, ',', ' ') }} TND</td>

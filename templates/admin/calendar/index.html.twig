@@ -79,6 +79,279 @@
       padding: 1rem;
     }
 
+    .ft-calendar-todo-shell {
+      margin-top: 1.25rem;
+      border: 1px solid rgba(191, 219, 254, .95);
+      border-radius: 1.25rem;
+      background:
+        radial-gradient(circle at top right, rgba(14, 165, 233, .10), transparent 24%),
+        linear-gradient(135deg, #ffffff, #f8fbff);
+      box-shadow: 0 22px 44px rgba(15, 23, 42, .07);
+      padding: 1.15rem;
+    }
+
+    .ft-calendar-todo-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .ft-calendar-todo-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      color: #7c3aed;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      font-size: .72rem;
+      margin-bottom: .45rem;
+    }
+
+    .ft-calendar-todo-title {
+      color: #0f172a;
+      font-weight: 900;
+      margin: 0 0 .25rem;
+    }
+
+    .ft-calendar-todo-subtitle {
+      margin: 0;
+      color: #64748b;
+    }
+
+    .ft-calendar-energy {
+      min-width: 240px;
+      padding: .95rem 1rem;
+      border-radius: 1rem;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      color: #fff;
+      box-shadow: 0 18px 30px rgba(37, 99, 235, .18);
+    }
+
+    .ft-calendar-energy-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: .75rem;
+      font-size: .82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      opacity: .92;
+    }
+
+    .ft-calendar-energy strong {
+      display: block;
+      margin-top: .45rem;
+      font-size: 1.95rem;
+      line-height: 1;
+    }
+
+    .ft-calendar-energy-bar {
+      margin-top: .8rem;
+      height: .72rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.22);
+      overflow: hidden;
+    }
+
+    .ft-calendar-energy-bar > span {
+      display: block;
+      height: 100%;
+      width: 36%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #facc15, #f97316, #fb7185);
+      transition: width .25s ease;
+    }
+
+    .ft-calendar-todo-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
+      gap: 1rem;
+    }
+
+    .ft-calendar-todo-panel,
+    .ft-calendar-day-brief {
+      border: 1px solid rgba(191, 219, 254, .65);
+      border-radius: 1rem;
+      background: rgba(255,255,255,.9);
+      padding: 1rem;
+    }
+
+    .ft-calendar-day-brief {
+      background: linear-gradient(135deg, rgba(239, 246, 255, .9), rgba(255,255,255,.96));
+    }
+
+    .ft-calendar-day-brief h3,
+    .ft-calendar-todo-panel h3 {
+      margin: 0 0 .35rem;
+      color: #0f172a;
+      font-size: 1rem;
+      font-weight: 900;
+    }
+
+    .ft-calendar-day-brief p,
+    .ft-calendar-todo-panel p {
+      margin: 0;
+      color: #64748b;
+      font-size: .9rem;
+      line-height: 1.55;
+    }
+
+    .ft-calendar-day-brief-list {
+      display: grid;
+      gap: .8rem;
+      margin-top: 1rem;
+    }
+
+    .ft-calendar-brief-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: .75rem;
+      padding: .85rem .9rem;
+      border-radius: .95rem;
+      background: rgba(255,255,255,.95);
+      border: 1px solid rgba(191, 219, 254, .7);
+    }
+
+    .ft-calendar-brief-item strong {
+      display: block;
+      color: #0f172a;
+      font-size: .92rem;
+    }
+
+    .ft-calendar-brief-item span {
+      color: #64748b;
+      font-size: .8rem;
+    }
+
+    .ft-calendar-brief-pill {
+      border-radius: 999px;
+      padding: .32rem .7rem;
+      font-size: .75rem;
+      font-weight: 800;
+      background: #dbeafe;
+      color: #1d4ed8;
+      white-space: nowrap;
+    }
+
+    .ft-calendar-todo-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 130px auto;
+      gap: .75rem;
+      margin: 1rem 0;
+    }
+
+    .ft-calendar-todo-input,
+    .ft-calendar-todo-select {
+      border-radius: .95rem;
+      border: 1px solid rgba(191, 219, 254, .95);
+      background: #fff;
+      min-height: 48px;
+      padding: .8rem .95rem;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .ft-calendar-todo-btn {
+      border: 0;
+      border-radius: .95rem;
+      min-height: 48px;
+      padding: .8rem 1rem;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      box-shadow: 0 16px 28px rgba(37, 99, 235, .18);
+    }
+
+    .ft-calendar-todo-list {
+      display: grid;
+      gap: .75rem;
+      margin-top: .8rem;
+    }
+
+    .ft-calendar-todo-item {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: .8rem;
+      align-items: center;
+      padding: .9rem;
+      border-radius: 1rem;
+      background: #fff;
+      border: 1px solid rgba(191, 219, 254, .75);
+      box-shadow: 0 14px 26px rgba(15, 23, 42, .05);
+    }
+
+    .ft-calendar-todo-item.is-done {
+      opacity: .72;
+      background: linear-gradient(135deg, rgba(236,253,245,.85), rgba(255,255,255,.96));
+    }
+
+    .ft-calendar-todo-check {
+      width: 1.15rem;
+      height: 1.15rem;
+      accent-color: #2563eb;
+    }
+
+    .ft-calendar-todo-copy strong {
+      display: block;
+      color: #0f172a;
+      font-size: .95rem;
+      font-weight: 800;
+    }
+
+    .ft-calendar-todo-copy span {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      margin-top: .35rem;
+      color: #64748b;
+      font-size: .8rem;
+      flex-wrap: wrap;
+    }
+
+    .ft-calendar-priority {
+      display: inline-flex;
+      align-items: center;
+      padding: .22rem .55rem;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 800;
+    }
+
+    .ft-calendar-priority.low { background: rgba(34, 197, 94, .14); color: #15803d; }
+    .ft-calendar-priority.medium { background: rgba(245, 158, 11, .16); color: #b45309; }
+    .ft-calendar-priority.high { background: rgba(239, 68, 68, .14); color: #b91c1c; }
+
+    .ft-calendar-todo-remove {
+      width: 2.3rem;
+      height: 2.3rem;
+      border: 0;
+      border-radius: .8rem;
+      background: #f8fafc;
+      color: #ef4444;
+      font-size: 1rem;
+      transition: all .2s ease;
+    }
+
+    .ft-calendar-todo-remove:hover {
+      background: #fee2e2;
+      transform: translateY(-1px);
+    }
+
+    .ft-calendar-todo-empty {
+      padding: 1rem;
+      border: 1px dashed rgba(191, 219, 254, .95);
+      border-radius: 1rem;
+      text-align: center;
+      color: #64748b;
+      background: rgba(248, 250, 252, .85);
+      font-weight: 600;
+    }
+
     #calendar-holder {
       min-height: 720px;
     }
@@ -134,6 +407,16 @@
     }
 
     @media (max-width: 767.98px) {
+      .ft-calendar-todo-head,
+      .ft-calendar-todo-grid {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .ft-calendar-todo-form {
+        grid-template-columns: 1fr;
+      }
+
       #calendar-holder {
         min-height: 620px;
       }
@@ -172,6 +455,71 @@
   <section class="ft-calendar-shell">
     <div id="calendar-holder" data-events-url="{{ path('fc_load_events') }}"></div>
   </section>
+
+  <section class="ft-calendar-todo-shell">
+    <div class="ft-calendar-todo-head">
+      <div>
+        <span class="ft-calendar-todo-kicker"><i class="bi bi-lightning-charge-fill"></i> To do dynamique</span>
+        <h2 class="ft-calendar-todo-title">Tableau d action relie au calendrier</h2>
+        <p class="ft-calendar-todo-subtitle">Selectionnez une date pour afficher l energie du jour, les evenements relies et vos taches admin.</p>
+      </div>
+      <div class="ft-calendar-energy">
+        <div class="ft-calendar-energy-top">
+          <span>Energie du jour</span>
+          <span id="todoEnergyLabel">Focus moyen</span>
+        </div>
+        <strong id="todoEnergyValue">46%</strong>
+        <div class="ft-calendar-energy-bar"><span id="todoEnergyBar"></span></div>
+      </div>
+    </div>
+
+    <div class="ft-calendar-todo-grid">
+      <aside class="ft-calendar-day-brief">
+        <h3 id="todoSelectedDateTitle">Aujourd hui</h3>
+        <p id="todoSelectedDateHint">Cliquez sur un jour du calendrier pour synchroniser les taches.</p>
+        <div class="ft-calendar-day-brief-list">
+          <div class="ft-calendar-brief-item">
+            <div>
+              <strong>Evenements du jour</strong>
+              <span>Elements remontes par FullCalendar</span>
+            </div>
+            <span class="ft-calendar-brief-pill" id="todoEventCount">0</span>
+          </div>
+          <div class="ft-calendar-brief-item">
+            <div>
+              <strong>Taches completees</strong>
+              <span>Progression du planning admin</span>
+            </div>
+            <span class="ft-calendar-brief-pill" id="todoDoneCount">0</span>
+          </div>
+          <div class="ft-calendar-brief-item">
+            <div>
+              <strong>Taches restantes</strong>
+              <span>Actions a mener avant cloture</span>
+            </div>
+            <span class="ft-calendar-brief-pill" id="todoPendingCount">0</span>
+          </div>
+        </div>
+      </aside>
+
+      <div class="ft-calendar-todo-panel">
+        <h3>To do list admin</h3>
+        <p>Ajoutez des taches manuelles et combinez-les avec les evenements du calendrier pour construire votre plan de journee.</p>
+
+        <form class="ft-calendar-todo-form" id="calendarTodoForm">
+          <input type="text" id="calendarTodoInput" class="ft-calendar-todo-input" placeholder="Ex: relancer les KYC en attente de cette date">
+          <select id="calendarTodoPriority" class="ft-calendar-todo-select">
+            <option value="medium">Priorite moyenne</option>
+            <option value="high">Priorite haute</option>
+            <option value="low">Priorite basse</option>
+          </select>
+          <button type="submit" class="ft-calendar-todo-btn">Ajouter</button>
+        </form>
+
+        <div class="ft-calendar-todo-list" id="calendarTodoList"></div>
+      </div>
+    </div>
+  </section>
 {% endblock %}
 
 {% block javascripts %}
@@ -180,9 +528,161 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const calendarEl = document.getElementById('calendar-holder');
+      const todoStorageKey = 'ft-admin-calendar-todos';
+      const todoListEl = document.getElementById('calendarTodoList');
+      const todoForm = document.getElementById('calendarTodoForm');
+      const todoInput = document.getElementById('calendarTodoInput');
+      const todoPriority = document.getElementById('calendarTodoPriority');
+      const todoSelectedDateTitle = document.getElementById('todoSelectedDateTitle');
+      const todoSelectedDateHint = document.getElementById('todoSelectedDateHint');
+      const todoEventCount = document.getElementById('todoEventCount');
+      const todoDoneCount = document.getElementById('todoDoneCount');
+      const todoPendingCount = document.getElementById('todoPendingCount');
+      const todoEnergyValue = document.getElementById('todoEnergyValue');
+      const todoEnergyLabel = document.getElementById('todoEnergyLabel');
+      const todoEnergyBar = document.getElementById('todoEnergyBar');
+      let selectedDate = new Date().toISOString().slice(0, 10);
+      let loadedEvents = [];
+
       if (!calendarEl || typeof FullCalendar === 'undefined') {
         return;
       }
+
+      const readTodos = () => {
+        try {
+          return JSON.parse(localStorage.getItem(todoStorageKey) || '{}');
+        } catch (error) {
+          return {};
+        }
+      };
+
+      const writeTodos = (payload) => {
+        localStorage.setItem(todoStorageKey, JSON.stringify(payload));
+      };
+
+      const getDateLabel = (dateString) => {
+        const date = new Date(dateString + 'T08:00:00');
+        return new Intl.DateTimeFormat('fr-FR', {
+          weekday: 'long',
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric'
+        }).format(date);
+      };
+
+      const getEventTodosForDate = (dateString) => {
+        return loadedEvents
+          .filter((event) => (event.start || '').slice(0, 10) === dateString)
+          .map((event, index) => ({
+            id: `event-${dateString}-${index}`,
+            text: event.title || 'Evenement admin',
+            priority: event.extendedProps?.priority === 'high' ? 'high' : 'medium',
+            done: false,
+            readonly: true,
+            meta: event.extendedProps?.type || 'Calendrier'
+          }));
+      };
+
+      const renderTodos = () => {
+        const todoState = readTodos();
+        const customTodos = todoState[selectedDate] || [];
+        const eventTodos = getEventTodosForDate(selectedDate);
+        const todos = [...eventTodos, ...customTodos];
+        const doneCount = todos.filter((item) => item.done).length;
+        const pendingCount = todos.length - doneCount;
+        const eventCount = eventTodos.length;
+        const energy = todos.length === 0 ? 28 : Math.max(18, Math.min(100, Math.round((doneCount / todos.length) * 100 + (eventCount * 6))));
+
+        todoSelectedDateTitle.textContent = getDateLabel(selectedDate);
+        todoSelectedDateHint.textContent = eventCount > 0
+          ? `${eventCount} evenement(s) detecte(s) sur cette date.`
+          : 'Aucun evenement remonte pour cette date. Ajoutez vos actions admin manuellement.';
+        todoEventCount.textContent = String(eventCount);
+        todoDoneCount.textContent = String(doneCount);
+        todoPendingCount.textContent = String(pendingCount);
+        todoEnergyValue.textContent = `${energy}%`;
+        todoEnergyBar.style.width = `${energy}%`;
+        todoEnergyLabel.textContent = energy >= 80 ? 'Journee tres dynamique' : (energy >= 50 ? 'Focus bien lance' : 'Charge moderee');
+
+        if (todos.length === 0) {
+          todoListEl.innerHTML = '<div class="ft-calendar-todo-empty">Aucune tache pour cette date. Commencez par ajouter une action admin.</div>';
+          return;
+        }
+
+        todoListEl.innerHTML = todos.map((todo) => `
+          <div class="ft-calendar-todo-item ${todo.done ? 'is-done' : ''}" data-todo-id="${todo.id}" data-readonly="${todo.readonly ? '1' : '0'}">
+            <input type="checkbox" class="ft-calendar-todo-check" ${todo.done ? 'checked' : ''} ${todo.readonly ? 'disabled' : ''}>
+            <div class="ft-calendar-todo-copy">
+              <strong>${todo.text}</strong>
+              <span>
+                <em class="ft-calendar-priority ${todo.priority}">${todo.priority === 'high' ? 'Priorite haute' : (todo.priority === 'low' ? 'Priorite basse' : 'Priorite moyenne')}</em>
+                <small>${todo.meta || 'Action manuelle'}</small>
+              </span>
+            </div>
+            ${todo.readonly ? '<span class="ft-calendar-brief-pill">Auto</span>' : '<button type="button" class="ft-calendar-todo-remove" aria-label="Supprimer"><i class="bi bi-trash3"></i></button>'}
+          </div>
+        `).join('');
+      };
+
+      const updateTodoItem = (todoId, changes) => {
+        const todoState = readTodos();
+        const current = todoState[selectedDate] || [];
+        todoState[selectedDate] = current.map((todo) => todo.id === todoId ? { ...todo, ...changes } : todo);
+        writeTodos(todoState);
+        renderTodos();
+      };
+
+      const removeTodoItem = (todoId) => {
+        const todoState = readTodos();
+        todoState[selectedDate] = (todoState[selectedDate] || []).filter((todo) => todo.id !== todoId);
+        writeTodos(todoState);
+        renderTodos();
+      };
+
+      todoForm?.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const text = (todoInput?.value || '').trim();
+        if (!text) {
+          return;
+        }
+
+        const todoState = readTodos();
+        const current = todoState[selectedDate] || [];
+        current.unshift({
+          id: `${Date.now()}`,
+          text,
+          priority: todoPriority?.value || 'medium',
+          done: false,
+          readonly: false,
+          meta: 'Action admin'
+        });
+        todoState[selectedDate] = current;
+        writeTodos(todoState);
+        todoForm.reset();
+        renderTodos();
+      });
+
+      todoListEl?.addEventListener('click', function (event) {
+        const target = event.target;
+        const card = target.closest('[data-todo-id]');
+        if (!card) {
+          return;
+        }
+
+        if (target.closest('.ft-calendar-todo-remove')) {
+          removeTodoItem(card.dataset.todoId);
+        }
+      });
+
+      todoListEl?.addEventListener('change', function (event) {
+        const target = event.target;
+        const card = target.closest('[data-todo-id]');
+        if (!card || card.dataset.readonly === '1' || !target.classList.contains('ft-calendar-todo-check')) {
+          return;
+        }
+
+        updateTodoItem(card.dataset.todoId, { done: target.checked });
+      });
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -199,6 +699,10 @@
             method: 'POST',
             extraParams: {
               filters: JSON.stringify({ 'calendar-id': 'admin-calendar' })
+            },
+            success: function (content) {
+              loadedEvents = Array.isArray(content) ? content : [];
+              renderTodos();
             },
             failure: function () {
               calendarEl.insertAdjacentHTML('beforebegin', '<div class="alert alert-warning mb-3">Impossible de charger les evenements du calendrier.</div>');
@@ -218,10 +722,16 @@
           list: 'Liste'
         },
         eventClick: function (info) {
+          selectedDate = (info.event.startStr || '').slice(0, 10) || selectedDate;
+          renderTodos();
           if (info.event.url) {
             info.jsEvent.preventDefault();
             window.location.href = info.event.url;
           }
+        },
+        dateClick: function (info) {
+          selectedDate = info.dateStr;
+          renderTodos();
         },
         eventDidMount: function (info) {
           const description = info.event.extendedProps.description || '';
@@ -232,6 +742,7 @@
       });
 
       calendar.render();
+      renderTodos();
     });
   </script>
 {% endblock %}

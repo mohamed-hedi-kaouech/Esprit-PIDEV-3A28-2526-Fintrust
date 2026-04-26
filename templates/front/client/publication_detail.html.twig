@@ -217,19 +217,22 @@
               </div>
 
               {% if commentNotice %}
-                <div class="alert alert-{{ commentNotice.type == 'danger' ? 'danger' : 'warning' }} ft-feedback-card__alert" role="alert">
+                <div class="alert alert-{{ commentNotice.type == 'danger' ? 'danger' : 'warning' }} ft-feedback-card__alert" role="alert" data-ft-comment-notice>
                   <i class="bi {{ commentNotice.type == 'danger' ? 'bi-shield-exclamation' : 'bi-exclamation-triangle' }} me-2"></i>
                   {{ commentNotice.message }}
                 </div>
+              {% else %}
+                <div class="alert alert-danger ft-feedback-card__alert d-none" role="alert" data-ft-comment-notice></div>
               {% endif %}
 
-              {{ form_start(commentForm, {attr: {novalidate: 'novalidate'}}) }}
+              {{ form_start(commentForm, {attr: {novalidate: 'novalidate', 'data-ft-comment-form': 'true'}}) }}
                 <div class="mb-3">
                   {{ form_label(commentForm.commentaire, null, {label_attr: {class: 'form-label fw-semibold small'}}) }}
-                  {{ form_widget(commentForm.commentaire, {attr: {class: 'form-control ft-input ft-feedback-card__textarea', rows: 5, placeholder: 'Partagez votre avis, votre experience ou votre suggestion'}}) }}
+                  {{ form_widget(commentForm.commentaire, {attr: {class: 'form-control ft-input ft-feedback-card__textarea', rows: 5, placeholder: 'Partagez votre avis, votre experience ou votre suggestion', 'data-ft-comment-textarea': 'true'}}) }}
                   {% if commentForm.commentaire.vars.errors|length > 0 %}
                     <div class="text-danger small mt-1">{{ form_errors(commentForm.commentaire) }}</div>
                   {% endif %}
+                  <div class="small mt-2 d-none" data-ft-comment-helper></div>
                 </div>
 
                 <div class="mb-4">
@@ -254,7 +257,7 @@
                   {% endif %}
                 </div>
 
-                <button type="submit" class="btn ft-btn-primary w-100">
+                <button type="submit" class="btn ft-btn-primary w-100" data-ft-comment-submit>
                   <i class="bi bi-send-fill me-2"></i>Envoyer mon avis
                 </button>
               {{ form_end(commentForm) }}
@@ -882,4 +885,105 @@
   }
 }
 </style>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    (() => {
+      const form = document.querySelector('[data-ft-comment-form]');
+      if (!form) {
+        return;
+      }
+
+      const textarea = form.querySelector('[data-ft-comment-textarea]');
+      const submitButton = form.querySelector('[data-ft-comment-submit]');
+      const helper = form.querySelector('[data-ft-comment-helper]');
+      const notice = document.querySelector('[data-ft-comment-notice]');
+      let moderationTimer = null;
+      let lastDecision = 'accept';
+
+      if (!textarea || !submitButton || !helper || !notice) {
+        return;
+      }
+
+      const setBlockedState = (blocked, message = '') => {
+        submitButton.disabled = blocked;
+        helper.classList.toggle('d-none', message === '');
+        helper.classList.toggle('text-danger', blocked);
+        helper.classList.toggle('text-muted', !blocked && message !== '');
+        helper.textContent = message;
+
+        if (blocked && message !== '') {
+          notice.classList.remove('d-none', 'alert-warning');
+          notice.classList.add('alert-danger');
+          notice.innerHTML = `<i class="bi bi-shield-exclamation me-2"></i>${message}`;
+        } else if (!blocked && notice.dataset.serverNotice !== 'true') {
+          notice.classList.add('d-none');
+          notice.innerHTML = '';
+        }
+      };
+
+      if (!notice.classList.contains('d-none') && notice.textContent.trim() !== '') {
+        notice.dataset.serverNotice = 'true';
+      }
+
+      const analyze = async () => {
+        const text = textarea.value.trim();
+
+        if (text.length < 2) {
+          lastDecision = 'accept';
+          setBlockedState(false, '');
+          return;
+        }
+
+        try {
+          const response = await fetch('{{ path('api_comment_moderation_analyze') }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ text })
+          });
+
+          if (!response.ok) {
+            lastDecision = 'accept';
+            setBlockedState(false, 'Moderation automatique temporairement indisponible.');
+            return;
+          }
+
+          const result = await response.json();
+          lastDecision = result.decision || 'accept';
+
+          if (lastDecision !== 'accept') {
+            setBlockedState(true, 'Commentaire bloque: insultes, violence ou langage inapproprie detectes.');
+            return;
+          }
+
+          setBlockedState(false, 'Commentaire acceptable.');
+        } catch (error) {
+          lastDecision = 'accept';
+          setBlockedState(false, 'Moderation automatique temporairement indisponible.');
+        }
+      };
+
+      textarea.addEventListener('input', () => {
+        window.clearTimeout(moderationTimer);
+        moderationTimer = window.setTimeout(analyze, 350);
+      });
+
+      textarea.addEventListener('blur', () => {
+        window.clearTimeout(moderationTimer);
+        analyze();
+      });
+
+      form.addEventListener('submit', async (event) => {
+        await analyze();
+        if (lastDecision !== 'accept') {
+          event.preventDefault();
+        }
+      });
+    })();
+  </script>
 {% endblock %}

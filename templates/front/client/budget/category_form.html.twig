@@ -214,6 +214,54 @@
       margin-top: 2rem;
     }
 
+    .ft-category-preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.9rem;
+      margin-top: 1.4rem;
+    }
+
+    .ft-category-preset-card {
+      border: 1px solid rgba(191, 219, 254, 0.95);
+      border-radius: 1.25rem;
+      background: #fff;
+      padding: 1rem;
+    }
+
+    .ft-category-preset-card.is-selected {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .ft-category-preset-top {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .ft-category-preset-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .ft-category-preset-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.8rem;
+      color: #64748b;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin: 0.8rem 0;
+    }
+
     .ft-category-form-submit {
       min-width: 15rem;
     }
@@ -323,6 +371,33 @@
               </div>
             </div>
           </div>
+
+          {% if not is_edit and categoryPresets is not empty %}
+            <div class="mt-4">
+              <label class="ft-category-form-label">Modeles conseilles</label>
+              <p class="ft-category-form-help mb-0">Choisissez une base logique puis adaptez-la a votre budget reel.</p>
+              <div class="ft-category-preset-grid">
+                {% for preset in categoryPresets %}
+                  <article class="ft-category-preset-card {{ selectedPreset and selectedPreset.slug == preset.slug ? 'is-selected' : '' }}">
+                    <div class="ft-category-preset-top">
+                      <span class="ft-category-preset-icon"><i class="bi {{ preset.icon }}"></i></span>
+                      <div>
+                        <strong>{{ preset.name }}</strong>
+                        <div class="text-muted small">{{ preset.description }}</div>
+                      </div>
+                    </div>
+                    <div class="ft-category-preset-meta">
+                      <span>Budget {{ preset.budget|number_format(0, ',', ' ') }} TND</span>
+                      <span>Seuil {{ preset.threshold|number_format(0, ',', ' ') }} TND</span>
+                    </div>
+                    <a href="{{ path('front_budget_category_create', {preset: preset.slug}) }}" class="btn ft-btn-outline-primary btn-sm w-100">
+                      <i class="bi bi-arrow-repeat me-2"></i>Utiliser ce modele
+                    </a>
+                  </article>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
 
           <div class="ft-category-form-actions">
             <button type="submit" class="btn ft-btn-primary ft-category-form-submit">

@@ -13,7 +13,8 @@
 
     .ft-budget-list-toolbar,
     .ft-budget-list-hero,
-    .ft-budget-category-card {
+    .ft-budget-category-card,
+    .ft-budget-suggestion-card {
       border-radius: 24px;
       border: 1px solid #e2e8f0;
       box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
@@ -46,9 +47,46 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .ft-budget-category-card:hover {
+    .ft-budget-category-card:hover,
+    .ft-budget-suggestion-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 24px 56px rgba(15, 23, 42, 0.12);
+    }
+
+    .ft-budget-suggestions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .ft-budget-suggestion-card {
+      padding: 1rem 1.05rem;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.92));
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ft-budget-suggestion-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      color: #fff;
+      font-size: 1.15rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .ft-budget-suggestion-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.8rem;
+      color: #64748b;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin: 0.8rem 0 1rem;
     }
 
     .ft-budget-card-status {
@@ -200,6 +238,47 @@
         </form>
       </div>
     </section>
+
+    {% if suggestedCategories is not empty %}
+      <section class="mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <div>
+            <h2 class="h5 mb-1">Categories conseillees</h2>
+            <p class="text-muted mb-0">Des bases logiques pour demarrer votre budget plus vite.</p>
+          </div>
+          <a href="{{ path('front_budget_category_create') }}" class="btn ft-btn-outline-primary btn-sm">
+            <i class="bi bi-sliders me-2"></i>Creation manuelle
+          </a>
+        </div>
+
+        <div class="ft-budget-suggestions-grid">
+          {% for preset in suggestedCategories %}
+            <article class="ft-budget-suggestion-card">
+              <div class="ft-budget-suggestion-icon">
+                <i class="bi {{ preset.icon }}"></i>
+              </div>
+              <h3 class="h6 mb-1">{{ preset.name }}</h3>
+              <p class="text-muted small mb-0">{{ preset.description }}</p>
+              <div class="ft-budget-suggestion-meta">
+                <span>Budget {{ preset.budget|number_format(0, ',', ' ') }} TND</span>
+                <span>Seuil {{ preset.threshold|number_format(0, ',', ' ') }} TND</span>
+              </div>
+              <div class="d-flex gap-2 flex-wrap">
+                <form method="post" action="{{ path('front_budget_category_create_preset', {slug: preset.slug}) }}">
+                  <input type="hidden" name="_token" value="{{ csrf_token('front_budget_create_preset_' ~ preset.slug) }}">
+                  <button type="submit" class="btn ft-btn-primary btn-sm">
+                    <i class="bi bi-plus-circle me-2"></i>Ajouter
+                  </button>
+                </form>
+                <a href="{{ path('front_budget_category_create', {preset: preset.slug}) }}" class="btn ft-btn-outline-primary btn-sm">
+                  <i class="bi bi-pencil-square me-2"></i>Personnaliser
+                </a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
 
     {% if categories is empty %}
       <section class="ft-app-card ft-premium-card">

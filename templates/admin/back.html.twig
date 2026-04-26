@@ -148,7 +148,8 @@
           <span id="adminNotificationBadge" class="badge bg-danger ms-auto d-none">0</span>
         </a>
 
-        <a href="{{ path('admin_dashboard') }}#admin-loan" class="ft-sidebar-link">
+        <a href="{{ path('admin_loan_dashboard') }}"
+           class="ft-sidebar-link {% if 'admin_loan_' in app.request.attributes.get('_route') %}active{% endif %}">
           <i class="bi bi-bank"></i>
           <span>Gestion des prets</span>
         </a>
@@ -225,6 +226,13 @@
           <a href="{{ path('app') }}" class="btn btn-sm ft-btn-outline-primary" target="_blank">
             <i class="bi bi-eye me-1"></i>Voir le site
           </a>
+          <button type="button" class="btn btn-sm ft-topbar-icon-btn position-relative" aria-label="Notifications admin">
+            <i class="bi bi-bell"></i>
+            <span class="ft-topbar-icon-badge">3</span>
+          </button>
+          <button type="button" class="btn btn-sm ft-topbar-icon-btn" aria-label="Acces rapide">
+            <i class="bi bi-chevron-right"></i>
+          </button>
         </div>
       </header>
 

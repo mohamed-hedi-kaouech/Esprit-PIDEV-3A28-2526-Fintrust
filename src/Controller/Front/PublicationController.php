@@ -6,10 +6,12 @@ use App\Entity\Publication\Publication;
 use App\Entity\User\Feedback;
 use App\Entity\User\User;
 use App\Repository\PublicationRepository;
+use App\Service\CommentModerationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,6 +24,7 @@ class PublicationController extends AbstractController
     public function __construct(
         private readonly PublicationRepository $publicationRepository,
         private readonly EntityManagerInterface $entityManager,
+        private readonly CommentModerationService $commentModerationService,
     ) {
     }
 
@@ -80,21 +83,34 @@ class PublicationController extends AbstractController
 
         if ($commentForm->isSubmitted() && $commentForm->isValid()) {
             $data = $commentForm->getData();
+            $commentText = trim((string) ($data['commentaire'] ?? ''));
+            $analysis = $this->commentModerationService->handleDecision(
+                $commentText,
+                $user,
+                'Publication #' . $publication->getId()
+            );
 
-            $feedback = new Feedback();
-            $feedback->setPublication($publication);
-            $feedback->setUser($user);
-            $feedback->setIdUser($user->getId());
-            $feedback->setCommentaire(trim((string) ($data['commentaire'] ?? '')));
-            $feedback->setTypeReaction('RATING_' . (int) ($data['rating'] ?? 5));
-            $feedback->setDateFeedback(new \DateTimeImmutable());
+            if ($analysis['decision'] !== 'accept') {
+                $commentForm->get('commentaire')->addError(new FormError(
+                    'Votre commentaire contient un langage insultant, violent ou inapproprie.'
+                ));
+                $commentNotice = $this->buildCommentNotice($analysis);
+            } else {
+                $feedback = new Feedback();
+                $feedback->setPublication($publication);
+                $feedback->setUser($user);
+                $feedback->setIdUser($user->getId());
+                $feedback->setCommentaire($commentText);
+                $feedback->setTypeReaction('RATING_' . (int) ($data['rating'] ?? 5));
+                $feedback->setDateFeedback(new \DateTimeImmutable());
 
-            $this->entityManager->persist($feedback);
-            $this->entityManager->flush();
+                $this->entityManager->persist($feedback);
+                $this->entityManager->flush();
 
-            $this->addFlash('success', 'Votre avis a ete ajoute avec succes.');
+                $this->addFlash('success', 'Votre avis a ete ajoute avec succes.');
 
-            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+                return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+            }
         }
 
         $comments = $publication->getFeedbacks()->toArray();
@@ -168,7 +184,20 @@ class PublicationController extends AbstractController
             return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
         }
 
-        $feedback->setCommentaire(trim((string) $request->request->get('commentaire', '')));
+        $commentText = trim((string) $request->request->get('commentaire', ''));
+        $analysis = $this->commentModerationService->handleDecision(
+            $commentText,
+            $user,
+            'Edition commentaire publication #' . $publication->getId()
+        );
+
+        if ($analysis['decision'] !== 'accept') {
+            $this->addFlash('error', 'Commentaire bloque: langage insultant, violent ou inapproprie detecte.');
+
+            return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+        }
+
+        $feedback->setCommentaire($commentText);
         $feedback->setTypeReaction('RATING_' . max(1, min(5, (int) $request->request->get('rating', 5))));
         $feedback->setDateFeedback(new \DateTimeImmutable());
         $this->entityManager->flush();
@@ -204,5 +233,25 @@ class PublicationController extends AbstractController
         $this->addFlash('success', 'Votre commentaire a ete supprime.');
 
         return $this->redirectToRoute('front_publications_view', ['id' => $publication->getId()]);
+    }
+
+    /**
+     * @param array{decision:string,message:string,severity:string} $analysis
+     *
+     * @return array{type:string,message:string}
+     */
+    private function buildCommentNotice(array $analysis): array
+    {
+        if ($analysis['decision'] === 'reject' || $analysis['severity'] === 'high') {
+            return [
+                'type' => 'danger',
+                'message' => 'Commentaire refuse: les insultes, menaces, propos haineux ou violents ne sont pas acceptes.',
+            ];
+        }
+
+        return [
+            'type' => 'warning',
+            'message' => 'Commentaire bloque: le langage injurieux ou agressif n est pas autorise sur la plateforme.',
+        ];
     }
 }

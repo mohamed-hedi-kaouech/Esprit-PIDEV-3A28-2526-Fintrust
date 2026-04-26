@@ -3,6 +3,7 @@
 
 parameters:
     env(FINTRUST_PUBLIC_URL): ''
+    env(TEST_USER_EMAIL): ''
     env(OPENAI_API_KEY): ''
     env(OPENAI_MODERATION_MODEL): 'omni-moderation-latest'
     env(OPENAI_MODEL): 'gpt-4o-mini'
@@ -58,6 +59,8 @@ services:
             string $yousignWebhookSecret: '%env(string:YOUSIGN_WEBHOOK_SECRET)%'
             string $appUrl: '%env(string:APP_URL)%'
             string $apiKey: '%env(string:DOCRAPTOR_API_KEY)%'
+            string $docraptorApiKey: '%env(string:DOCRAPTOR_API_KEY)%'
+            string $testUserEmail: '%env(string:TEST_USER_EMAIL)%'
             bool $testMode: false
 
     App\:

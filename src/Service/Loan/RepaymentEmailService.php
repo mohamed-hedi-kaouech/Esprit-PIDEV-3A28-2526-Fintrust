@@ -11,12 +11,12 @@ use Symfony\Component\Mime\Address;
 class RepaymentEmailService
 {
     private MailerInterface $mailer;
-    private string $fromEmail;
+    private string $testUserEmail;
 
-    public function __construct(MailerInterface $mailer, string $fromEmail = 'noreply@fintrust.tn')
+    public function __construct(MailerInterface $mailer, string $testUserEmail)
     {
         $this->mailer = $mailer;
-        $this->fromEmail = $fromEmail;
+        $this->testUserEmail = $testUserEmail;
     }
 
     /**
@@ -25,7 +25,7 @@ class RepaymentEmailService
     public function sendPaymentConfirmation(Repayment $repayment, Loan $loan, string $userEmail): void
     {
         $email = (new TemplatedEmail())
-            ->from(new Address($this->fromEmail, 'FinTrust'))
+            ->from(new Address($this->testUserEmail, 'FinTrust'))
             ->to($userEmail)
             ->subject('Confirmation de paiement - Prêt #' . $loan->getLoanId())
             ->htmlTemplate('html/Loan/User/repayment_confirmation.html.twig')

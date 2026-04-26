@@ -3,21 +3,22 @@
 {% block title %}Liste des Items{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-5">
+<div class="container-fluid mt-4 ft-admin-items-page">
+    <section class="ft-items-hero mb-4">
         <div>
-            <h1 class="h2 fw-bold text-dark mb-2">Gestion des Items</h1>
-            <p class="text-muted">Créez et gérez vos articles budgétaires</p>
+            <span class="ft-items-kicker">Budget admin</span>
+            <h1>Gestion des Items</h1>
+            <p>Créez et gérez vos articles budgétaires avec une vue claire, moderne et cohérente avec le thème FinTrust.</p>
         </div>
-        <div>
-            <a href="{{ path('admin_item_create') }}" class="btn btn-primary btn-lg me-2">
+        <div class="ft-items-hero-actions">
+            <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
                 <i class="fas fa-plus me-2"></i>Nouvel Item
             </a>
-            <a href="{{ path('admin_item_export') ~ '?' ~ app.request.queryString }}" class="btn btn-success btn-lg">
+            <a href="{{ path('admin_item_export') ~ '?' ~ app.request.queryString }}" class="btn ft-btn-outline-primary">
                 <i class="fas fa-file-pdf me-2"></i>Exporter PDF
             </a>
         </div>
-    </div>
+    </section>
 
     {% for message in app.flashes('success') %}
         <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
@@ -26,113 +27,309 @@
         </div>
     {% endfor %}
 
-    <!-- Filtre -->
-    <div class="card shadow-lg mb-4 border-0" style="border-radius: 12px;">
-        <div class="card-header bg-secondary text-white" style="border-radius: 12px 12px 0 0; padding: 1.5rem;">
-            <h5 class="m-0"><i class="fas fa-filter me-2"></i>Filtres et recherche</h5>
+    <section class="ft-items-filter-card mb-4">
+        <div class="ft-items-filter-head">
+            <h2><i class="fas fa-filter me-2"></i>Filtres et recherche</h2>
         </div>
-        <div class="card-body">
+        <div class="ft-items-filter-body">
             <form method="GET">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="search" class="form-label">Recherche par libellé</label>
-                        <input type="text" class="form-control" id="search" name="search" 
+                        <label for="search" class="form-label fw-semibold">Recherche par libellé</label>
+                        <input type="text" class="form-control" id="search" name="search"
                                value="{{ search }}" placeholder="Entrez un libellé...">
                     </div>
                     <div class="col-md-6">
-                        <label for="categorie" class="form-label">Catégorie</label>
-                        <select class="form-control" id="categorie" name="categorie">
+                        <label for="categorie" class="form-label fw-semibold">Catégorie</label>
+                        <select class="form-select" id="categorie" name="categorie">
                             <option value="">Toutes les catégories</option>
                             {% for categorie in categories %}
-                            <option value="{{ categorie.idCategorie }}" 
-                                    {% if categorieId == categorie.idCategorie %}selected{% endif %}>
-                                {{ categorie.nomCategorie }}
-                            </option>
+                                <option value="{{ categorie.idCategorie }}"
+                                        {% if categorieId == categorie.idCategorie %}selected{% endif %}>
+                                    {{ categorie.nomCategorie }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
-                </div>
-                <div class="row g-3 mt-2">
                     <div class="col-md-3">
-                        <label for="min_amount" class="form-label">Montant min</label>
-                        <input type="number" step="0.01" class="form-control" id="min_amount" 
+                        <label for="min_amount" class="form-label fw-semibold">Montant min</label>
+                        <input type="number" step="0.01" class="form-control" id="min_amount"
                                name="min_amount" value="{{ minAmount }}" placeholder="0.00">
                     </div>
                     <div class="col-md-3">
-                        <label for="max_amount" class="form-label">Montant max</label>
-                        <input type="number" step="0.01" class="form-control" id="max_amount" 
+                        <label for="max_amount" class="form-label fw-semibold">Montant max</label>
+                        <input type="number" step="0.01" class="form-control" id="max_amount"
                                name="max_amount" value="{{ maxAmount }}" placeholder="0.00">
                     </div>
-                    <div class="col-md-6 d-flex align-items-end gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Rechercher
+                    <div class="col-md-6 d-flex align-items-end gap-2 flex-wrap">
+                        <button type="submit" class="btn ft-btn-primary">
+                            <i class="fas fa-search me-2"></i>Rechercher
                         </button>
-                        <a href="{{ path('admin_item_list') }}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Réinitialiser
+                        <a href="{{ path('admin_item_list') }}" class="btn ft-btn-outline-primary">
+                            <i class="fas fa-rotate-left me-2"></i>Réinitialiser
                         </a>
                     </div>
                 </div>
             </form>
         </div>
-    </div>
+    </section>
 
     {% if groupedItems|length > 0 %}
-    {% for categoryName, categoryItems in groupedItems %}
-    <div class="card shadow-lg mb-4 border-0" style="border-radius: 12px;">
-        <div class="card-header bg-info text-white" style="border-radius: 12px 12px 0 0; padding: 1.5rem;">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="m-0"><i class="fas fa-folder me-2"></i>{{ categoryName }}</h5>
-                <span class="badge bg-light text-info">{{ categoryItems|length }} item(s)</span>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Libellé</th>
-                            <th>Montant</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in categoryItems %}
-                        <tr>
-                            <td>{{ item.idItem }}</td>
-                            <td>{{ item.libelle }}</td>
-                            <td>{{ item.montant|number_format(2, ',', ' ') }} DT</td>
-                            <td>
-                                <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" 
-                                   class="btn btn-sm btn-info" title="Voir">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" 
-                                   class="btn btn-sm btn-warning" title="Modifier">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form method="post" action="{{ path('admin_item_delete', {'idItem': item.idItem}) }}" 
-                                      class="d-inline" 
-                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet item ?')">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.idItem) }}">
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
+        {% for categoryName, categoryItems in groupedItems %}
+            <section class="ft-items-group-card mb-4">
+                <div class="ft-items-group-head">
+                    <div class="ft-items-group-title">
+                        <i class="fas fa-folder-open"></i>
+                        <h2>{{ categoryName }}</h2>
+                    </div>
+                    <span class="ft-items-group-badge">{{ categoryItems|length }} item(s)</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table ft-items-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Libellé</th>
+                                <th>Montant</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in categoryItems %}
+                                <tr>
+                                    <td>{{ item.idItem }}</td>
+                                    <td>{{ item.libelle }}</td>
+                                    <td class="fw-semibold">{{ item.montant|number_format(2, ',', ' ') }} DT</td>
+                                    <td>
+                                        <div class="ft-items-actions">
+                                            <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}"
+                                               class="btn ft-items-action-btn is-view" title="Voir">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}"
+                                               class="btn ft-items-action-btn is-edit" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="post" action="{{ path('admin_item_delete', {'idItem': item.idItem}) }}"
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet item ?')">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.idItem) }}">
+                                                <button type="submit" class="btn ft-items-action-btn is-delete" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        {% endfor %}
     {% else %}
-    <div class="alert alert-info" role="alert">
-        <i class="fas fa-info-circle"></i> Aucun item trouvé. <a href="{{ path('admin_item_create') }}">Créer un nouveau</a>
-    </div>
+        <div class="ft-items-empty-state">
+            <i class="fas fa-circle-info"></i>
+            <div>
+                <strong>Aucun item trouvé.</strong>
+                <span>Commencez par créer un nouvel item budgétaire.</span>
+            </div>
+            <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
+                <i class="fas fa-plus me-2"></i>Créer un item
+            </a>
+        </div>
     {% endif %}
 </div>
 
+<style>
+.ft-admin-items-page {
+    padding-bottom: 2rem;
+}
+
+.ft-items-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.9rem 2rem;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at top right, rgba(34, 211, 238, 0.22), transparent 20%),
+        linear-gradient(135deg, #f8fbff 0%, #eef7ff 48%, #dff7ff 100%);
+    border: 1px solid rgba(125, 211, 252, 0.72);
+    box-shadow: 0 22px 46px rgba(14, 165, 233, 0.10);
+}
+
+.ft-items-kicker {
+    display: inline-block;
+    margin-bottom: 0.45rem;
+    color: #0ea5e9;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.ft-items-hero h1 {
+    margin: 0 0 0.35rem;
+    font-size: 2.35rem;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.ft-items-hero p {
+    margin: 0;
+    color: #475569;
+    font-size: 1.04rem;
+}
+
+.ft-items-hero-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.ft-items-filter-card,
+.ft-items-group-card {
+    background: rgba(255,255,255,0.94);
+    border: 1px solid rgba(191, 219, 254, 0.72);
+    border-radius: 24px;
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+
+.ft-items-filter-head,
+.ft-items-group-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 1.35rem;
+    background: linear-gradient(135deg, #22c1ee, #0ea5e9);
+    color: #fff;
+}
+
+.ft-items-filter-head h2,
+.ft-items-group-head h2 {
+    margin: 0;
+    font-size: 1.08rem;
+    font-weight: 800;
+}
+
+.ft-items-filter-body {
+    padding: 1.3rem 1.35rem;
+}
+
+.ft-items-filter-body .form-control,
+.ft-items-filter-body .form-select {
+    min-height: 48px;
+    border-radius: 14px;
+    border-color: rgba(191, 219, 254, 0.94);
+}
+
+.ft-items-group-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.ft-items-group-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.42rem 0.72rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.92);
+    color: #0ea5e9;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.ft-items-table thead th {
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom-color: rgba(191, 219, 254, 0.9);
+}
+
+.ft-items-table tbody tr:hover {
+    background: rgba(240, 249, 255, 0.72);
+}
+
+.ft-items-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+
+.ft-items-action-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ft-items-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.10);
+}
+
+.ft-items-action-btn.is-view {
+    background: linear-gradient(135deg, #22c1ee, #0ea5e9);
+    color: #fff;
+}
+
+.ft-items-action-btn.is-edit {
+    background: linear-gradient(135deg, #38bdf8, #60a5fa);
+    color: #fff;
+}
+
+.ft-items-action-btn.is-delete {
+    background: linear-gradient(135deg, #fb7185, #ef4444);
+    color: #fff;
+}
+
+.ft-items-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.3rem 1.4rem;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #f0f9ff, #ecfeff);
+    border: 1px solid rgba(125, 211, 252, 0.8);
+    color: #0f172a;
+}
+
+.ft-items-empty-state i {
+    font-size: 1.6rem;
+    color: #0ea5e9;
+}
+
+.ft-items-empty-state strong,
+.ft-items-empty-state span {
+    display: block;
+}
+
+.ft-items-empty-state span {
+    color: #64748b;
+}
+
+@media (max-width: 991px) {
+    .ft-items-hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+</style>
+
+{% include 'admin/budget_ai/_widget.html.twig' %}
 {% endblock %}

@@ -1,34 +1,41 @@
 {% extends 'admin/back.html.twig' %}
 
-{% block title %}Alertes Budgétaires{% endblock %}
+{% block title %}Alertes budgetaires - FinTrust{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-5">
+{% set unreadCount = 0 %}
+{% set readCount = 0 %}
+{% set criticalCount = 0 %}
+{% for alerte in alertes %}
+    {% if alerte.read %}
+        {% set readCount = readCount + 1 %}
+    {% else %}
+        {% set unreadCount = unreadCount + 1 %}
+    {% endif %}
+    {% if alerte.categorie and alerte.categorie.budgetPrevu > 0 and alerte.seuil >= (alerte.categorie.budgetPrevu * 0.8) %}
+        {% set criticalCount = criticalCount + 1 %}
+    {% endif %}
+{% endfor %}
+
+<div class="container-fluid mt-4 ft-admin-alert-page">
+    <div class="ft-alert-hero">
         <div>
-            <h1 class="h2 fw-bold text-dark mb-2">
-                <i class="fas fa-exclamation-triangle text-warning me-3"></i>
-                Alertes Budgétaires
-            </h1>
-            <p class="text-muted">Surveillance des dépassements de seuils budgétaires</p>
+            <span class="ft-alert-kicker">Surveillance budget</span>
+            <h1>Alertes budgetaires</h1>
+            <p>Suivi en temps reel des seuils franchis, des categories sensibles et des actions a traiter rapidement.</p>
+            <div class="ft-alert-hero-metrics">
+                <span><i class="fas fa-radar me-2"></i>{{ criticalCount }} zone(s) chaude(s)</span>
+                <span><i class="fas fa-layer-group me-2"></i>{{ alertes|length }} signal(s) actifs</span>
+            </div>
         </div>
-        <div class="d-flex gap-3">
-            <div class="stats-card">
-                <div class="stats-number">{{ alertes|length }}</div>
-                <div class="stats-label">Total Alertes</div>
+        <div class="ft-alert-hero-side">
+            <div class="ft-alert-hero-badge">
+                <i class="fas fa-bolt"></i>
+                <span>{{ unreadCount }} action(s) prioritaires</span>
             </div>
-            <div class="stats-card">
-                <div class="stats-number text-warning">
-                    {% set unreadCount = 0 %}
-                    {% for alerte in alertes %}
-                        {% if not alerte.read %}
-                            {% set unreadCount = unreadCount + 1 %}
-                        {% endif %}
-                    {% endfor %}
-                    {{ unreadCount }}
-                </div>
-                <div class="stats-label">Non lues</div>
-            </div>
+            <a href="{{ path('admin_categorie_stats') }}" class="btn ft-btn-primary ft-alert-hero-cta">
+                <i class="fas fa-chart-line me-2"></i>Voir les stats budget
+            </a>
         </div>
     </div>
 
@@ -46,224 +53,842 @@
         </div>
     {% endfor %}
 
-    {% if alertes is empty %}
-        <div class="text-center py-5">
-            <div class="empty-state">
-                <i class="fas fa-check-circle text-success" style="font-size: 4rem; opacity: 0.5;"></i>
-                <h4 class="mt-3 text-muted">Aucune alerte active</h4>
-                <p class="text-muted">Tous les seuils budgétaires sont respectés.</p>
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="ft-alert-kpi is-blue">
+                <div class="ft-alert-kpi-top">
+                    <div class="ft-alert-kpi-icon is-blue"><i class="fas fa-bell"></i></div>
+                    <div>
+                        <span>Total alertes</span>
+                        <strong>{{ alertes|length }}</strong>
+                    </div>
+                </div>
+                <small>Toutes les alertes enregistrees</small>
+                <div class="ft-alert-kpi-spark blue"></div>
             </div>
         </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="ft-alert-kpi is-orange">
+                <div class="ft-alert-kpi-top">
+                    <div class="ft-alert-kpi-icon is-orange"><i class="fas fa-hourglass-half"></i></div>
+                    <div>
+                        <span>Non lues</span>
+                        <strong>{{ unreadCount }}</strong>
+                    </div>
+                </div>
+                <small>Demandent une verification</small>
+                <div class="ft-alert-kpi-spark orange"></div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="ft-alert-kpi is-green">
+                <div class="ft-alert-kpi-top">
+                    <div class="ft-alert-kpi-icon is-green"><i class="fas fa-square-check"></i></div>
+                    <div>
+                        <span>Traitees</span>
+                        <strong>{{ readCount }}</strong>
+                    </div>
+                </div>
+                <small>Historique lu et suivi</small>
+                <div class="ft-alert-kpi-spark green"></div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="ft-alert-kpi is-pink">
+                <div class="ft-alert-kpi-top">
+                    <div class="ft-alert-kpi-icon is-pink"><i class="fas fa-fire-flame-curved"></i></div>
+                    <div>
+                        <span>Zones chaudes</span>
+                        <strong>{{ criticalCount }}</strong>
+                    </div>
+                </div>
+                <small>Seuils tres proches du budget</small>
+                <div class="ft-alert-kpi-spark pink"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ft-alert-toolbar">
+        <div class="ft-alert-filter-group">
+            <button type="button" class="ft-alert-filter active" data-alert-filter="all">Toutes</button>
+            <button type="button" class="ft-alert-filter" data-alert-filter="unread">Non lues</button>
+            <button type="button" class="ft-alert-filter" data-alert-filter="read">Lues</button>
+        </div>
+        <div class="ft-alert-toolbar-actions">
+            <div class="ft-alert-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="search" id="adminAlertSearch" class="form-control" placeholder="Rechercher une categorie...">
+            </div>
+            <button type="button" class="ft-alert-filter ft-alert-filter-tools">
+                <i class="fas fa-sliders me-2"></i>Filtres
+            </button>
+        </div>
+    </div>
+
+    {% if alertes is empty %}
+        <div class="ft-alert-empty">
+            <div class="ft-alert-empty-icon"><i class="fas fa-shield-heart"></i></div>
+            <h3>Aucune alerte active</h3>
+            <p>Tous les seuils budgetaires sont respectes. Le tableau de surveillance est au vert.</p>
+        </div>
     {% else %}
-        <div class="row g-4">
+        <div class="ft-alert-list" id="adminAlertList">
             {% for alerte in alertes %}
-                <div class="col-12">
-                    <div class="alert-card {{ alerte.read ? 'alert-read' : 'alert-unread' }}">
-                        <div class="alert-header">
-                            <div class="alert-icon">
-                                <i class="fas fa-exclamation-triangle"></i>
+                {% set categoryName = alerte.categorie ? alerte.categorie.nomCategorie : 'Categorie inconnue' %}
+                {% set usage = alerte.categorie and alerte.categorie.budgetPrevu > 0 ? (alerte.seuil / alerte.categorie.budgetPrevu) * 100 : 0 %}
+                {% set totalSpent = 0 %}
+                {% if alerte.categorie %}
+                    {% for item in alerte.categorie.items %}
+                        {% set totalSpent = totalSpent + item.montant %}
+                    {% endfor %}
+                {% endif %}
+                {% set budgetTotal = alerte.categorie ? alerte.categorie.budgetPrevu : 0 %}
+                {% set spentUsage = budgetTotal > 0 ? (totalSpent / budgetTotal) * 100 : 0 %}
+                {% set progressWidth = spentUsage > 100 ? 100 : spentUsage %}
+                {% set severity = usage >= 90 or spentUsage >= 95 ? 'critical' : (usage >= 75 or spentUsage >= 80 ? 'high' : 'moderate') %}
+                {% set severityLabel = severity == 'critical' ? 'Critique' : (severity == 'high' ? 'Eleve' : 'Modere') %}
+                {% set riskScore = ((usage * 0.45) + (spentUsage * 0.55))|round %}
+                {% set categoryKey = categoryName|lower %}
+                {% set alertIcon = 'fa-wallet' %}
+                {% if 'aliment' in categoryKey or 'food' in categoryKey or 'restauration' in categoryKey %}
+                    {% set alertIcon = 'fa-utensils' %}
+                {% elseif 'transport' in categoryKey or 'carbur' in categoryKey or 'car' in categoryKey %}
+                    {% set alertIcon = 'fa-car-side' %}
+                {% elseif 'shopping' in categoryKey or 'loisir' in categoryKey or 'mode' in categoryKey %}
+                    {% set alertIcon = 'fa-bag-shopping' %}
+                {% endif %}
+                <article class="ft-alert-card {{ alerte.read ? 'is-read' : 'is-unread' }} is-{{ severity }}"
+                         data-alert-card
+                         data-alert-state="{{ alerte.read ? 'read' : 'unread' }}"
+                         data-alert-search="{{ (categoryName ~ ' ' ~ alerte.message)|lower }}">
+                    <div class="ft-alert-card-head">
+                        <div class="ft-alert-avatar is-{{ severity }}">
+                            <i class="fas {{ alertIcon }}"></i>
+                        </div>
+                        <div class="ft-alert-card-meta">
+                            <div class="ft-alert-card-title-row">
+                                <div class="ft-alert-state-stack">
+                                    <span class="ft-alert-risk-badge is-{{ severity }}">{{ severityLabel }}</span>
+                                    <h3>{{ categoryName }}</h3>
+                                </div>
                             </div>
-                            <div class="alert-meta">
-                                <div class="alert-category">
-                                    <i class="fas fa-folder me-2"></i>
-                                    {{ alerte.categorie ? alerte.categorie.nomCategorie : 'Catégorie inconnue' }}
-                                </div>
-                                <div class="alert-date">
-                                    <i class="fas fa-clock me-2"></i>
-                                    {{ alerte.createdAt|date('d/m/Y à H:i') }}
-                                </div>
+                            <div class="ft-alert-card-subtitle">
+                                <span><i class="fas fa-clock me-2"></i>{{ alerte.createdAt|date('d/m/Y a H:i') }}</span>
+                                <span><i class="fas fa-chart-pie me-2"></i>{{ usage|number_format(0) }}% du budget utilise</span>
                             </div>
-                            {% if not alerte.read %}
-                                <div class="alert-badge">
-                                    <span class="badge bg-danger">Nouveau</span>
-                                </div>
-                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="ft-alert-card-layout">
+                        <div class="ft-alert-card-body">
+                            <div class="ft-alert-inline-metrics">
+                                <span>Score risque {{ riskScore }}/100</span>
+                            </div>
+                            <div class="ft-alert-progress-track compact">
+                                <span class="is-{{ severity }}" style="width: {{ progressWidth }}%;"></span>
+                            </div>
+                            <p class="ft-alert-message">{{ alerte.message }}</p>
                         </div>
 
-                        <div class="alert-content">
-                            <div class="alert-message">
-                                {{ alerte.message }}
-                            </div>
-                            <div class="alert-threshold">
-                                <span class="threshold-label">Seuil dépassé :</span>
-                                <span class="threshold-value">{{ alerte.seuil|number_format(2, ',', ' ') }} DT</span>
+                        <div class="ft-alert-side-panel">
+                            <div class="ft-alert-highlight">
+                                <span>Seuil surveille</span>
+                                <strong>{{ alerte.seuil|number_format(2, ',', ' ') }} DT</strong>
+                                <small>Objectif: {{ budgetTotal|number_format(2, ',', ' ') }} DT</small>
                             </div>
                         </div>
 
-                        <div class="alert-actions">
+                        <div class="ft-alert-card-actions">
+                            <a href="{{ path('admin_categorie_stats') }}" class="btn ft-btn-soft-primary is-main">
+                                <i class="fas fa-chart-column me-2"></i>Analyser la zone
+                            </a>
+
                             {% if not alerte.read %}
-                                <form method="post" action="{{ path('admin_alerte_mark_read', {'idAlerte': alerte.idAlerte}) }}" class="d-inline">
+                                <form method="post" action="{{ path('admin_alerte_mark_read', {'idAlerte': alerte.idAlerte}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('mark_read' ~ alerte.idAlerte) }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-success action-btn" title="Marquer comme lu">
-                                        <i class="fas fa-envelope-open me-1"></i>Marquer comme lu
+                                    <button type="submit" class="btn ft-btn-soft-info">
+                                        <i class="fas fa-eye me-2"></i>Marquer comme lue
                                     </button>
                                 </form>
                             {% else %}
-                                <form method="post" action="{{ path('admin_alerte_mark_unread', {'idAlerte': alerte.idAlerte}) }}" class="d-inline">
+                                <form method="post" action="{{ path('admin_alerte_mark_unread', {'idAlerte': alerte.idAlerte}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('mark_unread' ~ alerte.idAlerte) }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-warning action-btn" title="Marquer comme non lu">
-                                        <i class="fas fa-envelope me-1"></i>Marquer comme non lu
+                                    <button type="submit" class="btn ft-btn-soft-info">
+                                        <i class="fas fa-envelope me-2"></i>Marquer non lue
                                     </button>
                                 </form>
                             {% endif %}
 
-                            <form method="post" action="{{ path('admin_alerte_delete', {'idAlerte': alerte.idAlerte}) }}" class="d-inline">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ alerte.idAlerte) }}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger action-btn" title="Supprimer"
-                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')">
-                                    <i class="fas fa-trash me-1"></i>Supprimer
-                                </button>
-                            </form>
+                            <div class="ft-alert-more-wrap">
+                                <a href="{{ alerte.categorie ? path('admin_categorie_show', {'idCategorie': alerte.categorie.idCategorie}) : path('admin_categorie_stats') }}" class="ft-alert-more" title="Analyser">
+                                    <i class="fas fa-ellipsis"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </article>
             {% endfor %}
         </div>
     {% endif %}
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('adminAlertSearch');
+    const filterButtons = document.querySelectorAll('[data-alert-filter]');
+    const cards = document.querySelectorAll('[data-alert-card]');
+    let currentFilter = 'all';
+
+    const applyFilters = () => {
+        const query = (searchInput?.value || '').trim().toLowerCase();
+
+        cards.forEach((card) => {
+            const state = card.dataset.alertState || 'all';
+            const haystack = card.dataset.alertSearch || '';
+            const matchesFilter = currentFilter === 'all' || state === currentFilter;
+            const matchesSearch = query === '' || haystack.includes(query);
+            card.style.display = matchesFilter && matchesSearch ? '' : 'none';
+        });
+    };
+
+    filterButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            currentFilter = button.dataset.alertFilter || 'all';
+            filterButtons.forEach((item) => item.classList.remove('active'));
+            button.classList.add('active');
+            applyFilters();
+        });
+    });
+
+    searchInput?.addEventListener('input', applyFilters);
+});
+</script>
+
 <style>
-.stats-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+.ft-admin-alert-page {
+    padding-bottom: 2rem;
 }
 
-.stats-number {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
+.ft-alert-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.7rem 1.9rem;
+    margin-bottom: 1.5rem;
+    border-radius: 28px;
+    color: #fff;
+    background:
+        radial-gradient(circle at top left, rgba(255,255,255,.28), transparent 26%),
+        linear-gradient(135deg, #1d4ed8 0%, #2563eb 38%, #7c3aed 72%, #0ea5e9 100%);
+    box-shadow: 0 24px 60px rgba(37, 99, 235, 0.24);
 }
 
-.stats-label {
-    font-size: 0.875rem;
-    opacity: 0.9;
+.ft-alert-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,.08), transparent 40%, rgba(255,255,255,.06));
+    pointer-events: none;
 }
 
-.empty-state {
-    padding: 3rem;
-}
-
-.alert-card {
-    background: white;
-    border: 1px solid rgba(167, 180, 248, 0.35);
-    border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.ft-alert-hero {
+    position: relative;
     overflow: hidden;
 }
 
-.alert-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.12);
+.ft-alert-kicker {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 800;
 }
 
-.alert-unread {
-    border-left: 4px solid #ef4444;
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.02), rgba(239, 68, 68, 0.05));
+.ft-alert-hero h1 {
+    margin: 0 0 0.4rem;
+    font-size: 2.35rem;
+    font-weight: 800;
 }
 
-.alert-read {
-    border-left: 4px solid #10b981;
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.02), rgba(16, 185, 129, 0.05));
+.ft-alert-hero p {
+    margin: 0;
+    max-width: 760px;
+    opacity: 0.94;
 }
 
-.alert-header {
+.ft-alert-hero-metrics {
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+
+.ft-alert-hero-metrics span {
+    display: inline-flex;
     align-items: center;
-    padding: 1.25rem 1.5rem;
-    background: rgba(248, 250, 252, 0.8);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
-}
-
-.alert-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.25rem;
-    margin-right: 1rem;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
-}
-
-.alert-meta {
-    flex: 1;
-}
-
-.alert-category {
-    font-weight: 600;
-    color: #1e293b;
-    font-size: 1.1rem;
-    margin-bottom: 0.25rem;
-}
-
-.alert-date {
-    color: #64748b;
-    font-size: 0.875rem;
-}
-
-.alert-badge {
-    margin-left: auto;
-}
-
-.alert-content {
-    padding: 1.5rem;
-}
-
-.alert-message {
-    font-size: 1rem;
-    color: #374151;
-    line-height: 1.6;
-    margin-bottom: 1rem;
-}
-
-.alert-threshold {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: rgba(245, 158, 11, 0.1);
-    border-radius: 8px;
-    border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.threshold-label {
-    font-weight: 600;
-    color: #92400e;
-}
-
-.threshold-value {
+    padding: 0.56rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(8px);
+    font-size: 0.86rem;
     font-weight: 700;
-    color: #dc2626;
-    font-size: 1.1rem;
 }
 
-.alert-actions {
-    padding: 1rem 1.5rem;
-    background: rgba(248, 250, 252, 0.5);
-    border-top: 1px solid rgba(226, 232, 240, 0.5);
+.ft-alert-hero-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.9rem;
+}
+
+.ft-alert-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 0.95rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.16);
+    backdrop-filter: blur(10px);
+    font-weight: 700;
+}
+
+.ft-alert-hero-cta {
+    border-radius: 18px;
+    min-height: 48px;
+    padding-inline: 1.2rem;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+}
+
+.ft-alert-kpi {
+    min-height: 132px;
+    padding: 1.15rem 1.2rem;
+    border-radius: 24px;
+    color: #0f172a;
+    border: 1px solid rgba(226, 232, 240, 0.82);
+    background: rgba(255,255,255,.82);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+}
+
+.ft-alert-kpi span,
+.ft-alert-highlight span {
+    display: block;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.ft-alert-kpi strong {
+    display: block;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+    color: #0f172a;
+}
+
+.ft-alert-kpi small {
+    color: #64748b;
+}
+
+.ft-alert-kpi-top {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.45rem;
+}
+
+.ft-alert-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1rem;
+    box-shadow: 0 12px 22px rgba(15, 23, 42, 0.08);
+}
+
+.ft-alert-kpi-icon.is-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.ft-alert-kpi-icon.is-orange { background: linear-gradient(135deg, #fb923c, #f97316); }
+.ft-alert-kpi-icon.is-green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.ft-alert-kpi-icon.is-pink { background: linear-gradient(135deg, #f43f5e, #ec4899); }
+
+.ft-alert-kpi-spark {
+    margin-top: 0.8rem;
+    width: 62px;
+    height: 24px;
+    margin-left: auto;
+    border-radius: 999px;
+    opacity: 0.9;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+
+.ft-alert-kpi-spark.blue { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 62 24'%3E%3Cpath d='M2 19 C10 18, 14 14, 18 15 S27 20, 32 11 S41 3, 47 8 S55 17, 60 3' fill='none' stroke='%232563eb' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.ft-alert-kpi-spark.orange { background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 62 24'%3E%3Cpath d='M2 19 C11 20, 16 8, 24 9 S33 18, 40 12 S49 9, 60 2' fill='none' stroke='%23f97316' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E\"); }
+.ft-alert-kpi-spark.green { background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 62 24'%3E%3Cpath d='M2 19 C11 17, 15 12, 19 14 S27 21, 35 9 S46 4, 52 10 S57 13, 60 2' fill='none' stroke='%2322c55e' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E\"); }
+.ft-alert-kpi-spark.pink { background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 62 24'%3E%3Cpath d='M2 19 C9 18, 13 11, 19 13 S28 20, 35 10 S46 8, 52 12 S57 15, 60 2' fill='none' stroke='%23ec4899' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E\"); }
+
+.ft-alert-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.25rem;
+    border-radius: 22px;
+    background: #fff;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+}
+
+.ft-alert-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.ft-alert-filter-group {
     display: flex;
     gap: 0.75rem;
-    justify-content: flex-end;
+    flex-wrap: wrap;
 }
 
-.action-btn {
-    border-radius: 8px;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
+.ft-alert-filter {
+    border: none;
+    border-radius: 999px;
+    padding: 0.72rem 1.05rem;
+    background: #eef2ff;
+    color: #334155;
+    font-weight: 700;
     transition: all 0.2s ease;
 }
 
-.action-btn:hover {
+.ft-alert-filter.active {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.2);
+}
+
+.ft-alert-filter-tools {
+    background: #fff;
+    border: 1px solid rgba(191, 219, 254, 0.8);
+    color: #2563eb;
+}
+
+.ft-alert-search-wrap {
+    position: relative;
+    min-width: 320px;
+}
+
+.ft-alert-search-wrap i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: #64748b;
+}
+
+.ft-alert-search-wrap input {
+    border-radius: 999px;
+    padding-left: 2.4rem;
+    min-height: 46px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.ft-alert-list {
+    display: grid;
+    gap: 1.15rem;
+}
+
+.ft-alert-card {
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.44);
+    box-shadow: 0 16px 35px rgba(15, 23, 42, 0.07);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.ft-alert-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 22px 48px rgba(37, 99, 235, 0.12);
+    border-color: rgba(37, 99, 235, 0.22);
+}
+
+.ft-alert-card.is-unread {
+    background: linear-gradient(135deg, rgba(255,255,255,0.96), #ffffff 34%);
+}
+
+.ft-alert-card.is-read {
+    background: linear-gradient(135deg, rgba(248,250,252,0.96), #ffffff 34%);
+}
+
+.ft-alert-card.is-critical {
+    border-left: 6px solid #ef4444;
+    box-shadow: 0 24px 54px rgba(124, 58, 237, 0.13);
+}
+
+.ft-alert-card.is-high {
+    border-left: 6px solid #f97316;
+    box-shadow: 0 22px 48px rgba(245, 158, 11, 0.12);
+}
+
+.ft-alert-card.is-moderate {
+    border-left: 6px solid #facc15;
+}
+
+.ft-alert-card-head {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1.3rem 1.45rem 1rem;
+}
+
+.ft-alert-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 1.25rem;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    box-shadow: 0 12px 24px rgba(245, 158, 11, 0.22);
+}
+
+.ft-alert-avatar.is-critical {
+    background: linear-gradient(135deg, #fb7185, #ef4444);
+}
+
+.ft-alert-avatar.is-high {
+    background: linear-gradient(135deg, #fb923c, #f97316);
+}
+
+.ft-alert-avatar.is-moderate {
+    background: linear-gradient(135deg, #fcd34d, #f59e0b);
+}
+
+.ft-alert-card-meta {
+    flex: 1;
+}
+
+.ft-alert-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.3rem;
+}
+
+.ft-alert-state-stack {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.ft-alert-card-title-row h3 {
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.ft-alert-risk-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.78rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.ft-alert-risk-badge.is-critical {
+    background: rgba(124, 58, 237, 0.12);
+    color: #6d28d9;
+}
+
+.ft-alert-risk-badge.is-high {
+    background: rgba(245, 158, 11, 0.14);
+    color: #b45309;
+}
+
+.ft-alert-risk-badge.is-moderate {
+    background: rgba(37, 99, 235, 0.12);
+    color: #ca8a04;
+}
+
+.ft-alert-card-subtitle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.ft-alert-card-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(180px, 0.7fr) minmax(220px, 0.72fr);
+    gap: 1rem;
+    align-items: center;
+    padding: 0 1.45rem 1.25rem;
+}
+
+.ft-alert-card-body {
+    min-width: 0;
+}
+
+.ft-alert-inline-metrics {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.55rem;
+    color: #64748b;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.ft-alert-message {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #334155;
+    margin: 0.75rem 0 0;
+}
+
+.ft-alert-highlight {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+    padding: 0.9rem 1rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #fff7ed, #ffedd5);
+    border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+.ft-alert-highlight strong {
+    font-size: 1.4rem;
+    color: #dc2626;
+}
+
+.ft-alert-highlight small {
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.ft-alert-side-panel {
+    min-width: 0;
+}
+
+.ft-alert-progress-track {
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #dbe4f2;
+    margin-bottom: 0;
+}
+
+.ft-alert-progress-track.compact {
+    max-width: 190px;
+}
+
+.ft-alert-progress-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #38bdf8, #2563eb);
+}
+
+.ft-alert-progress-track span.is-high {
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+}
+
+.ft-alert-progress-track span.is-critical {
+    background: linear-gradient(90deg, #7c3aed, #2563eb);
+}
+
+.ft-alert-progress-track span.is-moderate {
+    background: linear-gradient(90deg, #facc15, #f59e0b);
+}
+
+.ft-alert-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    align-items: stretch;
+}
+
+.ft-alert-card-actions form {
+    margin: 0;
+    width: 100%;
+}
+
+.ft-btn-soft-success,
+.ft-btn-soft-warning,
+.ft-btn-soft-info,
+.ft-btn-soft-danger,
+.ft-btn-soft-primary,
+.ft-btn-soft-dark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+    border-radius: 12px;
+    font-weight: 700;
+    padding-inline: 1rem;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ft-btn-soft-success:hover,
+.ft-btn-soft-warning:hover,
+.ft-btn-soft-info:hover,
+.ft-btn-soft-danger:hover,
+.ft-btn-soft-primary:hover,
+.ft-btn-soft-dark:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+}
+
+.ft-btn-soft-success {
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.24);
+    background: #ecfdf5;
+}
+
+.ft-btn-soft-warning {
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.24);
+    background: #fffbeb;
+}
+
+.ft-btn-soft-info {
+    color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.24);
+    background: linear-gradient(135deg, #ffffff, #eff6ff);
+    box-shadow: 0 10px 18px rgba(37, 99, 235, 0.08);
+}
+
+.ft-btn-soft-primary {
+    color: #fff;
+    border: 1px solid rgba(37, 99, 235, 0.12);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.ft-btn-soft-primary.is-main {
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18);
+}
+
+.ft-btn-soft-danger {
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.24);
+    background: #fef2f2;
+}
+
+.ft-btn-soft-dark {
+    color: #334155;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: #f8fafc;
+}
+
+.ft-alert-more-wrap {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.ft-alert-more {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: #fff;
+    color: #64748b;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ft-alert-more:hover {
+    transform: translateY(-1px);
+    border-color: rgba(96, 165, 250, 0.9);
+    box-shadow: 0 12px 20px rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+}
+
+.ft-alert-empty {
+    padding: 4rem 1.5rem;
+    text-align: center;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #eff6ff, #ecfeff);
+    border: 1px solid rgba(59, 130, 246, 0.14);
+}
+
+.ft-alert-empty-icon {
+    width: 86px;
+    height: 86px;
+    margin: 0 auto 1rem;
+    border-radius: 26px;
+    display: grid;
+    place-items: center;
+    font-size: 2rem;
+    color: #fff;
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+}
+
+.ft-alert-empty h3 {
+    margin-bottom: 0.45rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.ft-alert-empty p {
+    margin: 0;
+    color: #64748b;
+}
+
+@media (max-width: 1200px) {
+    .ft-alert-hero,
+    .ft-alert-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ft-alert-hero-side {
+        align-items: flex-start;
+    }
+
+    .ft-alert-search-wrap {
+        min-width: 100%;
+    }
+
+    .ft-alert-toolbar-actions,
+    .ft-alert-card-layout {
+        grid-template-columns: 1fr;
+        display: grid;
+    }
+}
+
+@media (max-width: 768px) {
+    .ft-alert-card-title-row,
+    .ft-alert-card-subtitle,
+    .ft-alert-card-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ft-alert-hero h1 {
+        font-size: 1.85rem;
+    }
 }
 </style>
 {% endblock %}

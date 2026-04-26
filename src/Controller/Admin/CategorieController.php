@@ -6,13 +6,11 @@ use App\Entity\Categorie\Categorie;
 use App\Form\Admin\CategorieType;
 use App\Repository\CategorieRepository;
 use App\Repository\ItemRepository;
-use App\Service\PdfGeneratorService;
 use App\Service\RewardService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/admin/categorie', name: 'admin_categorie_')]
@@ -25,10 +23,8 @@ class CategorieController extends AbstractController
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(CategorieRepository $repository): Response
     {
-        $categories = $repository->findAll();
-
         return $this->render('admin/categorie/list.html.twig', [
-            'categories' => $categories,
+            'categories' => $repository->findAll(),
         ]);
     }
 
@@ -51,7 +47,8 @@ class CategorieController extends AbstractController
             $this->entityManager->persist($categorie);
             $this->entityManager->flush();
 
-            $this->addFlash('success', 'Catégorie créée avec succès!');
+            $this->addFlash('success', 'Categorie creee avec succes.');
+
             return $this->redirectToRoute('admin_categorie_list');
         }
 
@@ -68,8 +65,8 @@ class CategorieController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
+            $this->addFlash('success', 'Categorie modifiee avec succes.');
 
-            $this->addFlash('success', 'Catégorie modifiée avec succès!');
             return $this->redirectToRoute('admin_categorie_list');
         }
 
@@ -82,7 +79,7 @@ class CategorieController extends AbstractController
     #[Route('/stats', name: 'stats', methods: ['GET'])]
     public function stats(ItemRepository $itemRepository, RewardService $rewardService): Response
     {
-        $categories = $this->entityManager->getRepository(\App\Entity\Categorie\Categorie::class)->findAll();
+        $categories = $this->entityManager->getRepository(Categorie::class)->findAll();
         $stats = [];
         $categoryLabels = [];
         $budgetSeries = [];
@@ -113,26 +110,26 @@ class CategorieController extends AbstractController
             $budget = (float) $categorie->getBudgetPrevu();
             $threshold = (float) $categorie->getSeuilAlerte();
             $remaining = $budget - $totalAmount;
-            $budgetUsage = $budget > 0 ? ($totalAmount / $budget) * 100 : 0;
-            $thresholdUsage = $threshold > 0 ? ($totalAmount / $threshold) * 100 : 0;
+            $budgetUsage = $budget > 0 ? ($totalAmount / $budget) * 100 : 0.0;
+            $thresholdUsage = $threshold > 0 ? ($totalAmount / $threshold) * 100 : 0.0;
             $healthScore = max(0, min(100, 100 - ($budgetUsage * 0.65) - ($alertesCount * 18) + min(20, $itemCount * 4)));
 
             if ($totalAmount <= 0.0) {
-                $zeroSpendCount++;
+                ++$zeroSpendCount;
             }
 
             if ($totalAmount >= $threshold) {
-                $overThresholdCount++;
+                ++$overThresholdCount;
             }
 
             if ($budgetUsage >= 90 || $alertesCount > 0) {
-                $criticalCount++;
+                ++$criticalCount;
                 $status = 'critical';
             } elseif ($budgetUsage >= 65 || $thresholdUsage >= 90) {
-                $vigilanceCount++;
+                ++$vigilanceCount;
                 $status = 'warning';
             } else {
-                $healthyCount++;
+                ++$healthyCount;
                 $status = 'healthy';
             }
 
@@ -166,12 +163,13 @@ class CategorieController extends AbstractController
 
         usort($stats, static fn (array $left, array $right): int => $right['budgetUsage'] <=> $left['budgetUsage']);
 
+        $categoryCount = count($stats);
         $globalUsage = $totalBudget > 0 ? ($totalSpent / $totalBudget) * 100 : 0.0;
         $remainingBudget = $totalBudget - $totalSpent;
-        $categoryCount = count($stats);
         $averageBudget = $categoryCount > 0 ? $totalBudget / $categoryCount : 0.0;
         $averageSpend = $categoryCount > 0 ? $totalSpent / $categoryCount : 0.0;
         $averageUsage = $categoryCount > 0 ? array_sum($usageSeries) / $categoryCount : 0.0;
+        $averageHealth = $categoryCount > 0 ? array_sum($healthSeries) / $categoryCount : 0.0;
         $engagementPerItem = $totalItems > 0 ? $totalSpent / $totalItems : 0.0;
         $topSpender = $stats[0] ?? null;
         $bestManaged = null;
@@ -185,13 +183,69 @@ class CategorieController extends AbstractController
             $bestManaged = $bestManagedCandidates[0] ?? null;
         }
 
-        /** @var \App\Entity\User\User $user */
-        $user = $this->getUser();
-        $isEligible = $rewardService->isEligibleForReward($user);
+        $rewardSnapshot = $rewardService->buildRewardSnapshot();
+        $hasActiveAlerts = $rewardSnapshot['alertCategories'] !== [];
+        $hasThresholdBreaches = $rewardSnapshot['thresholdCategories'] !== [] || $rewardSnapshot['budgetOverflowCategories'] !== [];
+        $isEligible = $rewardSnapshot['isEligible'];
+
+        $rewardReason = 'Respectez votre budget total et les seuils de chaque categorie pour debloquer la recompense.';
+        if ($isEligible) {
+            $rewardReason = 'Toutes les categories restent sous leur seuil d alerte et aucune alerte active ne bloque la recompense.';
+        } elseif ($rewardSnapshot['blockedCategories'] !== []) {
+            $rewardReason = sprintf(
+                'Recompense non debloquee : %s.',
+                implode(', ', array_slice($rewardSnapshot['blockedCategories'], 0, 4))
+            );
+        }
+
+        $riskyCategories = array_slice(
+            array_values(array_filter($stats, static fn (array $stat): bool => $stat['status'] !== 'healthy')),
+            0,
+            4
+        );
+
+        $rewardChecklist = [
+            [
+                'label' => 'Aucune alerte active',
+                'ok' => !$hasActiveAlerts,
+                'detail' => $hasActiveAlerts
+                    ? sprintf('%d categorie(s) encore alertees.', count($rewardSnapshot['alertCategories']))
+                    : 'Toutes les alertes sont inactives.',
+            ],
+            [
+                'label' => 'Aucun seuil depasse',
+                'ok' => $rewardSnapshot['thresholdCategories'] === [],
+                'detail' => $rewardSnapshot['thresholdCategories'] !== []
+                    ? implode(', ', array_slice($rewardSnapshot['thresholdCategories'], 0, 3))
+                    : 'Chaque categorie reste sous sa zone d alerte.',
+            ],
+            [
+                'label' => 'Aucun budget depasse',
+                'ok' => $rewardSnapshot['budgetOverflowCategories'] === [],
+                'detail' => $rewardSnapshot['budgetOverflowCategories'] !== []
+                    ? implode(', ', array_slice($rewardSnapshot['budgetOverflowCategories'], 0, 3))
+                    : 'Aucun budget prevu n a ete depasse.',
+            ],
+            [
+                'label' => 'Categories conformes',
+                'ok' => $rewardSnapshot['safeCount'] === $rewardSnapshot['categoriesChecked'] && $rewardSnapshot['categoriesChecked'] > 0,
+                'detail' => sprintf(
+                    '%d/%d categorie(s) conformes.',
+                    $rewardSnapshot['safeCount'],
+                    $rewardSnapshot['categoriesChecked']
+                ),
+            ],
+        ];
 
         return $this->render('admin/categorie/stats.html.twig', [
             'stats' => $stats,
             'isEligible' => $isEligible,
+            'rewardReason' => $rewardReason,
+            'hasActiveAlerts' => $hasActiveAlerts,
+            'hasThresholdBreaches' => $hasThresholdBreaches,
+            'rewardSnapshot' => $rewardSnapshot,
+            'rewardChecklist' => $rewardChecklist,
+            'riskyCategories' => $riskyCategories,
             'overview' => [
                 'totalBudget' => $totalBudget,
                 'totalSpent' => $totalSpent,
@@ -202,6 +256,7 @@ class CategorieController extends AbstractController
                 'averageBudget' => $averageBudget,
                 'averageSpend' => $averageSpend,
                 'averageUsage' => $averageUsage,
+                'averageHealth' => $averageHealth,
                 'engagementPerItem' => $engagementPerItem,
                 'overThresholdCount' => $overThresholdCount,
                 'criticalCount' => $criticalCount,
@@ -230,27 +285,31 @@ class CategorieController extends AbstractController
     public function sendRewardSms(Request $request, RewardService $rewardService): Response
     {
         if (!$this->isCsrfTokenValid('send_reward_sms', (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Requête invalide.');
+            $this->addFlash('error', 'Requete invalide.');
+
             return $this->redirectToRoute('admin_categorie_stats');
         }
 
         /** @var \App\Entity\User\User $user */
         $user = $this->getUser();
+        $rewardSnapshot = $rewardService->buildRewardSnapshot();
 
         if (!$user->getNumTel()) {
-            $this->addFlash('warning', 'Aucun numéro de téléphone enregistré sur votre compte.');
+            $this->addFlash('warning', 'Aucun numero de telephone enregistre sur votre compte.');
+
             return $this->redirectToRoute('admin_categorie_stats');
         }
 
-        if (!$rewardService->isEligibleForReward($user)) {
-            $this->addFlash('info', 'Vous n\'êtes pas éligible à une récompense. Respectez votre budget et vos seuils de catégories.');
+        if (!$rewardSnapshot['isEligible']) {
+            $this->addFlash('info', 'La recompense reste bloquee tant qu une categorie est alertee ou qu un seuil est depasse.');
+
             return $this->redirectToRoute('admin_categorie_stats');
         }
 
         if ($rewardService->grantReward($user)) {
-            $this->addFlash('success', '🎉 Félicitations ! Un SMS avec votre code promo a été envoyé au ' . $user->getNumTel());
+            $this->addFlash('success', 'Felicitations ! Un SMS avec votre code promo a ete envoye au ' . $user->getNumTel());
         } else {
-            $this->addFlash('error', 'Erreur lors de l\'envoi du SMS. Vérifiez votre numéro de téléphone.');
+            $this->addFlash('error', 'Erreur lors de l envoi du SMS. Verifiez votre numero de telephone.');
         }
 
         return $this->redirectToRoute('admin_categorie_stats');
@@ -261,22 +320,20 @@ class CategorieController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             if ($this->isCsrfTokenValid('delete' . $categorie->getIdCategorie(), $request->request->get('_token'))) {
-                // Vérifier si la catégorie a des items associés
                 if (!$categorie->getItems()->isEmpty()) {
-                    $this->addFlash('error', 'Impossible de supprimer cette catégorie car elle contient des items. Supprimez d\'abord les items associés.');
+                    $this->addFlash('error', 'Impossible de supprimer cette categorie car elle contient des items. Supprimez d abord les items associes.');
+
                     return $this->redirectToRoute('admin_categorie_list');
                 }
 
                 $this->entityManager->remove($categorie);
                 $this->entityManager->flush();
-
-                $this->addFlash('success', 'Catégorie supprimée avec succès!');
+                $this->addFlash('success', 'Categorie supprimee avec succes.');
             }
 
             return $this->redirectToRoute('admin_categorie_list');
         }
 
-        // Afficher la page de confirmation
         return $this->render('admin/categorie/delete.html.twig', [
             'categorie' => $categorie,
         ]);
@@ -293,9 +350,9 @@ class CategorieController extends AbstractController
         $filename = 'facture_budget_' . date('Ymd_His') . '.pdf';
 
         return new Response($pdfContent, Response::HTTP_OK, [
-            'Content-Type'        => 'application/pdf',
+            'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            'Content-Length'      => strlen($pdfContent),
+            'Content-Length' => strlen($pdfContent),
         ]);
     }
 }

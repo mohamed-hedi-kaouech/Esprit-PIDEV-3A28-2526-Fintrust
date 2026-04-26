@@ -10,31 +10,34 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class CommentModerationService
 {
     /**
-     * Expressions clairement haineuses, racistes ou extremement insultantes.
+     * Expressions haineuses, racistes, violentes ou extremement injurieuses.
      * Un match ici doit bloquer le commentaire meme sans API externe.
      *
      * @var list<string>
      */
     private const SEVERE_PATTERNS = [
-        '/\b(encul[ée]s?|encule|nique ta m[èe]re|ntm|fdp|fils de pute)\b/iu',
-        '/\b(sale\s+(noir|noire|arab[e]?\b|juif|juive|blanc|blanche|immigr[ée]))\b/iu',
-        '/\b(race de|esp[èe]ce de)\b/iu',
+        '/\b(encul(?:e|ee|ees|es)?|nique ta mere|ntm|fdp|fils de pute)\b/iu',
+        '/\b(sale\s+(noir|noire|arabe|juif|juive|blanc|blanche|immigre|immigree)s?)\b/iu',
+        '/\b(sous[- ]race|race inferieure|race de|espece de)\b/iu',
         '/\b(heil hitler|nazi|mort aux)\b/iu',
-        '/\bje d[eé]teste les\s+[[:alpha:]\p{L}\- ]+\b/iu',
-        '/\b(ne meritent? pas de vivre ici|ne meritent? pas de vivre)\b/iu',
+        '/\b(retourne dans ton pays|dehors les immigres?|ces gens-la ne meritent pas)\b/iu',
+        '/\b(il faut\s+(les|vous)?\s*(tuer|eliminer|degager)|je vais te tuer|va crever|creve)\b/iu',
+        '/\b(je deteste les\s+[[:alpha:]\p{L}\- ]+|ne meritent? pas de vivre(?: ici)?)\b/iu',
     ];
 
     /**
-     * Vulgarites et insultes a moderer sans tout bloquer.
+     * Vulgarites, insultes directes ou indirectes a moderer.
      *
      * @var list<string>
      */
     private const MODERATE_PATTERNS = [
-        '/\b(con|connard|connasse|idiot|idiote|imb[ée]cile|d[ée]bile|abruti|abrutie)\b/iu',
-        '/\b(merde|putain|pute|salope|batard|b[âa]tard|ta gueule)\b/iu',
-        '/\b(ks|kes|zebi|zebi|tebe[nm]?k|nayek)\b/iu',
-        '/\b(vous etes nuls?|vous [eê]tes nuls?|t[\'’]?es nul|tu es nul|bande de nuls?)\b/iu',
-        '/\b(j[\' ]?te deteste|je vous deteste)\b/iu',
+        '/\b(con|connard|connasse|idiot|idiote|imbecile|debile|abruti|abrutie)\b/iu',
+        '/\b(merde|putain|pute|salope|batard|ta gueule)\b/iu',
+        '/\b(ks|kes|zebi|tebe[nm]?k|nayek)\b/iu',
+        '/\b(vous etes nul+l?s?|vous etes des nul+l?s?|t[\' ]?es nul+l?|tu es nul+l?|bande de nul+l?s?)\b/iu',
+        '/\b(sale type|sale mec|sale meuf|pauvre type|pauvre con|gros nul+l?)\b/iu',
+        '/\b(tu sers a rien|tu ne sers a rien|vous servez a rien|ferme-la|degage)\b/iu',
+        '/\b(j[\' ]?te deteste|je vous deteste|vraiment nul+l?)\b/iu',
     ];
 
     public function __construct(
@@ -43,9 +46,9 @@ class CommentModerationService
         private readonly NotificationService $notificationService,
         private readonly ?string $openAiApiKey,
         private readonly ?string $openAiModerationModel,
-
     ) {
     }
+
     /**
      * @return array{
      *   is_toxic: bool,
@@ -155,13 +158,6 @@ class CommentModerationService
         }
     }
 
-    private function getConfiguredModerationModel(): string
-    {
-        $model = trim((string) $this->openAiModerationModel);
-
-        return $model !== '' ? $model : 'omni-moderation-latest';
-    }
-
     public function handleDecision(string $text, User $author, string $contextLabel): array
     {
         $analysis = $this->analyzeComment($text);
@@ -171,6 +167,13 @@ class CommentModerationService
         }
 
         return $analysis;
+    }
+
+    private function getConfiguredModerationModel(): string
+    {
+        $model = trim((string) $this->openAiModerationModel);
+
+        return $model !== '' ? $model : 'omni-moderation-latest';
     }
 
     /**
@@ -268,7 +271,7 @@ class CommentModerationService
                     ],
                     'severity' => 'high',
                     'decision' => 'reject',
-                    'message' => 'Contenu haineux ou gravement injurieux detecte',
+                    'message' => 'Contenu haineux, violent ou gravement injurieux detecte',
                     'provider' => 'fallback-keywords:' . $reason,
                 ];
             }
@@ -289,7 +292,7 @@ class CommentModerationService
                     ],
                     'severity' => 'medium',
                     'decision' => 'moderate',
-                    'message' => 'Langage vulgaire ou insultant detecte',
+                    'message' => 'Langage vulgaire, insultant ou agressif detecte',
                     'provider' => 'fallback-keywords:' . $reason,
                 ];
             }

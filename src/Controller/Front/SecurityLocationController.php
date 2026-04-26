@@ -51,13 +51,25 @@ class SecurityLocationController extends AbstractController
         }
 
         $previous = $this->readPreviousContext($user);
-        if ($this->isRecentlyConfirmed($previous, $latitude, $longitude, $force)) {
+        $distanceMeters = $previous !== null
+            ? $this->calculateDistanceMeters(
+                (float) ($previous['latitude'] ?? 0.0),
+                (float) ($previous['longitude'] ?? 0.0),
+                $latitude,
+                $longitude
+            )
+            : 0.0;
+        $hasMeaningfulChange = $this->hasMeaningfulLocationChange($previous, $latitude, $longitude, $accuracy, $distanceMeters);
+
+        if (!$hasMeaningfulChange && $this->isRecentlyConfirmed($previous, $latitude, $longitude, $force)) {
             return $this->json([
                 'ok' => true,
                 'message' => 'Localisation deja confirmee recemment.',
                 'label' => $previous['label'] ?? null,
                 'detail' => $previous['detail'] ?? null,
                 'coordinates' => $previous['coordinates'] ?? null,
+                'accuracy' => $previous['accuracy'] ?? null,
+                'changed' => false,
             ]);
         }
 
@@ -66,17 +78,30 @@ class SecurityLocationController extends AbstractController
         $detail = $place['detail'] ?? 'precision navigateur';
         $coordinates = sprintf('%.6f, %.6f', $latitude, $longitude);
 
-        $this->notificationService->notify(
-            $user,
-            sprintf(
-                'Localisation navigateur confirmee : %s. Zone detaillee : %s. Coordonnees : %s. Precision estimee : %.0f m.',
-                $label,
-                $detail,
-                $coordinates,
-                max(0, $accuracy)
-            ),
-            'INFO'
-        );
+        if ($previous === null || $hasMeaningfulChange) {
+            $message = $previous === null
+                ? sprintf(
+                    'Position exacte confirmee : %s. Zone detaillee : %s. Coordonnees : %s. Precision estimee : %.0f m.',
+                    $label,
+                    $detail,
+                    $coordinates,
+                    max(0, $accuracy)
+                )
+                : sprintf(
+                    'Nouvelle zone detectee : %s. Zone detaillee : %s. Coordonnees : %s. Distance depuis la precedente position : %.0f m. Precision estimee : %.0f m.',
+                    $label,
+                    $detail,
+                    $coordinates,
+                    max(0, $distanceMeters),
+                    max(0, $accuracy)
+                );
+
+            $this->notificationService->notify(
+                $user,
+                $message,
+                $previous === null ? 'INFO' : 'WARNING'
+            );
+        }
 
         $this->writeCurrentContext($user, [
             'latitude' => $latitude,
@@ -86,9 +111,18 @@ class SecurityLocationController extends AbstractController
             'detail' => $detail,
             'coordinates' => $coordinates,
             'checkedAt' => (new \DateTimeImmutable())->format(DATE_ATOM),
+            'distanceMeters' => round($distanceMeters, 2),
         ]);
 
-        return $this->json(['ok' => true, 'label' => $label, 'detail' => $detail, 'coordinates' => $coordinates]);
+        return $this->json([
+            'ok' => true,
+            'label' => $label,
+            'detail' => $detail,
+            'coordinates' => $coordinates,
+            'accuracy' => round(max(0, $accuracy), 2),
+            'changed' => $hasMeaningfulChange,
+            'distanceMeters' => round($distanceMeters, 2),
+        ]);
     }
 
     #[Route('/localisation-navigateur/statut', name: 'browser_location_status', methods: ['GET'])]
@@ -111,6 +145,8 @@ class SecurityLocationController extends AbstractController
             'needsLocation' => false,
             'label' => $previous['label'] ?? null,
             'detail' => $previous['detail'] ?? null,
+            'coordinates' => $previous['coordinates'] ?? null,
+            'accuracy' => $previous['accuracy'] ?? null,
         ]);
     }
 
@@ -140,9 +176,13 @@ class SecurityLocationController extends AbstractController
         }
 
         $address = is_array($data['address'] ?? null) ? $data['address'] : [];
-        $localParts = $this->uniqueNonEmpty([
-            $data['name'] ?? null,
+        $roadLabel = trim(implode(' ', $this->uniqueNonEmpty([
+            $address['house_number'] ?? null,
             $address['road'] ?? null,
+        ])));
+        $localParts = $this->uniqueNonEmpty([
+            $roadLabel !== '' ? $roadLabel : null,
+            $data['name'] ?? null,
             $address['neighbourhood'] ?? null,
             $address['quarter'] ?? null,
             $address['suburb'] ?? null,
@@ -160,10 +200,11 @@ class SecurityLocationController extends AbstractController
         ]);
         $label = implode(', ', array_slice($localParts, 0, 4));
         $detail = implode(', ', array_slice($areaParts, 0, 3));
+        $displayName = trim((string) ($data['display_name'] ?? ''));
 
         return [
             'label' => $label ?: sprintf('%.5f, %.5f', $latitude, $longitude),
-            'detail' => $detail ?: ((string) ($data['display_name'] ?? 'coordonnees navigateur')),
+            'detail' => $detail ?: ($displayName !== '' ? $displayName : 'coordonnees navigateur'),
         ];
     }
 
@@ -182,8 +223,43 @@ class SecurityLocationController extends AbstractController
             return false;
         }
 
-        return abs((float) ($previous['latitude'] ?? 999) - $latitude) < 0.001
-            && abs((float) ($previous['longitude'] ?? 999) - $longitude) < 0.001;
+        return abs((float) ($previous['latitude'] ?? 999) - $latitude) < 0.00015
+            && abs((float) ($previous['longitude'] ?? 999) - $longitude) < 0.00015;
+    }
+
+    /**
+     * @param array<string,mixed>|null $previous
+     */
+    private function hasMeaningfulLocationChange(?array $previous, float $latitude, float $longitude, float $accuracy, float $distanceMeters): bool
+    {
+        if ($previous === null) {
+            return true;
+        }
+
+        $previousAccuracy = max(25.0, (float) ($previous['accuracy'] ?? 0.0));
+        $currentAccuracy = max(25.0, $accuracy);
+        $threshold = max(120.0, min(500.0, ($previousAccuracy + $currentAccuracy) / 2));
+
+        return $distanceMeters >= $threshold;
+    }
+
+    private function calculateDistanceMeters(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadius = 6371000.0;
+        $latFrom = deg2rad($lat1);
+        $lonFrom = deg2rad($lon1);
+        $latTo = deg2rad($lat2);
+        $lonTo = deg2rad($lon2);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(
+            sin($latDelta / 2) ** 2
+            + cos($latFrom) * cos($latTo) * sin($lonDelta / 2) ** 2
+        ));
+
+        return $angle * $earthRadius;
     }
 
     /**

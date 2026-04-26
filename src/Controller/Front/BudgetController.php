@@ -21,6 +21,58 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/espace-client/budget', name: 'front_budget_')]
 class BudgetController extends AbstractController
 {
+    private const CATEGORY_PRESETS = [
+        'logement' => [
+            'name' => 'Logement',
+            'budget' => 1200.0,
+            'threshold' => 950.0,
+            'icon' => 'bi-house-door',
+            'description' => 'Loyer, syndic, entretien et depenses de residence.',
+        ],
+        'alimentation' => [
+            'name' => 'Alimentation',
+            'budget' => 650.0,
+            'threshold' => 520.0,
+            'icon' => 'bi-basket2',
+            'description' => 'Courses, supermarche, repas et depenses du quotidien.',
+        ],
+        'transport' => [
+            'name' => 'Transport',
+            'budget' => 350.0,
+            'threshold' => 280.0,
+            'icon' => 'bi-car-front',
+            'description' => 'Carburant, taxi, transport public et entretien auto.',
+        ],
+        'factures' => [
+            'name' => 'Factures & abonnements',
+            'budget' => 300.0,
+            'threshold' => 240.0,
+            'icon' => 'bi-receipt',
+            'description' => 'Internet, telephone, electricite, eau et services recurrents.',
+        ],
+        'sante' => [
+            'name' => 'Sante',
+            'budget' => 250.0,
+            'threshold' => 190.0,
+            'icon' => 'bi-heart-pulse',
+            'description' => 'Consultations, pharmacie, assurance et prevention.',
+        ],
+        'loisirs' => [
+            'name' => 'Loisirs',
+            'budget' => 220.0,
+            'threshold' => 175.0,
+            'icon' => 'bi-controller',
+            'description' => 'Sorties, streaming, sport et moments detente.',
+        ],
+        'epargne' => [
+            'name' => 'Epargne',
+            'budget' => 500.0,
+            'threshold' => 450.0,
+            'icon' => 'bi-piggy-bank',
+            'description' => 'Montants reserves, objectifs et discipline d epargne.',
+        ],
+    ];
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly CategorieRepository $categorieRepository,
@@ -135,14 +187,24 @@ class BudgetController extends AbstractController
     public function categories(Request $request): Response
     {
         $search = trim((string) $request->query->get('search', ''));
+        $entities = $this->categorieRepository->searchByFilters($search, null, null, null, 'nom');
         $categories = array_map(
             fn (Categorie $categorie): array => $this->buildCategoryCardData($categorie),
-            $this->categorieRepository->searchByFilters($search, null, null, null, 'nom')
+            $entities
         );
+        $existingNames = array_map(
+            static fn (Categorie $categorie): string => mb_strtolower(trim($categorie->getNomCategorie())),
+            $entities
+        );
+        $suggestedCategories = array_values(array_filter(
+            $this->getCategoryPresets(),
+            static fn (array $preset): bool => !in_array(mb_strtolower($preset['name']), $existingNames, true)
+        ));
 
         return $this->render('front/client/budget/categories.html.twig', [
             'categories' => $categories,
             'search' => $search,
+            'suggestedCategories' => $suggestedCategories,
         ]);
     }
 
@@ -150,12 +212,24 @@ class BudgetController extends AbstractController
     public function createCategory(Request $request): Response
     {
         $categorie = new Categorie();
+        $presetSlug = trim((string) $request->query->get('preset', ''));
+        if ($presetSlug !== '') {
+            $preset = $this->getCategoryPreset($presetSlug);
+            if ($preset !== null) {
+                $categorie->setNomCategorie($preset['name']);
+                $categorie->setBudgetPrevu($preset['budget']);
+                $categorie->setSeuilAlerte($preset['threshold']);
+            }
+        }
+
         $form = $this->createForm(CategorieType::class, $categorie);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($categorie->getSeuilAlerte() >= $categorie->getBudgetPrevu()) {
                 $this->addFlash('error', 'Le seuil d alerte doit etre inferieur au budget prevu.');
+            } elseif ($this->categoryNameExists($categorie->getNomCategorie())) {
+                $this->addFlash('error', 'Une categorie avec ce nom existe deja.');
             } else {
                 $this->entityManager->persist($categorie);
                 $this->entityManager->flush();
@@ -169,6 +243,44 @@ class BudgetController extends AbstractController
             'form' => $form->createView(),
             'is_edit' => false,
             'categorie' => null,
+            'categoryPresets' => $this->getCategoryPresets(),
+            'selectedPreset' => $presetSlug !== '' ? $this->getCategoryPreset($presetSlug) : null,
+        ]);
+    }
+
+    #[Route('/categories/preset/{slug}/create', name: 'category_create_preset', methods: ['POST'])]
+    public function createPresetCategory(string $slug, Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('front_budget_create_preset_' . $slug, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action invalide.');
+
+            return $this->redirectToRoute('front_budget_categories');
+        }
+
+        $preset = $this->getCategoryPreset($slug);
+        if ($preset === null) {
+            $this->addFlash('error', 'Categorie suggeree introuvable.');
+
+            return $this->redirectToRoute('front_budget_categories');
+        }
+
+        if ($this->categoryNameExists($preset['name'])) {
+            $this->addFlash('warning', 'Cette categorie existe deja.');
+
+            return $this->redirectToRoute('front_budget_categories');
+        }
+
+        $categorie = (new Categorie())
+            ->setNomCategorie($preset['name'])
+            ->setBudgetPrevu($preset['budget'])
+            ->setSeuilAlerte($preset['threshold']);
+
+        $this->entityManager->persist($categorie);
+        $this->entityManager->flush();
+        $this->addFlash('success', 'Categorie "' . $preset['name'] . '" ajoutee avec succes.');
+
+        return $this->redirectToRoute('front_budget_category_show', [
+            'idCategorie' => $categorie->getIdCategorie(),
         ]);
     }
 
@@ -177,12 +289,37 @@ class BudgetController extends AbstractController
     {
         $spent = $this->itemRepository->getTotalMontantByCategorie($categorie->getIdCategorie());
         $usage = $categorie->getBudgetPrevu() > 0 ? ($spent / $categorie->getBudgetPrevu()) * 100 : 0;
+        $alerts = array_values(array_filter(
+            $categorie->getAlertes()->toArray(),
+            static fn (Alerte $alerte): bool => $alerte->getActive() === true
+        ));
+        $items = $categorie->getItems()->toArray();
+        usort($items, static fn (Item $left, Item $right): int => $right->getIdItem() <=> $left->getIdItem());
+        $averageItemAmount = count($items) > 0 ? array_sum(array_map(static fn (Item $item): float => $item->getMontant(), $items)) / count($items) : 0.0;
+        $largestItem = $items !== []
+            ? array_reduce($items, static function (?Item $carry, Item $item): Item {
+                if ($carry === null || $item->getMontant() > $carry->getMontant()) {
+                    return $item;
+                }
+
+                return $carry;
+            })
+            : null;
+
+        [$statusClass, $statusLabel] = $this->resolveBudgetStatus($usage, count($alerts), $spent, $categorie->getSeuilAlerte());
 
         return $this->render('front/client/budget/category_show.html.twig', [
             'categorie' => $categorie,
+            'items' => $items,
             'spent' => $spent,
             'remaining' => $categorie->getBudgetPrevu() - $spent,
             'usage' => $usage,
+            'activeAlerts' => $alerts,
+            'statusClass' => $statusClass,
+            'statusLabel' => $statusLabel,
+            'thresholdRemaining' => max(0, $categorie->getSeuilAlerte() - $spent),
+            'averageItemAmount' => $averageItemAmount,
+            'largestItem' => $largestItem,
         ]);
     }
 
@@ -244,7 +381,7 @@ class BudgetController extends AbstractController
         if ($preselectedCategoryId > 0) {
             $categorie = $this->categorieRepository->find($preselectedCategoryId);
             if ($categorie instanceof Categorie) {
-                $item->setCategorieRel($categorie);
+                $item->setCategorie($categorie);
                 $item->setIdCategorie($categorie->getIdCategorie());
                 $item->setCategorieLabel($categorie->getNomCategorie());
             }
@@ -254,7 +391,7 @@ class BudgetController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $categorie = $item->getCategorieRel();
+            $categorie = $item->getCategorie();
             $existingTotal = $this->itemRepository->getTotalMontantByCategorie($categorie->getIdCategorie());
             $newTotal = $existingTotal + $item->getMontant();
 
@@ -283,7 +420,7 @@ class BudgetController extends AbstractController
     #[Route('/items/{idItem}', name: 'item_show', methods: ['GET'])]
     public function showItem(Item $item): Response
     {
-        $categoryTotal = $this->itemRepository->getTotalMontantByCategorie($item->getCategorieRel()->getIdCategorie());
+        $categoryTotal = $this->itemRepository->getTotalMontantByCategorie($item->getCategorie()->getIdCategorie());
         $percentage = $categoryTotal > 0 ? ($item->getMontant() / $categoryTotal) * 100 : 0;
 
         return $this->render('front/client/budget/item_show.html.twig', [
@@ -300,7 +437,7 @@ class BudgetController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $categorie = $item->getCategorieRel();
+            $categorie = $item->getCategorie();
             $existingTotal = $this->itemRepository->getTotalMontantByCategorie($categorie->getIdCategorie(), $item->getIdItem());
             $newTotal = $existingTotal + $item->getMontant();
 
@@ -328,7 +465,7 @@ class BudgetController extends AbstractController
     #[Route('/items/{idItem}/delete', name: 'item_delete', methods: ['POST'])]
     public function deleteItem(Request $request, Item $item): Response
     {
-        $categoryId = $item->getCategorieRel()->getIdCategorie();
+        $categoryId = $item->getCategorie()->getIdCategorie();
 
         if (!$this->isCsrfTokenValid('front_budget_delete_item_' . $item->getIdItem(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Action invalide.');
@@ -349,14 +486,14 @@ class BudgetController extends AbstractController
 
     private function synchronizeItemCategory(Item $item): void
     {
-        $categorie = $item->getCategorieRel();
+        $categorie = $item->getCategorie();
         $item->setIdCategorie($categorie->getIdCategorie());
         $item->setCategorieLabel($categorie->getNomCategorie());
     }
 
     private function createAlerteIfThresholdReached(Item $item, float $oldTotal, float $newTotal): void
     {
-        $categorie = $item->getCategorieRel();
+        $categorie = $item->getCategorie();
         $seuil = $categorie->getSeuilAlerte();
 
         if ($oldTotal < $seuil && $newTotal >= $seuil) {
@@ -452,5 +589,66 @@ class BudgetController extends AbstractController
             'statusClass' => $statusClass,
             'sparkline' => $sparkline,
         ];
+    }
+
+    /**
+     * @return list<array{slug:string,name:string,budget:float,threshold:float,icon:string,description:string}>
+     */
+    private function getCategoryPresets(): array
+    {
+        $presets = [];
+        foreach (self::CATEGORY_PRESETS as $slug => $preset) {
+            $presets[] = [
+                'slug' => $slug,
+                'name' => $preset['name'],
+                'budget' => $preset['budget'],
+                'threshold' => $preset['threshold'],
+                'icon' => $preset['icon'],
+                'description' => $preset['description'],
+            ];
+        }
+
+        return $presets;
+    }
+
+    /**
+     * @return array{slug:string,name:string,budget:float,threshold:float,icon:string,description:string}|null
+     */
+    private function getCategoryPreset(string $slug): ?array
+    {
+        if (!isset(self::CATEGORY_PRESETS[$slug])) {
+            return null;
+        }
+
+        return ['slug' => $slug] + self::CATEGORY_PRESETS[$slug];
+    }
+
+    private function categoryNameExists(string $name): bool
+    {
+        $normalized = mb_strtolower(trim($name));
+
+        foreach ($this->categorieRepository->findAll() as $existing) {
+            if (mb_strtolower(trim($existing->getNomCategorie())) === $normalized) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array{0:string,1:string}
+     */
+    private function resolveBudgetStatus(float $usage, int $alertCount, float $spent, float $threshold): array
+    {
+        if ($usage >= 100 || $alertCount > 0) {
+            return ['danger', 'Sous tension'];
+        }
+
+        if ($usage >= 80 || $spent >= $threshold) {
+            return ['warning', 'Vigilance'];
+        }
+
+        return ['success', 'Stable'];
     }
 }

@@ -37,10 +37,10 @@
         <div class="ft-app-card ft-premium-card h-100">
           <div class="ft-app-card-header">Categorie associee</div>
           <div class="ft-app-card-body d-flex flex-column gap-2">
-            <strong>{{ item.categorieRel.nomCategorie }}</strong>
-            <span class="text-muted">Budget categorie: {{ item.categorieRel.budgetPrevu|number_format(2, ',', ' ') }} TND</span>
+            <strong>{{ item.categorie.nomCategorie }}</strong>
+            <span class="text-muted">Budget categorie: {{ item.categorie.budgetPrevu|number_format(2, ',', ' ') }} TND</span>
             <span class="text-muted">Total categorie: {{ categoryTotal|number_format(2, ',', ' ') }} TND</span>
-            <a href="{{ path('front_budget_category_show', {'idCategorie': item.categorieRel.idCategorie}) }}" class="btn ft-btn-outline-primary mt-2">Voir la categorie</a>
+            <a href="{{ path('front_budget_category_show', {'idCategorie': item.categorie.idCategorie}) }}" class="btn ft-btn-outline-primary mt-2">Voir la categorie</a>
           </div>
         </div>
       </div>
@@ -52,10 +52,10 @@
         <a href="{{ path('front_budget_item_edit', {'idItem': item.idItem}) }}" class="btn ft-btn-primary">
           <i class="bi bi-pencil-square me-2"></i>Modifier
         </a>
-        <a href="{{ path('front_budget_item_create', {'categorie': item.categorieRel.idCategorie}) }}" class="btn ft-btn-outline-primary">
+        <a href="{{ path('front_budget_item_create', {'categorie': item.categorie.idCategorie}) }}" class="btn ft-btn-outline-primary">
           <i class="bi bi-plus-circle me-2"></i>Ajouter un item similaire
         </a>
-        <a href="{{ path('front_budget_category_show', {'idCategorie': item.categorieRel.idCategorie}) }}" class="btn ft-btn-outline-primary">
+        <a href="{{ path('front_budget_category_show', {'idCategorie': item.categorie.idCategorie}) }}" class="btn ft-btn-outline-primary">
           <i class="bi bi-arrow-left me-2"></i>Retour a la categorie
         </a>
         <form method="post" action="{{ path('front_budget_item_delete', {'idItem': item.idItem}) }}" onsubmit="return confirm('Supprimer cet item ?');">

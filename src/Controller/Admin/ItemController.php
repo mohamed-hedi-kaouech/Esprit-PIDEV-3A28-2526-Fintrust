@@ -330,7 +330,7 @@ class ItemController extends AbstractController
             fputcsv($handle, ['ID', 'Libelle', 'Categorie', 'Montant', 'Budget categorie', 'Seuil alerte'], ';');
 
             foreach ($items as $item) {
-                $categorie = $item->getCategorieRel();
+                $categorie = $item->getCategorie();
                 fputcsv($handle, [
                     $item->getIdItem(),
                     $item->getLibelle(),

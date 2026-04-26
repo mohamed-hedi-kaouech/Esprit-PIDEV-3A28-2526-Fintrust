@@ -1,581 +1,409 @@
 {% extends 'admin/back.html.twig' %}
 
-{% block title %}Gestion des Catégories{% endblock %}
+{% block title %}Gestion des Cat&eacute;gories{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <div>
-            <h1 class="h2 fw-bold text-dark mb-2">
-                <i class="fas fa-folder-open text-primary me-3"></i>
-                Gestion des Catégories
-            </h1>
-            <p class="text-muted">Organisez et gérez vos catégories budgétaires</p>
-        </div>
-        <div class="d-flex gap-3">
-            <div class="stats-card">
-                <div class="stats-number">{{ categories|length }}</div>
-                <div class="stats-label">Total Catégories</div>
-            </div>
-            <div class="stats-card">
-                <div class="stats-number">
-                    {% set totalItems = 0 %}
-                    {% for categorie in categories %}
-                        {% if categorie.items is iterable %}
-                            {% set totalItems = totalItems + categorie.items|length %}
-                        {% endif %}
-                    {% endfor %}
-                    {{ totalItems }}
-                </div>
-                <div class="stats-label">Total Items</div>
-            </div>
-        </div>
-    </div>
+<div class="container-fluid mt-4 ft-budget-admin-page">
+    {% set totalItems = 0 %}
+    {% for categorie in categories %}
+        {% if categorie.items is iterable %}
+            {% set totalItems = totalItems + categorie.items|length %}
+        {% endif %}
+    {% endfor %}
 
-    <div class="d-flex gap-3 mb-4">
-        <a href="{{ path('admin_categorie_stats') }}" class="btn btn-info btn-lg">
-            <i class="fas fa-chart-bar me-2"></i>Statistiques
-        </a>
-        <a href="{{ path('admin_categorie_create') }}" class="btn btn-primary btn-lg">
-            <i class="fas fa-plus me-2"></i>Nouvelle Catégorie
-        </a>
-        <a href="{{ path('admin_item_list') }}" class="btn btn-success btn-lg">
-            <i class="fas fa-list me-2"></i>Voir tous les Items
-        </a>
-        <a href="{{ path('admin_categorie_pdf') }}" class="btn btn-danger btn-lg">
-            <i class="fas fa-file-pdf me-2"></i>Télécharger Facture PDF
-        </a>
-    </div>
+    <section class="ft-admin-hero ft-budget-admin-hero mb-4">
+        <div class="ft-admin-hero-grid">
+            <div>
+                <span class="ft-admin-hero-kicker">
+                    <i class="bi bi-grid-3x3-gap me-1"></i>Budget admin / categories
+                </span>
+                <h1 class="ft-admin-page-title mb-3">Gestion des cat&eacute;gories</h1>
+                <p class="ft-admin-hero-subtitle mb-0">
+                    Organisez les postes budg&eacute;taires, surveillez les seuils d alerte et gardez une lecture claire des items relies.
+                </p>
+            </div>
+            <div class="ft-admin-hero-panel">
+                <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
+                    <a href="{{ path('admin_categorie_stats') }}" class="btn ft-btn-outline-primary">
+                        <i class="fas fa-chart-bar me-2"></i>Statistiques
+                    </a>
+                    <a href="{{ path('admin_categorie_create') }}" class="btn ft-btn-primary">
+                        <i class="fas fa-plus me-2"></i>Nouvelle cat&eacute;gorie
+                    </a>
+                    <a href="{{ path('admin_item_list') }}" class="btn ft-btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>Voir les items
+                    </a>
+                    <a href="{{ path('admin_categorie_pdf') }}" class="btn ft-btn-outline-primary">
+                        <i class="fas fa-file-pdf me-2"></i>T&eacute;l&eacute;charger PDF
+                    </a>
+                </div>
+                <div class="ft-admin-meta justify-content-lg-end">
+                    <span><i class="bi bi-folder2-open"></i>{{ categories|length }} cat&eacute;gorie(s)</span>
+                    <span><i class="bi bi-journal-text"></i>{{ totalItems }} item(s)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue">
+                <span class="ft-admin-kpi-mini-icon"><i class="bi bi-folder2-open"></i></span>
+                <div class="ft-admin-kpi-mini-label">Total categories</div>
+                <div class="ft-admin-kpi-mini-value">{{ categories|length }}</div>
+                <div class="ft-admin-kpi-mini-text">Structure budgetaire actuellement disponible.</div>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue">
+                <span class="ft-admin-kpi-mini-icon"><i class="bi bi-journals"></i></span>
+                <div class="ft-admin-kpi-mini-label">Total items</div>
+                <div class="ft-admin-kpi-mini-value">{{ totalItems }}</div>
+                <div class="ft-admin-kpi-mini-text">Volume total des lignes rattachees aux categories.</div>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-admin-kpi-mini ft-admin-kpi-mini-blue-soft">
+                <span class="ft-admin-kpi-mini-icon"><i class="bi bi-exclamation-diamond"></i></span>
+                <div class="ft-admin-kpi-mini-label">Sous surveillance</div>
+                <div class="ft-admin-kpi-mini-value">
+                    {{ categories|filter(c => c.seuilAlerte > 0)|length }}
+                </div>
+                <div class="ft-admin-kpi-mini-text">Categories avec seuil d alerte configure.</div>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-admin-kpi-mini ft-admin-kpi-mini-slate">
+                <span class="ft-admin-kpi-mini-icon"><i class="bi bi-speedometer2"></i></span>
+                <div class="ft-admin-kpi-mini-label">Vue budget</div>
+                <div class="ft-admin-kpi-mini-value">FinTrust</div>
+                <div class="ft-admin-kpi-mini-text">Meme langage visuel que le pilotage wallet.</div>
+            </article>
+        </div>
+    </section>
 
     {% for message in app.flashes('success') %}
-        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
             <i class="fas fa-check-circle me-2"></i>{{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     {% endfor %}
 
     {% for message in app.flashes('error') %}
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
             <i class="fas fa-exclamation-triangle me-2"></i>{{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     {% endfor %}
 
     {% if categories|length > 0 %}
-        <div class="row g-4">
+        <section class="row g-4">
             {% for categorie in categories %}
-                <div class="col-xl-4 col-lg-6 col-md-6">
-                    <div class="categorie-card">
-                        <div class="categorie-header">
-                            <div class="categorie-icon">
+                {% set usedBudget = 0 %}
+                {% for item in categorie.items %}
+                    {% set usedBudget = usedBudget + item.montant %}
+                {% endfor %}
+                {% set budgetPercentage = categorie.budgetPrevu > 0 ? (usedBudget / categorie.budgetPrevu * 100) : 0 %}
+                {% set progressWidth = budgetPercentage > 100 ? 100 : budgetPercentage %}
+                {% set progressState = budgetPercentage > 90 ? 'danger' : (budgetPercentage > 75 ? 'warning' : 'healthy') %}
+
+                <div class="col-xl-4 col-lg-6">
+                    <article class="ft-budget-category-card h-100">
+                        <div class="ft-budget-category-head">
+                            <div class="ft-budget-category-icon">
                                 <i class="fas fa-folder"></i>
                             </div>
-                            <div class="categorie-info">
-                                <div class="categorie-name">{{ categorie.nomCategorie }}</div>
-                                <div class="categorie-id">ID: {{ categorie.idCategorie }}</div>
+                            <div class="ft-budget-category-meta">
+                                <h3>{{ categorie.nomCategorie }}</h3>
+                                <span>ID: {{ categorie.idCategorie }}</span>
                             </div>
-                            <div class="categorie-badge">
-                                <span class="badge bg-primary">{{ categorie.items|length }} item(s)</span>
-                            </div>
+                            <span class="ft-budget-chip">{{ categorie.items|length }} item(s)</span>
                         </div>
 
-                        <div class="categorie-content">
-                            <div class="budget-info">
-                                <div class="budget-item">
-                                    <span class="budget-label">Budget prévu :</span>
-                                    <span class="budget-value">{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</span>
-                                </div>
-                                <div class="budget-item">
-                                    <span class="budget-label">Seuil d'alerte :</span>
-                                    <span class="budget-value text-warning">{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} DT</span>
-                                </div>
+                        <div class="ft-budget-category-body">
+                            <div class="ft-budget-stat-row">
+                                <span>Budget pr&eacute;vu</span>
+                                <strong>{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</strong>
+                            </div>
+                            <div class="ft-budget-stat-row">
+                                <span>Seuil d alerte</span>
+                                <strong class="is-accent">{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} DT</strong>
+                            </div>
+                            <div class="ft-budget-stat-row">
+                                <span>D&eacute;pens&eacute;</span>
+                                <strong>{{ usedBudget|number_format(2, ',', ' ') }} DT</strong>
                             </div>
 
-                            {% set usedBudget = 0 %}
-                            {% for item in categorie.items %}
-                                {% set usedBudget = usedBudget + item.montant %}
-                            {% endfor %}
-                            {% set budgetPercentage = categorie.budgetPrevu > 0 ? (usedBudget / categorie.budgetPrevu * 100) : 0 %}
-
-                            <div class="budget-progress">
-                                <div class="progress-label">
-                                    <span>Budget utilisé</span>
+                            <div class="ft-budget-progress-zone">
+                                <div class="ft-budget-progress-head">
+                                    <span>Budget utilis&eacute;</span>
                                     <span>{{ budgetPercentage|number_format(1) }}%</span>
                                 </div>
-                                <div class="progress">
-                                    <div class="progress-bar {{ budgetPercentage > 90 ? 'bg-danger' : (budgetPercentage > 75 ? 'bg-warning' : 'bg-success') }}"
-                                         role="progressbar"
-                                         style="width: {{ budgetPercentage }}%"
-                                         aria-valuenow="{{ budgetPercentage }}"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100">
-                                    </div>
+                                <div class="ft-budget-progress-track">
+                                    <span class="is-{{ progressState }}" style="width: {{ progressWidth }}%;"></span>
                                 </div>
-                                <div class="progress-text">
+                                <div class="ft-budget-progress-note">
                                     {{ usedBudget|number_format(2, ',', ' ') }} DT / {{ categorie.budgetPrevu|number_format(2, ',', ' ') }} DT
                                 </div>
                             </div>
                         </div>
 
-                        <div class="categorie-actions">
+                        <div class="ft-budget-category-actions">
                             <a href="{{ path('admin_categorie_show', {'idCategorie': categorie.idCategorie}) }}"
-                               class="btn btn-sm btn-outline-info action-btn" title="Voir les détails">
-                                <i class="fas fa-eye me-1"></i>Voir
+                               class="btn ft-btn-outline-primary btn-sm" title="Voir les details">
+                                <i class="fas fa-eye me-2"></i>Voir
                             </a>
                             <a href="{{ path('admin_categorie_edit', {'idCategorie': categorie.idCategorie}) }}"
-                               class="btn btn-sm btn-outline-warning action-btn" title="Modifier">
-                                <i class="fas fa-edit me-1"></i>Modifier
+                               class="btn ft-btn-outline-primary btn-sm" title="Modifier">
+                                <i class="fas fa-edit me-2"></i>Modifier
                             </a>
-                            <form method="post" action="{{ path('admin_categorie_delete', {'idCategorie': categorie.idCategorie}) }}"
+                            <form method="post"
+                                  action="{{ path('admin_categorie_delete', {'idCategorie': categorie.idCategorie}) }}"
                                   class="d-inline"
-                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ? Cela supprimera également tous les items associés.')">
+                                  onsubmit="return confirm('Etes-vous sur de vouloir supprimer cette categorie ? Cela supprimera egalement les items associes.');">
                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ categorie.idCategorie) }}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger action-btn" title="Supprimer">
-                                    <i class="fas fa-trash me-1"></i>Supprimer
+                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Supprimer">
+                                    <i class="fas fa-trash me-2"></i>Supprimer
                                 </button>
                             </form>
                         </div>
-                    </div>
+                    </article>
                 </div>
             {% endfor %}
-        </div>
+        </section>
     {% else %}
-        <div class="text-center py-5">
-            <div class="empty-state">
-                <i class="fas fa-folder-open text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
-                <h4 class="mt-3 text-muted">Aucune catégorie</h4>
-                <p class="text-muted">Commencez par créer votre première catégorie budgétaire.</p>
-                <a href="{{ path('admin_categorie_create') }}" class="btn btn-primary btn-lg mt-3">
-                    <i class="fas fa-plus me-2"></i>Créer une catégorie
+        <section class="ft-admin-card">
+            <div class="ft-admin-card-body text-center py-5">
+                <div class="ft-budget-empty-icon mx-auto mb-3">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <h2 class="h4 mb-2">Aucune cat&eacute;gorie</h2>
+                <p class="text-muted mb-4">Commencez par cr&eacute;er votre premi&egrave;re cat&eacute;gorie budg&eacute;taire.</p>
+                <a href="{{ path('admin_categorie_create') }}" class="btn ft-btn-primary">
+                    <i class="fas fa-plus me-2"></i>Cr&eacute;er une cat&eacute;gorie
                 </a>
             </div>
-        </div>
+        </section>
     {% endif %}
 </div>
 
 <style>
-.stats-card {
-    border-radius: 16px;
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
+.ft-budget-admin-page {
+    padding-bottom: 2rem;
+}
+
+.ft-budget-admin-hero {
+    background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 30%),
+        linear-gradient(135deg, #ffffff 0%, #f8fbff 36%, #eef5ff 100%);
+    border: 1px solid rgba(59, 130, 246, 0.14);
+}
+
+.ft-admin-kpi-mini-blue-soft {
+    background: linear-gradient(135deg, #ffffff, #eff6ff);
+    border: 1px solid rgba(59, 130, 246, 0.14);
+}
+
+.ft-admin-kpi-mini-blue-soft .ft-admin-kpi-mini-icon {
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
+    color: #fff;
+}
+
+.ft-admin-kpi-mini-slate {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: #fff;
+}
+
+.ft-admin-kpi-mini-slate .ft-admin-kpi-mini-icon {
+    background: linear-gradient(135deg, #2563eb, #60a5fa);
+    color: #fff;
+}
+
+.ft-admin-kpi-mini-slate .ft-admin-kpi-mini-label,
+.ft-admin-kpi-mini-slate .ft-admin-kpi-mini-text {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.ft-admin-kpi-mini-slate .ft-admin-kpi-mini-value {
+    color: #fff;
+}
+
+.ft-budget-category-card {
+    background: #fff;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 24px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
     overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ft-budget-category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 22px 50px rgba(37, 99, 235, 0.14);
+}
+
+.ft-budget-category-head {
     display: flex;
     align-items: center;
     gap: 1rem;
+    padding: 1.35rem 1.4rem;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
 }
 
-.stats-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-}
-
-/* Carte Total Catégories - Dégradé bleu professionnel */
-.categories-count-card {
-    background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
-    border: 2px solid rgba(59, 130, 246, 0.2);
-    color: #1e293b;
-}
-
-.categories-count-card::before {
-    background: linear-gradient(90deg, #3b82f6, #2563eb, #1d4ed8);
-}
-
-.categories-count-card .stats-icon {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);
-}
-
-.categories-count-card:hover {
-    transform: translateY(-6px) scale(1.03);
-    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.25);
-}
-
-/* Carte Total Items - Dégradé vert moderne */
-.items-count-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
-    border: 2px solid rgba(34, 197, 94, 0.2);
-    color: #1e293b;
-}
-
-.items-count-card::before {
-    background: linear-gradient(90deg, #10b981, #059669, #047857);
-}
-
-.items-count-card .stats-icon {
-    background: linear-gradient(135deg, #10b981, #059669);
-    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
-}
-
-.items-count-card:hover {
-    transform: translateY(-6px) scale(1.03);
-    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.25);
-}
-
-.stats-icon {
+.ft-budget-category-icon {
     width: 50px;
     height: 50px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.25rem;
-    position: relative;
-    z-index: 2;
-    transition: all 0.3s ease;
-}
-
-.stats-icon:hover {
-    transform: scale(1.1);
-}
-
-.stats-content {
-    flex: 1;
-    position: relative;
-    z-index: 2;
-}
-
-.stats-number {
-    font-size: 2.25rem;
-    font-weight: 800;
-    margin-bottom: 0.25rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    background: linear-gradient(135deg, #1e293b, #334155);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.stats-label {
-    font-size: 0.9rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    opacity: 0.8;
-}
-
-/* Animations subtiles */
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.stats-card:hover .stats-icon {
-    animation: pulse 2s ease-in-out infinite;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .stats-card {
-        padding: 1rem;
-        gap: 0.75rem;
-    }
-
-    .stats-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-    }
-
-    .stats-number {
-        font-size: 1.75rem;
-    }
-
-    .stats-label {
-        font-size: 0.8rem;
-    }
-}
-
-.categorie-card {
-    background: white;
-    border: 1px solid rgba(167, 180, 248, 0.35);
     border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    overflow: hidden;
-}
-
-.categorie-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 40px rgba(59, 130, 246, 0.15);
-}
-
-.categorie-header {
-    display: flex;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    background: rgba(248, 250, 252, 0.8);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
-}
-
-.categorie-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #3b82f6, #1f6feb);
-    border-radius: 12px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 1.25rem;
-    margin-right: 1rem;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+    font-size: 1.15rem;
 }
 
-.categorie-info {
+.ft-budget-category-meta {
     flex: 1;
 }
 
-.categorie-name {
-    font-weight: 700;
-    color: #1e293b;
-    font-size: 1.1rem;
-    margin-bottom: 0.25rem;
+.ft-budget-category-meta h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #0f172a;
 }
 
-.categorie-id {
+.ft-budget-category-meta span {
     color: #64748b;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
 }
 
-.categorie-badge {
-    margin-left: auto;
+.ft-budget-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.38rem 0.72rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+    font-size: 0.78rem;
+    font-weight: 800;
 }
 
-.categorie-content {
-    padding: 1.5rem;
+.ft-budget-category-body {
+    padding: 1.35rem 1.4rem 1.1rem;
 }
 
-.budget-info {
-    margin-bottom: 1.5rem;
-}
-
-.budget-item {
+.ft-budget-stat-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    gap: 1rem;
+    padding: 0.82rem 0;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.78);
 }
 
-.budget-item:last-child {
+.ft-budget-stat-row:last-of-type {
     border-bottom: none;
 }
 
-.budget-label {
+.ft-budget-stat-row span {
+    color: #334155;
     font-weight: 600;
-    color: #374151;
 }
 
-.budget-value {
-    font-weight: 700;
-    color: #1f2937;
+.ft-budget-stat-row strong {
+    color: #0f172a;
+    font-weight: 800;
+    font-size: 1rem;
 }
 
-.budget-progress {
+.ft-budget-stat-row strong.is-accent {
+    color: #2563eb;
+}
+
+.ft-budget-progress-zone {
     margin-top: 1rem;
+    padding: 1rem 1.05rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #f8fbff, #eef4ff);
+    border: 1px solid rgba(191, 219, 254, 0.8);
 }
 
-.progress-label {
+.ft-budget-progress-head,
+.ft-budget-progress-note {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    color: #6b7280;
+    gap: 0.8rem;
 }
 
-.progress {
-    height: 8px;
-    background-color: #e5e7eb;
-    border-radius: 4px;
+.ft-budget-progress-head {
+    margin-bottom: 0.6rem;
+    font-size: 0.88rem;
+    color: #475569;
+    font-weight: 700;
+}
+
+.ft-budget-progress-track {
+    height: 12px;
+    border-radius: 999px;
     overflow: hidden;
-    margin-bottom: 0.5rem;
+    background: rgba(191, 219, 254, 0.55);
+    margin-bottom: 0.55rem;
 }
 
-.progress-bar {
-    background: linear-gradient(90deg, #10b981, #059669);
-    transition: width 0.3s ease;
+.ft-budget-progress-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #1d4ed8, #2563eb, #38bdf8);
 }
 
-.progress-text {
-    font-size: 0.75rem;
-    color: #9ca3af;
-    text-align: center;
+.ft-budget-progress-track span.is-warning {
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
 }
 
-.categorie-actions {
-    padding: 1rem 1.5rem;
-    background: rgba(248, 250, 252, 0.5);
-    border-top: 1px solid rgba(226, 232, 240, 0.5);
-    display: flex;
-    gap: 0.5rem;
+.ft-budget-progress-track span.is-danger {
+    background: linear-gradient(90deg, #1e3a8a, #1d4ed8);
+}
+
+.ft-budget-progress-note {
     justify-content: center;
+    font-size: 0.82rem;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.ft-budget-category-actions {
+    padding: 1rem 1.4rem 1.3rem;
+    display: flex;
     flex-wrap: wrap;
+    gap: 0.65rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.78);
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
 }
 
-.action-btn {
-    border-radius: 8px;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    transition: all 0.2s ease;
-    font-size: 0.875rem;
+.ft-budget-category-actions .btn {
+    border-radius: 14px;
+    font-weight: 700;
 }
 
-.action-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.empty-state {
-    padding: 3rem;
+.ft-budget-empty-icon {
+    width: 86px;
+    height: 86px;
+    border-radius: 24px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #dbeafe, #eff6ff);
+    color: #2563eb;
+    font-size: 2rem;
 }
 </style>
 {% endblock %}
 
 {% block javascripts %}
 {{ parent() }}
-<style>
-#aiToggle {
-  position:fixed; bottom:28px; right:28px; z-index:1050;
-  width:56px; height:56px; border-radius:50%; border:none;
-  background:linear-gradient(135deg,#1560BD,#0f172a);
-  color:#fff; font-size:22px; cursor:pointer;
-  box-shadow:0 6px 24px rgba(21,96,189,.45);
-  display:flex; align-items:center; justify-content:center;
-  transition:transform .2s;
-}
-#aiToggle:hover { transform:scale(1.1); }
-#aiPanel {
-  position:fixed; bottom:96px; right:28px; z-index:1049;
-  width:370px; max-height:540px;
-  background:#fff; border-radius:18px;
-  box-shadow:0 12px 48px rgba(15,23,42,.18);
-  display:flex; flex-direction:column;
-  transform:scale(.85) translateY(20px);
-  opacity:0; pointer-events:none;
-  transition:all .25s cubic-bezier(.4,0,.2,1);
-  overflow:hidden;
-}
-#aiPanel.ai-open { transform:scale(1) translateY(0); opacity:1; pointer-events:all; }
-.ai-head { background:linear-gradient(135deg,#1560BD,#0f172a); padding:14px 18px; display:flex; align-items:center; gap:12px; }
-.ai-head-av { font-size:26px; }
-.ai-head-title { color:#fff; font-weight:700; font-size:.95rem; margin:0; }
-.ai-head-sub { color:rgba(255,255,255,.65); font-size:.75rem; margin:0; }
-.ai-dot-live { width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;margin-right:4px;animation:livepulse 1.8s infinite; }
-@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.3}}
-.ai-msgs { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; background:#f8fafc; min-height:200px; max-height:260px; }
-.ai-msgs::-webkit-scrollbar{width:4px}
-.ai-msgs::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
-.ai-msg { display:flex; gap:8px; align-items:flex-end; max-width:90%; }
-.ai-msg-bot { align-self:flex-start; }
-.ai-msg-user { align-self:flex-end; flex-direction:row-reverse; }
-.ai-av { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0; }
-.ai-msg-bot .ai-av { background:#e0eaff; }
-.ai-msg-user .ai-av { background:#1560BD; color:#fff; }
-.ai-bubble { padding:9px 13px; border-radius:16px; font-size:.82rem; line-height:1.5; word-break:break-word; }
-.ai-msg-bot .ai-bubble { background:#fff; border:1px solid #e2e8f0; color:#1e293b; border-bottom-left-radius:4px; }
-.ai-msg-user .ai-bubble { background:#1560BD; color:#fff; border-bottom-right-radius:4px; }
-.ai-time { font-size:.65rem; color:#94a3b8; margin-top:2px; }
-.ai-msg-user .ai-time { text-align:right; }
-.ai-tdot { display:inline-block;width:6px;height:6px;background:#94a3b8;border-radius:50%;margin:0 2px;animation:tdot .9s infinite; }
-.ai-tdot:nth-child(2){animation-delay:.15s} .ai-tdot:nth-child(3){animation-delay:.3s}
-@keyframes tdot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
-.ai-chips { padding:8px 12px; display:flex; flex-wrap:wrap; gap:5px; border-top:1px solid #e2e8f0; background:#fff; }
-.ai-chip { background:#eff6ff;color:#1560BD;border:1px solid #bfdbfe;border-radius:20px;padding:4px 10px;font-size:.72rem;cursor:pointer;transition:all .15s;white-space:nowrap; }
-.ai-chip:hover { background:#1560BD;color:#fff; }
-.ai-input-row { display:flex;gap:8px;padding:10px 12px;border-top:1px solid #e2e8f0;background:#fff; }
-.ai-input { flex:1;border:1.5px solid #e2e8f0;border-radius:22px;padding:8px 14px;font-size:.82rem;outline:none;transition:border .2s; }
-.ai-input:focus { border-color:#1560BD; }
-.ai-send { background:#1560BD;color:#fff;border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .2s; }
-.ai-send:hover { background:#0f4a9c; }
-.ai-send:disabled { background:#94a3b8;cursor:not-allowed; }
-</style>
-
-<button id="aiToggle" title="Assistant IA Budget"><i class="bi bi-robot"></i></button>
-
-<div id="aiPanel">
-  <div class="ai-head">
-    <div class="ai-head-av">🤖</div>
-    <div>
-      <p class="ai-head-title">Assistant IA Budget</p>
-      <p class="ai-head-sub"><span class="ai-dot-live"></span>En ligne · FinTrust</p>
-    </div>
-  </div>
-  <div class="ai-msgs" id="aiMsgs">
-    <div class="ai-msg ai-msg-bot">
-      <div class="ai-av">🤖</div>
-      <div>
-        <div class="ai-bubble">Bonjour ! Posez-moi une question sur vos <strong>categories</strong>, <strong>depenses</strong> ou <strong>budget</strong>. Tapez <strong>aide</strong> pour voir mes fonctionnalites !</div>
-        <div class="ai-time">Maintenant</div>
-      </div>
-    </div>
-  </div>
-  <div class="ai-chips">
-    <button class="ai-chip" data-q="Budget total">💰 Budget</button>
-    <button class="ai-chip" data-q="Montant restant">📊 Restant</button>
-    <button class="ai-chip" data-q="Mes categories">📂 Categories</button>
-    <button class="ai-chip" data-q="Depassements">⚠️ Depassements</button>
-    <button class="ai-chip" data-q="Conseils optimisation">💡 Conseils</button>
-    <button class="ai-chip" data-q="Alertes budget">🚨 Alertes</button>
-  </div>
-  <div class="ai-input-row">
-    <input type="text" class="ai-input" id="aiInput" placeholder="Votre question..." maxlength="500" autocomplete="off"/>
-    <button class="ai-send" id="aiSend"><i class="bi bi-send-fill" style="font-size:13px"></i></button>
-  </div>
-</div>
-
-<script>
-const aiAskUrl = '{{ path("admin_budget_ai_ask") }}';
-function aiNow(){return new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function fmtText(t){return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');}
-function aiAddMsg(text,role){
-  const box=document.getElementById('aiMsgs');
-  const d=document.createElement('div'); d.className='ai-msg ai-msg-'+role;
-  const av=role==='bot'?'🤖':'<i class="bi bi-person-fill" style="font-size:13px"></i>';
-  d.innerHTML=`<div class="ai-av">${av}</div><div><div class="ai-bubble">${role==='bot'?fmtText(text):escHtml(text)}</div><div class="ai-time">${aiNow()}</div></div>`;
-  box.appendChild(d); box.scrollTop=box.scrollHeight;
-}
-function aiShowTyping(){
-  const box=document.getElementById('aiMsgs');
-  const d=document.createElement('div'); d.className='ai-msg ai-msg-bot'; d.id='aiTyping';
-  d.innerHTML='<div class="ai-av">🤖</div><div class="ai-bubble"><span class="ai-tdot"></span><span class="ai-tdot"></span><span class="ai-tdot"></span></div>';
-  box.appendChild(d); box.scrollTop=box.scrollHeight;
-}
-async function aiAsk(q){
-  if(!q.trim())return;
-  aiAddMsg(q,'user');
-  document.getElementById('aiInput').value='';
-  document.getElementById('aiSend').disabled=true;
-  aiShowTyping();
-  try{
-    const r=await fetch(aiAskUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
-    const data=await r.json();
-    document.getElementById('aiTyping')?.remove();
-    aiAddMsg(data.answer||data.error||'Erreur.','bot');
-  }catch(e){
-    document.getElementById('aiTyping')?.remove();
-    aiAddMsg('Erreur de connexion.','bot');
-  }
-  document.getElementById('aiSend').disabled=false;
-  document.getElementById('aiInput').focus();
-}
-document.getElementById('aiSend').addEventListener('click',()=>aiAsk(document.getElementById('aiInput').value));
-document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')aiAsk(document.getElementById('aiInput').value);});
-document.querySelectorAll('.ai-chip').forEach(c=>c.addEventListener('click',()=>aiAsk(c.dataset.q)));
-document.getElementById('aiToggle').addEventListener('click',function(){
-  const p=document.getElementById('aiPanel');
-  p.classList.toggle('ai-open');
-  this.querySelector('i').className=p.classList.contains('ai-open')?'bi bi-x-lg':'bi bi-robot';
-});
-</script>
+{% include 'admin/budget_ai/_widget.html.twig' %}
 {% endblock %}
