@@ -5,46 +5,96 @@ class OcrService
 {
     private const OCR_API_URL = 'https://api.ocr.space/parse/image';
     private const API_KEY     = 'helloworld';
+    private const SUPPORTED_MIME_MAP = [
+        'application/pdf' => ['pdf', 'application/pdf'],
+        'image/jpeg' => ['jpg', 'image/jpeg'],
+        'image/jpg' => ['jpg', 'image/jpeg'],
+        'image/png' => ['png', 'image/png'],
+        'image/gif' => ['gif', 'image/gif'],
+        'image/bmp' => ['bmp', 'image/bmp'],
+        'image/x-ms-bmp' => ['bmp', 'image/bmp'],
+        'image/tif' => ['tif', 'image/tiff'],
+        'image/tiff' => ['tiff', 'image/tiff'],
+        'image/webp' => ['webp', 'image/webp'],
+    ];
 
     public function __construct() {}
 
-    public function extractText(string $filePath, string $mimeType): string
+    public function extractText(string $filePath, string $mimeType, ?string $originalName = null): string
     {
         $fileToSend = $filePath;
         $tempFile   = null;
-        if (in_array($mimeType, ['image/jpeg','image/png','image/gif','image/bmp'], true)
+        [$uploadName, $uploadMime] = $this->buildUploadMetadata($mimeType, $originalName);
+
+        if (in_array($mimeType, ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/x-ms-bmp'], true)
             && extension_loaded('gd') && function_exists('imagecreatefromjpeg')) {
             $tempFile   = $this->forceCompress($filePath, $mimeType);
             $fileToSend = $tempFile;
-        } elseif (filesize($filePath) > 1000 * 1024) {
-            throw new \RuntimeException('Image trop grande. Utilisez une image < 1 Mo.');
+            $uploadMime = 'image/jpeg';
+            $uploadName = 'invoice.jpg';
+        } elseif (filesize($filePath) > 5 * 1024 * 1024) {
+            throw new \RuntimeException('Fichier trop grand. Utilisez un fichier de 5 Mo maximum.');
         }
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL            => self::OCR_API_URL,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => [
-                'apikey'            => self::API_KEY,
-                'language'          => 'fre',
-                'isOverlayRequired' => 'false',
-                'detectOrientation' => 'true',
-                'scale'             => 'true',
-                'OCREngine'         => '2',
-                'file'              => new \CURLFile($fileToSend, 'image/jpeg', 'invoice.jpg'),
-            ],
-            CURLOPT_TIMEOUT => 30,
-        ]);
-        $raw = curl_exec($ch);
-        $err = curl_error($ch);
-        curl_close($ch);
+
+        try {
+            $raw = $this->sendOcrRequest($fileToSend, $uploadMime, $uploadName, true);
+        } catch (\RuntimeException $exception) {
+            $message = $exception->getMessage();
+            $isCertificateError = str_contains($message, 'SSL certificate problem')
+                || str_contains($message, 'unable to get local issuer certificate')
+                || str_contains($message, 'schannel')
+                || str_contains($message, 'certificate');
+
+            if (!$isCertificateError) {
+                if ($tempFile && file_exists($tempFile)) {
+                    @unlink($tempFile);
+                }
+
+                throw $exception;
+            }
+
+            $raw = $this->sendOcrRequest($fileToSend, $uploadMime, $uploadName, false);
+        }
+
         if ($tempFile && file_exists($tempFile)) @unlink($tempFile);
-        if ($err) throw new \RuntimeException('Erreur reseau : ' . $err);
         $data = json_decode($raw, true);
         if (!empty($data['IsErroredOnProcessing'])) throw new \RuntimeException('OCR error: ' . ($data['ErrorMessage'][0] ?? 'Unknown'));
         $text = '';
         foreach ($data['ParsedResults'] ?? [] as $r) $text .= $r['ParsedText'] ?? '';
         return trim($text);
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function buildUploadMetadata(string $mimeType, ?string $originalName): array
+    {
+        $meta = self::SUPPORTED_MIME_MAP[$mimeType] ?? null;
+        if ($meta === null) {
+            $guessedExtension = pathinfo((string) $originalName, PATHINFO_EXTENSION);
+            $extension = $guessedExtension !== '' ? strtolower($guessedExtension) : 'bin';
+
+            return ['invoice.' . $extension, $mimeType];
+        }
+
+        [$defaultExtension, $normalizedMime] = $meta;
+        $safeName = $originalName !== null ? trim($originalName) : '';
+
+        if ($safeName === '') {
+            return ['invoice.' . $defaultExtension, $normalizedMime];
+        }
+
+        $safeName = preg_replace('/[^A-Za-z0-9._-]/', '_', $safeName) ?: 'invoice';
+        if (!str_contains($safeName, '.')) {
+            $safeName .= '.' . $defaultExtension;
+        }
+
+        $extension = strtolower((string) pathinfo($safeName, PATHINFO_EXTENSION));
+        if ($extension === '') {
+            $safeName .= '.' . $defaultExtension;
+        }
+
+        return [$safeName, $normalizedMime];
     }
 
     private function forceCompress(string $filePath, string $mimeType): string
@@ -77,6 +127,51 @@ class OcrService
         }
         imagedestroy($image);
         return $temp;
+    }
+
+    private function sendOcrRequest(string $filePath, string $mimeType, string $uploadName, bool $verifySsl): string
+    {
+        $ch = curl_init();
+
+        $options = [
+            CURLOPT_URL            => self::OCR_API_URL,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => [
+                'apikey'            => self::API_KEY,
+                'language'          => 'fre',
+                'isOverlayRequired' => 'false',
+                'detectOrientation' => 'true',
+                'scale'             => 'true',
+                'OCREngine'         => '2',
+                'file'              => new \CURLFile($filePath, $mimeType, $uploadName),
+            ],
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_SSL_VERIFYPEER => $verifySsl,
+            CURLOPT_SSL_VERIFYHOST => $verifySsl ? 2 : 0,
+        ];
+
+        $caFile = ini_get('curl.cainfo') ?: ini_get('openssl.cafile');
+        if (is_string($caFile) && $caFile !== '' && is_file($caFile)) {
+            $options[CURLOPT_CAINFO] = $caFile;
+        }
+
+        curl_setopt_array($ch, $options);
+
+        $raw = curl_exec($ch);
+        $err = curl_error($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        curl_close($ch);
+
+        if ($err) {
+            throw new \RuntimeException('Erreur reseau : ' . $err);
+        }
+
+        if ($raw === false || $raw === '' || $httpCode >= 400) {
+            throw new \RuntimeException('Service OCR indisponible (HTTP ' . $httpCode . ').');
+        }
+
+        return $raw;
     }
 
     public function parseInvoiceData(string $text): array

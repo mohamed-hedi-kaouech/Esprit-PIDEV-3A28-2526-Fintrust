@@ -1,4 +1,4 @@
-{% extends 'admin/back.html.twig' %}
+﻿{% extends 'admin/back.html.twig' %}
 
 {% block title %}Alertes budgetaires - FinTrust{% endblock %}
 
@@ -129,8 +129,7 @@
         <div class="ft-alert-empty">
             <div class="ft-alert-empty-icon"><i class="fas fa-shield-heart"></i></div>
             <h3>Aucune alerte active</h3>
-            <p>Tous les seuils budgetaires sont respectes. Le tableau de surveillance est au vert.</p>
-        </div>
+            <p>Tous les seuils budgetaires sont respectes. Le tableau de surveillance est au vert.</p>        </div>
     {% else %}
         <div class="ft-alert-list" id="adminAlertList">
             {% for alerte in alertes %}
@@ -226,8 +225,7 @@
                             </div>
                         </div>
                     </div>
-                </article>
-            {% endfor %}
+                </article>            {% endfor %}
         </div>
     {% endif %}
 </div>

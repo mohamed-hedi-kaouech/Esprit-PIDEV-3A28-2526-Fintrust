@@ -7,6 +7,7 @@ use App\Entity\Categorie\Categorie;
 use App\Entity\Categorie\Item;
 use App\Form\Admin\ItemType;
 use App\Repository\ItemRepository;
+use App\Service\ItemExportService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -14,13 +15,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
-use TCPDF;
 
 #[Route('/admin/item', name: 'admin_item_')]
 class ItemController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private ItemExportService $itemExportService,
+    ) {
     }
 
     private function createAlerteIfThresholdReached(Item $item, float $oldTotal, float $newTotal): void
@@ -34,7 +36,7 @@ class ItemController extends AbstractController
             $alerte->setIdCategorie($categorie->getIdCategorie());
             $alerte->setSeuil($seuil);
             $alerte->setMessage(sprintf(
-                'Le seuil d\'alerte de la catégorie "%s" a été atteint (%.2f DT / %.2f DT).',
+                'Le seuil d\'alerte de la categorie "%s" a ete atteint (%.2f DT / %.2f DT).',
                 $categorie->getNomCategorie(),
                 $newTotal,
                 $seuil
@@ -43,7 +45,7 @@ class ItemController extends AbstractController
             $alerte->setActive(true);
             $this->entityManager->persist($alerte);
 
-            $this->addFlash('warning', 'Le seuil d\'alerte de la catégorie "' . $categorie->getNomCategorie() . '" a été atteint.');
+            $this->addFlash('warning', 'Le seuil d\'alerte de la categorie "' . $categorie->getNomCategorie() . '" a ete atteint.');
         }
     }
 
@@ -81,15 +83,13 @@ class ItemController extends AbstractController
 
         $items = $queryBuilder->orderBy('i.idItem', 'DESC')->getQuery()->getResult();
 
-        // Group items by category
         $groupedItems = [];
         foreach ($items as $item) {
             $catName = $item->getCategorie()->getNomCategorie();
             $groupedItems[$catName][] = $item;
         }
 
-        // Get categories for filter dropdown
-        $categories = $this->entityManager->getRepository(\App\Entity\Categorie\Categorie::class)->findAll();
+        $categories = $this->entityManager->getRepository(Categorie::class)->findAll();
 
         return $this->render('admin/item/list.html.twig', [
             'items' => $items,
@@ -123,13 +123,13 @@ class ItemController extends AbstractController
             $newTotal = $existingTotal + $item->getMontant();
 
             if ($newTotal > $categorie->getBudgetPrevu()) {
-                $form->get('montant')->addError(new FormError('La somme des montants des items de cette catégorie dépasse le budget prévu de la catégorie.'));
+                $form->get('montant')->addError(new FormError('La somme des montants des items de cette categorie depasse le budget prevu de la categorie.'));
             } else {
                 $this->createAlerteIfThresholdReached($item, $existingTotal, $newTotal);
                 $this->entityManager->persist($item);
                 $this->entityManager->flush();
 
-                $this->addFlash('success', 'Item créé avec succès!');
+                $this->addFlash('success', 'Item cree avec succes!');
                 return $this->redirectToRoute('admin_item_list');
             }
         }
@@ -151,12 +151,12 @@ class ItemController extends AbstractController
             $newTotal = $existingTotal + $item->getMontant();
 
             if ($newTotal > $categorie->getBudgetPrevu()) {
-                $form->get('montant')->addError(new FormError('La somme des montants des items de cette catégorie dépasse le budget prévu de la catégorie.'));
+                $form->get('montant')->addError(new FormError('La somme des montants des items de cette categorie depasse le budget prevu de la categorie.'));
             } else {
                 $this->createAlerteIfThresholdReached($item, $existingTotal, $newTotal);
                 $this->entityManager->flush();
 
-                $this->addFlash('success', 'Item modifié avec succès!');
+                $this->addFlash('success', 'Item modifie avec succes!');
                 return $this->redirectToRoute('admin_item_list');
             }
         }
@@ -173,7 +173,7 @@ class ItemController extends AbstractController
         $itemIds = $request->request->all('items', []);
 
         if (empty($itemIds)) {
-            $this->addFlash('error', 'Aucun item sélectionné.');
+            $this->addFlash('error', 'Aucun item selectionne.');
             return $this->redirectToRoute('admin_item_list');
         }
 
@@ -187,12 +187,12 @@ class ItemController extends AbstractController
 
         foreach ($items as $item) {
             $this->entityManager->remove($item);
-            $deletedCount++;
+            ++$deletedCount;
         }
 
         $this->entityManager->flush();
 
-        $this->addFlash('success', sprintf('%d item(s) supprimé(s) avec succès!', $deletedCount));
+        $this->addFlash('success', sprintf('%d item(s) supprime(s) avec succes!', $deletedCount));
         return $this->redirectToRoute('admin_item_list');
     }
 
@@ -207,7 +207,7 @@ class ItemController extends AbstractController
         $this->entityManager->remove($item);
         $this->entityManager->flush();
 
-        $this->addFlash('success', 'Item supprimé avec succès!');
+        $this->addFlash('success', 'Item supprime avec succes!');
         return $this->redirectToRoute('admin_item_list');
     }
 
@@ -243,46 +243,23 @@ class ItemController extends AbstractController
                 ->setParameter('maxAmount', (float) $maxAmount);
         }
 
+        /** @var Item[] $items */
         $items = $queryBuilder->orderBy('i.idItem', 'DESC')->getQuery()->getResult();
+        $selectedCategory = null;
 
-        // Créer le PDF
-        $pdf = new TCPDF();
-        $pdf->AddPage();
-        $pdf->SetFont('helvetica', '', 10);
-
-        // Titre
-        $pdf->Cell(0, 10, 'Liste des Items', 0, 1, 'C');
-        $pdf->Ln(5);
-
-        // En-têtes du tableau
-        $pdf->Cell(15, 10, 'ID', 1, 0, 'C');
-        $pdf->Cell(50, 10, 'Libellé', 1, 0, 'C');
-        $pdf->Cell(40, 10, 'Catégorie', 1, 0, 'C');
-        $pdf->Cell(30, 10, 'Montant', 1, 0, 'C');
-        $pdf->Cell(40, 10, 'Date création', 1, 1, 'C');
-
-        // Données
-        foreach ($items as $item) {
-            $categorieName = $item->getCategorie() ? $item->getCategorie()->getNomCategorie() : 'N/A';
-            $libelle = $item->getLibelle() ?? 'N/A';
-            $montant = $item->getMontant() ?? 0.00;
-            $dateCreation = $item->getDateCreation() ? $item->getDateCreation()->format('Y-m-d H:i:s') : 'N/A';
-
-            $pdf->Cell(15, 10, $item->getIdItem(), 1, 0, 'C');
-            $pdf->Cell(50, 10, $libelle, 1, 0, 'L');
-            $pdf->Cell(40, 10, $categorieName, 1, 0, 'L');
-            $pdf->Cell(30, 10, number_format($montant, 2), 1, 0, 'R');
-            $pdf->Cell(40, 10, $dateCreation, 1, 1, 'C');
+        if ($categorieId !== '') {
+            $selectedCategory = $this->entityManager
+                ->getRepository(Categorie::class)
+                ->find((int) $categorieId);
         }
 
-        // Générer le PDF
-        $pdfContent = $pdf->Output('', 'S');
-
-        $response = new Response($pdfContent);
-        $response->headers->set('Content-Type', 'application/pdf');
-        $response->headers->set('Content-Disposition', 'attachment; filename="items_' . date('Y-m-d_H-i-s') . '.pdf"');
-
-        return $response;
+        return $this->itemExportService->exportItemsPdf($items, [
+            'search' => $search,
+            'categorieId' => $categorieId,
+            'categorieLabel' => $selectedCategory instanceof Categorie ? $selectedCategory->getNomCategorie() : '',
+            'minAmount' => $minAmount,
+            'maxAmount' => $maxAmount,
+        ]);
     }
 
     #[Route('/export/csv', name: 'export_csv', methods: ['GET'])]
@@ -294,7 +271,7 @@ class ItemController extends AbstractController
         $maxAmount = $request->query->get('max_amount', '');
 
         $queryBuilder = $repository->createQueryBuilder('i')
-            ->leftJoin('i.categorieRel', 'c')
+            ->leftJoin('i.categorie', 'c')
             ->addSelect('c');
 
         if (!empty($search)) {

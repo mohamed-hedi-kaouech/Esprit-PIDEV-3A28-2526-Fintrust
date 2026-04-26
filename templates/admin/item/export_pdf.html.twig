@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Export Items - FinTrust</title>
+  <style>
+    @page { margin: 22px 18px; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "DejaVu Sans", Arial, sans-serif;
+      font-size: 10.5px;
+      color: #0f172a;
+      margin: 0;
+      background: #ffffff;
+    }
+    .hero {
+      padding: 18px 20px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #0f3cc9 0%, #1560bd 45%, #38bdf8 100%);
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+    .hero-kicker {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      opacity: 0.9;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .hero-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 0 0 6px;
+    }
+    .hero-subtitle {
+      font-size: 11px;
+      opacity: 0.95;
+      line-height: 1.55;
+      margin: 0;
+      max-width: 520px;
+    }
+    .meta {
+      margin-top: 10px;
+      font-size: 10px;
+      opacity: 0.9;
+    }
+    .kpi-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 10px 0;
+      margin: 0 -10px 14px;
+    }
+    .kpi-card {
+      border: 1px solid #dbeafe;
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: #f8fbff;
+      vertical-align: top;
+    }
+    .kpi-label {
+      color: #64748b;
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .kpi-value {
+      color: #0f172a;
+      font-size: 19px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+    .kpi-foot {
+      color: #475569;
+      font-size: 9px;
+    }
+    .filters {
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: #ffffff;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 800;
+      margin: 0 0 8px;
+    }
+    .filter-line {
+      font-size: 10px;
+      color: #334155;
+      margin: 3px 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-weight: 700;
+      font-size: 8.5px;
+    }
+    .category-block {
+      border: 1px solid #dbeafe;
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .category-head {
+      background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
+      padding: 12px 14px;
+      border-bottom: 1px solid #dbeafe;
+    }
+    .category-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 4px;
+    }
+    .category-meta {
+      font-size: 9px;
+      color: #475569;
+    }
+    table.items {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table.items thead th {
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: left;
+      padding: 8px 7px;
+    }
+    table.items tbody td {
+      padding: 8px 7px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    table.items tbody tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .strong { font-weight: 700; }
+    .muted { color: #64748b; }
+    .summary-row td {
+      background: #eff6ff !important;
+      color: #0f172a;
+      font-weight: 700;
+      border-top: 2px solid #bfdbfe;
+    }
+    .empty {
+      padding: 18px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 16px;
+      color: #64748b;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="hero-kicker">FinTrust Budget Intelligence</div>
+    <h1 class="hero-title">Export premium des items budgetaires</h1>
+    <p class="hero-subtitle">Vue consolidee des articles budgetaires, des categories rattachees et des montants suivis pour un pilotage admin plus clair.</p>
+    <div class="meta">Genere le {{ generatedAt|date('d/m/Y H:i') }}</div>
+  </section>
+
+  <table class="kpi-table">
+    <tr>
+      <td class="kpi-card">
+        <div class="kpi-label">Items exportes</div>
+        <div class="kpi-value">{{ stats.count }}</div>
+        <div class="kpi-foot">Selection courante</div>
+      </td>
+      <td class="kpi-card">
+        <div class="kpi-label">Categories</div>
+        <div class="kpi-value">{{ stats.categories }}</div>
+        <div class="kpi-foot">Groupes visibles</div>
+      </td>
+      <td class="kpi-card">
+        <div class="kpi-label">Montant total</div>
+        <div class="kpi-value">{{ stats.totalAmount|number_format(2, ',', ' ') }} DT</div>
+        <div class="kpi-foot">Somme des lignes</div>
+      </td>
+      <td class="kpi-card">
+        <div class="kpi-label">Moyenne / item</div>
+        <div class="kpi-value">{{ stats.averageAmount|number_format(2, ',', ' ') }} DT</div>
+        <div class="kpi-foot">Analyse rapide</div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="filters">
+    <div class="section-title">Contexte d'export</div>
+    <div class="filter-line">Recherche: <span class="strong">{{ filters.search ?: 'Aucun filtre texte' }}</span></div>
+    <div class="filter-line">Categorie: <span class="strong">{{ filters.categorieLabel ?: 'Toutes les categories' }}</span></div>
+    <div class="filter-line">Fourchette montant: <span class="strong">{{ filters.minAmount ?: '0' }} DT</span> a <span class="strong">{{ filters.maxAmount ?: 'Illimite' }} DT</span></div>
+    <div class="filter-line">Top item: <span class="strong">{{ stats.highestItem ? stats.highestItem.libelle ~ ' (' ~ (stats.highestItem.montant|number_format(2, ',', ' ')) ~ ' DT)' : 'Aucun' }}</span></div>
+  </div>
+
+  {% if groupedItems is empty %}
+    <div class="empty">Aucun item ne correspond aux filtres selectionnes.</div>
+  {% else %}
+    {% for categoryName, group in groupedItems %}
+      <section class="category-block">
+        <div class="category-head">
+          <div class="category-title">{{ categoryName }}</div>
+          <div class="category-meta">
+            <span class="badge">{{ group.items|length }} item(s)</span>
+            Budget prevu: <strong>{{ group.category.budgetPrevu|number_format(2, ',', ' ') }} DT</strong>
+            | Seuil alerte: <strong>{{ group.category.seuilAlerte|number_format(2, ',', ' ') }} DT</strong>
+            | Total groupe: <strong>{{ group.total|number_format(2, ',', ' ') }} DT</strong>
+          </div>
+        </div>
+
+        <table class="items">
+          <thead>
+            <tr>
+              <th style="width: 8%;">ID</th>
+              <th style="width: 26%;">Libelle</th>
+              <th style="width: 12%;" class="text-center">Quantite</th>
+              <th style="width: 12%;" class="text-right">PU</th>
+              <th style="width: 10%;" class="text-center">TVA</th>
+              <th style="width: 14%;" class="text-right">Montant</th>
+              <th style="width: 18%;" class="text-center">Date creation</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in group.items %}
+              <tr>
+                <td class="strong">{{ item.idItem }}</td>
+                <td>
+                  <div class="strong">{{ item.libelle ?: 'Sans libelle' }}</div>
+                  <div class="muted">{{ item.categorieLabel ?: categoryName }}</div>
+                </td>
+                <td class="text-center">{{ item.quantite ?: 1 }}</td>
+                <td class="text-right">{{ item.prixUnitaire is not null ? item.prixUnitaire|number_format(2, ',', ' ') ~ ' DT' : '-' }}</td>
+                <td class="text-center">{{ item.tva is not null ? item.tva|number_format(0, ',', ' ') ~ '%' : '0%' }}</td>
+                <td class="text-right strong">{{ item.montant|number_format(2, ',', ' ') }} DT</td>
+                <td class="text-center">{{ item.dateCreation ? item.dateCreation|date('d/m/Y H:i') : 'N/A' }}</td>
+              </tr>
+            {% endfor %}
+            <tr class="summary-row">
+              <td colspan="5">Sous-total categorie</td>
+              <td class="text-right">{{ group.total|number_format(2, ',', ' ') }} DT</td>
+              <td class="text-center">{{ group.items|length }} ligne(s)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    {% endfor %}
+  {% endif %}
+</body>
+</html>

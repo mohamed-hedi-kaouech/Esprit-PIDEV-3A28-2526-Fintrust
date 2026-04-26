@@ -123,6 +123,7 @@ class ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62
         ),
         'T' =>
         array (
+            'Twilio\\' => 7,
             'Twig\\Extra\\TwigExtraBundle\\' => 27,
             'Twig\\Extra\\Intl\\' => 16,
             'Twig\\' => 5,
@@ -300,6 +301,10 @@ class ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62
         'Webmozart\\Assert\\' =>
         array (
             0 => __DIR__ . '/..' . '/webmozart/assert/src',
+        ),
+        'Twilio\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/twilio/sdk/src/Twilio',
         ),
         'Twig\\Extra\\TwigExtraBundle\\' =>
         array (
@@ -728,7 +733,7 @@ class ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62
         ),
         'Doctrine\\Persistence\\' =>
         array (
-            0 => __DIR__ . '/..' . '/doctrine/persistence/src/Persistence',
+            0 => __DIR__ . '/..' . '/doctrine/persistence/src',
         ),
         'Doctrine\\ORM\\' =>
         array (

@@ -72,7 +72,7 @@
                                 <button type="button" class="btn ocr-btn-upload" onclick="document.getElementById('ocrFileInput').click()">
                                     <i class="fas fa-folder-open me-2"></i>Choisir un fichier
                                 </button>
-                                <div class="ocr-drop-hint">JPG, PNG, PDF · Max 5 Mo</div>
+                                <div class="ocr-drop-hint">PDF, JPG, PNG, BMP, GIF, TIF, TIFF, WEBP · Max 5 Mo</div>
                             </div>
                         </div>
                         <div class="ocr-loading d-none" id="ocrLoading">
@@ -650,7 +650,7 @@ async function processFile(file) {
     }
 
     const fd = new FormData();
-    fd.append('invoice', fileToSend, 'invoice.jpg');
+    fd.append('invoice', fileToSend, fileToSend.name || file.name || 'invoice');
     try {
         const res  = await fetch(ocrUrl, { method: 'POST', body: fd });
         const data = await res.json();

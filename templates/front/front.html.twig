@@ -160,6 +160,7 @@
                class="btn ft-app-icon-btn position-relative {% if unreadNotifications > 0 %}ft-app-icon-btn-alert{% endif %} {% if app.request.attributes.get('_route') == 'front_notifications' %}active{% endif %}"
                title="{{ unreadNotifications > 0 ? unreadNotifications ~ ' notification(s) non lue(s)' : 'Notifications' }}">
               <i class="bi bi-bell"></i>
+              <span id="frontNotificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size:.62rem">0</span>
               {% if unreadNotifications > 0 %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger ft-notif-nav-badge">
                   {{ unreadNotifications > 9 ? '9+' : unreadNotifications }}

@@ -79,7 +79,7 @@ class CategorieController extends AbstractController
     #[Route('/stats', name: 'stats', methods: ['GET'])]
     public function stats(ItemRepository $itemRepository, RewardService $rewardService): Response
     {
-        $categories = $this->entityManager->getRepository(Categorie::class)->findAll();
+        $categories = $this->entityManager->getRepository(\App\Entity\Categorie\Categorie::class)->findAll();
         $stats = [];
         $categoryLabels = [];
         $budgetSeries = [];
@@ -320,6 +320,7 @@ class CategorieController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             if ($this->isCsrfTokenValid('delete' . $categorie->getIdCategorie(), $request->request->get('_token'))) {
+                // Vérifier si la catégorie a des items associés
                 if (!$categorie->getItems()->isEmpty()) {
                     $this->addFlash('error', 'Impossible de supprimer cette categorie car elle contient des items. Supprimez d abord les items associes.');
 
@@ -334,6 +335,7 @@ class CategorieController extends AbstractController
             return $this->redirectToRoute('admin_categorie_list');
         }
 
+        // Afficher la page de confirmation
         return $this->render('admin/categorie/delete.html.twig', [
             'categorie' => $categorie,
         ]);

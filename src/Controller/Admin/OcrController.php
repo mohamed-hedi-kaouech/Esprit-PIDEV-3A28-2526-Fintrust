@@ -22,10 +22,21 @@ class OcrController extends AbstractController
         }
 
         // Validation type
-        $allowedMimes = ['image/jpeg','image/png','image/gif','image/bmp','image/tiff','application/pdf'];
+        $allowedMimes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/bmp',
+            'image/x-ms-bmp',
+            'image/tif',
+            'image/tiff',
+            'image/webp',
+            'application/pdf',
+        ];
         $mime = $file->getMimeType();
         if (!in_array($mime, $allowedMimes, true)) {
-            return $this->json(['error' => 'Format non supporte. Utilisez JPG, PNG ou PDF.'], 400);
+            return $this->json(['error' => 'Format non supporte. Utilisez PDF, JPG, JPEG, PNG, BMP, GIF, TIF, TIFF ou WEBP.'], 400);
         }
 
         // Validation taille (max 5 Mo)
@@ -33,7 +44,11 @@ class OcrController extends AbstractController
             return $this->json(['error' => 'Fichier trop volumineux (max 5 Mo).'], 400);
         }
         try {
-            $text = $this->ocrService->extractText($file->getPathname(), $mime);
+            $text = $this->ocrService->extractText(
+                $file->getPathname(),
+                $mime,
+                $file->getClientOriginalName()
+            );
 
             if (empty($text)) {
                 return $this->json(['error' => 'Aucun texte detecte dans ce fichier. Essayez une image plus nette.'], 422);
@@ -54,7 +69,9 @@ class OcrController extends AbstractController
             ]);
 
         } catch (\Throwable $e) {
-            return $this->json(['error' => 'Erreur OCR : ' . $e->getMessage()], 500);
+            return $this->json([
+                'error' => 'Erreur OCR : ' . $e->getMessage() . ' Essayez une image nette ou relancez l import.',
+            ], 500);
         }
     }
 }

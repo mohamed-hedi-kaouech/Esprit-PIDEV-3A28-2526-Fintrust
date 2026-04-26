@@ -1,10 +1,10 @@
 {
-    "latitude": 36.73503234692244,
-    "longitude": 10.291264249325947,
-    "accuracy": 91,
-    "label": "36.73503, 10.29126",
-    "detail": "D\u00e9l\u00e9gation Bou Mhel El Bassatine, El Bassatine, Gouvernorat Ben Arous",
-    "coordinates": "36.735032, 10.291264",
-    "checkedAt": "2026-04-25T10:07:42+00:00",
-    "distanceMeters": 20547.62
+    "latitude": 36.73788937949314,
+    "longitude": 10.30068354953785,
+    "accuracy": 69,
+    "label": "Avenue Habib Bourguiba, Ezzahra",
+    "detail": "D\u00e9l\u00e9gation Ezzahra, Cite El Habib, Gouvernorat Ben Arous",
+    "coordinates": "36.737889, 10.300684",
+    "checkedAt": "2026-04-26T19:52:38+00:00",
+    "distanceMeters": 897.47
 }
