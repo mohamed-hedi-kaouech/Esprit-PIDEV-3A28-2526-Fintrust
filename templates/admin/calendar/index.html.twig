@@ -80,22 +80,23 @@
     }
 
     .ft-calendar-todo-shell {
-      margin-top: 1.25rem;
+      margin-top: 1.4rem;
       border: 1px solid rgba(191, 219, 254, .95);
-      border-radius: 1.25rem;
+      border-radius: 1.7rem;
       background:
-        radial-gradient(circle at top right, rgba(14, 165, 233, .10), transparent 24%),
-        linear-gradient(135deg, #ffffff, #f8fbff);
-      box-shadow: 0 22px 44px rgba(15, 23, 42, .07);
-      padding: 1.15rem;
+        radial-gradient(circle at top right, rgba(14, 165, 233, .11), transparent 24%),
+        radial-gradient(circle at top left, rgba(255, 255, 255, .95), transparent 28%),
+        linear-gradient(135deg, #ffffff, #f8fbff 58%, #eef5ff 100%);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, .08);
+      padding: 1.55rem;
     }
 
     .ft-calendar-todo-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 520px;
+      align-items: start;
+      gap: 1.4rem;
+      margin-bottom: 1.5rem;
     }
 
     .ft-calendar-todo-kicker {
@@ -113,21 +114,29 @@
     .ft-calendar-todo-title {
       color: #0f172a;
       font-weight: 900;
-      margin: 0 0 .25rem;
+      margin: 0 0 .35rem;
+      font-size: clamp(2rem, 3vw, 3.15rem);
+      line-height: 1.04;
     }
 
     .ft-calendar-todo-subtitle {
       margin: 0;
       color: #64748b;
+      font-size: 1rem;
     }
 
     .ft-calendar-energy {
-      min-width: 240px;
-      padding: .95rem 1rem;
-      border-radius: 1rem;
-      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      min-height: 245px;
+      padding: 1.45rem 1.55rem;
+      border-radius: 1.8rem;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.18), transparent 24%),
+        linear-gradient(135deg, #2449f4, #4c42ec 54%, #6d28d9 100%);
       color: #fff;
-      box-shadow: 0 18px 30px rgba(37, 99, 235, .18);
+      box-shadow: 0 22px 44px rgba(37, 99, 235, .24);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .ft-calendar-energy-top {
@@ -139,19 +148,19 @@
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: .06em;
-      opacity: .92;
+      opacity: .95;
     }
 
     .ft-calendar-energy strong {
       display: block;
-      margin-top: .45rem;
-      font-size: 1.95rem;
+      margin-top: .6rem;
+      font-size: 4rem;
       line-height: 1;
     }
 
     .ft-calendar-energy-bar {
-      margin-top: .8rem;
-      height: .72rem;
+      margin-top: 1rem;
+      height: .9rem;
       border-radius: 999px;
       background: rgba(255,255,255,.22);
       overflow: hidden;
@@ -166,22 +175,109 @@
       transition: width .25s ease;
     }
 
+    .ft-calendar-energy-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1.2rem;
+      color: rgba(255,255,255,.92);
+      font-weight: 700;
+    }
+
+    .ft-calendar-energy-bolt {
+      width: 4.25rem;
+      height: 4.25rem;
+      border-radius: 1.4rem;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+      font-size: 2rem;
+    }
+
+    .ft-calendar-todo-topline {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(280px, .9fr);
+      gap: 1rem;
+      margin-bottom: 1.35rem;
+    }
+
+    .ft-calendar-selector-card,
+    .ft-calendar-detected-card {
+      border: 1px solid rgba(191, 219, 254, .88);
+      border-radius: 1.15rem;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, .05);
+      padding: 1rem 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .ft-calendar-selector-copy,
+    .ft-calendar-detected-copy {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+      color: #0f172a;
+      font-weight: 800;
+    }
+
+    .ft-calendar-selector-copy i,
+    .ft-calendar-detected-copy i {
+      width: 2.55rem;
+      height: 2.55rem;
+      border-radius: .95rem;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #f8fbff, #eef4ff);
+      color: #4f46e5;
+      font-size: 1.15rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+    }
+
+    .ft-calendar-selector-date {
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .ft-calendar-selector-chevron,
+    .ft-calendar-detected-pill {
+      color: #64748b;
+      font-weight: 800;
+    }
+
+    .ft-calendar-detected-card {
+      background: linear-gradient(135deg, rgba(244,247,255,.96), rgba(239,246,255,.96));
+    }
+
+    .ft-calendar-detected-pill {
+      border-radius: 999px;
+      background: #e0e7ff;
+      color: #4f46e5;
+      padding: .32rem .72rem;
+      font-size: .8rem;
+    }
+
     .ft-calendar-todo-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
-      gap: 1rem;
+      grid-template-columns: minmax(0, 1.08fr) minmax(420px, .92fr);
+      gap: 1.1rem;
     }
 
     .ft-calendar-todo-panel,
     .ft-calendar-day-brief {
       border: 1px solid rgba(191, 219, 254, .65);
-      border-radius: 1rem;
+      border-radius: 1.45rem;
       background: rgba(255,255,255,.9);
-      padding: 1rem;
+      padding: 1.3rem;
+      box-shadow: 0 18px 38px rgba(15, 23, 42, .05);
     }
 
     .ft-calendar-day-brief {
-      background: linear-gradient(135deg, rgba(239, 246, 255, .9), rgba(255,255,255,.96));
+      background: linear-gradient(135deg, rgba(248, 251, 255, .98), rgba(255,255,255,.98));
     }
 
     .ft-calendar-day-brief h3,
@@ -202,75 +298,164 @@
 
     .ft-calendar-day-brief-list {
       display: grid;
-      gap: .8rem;
-      margin-top: 1rem;
+      gap: 1rem;
+      margin-top: 1.25rem;
     }
 
     .ft-calendar-brief-item {
-      display: flex;
+      display: grid;
+      grid-template-columns: 3.5rem minmax(0, 1fr) auto auto;
       justify-content: space-between;
       align-items: center;
-      gap: .75rem;
-      padding: .85rem .9rem;
-      border-radius: .95rem;
+      gap: 1rem;
+      padding: 1rem 1rem;
+      border-radius: 1.2rem;
       background: rgba(255,255,255,.95);
       border: 1px solid rgba(191, 219, 254, .7);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, .04);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .ft-calendar-brief-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 38px rgba(15, 23, 42, .08);
+    }
+
+    .ft-calendar-brief-icon {
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 1rem;
+      display: grid;
+      place-items: center;
+      font-size: 1.55rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.95);
+    }
+
+    .ft-calendar-brief-icon.events {
+      background: linear-gradient(135deg, rgba(59,130,246,.12), rgba(99,102,241,.14));
+      color: #4338ca;
+    }
+
+    .ft-calendar-brief-icon.done {
+      background: linear-gradient(135deg, rgba(34,197,94,.10), rgba(16,185,129,.14));
+      color: #16a34a;
+    }
+
+    .ft-calendar-brief-icon.pending {
+      background: linear-gradient(135deg, rgba(251,191,36,.14), rgba(249,115,22,.16));
+      color: #f59e0b;
     }
 
     .ft-calendar-brief-item strong {
       display: block;
       color: #0f172a;
-      font-size: .92rem;
+      font-size: 1rem;
     }
 
     .ft-calendar-brief-item span {
       color: #64748b;
-      font-size: .8rem;
+      font-size: .9rem;
     }
 
     .ft-calendar-brief-pill {
       border-radius: 999px;
-      padding: .32rem .7rem;
-      font-size: .75rem;
+      padding: .7rem .92rem;
+      font-size: 1.05rem;
       font-weight: 800;
-      background: #dbeafe;
-      color: #1d4ed8;
+      min-width: 3.7rem;
+      text-align: center;
+      background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+      color: #2563eb;
       white-space: nowrap;
+    }
+
+    .ft-calendar-brief-arrow {
+      color: #64748b;
+      font-size: 1.55rem;
+      line-height: 1;
     }
 
     .ft-calendar-todo-form {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 130px auto;
+      grid-template-columns: minmax(0, 1fr);
       gap: .75rem;
       margin: 1rem 0;
     }
 
+    .ft-calendar-todo-actions {
+      display: grid;
+      grid-template-columns: 220px auto;
+      gap: .75rem;
+      align-items: center;
+    }
+
     .ft-calendar-todo-input,
     .ft-calendar-todo-select {
-      border-radius: .95rem;
+      border-radius: 1rem;
       border: 1px solid rgba(191, 219, 254, .95);
       background: #fff;
-      min-height: 48px;
-      padding: .8rem .95rem;
+      min-height: 54px;
+      padding: .9rem 1rem;
       color: #0f172a;
       font-weight: 600;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
     }
 
     .ft-calendar-todo-btn {
       border: 0;
-      border-radius: .95rem;
-      min-height: 48px;
-      padding: .8rem 1rem;
+      border-radius: 1rem;
+      min-height: 54px;
+      padding: .85rem 1.1rem;
       font-weight: 800;
       color: #fff;
       background: linear-gradient(135deg, #2563eb, #7c3aed);
       box-shadow: 0 16px 28px rgba(37, 99, 235, .18);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .ft-calendar-todo-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 20px 34px rgba(37, 99, 235, .24);
     }
 
     .ft-calendar-todo-list {
       display: grid;
       gap: .75rem;
       margin-top: .8rem;
+    }
+
+    .ft-calendar-todo-illustration {
+      margin-top: 1.2rem;
+      padding-top: 1rem;
+      text-align: center;
+      color: #64748b;
+    }
+
+    .ft-calendar-todo-illustration-graphic {
+      width: 9rem;
+      height: 9rem;
+      margin: 0 auto 1rem;
+      border-radius: 2rem;
+      position: relative;
+      background:
+        radial-gradient(circle at center, rgba(99,102,241,.12), transparent 62%),
+        linear-gradient(135deg, rgba(239,246,255,.95), rgba(248,250,252,.95));
+      display: grid;
+      place-items: center;
+    }
+
+    .ft-calendar-todo-illustration-graphic::before {
+      content: '\f4ca';
+      font-family: "bootstrap-icons";
+      font-size: 3.4rem;
+      color: #818cf8;
+    }
+
+    .ft-calendar-todo-illustration strong {
+      display: block;
+      color: #0f172a;
+      font-size: 1.25rem;
+      margin-bottom: .35rem;
     }
 
     .ft-calendar-todo-item {
@@ -408,12 +593,18 @@
 
     @media (max-width: 767.98px) {
       .ft-calendar-todo-head,
-      .ft-calendar-todo-grid {
+      .ft-calendar-todo-grid,
+      .ft-calendar-todo-topline {
         grid-template-columns: 1fr;
         display: grid;
       }
 
       .ft-calendar-todo-form {
+        grid-template-columns: 1fr;
+      }
+
+      .ft-calendar-todo-actions,
+      .ft-calendar-brief-item {
         grid-template-columns: 1fr;
       }
 
@@ -460,63 +651,99 @@
     <div class="ft-calendar-todo-head">
       <div>
         <span class="ft-calendar-todo-kicker"><i class="bi bi-lightning-charge-fill"></i> To do dynamique</span>
-        <h2 class="ft-calendar-todo-title">Tableau d action relie au calendrier</h2>
-        <p class="ft-calendar-todo-subtitle">Selectionnez une date pour afficher l energie du jour, les evenements relies et vos taches admin.</p>
+        <h2 class="ft-calendar-todo-title">Tableau d’action relié au calendrier</h2>
+        <p class="ft-calendar-todo-subtitle">Sélectionnez une date pour afficher l’énergie du jour, les événements reliés et vos tâches admin.</p>
       </div>
       <div class="ft-calendar-energy">
         <div class="ft-calendar-energy-top">
           <span>Energie du jour</span>
-          <span id="todoEnergyLabel">Focus moyen</span>
+          <span id="todoEnergyLabel">Charge modérée</span>
         </div>
         <strong id="todoEnergyValue">46%</strong>
         <div class="ft-calendar-energy-bar"><span id="todoEnergyBar"></span></div>
+        <div class="ft-calendar-energy-bottom">
+          <div>
+            <div>Continuez ainsi 💪</div>
+            <small>Progression saine</small>
+          </div>
+          <div class="ft-calendar-energy-bolt"><i class="bi bi-lightning-charge-fill"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ft-calendar-todo-topline">
+      <div class="ft-calendar-selector-card">
+        <div class="ft-calendar-selector-copy">
+          <i class="bi bi-calendar3"></i>
+          <span id="todoSelectedDateTitle" class="ft-calendar-selector-date">Aujourd hui</span>
+        </div>
+        <span class="ft-calendar-selector-chevron"><i class="bi bi-chevron-down"></i></span>
+      </div>
+      <div class="ft-calendar-detected-card">
+        <div class="ft-calendar-detected-copy">
+          <i class="bi bi-stars"></i>
+          <span id="todoSelectedDateHint">Cliquez sur un jour du calendrier pour synchroniser les tâches.</span>
+        </div>
+        <span class="ft-calendar-detected-pill" id="todoEventCount">0</span>
       </div>
     </div>
 
     <div class="ft-calendar-todo-grid">
       <aside class="ft-calendar-day-brief">
-        <h3 id="todoSelectedDateTitle">Aujourd hui</h3>
-        <p id="todoSelectedDateHint">Cliquez sur un jour du calendrier pour synchroniser les taches.</p>
         <div class="ft-calendar-day-brief-list">
           <div class="ft-calendar-brief-item">
+            <div class="ft-calendar-brief-icon events"><i class="bi bi-calendar-week"></i></div>
             <div>
-              <strong>Evenements du jour</strong>
+              <strong>Evénements du jour</strong>
               <span>Elements remontes par FullCalendar</span>
             </div>
-            <span class="ft-calendar-brief-pill" id="todoEventCount">0</span>
+            <span class="ft-calendar-brief-pill" id="todoEventCountSecondary">0</span>
+            <span class="ft-calendar-brief-arrow"><i class="bi bi-chevron-right"></i></span>
           </div>
           <div class="ft-calendar-brief-item">
+            <div class="ft-calendar-brief-icon done"><i class="bi bi-calendar-check"></i></div>
             <div>
-              <strong>Taches completees</strong>
+              <strong>Tâches complétées</strong>
               <span>Progression du planning admin</span>
             </div>
             <span class="ft-calendar-brief-pill" id="todoDoneCount">0</span>
+            <span class="ft-calendar-brief-arrow"><i class="bi bi-chevron-right"></i></span>
           </div>
           <div class="ft-calendar-brief-item">
+            <div class="ft-calendar-brief-icon pending"><i class="bi bi-list-task"></i></div>
             <div>
-              <strong>Taches restantes</strong>
-              <span>Actions a mener avant cloture</span>
+              <strong>Tâches restantes</strong>
+              <span>Actions à mener avant clôture</span>
             </div>
             <span class="ft-calendar-brief-pill" id="todoPendingCount">0</span>
+            <span class="ft-calendar-brief-arrow"><i class="bi bi-chevron-right"></i></span>
           </div>
         </div>
       </aside>
 
       <div class="ft-calendar-todo-panel">
         <h3>To do list admin</h3>
-        <p>Ajoutez des taches manuelles et combinez-les avec les evenements du calendrier pour construire votre plan de journee.</p>
+        <p>Ajoutez des tâches manuelles et combinez-les avec les événements du calendrier pour construire votre plan de journée.</p>
 
         <form class="ft-calendar-todo-form" id="calendarTodoForm">
           <input type="text" id="calendarTodoInput" class="ft-calendar-todo-input" placeholder="Ex: relancer les KYC en attente de cette date">
-          <select id="calendarTodoPriority" class="ft-calendar-todo-select">
-            <option value="medium">Priorite moyenne</option>
-            <option value="high">Priorite haute</option>
-            <option value="low">Priorite basse</option>
-          </select>
-          <button type="submit" class="ft-calendar-todo-btn">Ajouter</button>
+          <div class="ft-calendar-todo-actions">
+            <select id="calendarTodoPriority" class="ft-calendar-todo-select">
+              <option value="medium">Priorité moyenne</option>
+              <option value="high">Priorité haute</option>
+              <option value="low">Priorité basse</option>
+            </select>
+            <button type="submit" class="ft-calendar-todo-btn"><i class="bi bi-plus-lg me-2"></i>Ajouter</button>
+          </div>
         </form>
 
         <div class="ft-calendar-todo-list" id="calendarTodoList"></div>
+
+        <div class="ft-calendar-todo-illustration">
+          <div class="ft-calendar-todo-illustration-graphic"></div>
+          <strong>Organisez vos tâches et restez à jour</strong>
+          <span>La planification est la clé de la productivité.</span>
+        </div>
       </div>
     </div>
   </section>
@@ -536,6 +763,7 @@
       const todoSelectedDateTitle = document.getElementById('todoSelectedDateTitle');
       const todoSelectedDateHint = document.getElementById('todoSelectedDateHint');
       const todoEventCount = document.getElementById('todoEventCount');
+      const todoEventCountSecondary = document.getElementById('todoEventCountSecondary');
       const todoDoneCount = document.getElementById('todoDoneCount');
       const todoPendingCount = document.getElementById('todoPendingCount');
       const todoEnergyValue = document.getElementById('todoEnergyValue');
@@ -595,17 +823,20 @@
 
         todoSelectedDateTitle.textContent = getDateLabel(selectedDate);
         todoSelectedDateHint.textContent = eventCount > 0
-          ? `${eventCount} evenement(s) detecte(s) sur cette date.`
-          : 'Aucun evenement remonte pour cette date. Ajoutez vos actions admin manuellement.';
+          ? `${eventCount} événement(s) détecté(s) sur cette date`
+          : 'Aucun événement remonté pour cette date';
         todoEventCount.textContent = String(eventCount);
+        if (todoEventCountSecondary) {
+          todoEventCountSecondary.textContent = String(eventCount);
+        }
         todoDoneCount.textContent = String(doneCount);
         todoPendingCount.textContent = String(pendingCount);
         todoEnergyValue.textContent = `${energy}%`;
         todoEnergyBar.style.width = `${energy}%`;
-        todoEnergyLabel.textContent = energy >= 80 ? 'Journee tres dynamique' : (energy >= 50 ? 'Focus bien lance' : 'Charge moderee');
+        todoEnergyLabel.textContent = energy >= 80 ? 'Charge intense' : (energy >= 50 ? 'Focus bien lancé' : 'Charge modérée');
 
         if (todos.length === 0) {
-          todoListEl.innerHTML = '<div class="ft-calendar-todo-empty">Aucune tache pour cette date. Commencez par ajouter une action admin.</div>';
+          todoListEl.innerHTML = '<div class="ft-calendar-todo-empty">Aucune tâche pour cette date. Commencez par ajouter une action admin.</div>';
           return;
         }
 
@@ -615,7 +846,7 @@
             <div class="ft-calendar-todo-copy">
               <strong>${todo.text}</strong>
               <span>
-                <em class="ft-calendar-priority ${todo.priority}">${todo.priority === 'high' ? 'Priorite haute' : (todo.priority === 'low' ? 'Priorite basse' : 'Priorite moyenne')}</em>
+                <em class="ft-calendar-priority ${todo.priority}">${todo.priority === 'high' ? 'Priorité haute' : (todo.priority === 'low' ? 'Priorité basse' : 'Priorité moyenne')}</em>
                 <small>${todo.meta || 'Action manuelle'}</small>
               </span>
             </div>
