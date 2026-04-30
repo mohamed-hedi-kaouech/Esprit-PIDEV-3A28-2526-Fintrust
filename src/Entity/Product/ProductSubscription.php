@@ -75,13 +75,31 @@ class ProductSubscription
 
     public function setType(string $type): static
     {
+        if (empty($type)) {
+            throw new \InvalidArgumentException('Le type de souscription est obligatoire.');
+        }
         $this->type = $type;
         return $this;
     }
 
-    public function getSubscriptionDate(): \DateTimeInterface
+    public function setStatus(string $status): static
     {
-        return $this->subscriptionDate;
+        if (empty($status)) {
+            throw new \InvalidArgumentException('Le statut est obligatoire.');
+        }
+        $this->status = $status;
+        return $this;
+    }
+
+    public function setExpirationDate(\DateTimeInterface $expirationDate): static
+    {
+        if (isset($this->subscriptionDate) && $expirationDate <= $this->subscriptionDate) {
+            throw new \InvalidArgumentException(
+                "La date d'expiration doit être postérieure à la date de souscription."
+            );
+        }
+        $this->expirationDate = $expirationDate;
+        return $this;
     }
 
     public function setSubscriptionDate(\DateTimeInterface $subscriptionDate): static
@@ -89,28 +107,21 @@ class ProductSubscription
         $this->subscriptionDate = $subscriptionDate;
         return $this;
     }
-
+    public function getSubscriptionDate(): \DateTimeInterface
+    {
+        return $this->subscriptionDate;
+    }
     public function getExpirationDate(): \DateTimeInterface
     {
         return $this->expirationDate;
     }
 
-    public function setExpirationDate(\DateTimeInterface $expirationDate): static
-    {
-        $this->expirationDate = $expirationDate;
-        return $this;
-    }
 
     public function getStatus(): string
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
-    {
-        $this->status = $status;
-        return $this;
-    }
 
     public function getClientUser(): User
     {

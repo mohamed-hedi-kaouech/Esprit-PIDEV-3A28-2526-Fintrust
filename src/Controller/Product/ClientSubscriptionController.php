@@ -87,14 +87,6 @@ final class ClientSubscriptionController extends AbstractController
             ]);
         }
 
-        // Ownership check — prevent deleting another user's subscription
-        if ($subproduct->getClientUser() !== $this->getUser()) {
-            return $this->redirectToRoute('Client_subscription_list', [
-                'swal' => 'error',
-                'msg'  => 'Action non autorisée.',
-            ]);
-        }
-
         $em->remove($subproduct);
         $em->flush();
 

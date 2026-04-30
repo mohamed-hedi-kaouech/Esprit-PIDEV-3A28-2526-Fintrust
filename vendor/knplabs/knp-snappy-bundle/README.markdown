@@ -10,22 +10,14 @@ It allows you to generate either pdf or image files from your html documents, us
 
 The KnpSnappyBundle provides a simple integration for your Symfony project.
 
-Limitations
-----------
-
-If you use JavaScript to render your pages, you may encounter some issues because of [wkhtmltopdf][wkhtmltopdf] not being fully compatible with ES6 apis.
-The only way to solve this issue is to provide polyfills that fix the gaps between modern ES6 apis and the [wkhtmltopdf][wkhtmltopdf] rendering engine.
-
 Installation
 ------------
 
 With [composer](https://getcomposer.org), require:
 
-```bash
-composer require knplabs/knp-snappy-bundle
-```
+`composer require knplabs/knp-snappy-bundle`
 
-If you are not using Flex, enable it in your kernel :
+Then enable it in your kernel (optional if you are using the Flex recipe with Symfony >= 4) :
 
 ```php
 // config/bundles.php
@@ -43,7 +35,7 @@ Configuration
 If you need to change the binaries, change the instance options or even disable one or both services, you can do it through the configuration.
 
 ```yaml
-# config/packages/knp_snappy.yaml
+# app/config/config.yml (or config/packages/knp_snappy.yaml if using Symfony4 and the Flex recipe)
 knp_snappy:
     pdf:
         enabled:    true
@@ -58,7 +50,7 @@ knp_snappy:
 If you want to change temporary folder which is ```sys_get_temp_dir()``` by default, you can use
 
 ```yaml
-# config/packages/knp_snappy.yaml
+# app/config/config.yml (or config/packages/knp_snappy.yaml if using Symfony4 and the Flex recipe)
 knp_snappy:
     temporary_folder: "%kernel.cache_dir%/snappy"
 ```
@@ -66,7 +58,7 @@ knp_snappy:
 You can also configure the timeout used by the generators with `process_timeout`:
 
 ```yaml
-# config/packages/knp_snappy.yaml
+# app/config/config.yml (or config/packages/knp_snappy.yaml if using Symfony4 and the Flex recipe)
 knp_snappy:
     process_timeout: 20 # In seconds
 ```
@@ -89,21 +81,21 @@ $knpSnappyImage->generate('http://www.google.fr', '/path/to/the/image.jpg');
 ### Generate a pdf document from a URL
 
 ```php
-// @var \Knp\Snappy\Pdf
+// @var Knp\Snappy\Pdf
 $knpSnappyPdf->generate('http://www.google.fr', '/path/to/the/file.pdf');
 ```
 
 ### Generate a pdf document from multiple URLs
 
 ```php
-// @var \Knp\Snappy\Pdf
+// @var Knp\Snappy\Pdf
 $knpSnappyPdf->generate(array('http://www.google.fr', 'http://www.knplabs.com', 'http://www.google.com'), '/path/to/the/file.pdf');
 ```
 
 ### Generate a pdf document from a twig view
 
 ```php
-// @var \Knp\Snappy\Pdf
+// @var Knp\Snappy\Pdf
 $knpSnappyPdf->generateFromHtml(
     $this->renderView(
         'MyBundle:Foo:bar.html.twig',
@@ -123,7 +115,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class SomeController extends AbstractController
 {
-    public function imageAction(\Knp\Snappy\Image $knpSnappyImage)
+    public function imageAction(Knp\Snappy\Image $knpSnappyImage)
     {
         $html = $this->renderView('MyBundle:Foo:bar.html.twig', array(
             'some'  => $vars
@@ -145,7 +137,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class SomeController extends AbstractController
 {
-    public function pdfAction(\Knp\Snappy\Pdf $knpSnappyPdf)
+    public function pdfAction(Knp\Snappy\Pdf $knpSnappyPdf)
     {
         $html = $this->renderView('MyBundle:Foo:bar.html.twig', array(
             'some'  => $vars
@@ -167,7 +159,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class SomeController extends AbstractController
 {
-    public function pdfAction(\Knp\Snappy\Pdf $knpSnappyPdf)
+    public function pdfAction(Knp\Snappy\Pdf $knpSnappyPdf)
     {
         $pageUrl = $this->generateUrl('homepage', array(), true); // use absolute path!
 

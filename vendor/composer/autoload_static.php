@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62
+class ComposerStaticInitb1d80440f73c2ccc4752280c2e69547c
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -18,8 +18,8 @@ class ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62
         'f844ccf1d25df8663951193c3fc307c8' => __DIR__ . '/..' . '/twig/twig/src/Resources/string_loader.php',
         '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
         'b6b991a57620e2fb6b2f66f03fe9ddc2' => __DIR__ . '/..' . '/symfony/string/Resources/functions.php',
-        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
+        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         '9d2b9fc6db0f153a0a149fefb182415e' => __DIR__ . '/..' . '/symfony/polyfill-php84/bootstrap.php',
         '72243e5536b63e298acb6476f01f1aff' => __DIR__ . '/..' . '/thecodingmachine/safe/lib/special_cases.php',
         '3f648889e687f31c52f949ba8a9d0873' => __DIR__ . '/..' . '/thecodingmachine/safe/generated/apache.php',
@@ -170,6 +170,7 @@ class ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62
             'Symfony\\Component\\Mime\\' => 23,
             'Symfony\\Component\\Messenger\\Bridge\\Doctrine\\' => 44,
             'Symfony\\Component\\Messenger\\' => 28,
+            'Symfony\\Component\\Mailer\\Bridge\\Google\\' => 39,
             'Symfony\\Component\\Mailer\\' => 25,
             'Symfony\\Component\\Intl\\' => 23,
             'Symfony\\Component\\HttpKernel\\' => 29,
@@ -477,6 +478,10 @@ class ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62
         'Symfony\\Component\\Messenger\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/messenger',
+        ),
+        'Symfony\\Component\\Mailer\\Bridge\\Google\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/google-mailer',
         ),
         'Symfony\\Component\\Mailer\\' =>
         array (
@@ -1580,9 +1585,9 @@ class ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit2ed169d6cc963ba83a018d2324e0bb62::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitb1d80440f73c2ccc4752280c2e69547c::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitb1d80440f73c2ccc4752280c2e69547c::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitb1d80440f73c2ccc4752280c2e69547c::$classMap;
 
         }, null, ClassLoader::class);
     }

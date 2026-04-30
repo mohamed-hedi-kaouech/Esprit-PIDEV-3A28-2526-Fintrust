@@ -19,3 +19,5 @@
 /var/cache/
 /var/log/
 ###< symfony/asset-mapper ###
+/.env
+/node_modules/

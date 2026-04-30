@@ -84,6 +84,9 @@ class Product
 
     public function setCategory(string $category): static
     {
+        if (!in_array($category, self::CATEGORIES, true)) {
+            throw new \InvalidArgumentException('La catégorie sélectionnée est invalide.');
+        }
         $this->category = $category;
         return $this;
     }
@@ -95,6 +98,9 @@ class Product
 
     public function setPrice(float $price): static
     {
+        if ($price <= 0) {
+            throw new \InvalidArgumentException('Le prix doit être un nombre strictement positif.');
+        }
         $this->price = $price;
         return $this;
     }
@@ -106,6 +112,15 @@ class Product
 
     public function setDescription(string $description): static
     {
+        if (empty($description)) {
+            throw new \InvalidArgumentException('La description est obligatoire.');
+        }
+        if (strlen($description) < 4) {
+            throw new \InvalidArgumentException('La description doit contenir au moins 4 caractères.');
+        }
+        if (strlen($description) > 500) {
+            throw new \InvalidArgumentException('La description ne doit pas dépasser 500 caractères.');
+        }
         $this->description = $description;
         return $this;
     }
