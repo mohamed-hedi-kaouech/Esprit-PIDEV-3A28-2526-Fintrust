@@ -358,12 +358,31 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      document.querySelectorAll('canvas[data-controller="symfony--ux-chartjs--chart"]').forEach(function (canvas) {
-        var attr = canvas.getAttribute('data-symfony--ux-chartjs--chart-view-value');
-        if (!attr) return;
-        var cfg = JSON.parse(attr);
-        if (Array.isArray(cfg.options)) cfg.options = {};
-        new Chart(canvas, cfg);
+      if (typeof Chart === 'undefined') {
+        return;
+      }
+
+      document.querySelectorAll('canvas[data-symfony--ux-chartjs--chart-view-value]').forEach(function (canvas) {
+        if (canvas.dataset.chartFallbackInitialized === '1') {
+          return;
+        }
+
+        var rawConfig = canvas.getAttribute('data-symfony--ux-chartjs--chart-view-value');
+        if (!rawConfig) {
+          return;
+        }
+
+        try {
+          var config = JSON.parse(rawConfig);
+          if (Array.isArray(config.options)) {
+            config.options = {};
+          }
+
+          new Chart(canvas.getContext('2d'), config);
+          canvas.dataset.chartFallbackInitialized = '1';
+        } catch (error) {
+          console.error('FinTrust chart fallback init failed:', error);
+        }
       });
     });
   </script>

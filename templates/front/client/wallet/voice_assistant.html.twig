@@ -1,0 +1,224 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Assistant vocal wallet{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="ft-page-icon-lg"><i class="bi bi-mic"></i></div>
+        <div>
+          <h1 class="ft-page-title mb-0">Assistant vocal</h1>
+          <p class="text-muted mb-0 small">Commandes vocales ou texte pour interroger votre wallet FinTrust.</p>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('front_wallet_assistant') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-stars me-1"></i>Assistant classique
+        </a>
+        <a href="{{ path('front_wallet_dashboard') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-house-door me-1"></i>Dashboard
+        </a>
+      </div>
+    </div>
+
+    <section class="row g-4">
+      <div class="col-xl-5">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-soundwave me-2 text-primary"></i>Commande
+          </div>
+          <div class="ft-app-card-body">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="voiceLanguage">Langue</label>
+              <select id="voiceLanguage" class="form-select">
+                <option value="fr">Francais</option>
+                <option value="en">English</option>
+                <option value="wo">Wolof (simulation)</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold" for="voiceCommandInput">Commande vocale simulee</label>
+              <textarea id="voiceCommandInput" class="form-control" rows="4" placeholder="Ex: Voir mon solde"></textarea>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <button id="voiceMicButton" type="button" class="btn ft-btn-outline-primary">
+                <i class="bi bi-mic me-1"></i>Dicter
+              </button>
+              <button id="voiceSendButton" type="button" class="btn ft-btn-primary">
+                <i class="bi bi-send me-1"></i>Envoyer
+              </button>
+              <button id="voiceSpeakButton" type="button" class="btn ft-btn-outline-primary" disabled>
+                <i class="bi bi-volume-up me-1"></i>Lire
+              </button>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+              {% for suggestion in ['Voir mon solde', 'Montre mes dernieres transactions', 'Mon wallet est-il stable ?', 'Puis-je demander un pret ?', 'Quel est l etat du marche ?', 'Je veux envoyer 50 dinars', 'Ou en est mon cheque ?'] %}
+                <button type="button" class="btn btn-sm ft-btn-outline-primary voice-suggestion" data-command="{{ suggestion }}">{{ suggestion }}</button>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-7">
+        <div class="ft-app-card ft-premium-card mb-4">
+          <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-chat-square-text me-2 text-primary"></i>Reponse</span>
+            {% if wallet %}
+              <span class="badge ft-badge-blue">Wallet #{{ wallet.idWallet }}</span>
+            {% endif %}
+          </div>
+          <div class="ft-app-card-body">
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <div class="ft-dash-card ft-dash-card-soft h-100">
+                  <div class="ft-dash-card-label">Transcript</div>
+                  <div id="voiceTranscript" class="small fw-semibold text-break">-</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="ft-dash-card ft-dash-card-soft h-100">
+                  <div class="ft-dash-card-label">Intent</div>
+                  <div id="voiceIntent" class="small fw-semibold">-</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="ft-dash-card ft-dash-card-soft h-100">
+                  <div class="ft-dash-card-label">Confiance</div>
+                  <div id="voiceConfidence" class="small fw-semibold">-</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="voiceStatus" class="alert alert-info py-2 small">Pret pour une commande vocale simulee.</div>
+            <p id="voiceResponse" class="fs-5 fw-semibold mb-3">La reponse apparaitra ici.</p>
+            <div id="voiceDetails" class="list-group list-group-flush"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+  const voiceInput = document.getElementById('voiceCommandInput');
+  const voiceLanguage = document.getElementById('voiceLanguage');
+  const voiceSendButton = document.getElementById('voiceSendButton');
+  const voiceMicButton = document.getElementById('voiceMicButton');
+  const voiceSpeakButton = document.getElementById('voiceSpeakButton');
+  const voiceStatus = document.getElementById('voiceStatus');
+  const voiceResponse = document.getElementById('voiceResponse');
+  const voiceTranscript = document.getElementById('voiceTranscript');
+  const voiceIntent = document.getElementById('voiceIntent');
+  const voiceConfidence = document.getElementById('voiceConfidence');
+  const voiceDetails = document.getElementById('voiceDetails');
+  let lastVoiceText = '';
+
+  document.querySelectorAll('.voice-suggestion').forEach((button) => {
+    button.addEventListener('click', () => {
+      voiceInput.value = button.dataset.command || '';
+      sendVoiceCommand();
+    });
+  });
+
+  voiceSendButton.addEventListener('click', sendVoiceCommand);
+
+  voiceMicButton.addEventListener('click', () => {
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) {
+      voiceStatus.className = 'alert alert-warning py-2 small';
+      voiceStatus.textContent = 'Reconnaissance vocale navigateur indisponible. Utilisez la zone texte.';
+      voiceInput.focus();
+      return;
+    }
+
+    const recognition = new Recognition();
+    recognition.lang = voiceLanguage.value === 'en' ? 'en-US' : 'fr-FR';
+    recognition.interimResults = false;
+    recognition.onstart = () => {
+      voiceStatus.className = 'alert alert-info py-2 small';
+      voiceStatus.textContent = 'Ecoute en cours...';
+    };
+    recognition.onresult = (event) => {
+      voiceInput.value = event.results[0][0].transcript;
+      sendVoiceCommand();
+    };
+    recognition.onerror = () => {
+      voiceStatus.className = 'alert alert-warning py-2 small';
+      voiceStatus.textContent = 'Dictee non disponible. La simulation texte reste active.';
+    };
+    recognition.start();
+  });
+
+  voiceSpeakButton.addEventListener('click', () => {
+    if (!lastVoiceText || !window.speechSynthesis) {
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(lastVoiceText);
+    utterance.lang = voiceLanguage.value === 'en' ? 'en-US' : 'fr-FR';
+    window.speechSynthesis.speak(utterance);
+  });
+
+  function sendVoiceCommand() {
+    const text = voiceInput.value.trim();
+    if (!text) {
+      voiceStatus.className = 'alert alert-warning py-2 small';
+      voiceStatus.textContent = 'Saisissez ou dictez une commande.';
+      return;
+    }
+
+    voiceStatus.className = 'alert alert-info py-2 small';
+    voiceStatus.textContent = 'Analyse de la commande...';
+
+    fetch('{{ path('api_v1_voice_command') }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text, language: voiceLanguage.value})
+    })
+      .then((response) => response.ok ? response.json() : Promise.reject(response))
+      .then(renderVoiceResult)
+      .catch(() => {
+        voiceStatus.className = 'alert alert-danger py-2 small';
+        voiceStatus.textContent = 'Impossible de traiter la commande vocale.';
+      });
+  }
+
+  function renderVoiceResult(payload) {
+    lastVoiceText = payload.response_text || '';
+    voiceTranscript.textContent = payload.transcript || '-';
+    voiceIntent.textContent = payload.intent || '-';
+    voiceConfidence.textContent = payload.confidence ? Math.round(Number(payload.confidence) * 100) + '%' : '-';
+    voiceResponse.textContent = lastVoiceText || 'Aucune reponse.';
+    voiceSpeakButton.disabled = !lastVoiceText || !window.speechSynthesis;
+    voiceStatus.className = 'alert alert-success py-2 small';
+    voiceStatus.textContent = (payload.action || 'voice.command.done') + ' | langue: ' + (payload.language || 'fr');
+
+    voiceDetails.innerHTML = '';
+    const items = payload.details?.items || payload.details?.cheques || payload.suggestions || [];
+    items.slice(0, 6).forEach((item) => {
+      const row = document.createElement('div');
+      row.className = 'list-group-item px-0';
+      row.innerHTML = '<i class="bi bi-check2-circle text-primary me-2"></i>' + escapeHtml(typeof item === 'string' ? item : JSON.stringify(item));
+      voiceDetails.appendChild(row);
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    })[char]);
+  }
+</script>
+{% endblock %}
