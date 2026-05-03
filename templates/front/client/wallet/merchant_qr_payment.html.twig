@@ -1,0 +1,389 @@
+{% extends 'front/front.html.twig' %}
+{% block title %}Paiement QR commercant{% endblock %}
+
+{% block body %}
+<div class="ft-app-page">
+  <div class="container-fluid px-4 py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="ft-page-icon-lg"><i class="bi bi-qr-code-scan"></i></div>
+        <div>
+          <h1 class="ft-page-title mb-0">Paiement QR commercant</h1>
+          <p class="text-muted mb-0 small">Scannez ou collez un QR commercant, verifiez le recapitulatif puis confirmez.</p>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('front_wallet_transfer_history') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-clock-history me-1"></i>Transferts
+        </a>
+        <a href="{{ path('front_wallet_dashboard') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-house-door me-1"></i>Dashboard
+        </a>
+      </div>
+    </div>
+
+    <section class="row g-4">
+      <div class="col-xl-5">
+        <div class="ft-app-card ft-premium-card h-100">
+          <div class="ft-app-card-header">
+            <i class="bi bi-upc-scan me-2 text-primary"></i>Donnees QR
+          </div>
+          <div class="ft-app-card-body">
+            <div class="border rounded-3 p-3 mb-3">
+              <div class="small text-muted mb-2">Generateur QR demo</div>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <label for="qrGenMerchantWallet" class="form-label small fw-semibold">Wallet commercant</label>
+                  <input id="qrGenMerchantWallet" type="number" min="1" class="form-control ft-input" value="2">
+                </div>
+                <div class="col-md-6">
+                  <label for="qrGenMerchantName" class="form-label small fw-semibold">Commercant</label>
+                  <input id="qrGenMerchantName" type="text" class="form-control ft-input" value="FinTrust Store">
+                </div>
+                <div class="col-md-4">
+                  <label for="qrGenAmount" class="form-label small fw-semibold">Montant dynamique</label>
+                  <input id="qrGenAmount" type="number" step="0.01" min="0" class="form-control ft-input" value="25.50">
+                </div>
+                <div class="col-md-4">
+                  <label for="qrGenReference" class="form-label small fw-semibold">Reference</label>
+                  <input id="qrGenReference" type="text" class="form-control ft-input" value="ORDER-2026-001">
+                </div>
+                <div class="col-md-4">
+                  <label for="qrGenTransaction" class="form-label small fw-semibold">Transaction ID</label>
+                  <input id="qrGenTransaction" type="text" class="form-control ft-input" value="MQR-DEMO-001">
+                </div>
+              </div>
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <button id="generateStaticQrButton" type="button" class="btn btn-sm ft-btn-outline-primary">
+                  <i class="bi bi-qr-code me-1"></i>QR statique
+                </button>
+                <button id="generateDynamicQrButton" type="button" class="btn btn-sm ft-btn-primary">
+                  <i class="bi bi-qr-code-scan me-1"></i>QR dynamique
+                </button>
+              </div>
+            </div>
+
+            <div class="border rounded-3 p-3 mb-3 bg-light">
+              <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
+                <div id="merchantQrCanvas" class="bg-white border rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 168px; min-width: 168px; height: 168px;">
+                  <span class="text-muted small text-center">QR en generation</span>
+                </div>
+                <div class="w-100">
+                  <div class="small text-muted mb-1">QR visuel genere</div>
+                  <div id="merchantQrDecoded" class="small fw-semibold text-break">-</div>
+                  <div class="small text-muted mt-2">Le code encode exactement les donnees collees ci-dessous.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="merchantQrData" class="form-label fw-semibold">QR commercant</label>
+              <textarea id="merchantQrData" class="form-control ft-input" rows="7">{"merchant_wallet_id": "2", "merchant_name": "FinTrust Store", "amount": 25.50, "reference": "ORDER-2026-001"}</textarea>
+              <div class="form-text">Mode debug: JSON ou query string. Le QR visuel est genere depuis ce payload.</div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="merchantQrAmount" class="form-label fw-semibold">Montant libre</label>
+                <input id="merchantQrAmount" type="number" step="0.01" min="0" class="form-control ft-input" placeholder="Optionnel">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Devise</label>
+                <input type="text" class="form-control ft-input" value="{{ wallet ? wallet.devise : 'TND' }}" disabled>
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+              <button id="merchantPreviewButton" type="button" class="btn ft-btn-outline-primary">
+                <i class="bi bi-eye me-1"></i>Preview
+              </button>
+              <button id="merchantPayButton" type="button" class="btn ft-btn-primary" disabled>
+                <i class="bi bi-check2-circle me-1"></i>Confirmer paiement
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-7">
+        <div class="ft-app-card ft-premium-card mb-4">
+          <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-receipt me-2 text-primary"></i>Recapitulatif</span>
+            {% if wallet %}
+              <span class="badge ft-badge-blue">Wallet #{{ wallet.idWallet }}</span>
+            {% endif %}
+          </div>
+          <div class="ft-app-card-body">
+            <div id="merchantQrStatus" class="alert alert-info py-2 small">Collez les donnees QR puis lancez le preview.</div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <div class="ft-dash-card ft-dash-card-soft h-100">
+                  <div class="ft-dash-card-label">Commercant</div>
+                  <div id="merchantName" class="small fw-semibold">-</div>
+                  <div id="merchantWallet" class="small text-muted mt-1">-</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="ft-dash-card ft-dash-card-soft h-100">
+                  <div class="ft-dash-card-label">Montant</div>
+                  <div id="merchantAmount" class="small fw-semibold">-</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="ft-dash-card ft-dash-card-soft h-100">
+                  <div class="ft-dash-card-label">Reference</div>
+                  <div id="merchantReference" class="small fw-semibold text-break">-</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="ft-dash-card ft-dash-card-soft h-100">
+                  <div class="ft-dash-card-label">Wallet source</div>
+                  <div id="merchantSourceWallet" class="small fw-semibold">-</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="merchantQrResult" class="list-group list-group-flush"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+  const qrData = document.getElementById('merchantQrData');
+  const qrAmount = document.getElementById('merchantQrAmount');
+  const qrCanvas = document.getElementById('merchantQrCanvas');
+  const qrDecoded = document.getElementById('merchantQrDecoded');
+  const qrGenMerchantWallet = document.getElementById('qrGenMerchantWallet');
+  const qrGenMerchantName = document.getElementById('qrGenMerchantName');
+  const qrGenAmount = document.getElementById('qrGenAmount');
+  const qrGenReference = document.getElementById('qrGenReference');
+  const qrGenTransaction = document.getElementById('qrGenTransaction');
+  const generateStaticQrButton = document.getElementById('generateStaticQrButton');
+  const generateDynamicQrButton = document.getElementById('generateDynamicQrButton');
+  const previewButton = document.getElementById('merchantPreviewButton');
+  const payButton = document.getElementById('merchantPayButton');
+  const statusBox = document.getElementById('merchantQrStatus');
+  const merchantName = document.getElementById('merchantName');
+  const merchantWallet = document.getElementById('merchantWallet');
+  const merchantAmount = document.getElementById('merchantAmount');
+  const merchantReference = document.getElementById('merchantReference');
+  const merchantSourceWallet = document.getElementById('merchantSourceWallet');
+  const resultBox = document.getElementById('merchantQrResult');
+  let lastPayload = null;
+  let qrCode = null;
+
+  generateStaticQrButton.addEventListener('click', () => generateMerchantQr('static'));
+  generateDynamicQrButton.addEventListener('click', () => generateMerchantQr('dynamic'));
+  previewButton.addEventListener('click', () => sendMerchantQr('{{ path('api_v1_merchant_qr_preview') }}', false));
+  payButton.addEventListener('click', () => sendMerchantQr('{{ path('api_v1_merchant_qr_pay') }}', true));
+  qrData.addEventListener('input', () => {
+    renderVisualQr();
+    renderDecodedQrData();
+    payButton.disabled = true;
+  });
+  qrAmount.addEventListener('input', () => {
+    renderDecodedQrData();
+    payButton.disabled = true;
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    renderVisualQr();
+    renderDecodedQrData();
+  });
+
+  function buildPayload() {
+    const payload = {qr_data: qrData.value.trim()};
+    if (qrAmount.value.trim() !== '') {
+      payload.amount = qrAmount.value.trim();
+    }
+    return payload;
+  }
+
+  function buildGeneratorPayload(type) {
+    const payload = {
+      type,
+      merchant_wallet_id: qrGenMerchantWallet.value.trim(),
+      merchant_name: qrGenMerchantName.value.trim(),
+      reference: qrGenReference.value.trim()
+    };
+
+    if (type === 'dynamic') {
+      payload.amount = qrGenAmount.value.trim();
+      payload.transaction_id = qrGenTransaction.value.trim();
+    }
+
+    return payload;
+  }
+
+  function generateMerchantQr(type) {
+    statusBox.className = 'alert alert-info py-2 small';
+    statusBox.textContent = type === 'static' ? 'Generation du QR statique...' : 'Generation du QR dynamique...';
+
+    fetch('{{ path('api_v1_merchant_qr_generate') }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(buildGeneratorPayload(type))
+    })
+      .then((response) => response.json().then((body) => ({ok: response.ok, body})))
+      .then(({body}) => {
+        qrData.value = body.qr_data || JSON.stringify(body.qr_payload || {});
+        qrAmount.value = '';
+        payButton.disabled = true;
+        renderVisualQr();
+        renderDecodedQrData();
+        statusBox.className = body.valid ? 'alert alert-success py-2 small' : 'alert alert-warning py-2 small';
+        statusBox.textContent = body.valid
+          ? `QR ${body.qr_type === 'static' ? 'statique' : 'dynamique'} genere. Lancez le preview.`
+          : (body.errors || []).join(' ');
+      })
+      .catch(() => {
+        statusBox.className = 'alert alert-danger py-2 small';
+        statusBox.textContent = 'Generation QR impossible.';
+      });
+  }
+
+  function sendMerchantQr(url, payment) {
+    const payload = payment && lastPayload ? lastPayload : buildPayload();
+    statusBox.className = 'alert alert-info py-2 small';
+    statusBox.textContent = payment ? 'Confirmation du paiement...' : 'Verification du QR...';
+
+    fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    })
+      .then((response) => response.json().then((body) => ({ok: response.ok, body})))
+      .then(({ok, body}) => {
+        if (!ok) {
+          throw body;
+        }
+        payment ? renderPayment(body) : renderPreview(body, payload);
+      })
+      .catch((error) => {
+        payButton.disabled = true;
+        statusBox.className = 'alert alert-danger py-2 small';
+        statusBox.textContent = error?.error || 'Paiement QR impossible.';
+      });
+  }
+
+  function renderPreview(payload, rawPayload) {
+    lastPayload = rawPayload;
+    const valid = Boolean(payload.valid);
+    payButton.disabled = !valid;
+    statusBox.className = valid ? 'alert alert-success py-2 small' : 'alert alert-warning py-2 small';
+    statusBox.textContent = valid ? 'QR valide. Vous pouvez confirmer.' : (payload.errors || []).join(' ');
+    merchantName.textContent = payload.merchant?.name || '-';
+    merchantWallet.textContent = payload.merchant?.wallet_id ? `Wallet commercant #${payload.merchant.wallet_id}` : '-';
+    merchantAmount.textContent = payload.payment?.amount ? `${Number(payload.payment.amount).toFixed(2)} ${payload.payment.currency}` : '-';
+    merchantReference.textContent = payload.payment?.reference || '-';
+    merchantSourceWallet.textContent = payload.source_wallet ? `#${payload.source_wallet.wallet_id} | solde ${Number(payload.source_wallet.balance).toFixed(2)} ${payload.source_wallet.currency}` : '-';
+    renderDecodedQrData(payload);
+    renderRows([
+      `Wallet commercant: #${payload.merchant?.wallet_id || '-'}`,
+      `Type QR: ${payload.payment?.qr_type || '-'}`,
+      `Montant libre: ${payload.payment?.free_amount ? 'oui' : 'non'}`,
+      `Transaction commercant: ${payload.payment?.transaction_id || '-'}`,
+      `Controle solde: ${valid ? 'OK' : 'a verifier'}`
+    ]);
+  }
+
+  function renderPayment(payload) {
+    payButton.disabled = true;
+    statusBox.className = 'alert alert-success py-2 small';
+    statusBox.textContent = payload.message || 'Paiement confirme.';
+    renderRows([
+      `Reference transfert: ${payload.transfer?.reference || '-'}`,
+      `Transaction: #${payload.transfer?.id || '-'}`,
+      `Statut: ${payload.transfer?.status || 'VALIDE'}`
+    ]);
+  }
+
+  function renderRows(items) {
+    resultBox.innerHTML = '';
+    items.forEach((item) => {
+      const row = document.createElement('div');
+      row.className = 'list-group-item px-0';
+      row.innerHTML = '<i class="bi bi-check2-circle text-primary me-2"></i>' + escapeHtml(item);
+      resultBox.appendChild(row);
+    });
+  }
+
+  function renderVisualQr() {
+    const value = qrData.value.trim();
+    qrCanvas.innerHTML = '';
+
+    if (!value) {
+      qrCanvas.innerHTML = '<span class="text-muted small text-center">Aucune donnee QR</span>';
+      return;
+    }
+
+    if (typeof QRCode === 'undefined') {
+      qrCanvas.innerHTML = '<span class="text-muted small text-center">Librairie QR indisponible</span>';
+      return;
+    }
+
+    qrCode = new QRCode(qrCanvas, {
+      text: value,
+      width: 148,
+      height: 148,
+      colorDark: '#0f172a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }
+
+  function renderDecodedQrData(previewPayload = null) {
+    const decoded = decodeQrData(qrData.value.trim());
+    const amount = previewPayload?.payment?.amount || decoded.amount || qrAmount.value.trim() || '-';
+    const reference = previewPayload?.payment?.reference || decoded.reference || decoded.ref || '-';
+    const merchant = previewPayload?.merchant?.name || decoded.merchant_name || decoded.merchantName || decoded.merchant || '-';
+    const wallet = previewPayload?.merchant?.wallet_id || decoded.merchant_wallet_id || decoded.wallet_id || decoded.merchantWalletId || '-';
+    const type = previewPayload?.payment?.qr_type || decoded.type || decoded.qr_type || (decoded.amount ? 'dynamic' : 'static');
+    const transaction = previewPayload?.payment?.transaction_id || decoded.transaction_id || decoded.transactionId || '-';
+
+    qrDecoded.innerHTML = [
+      `<span class="d-block">Type: ${escapeHtml(type)}</span>`,
+      `<span class="d-block">Commercant: ${escapeHtml(merchant)}</span>`,
+      `<span class="d-block">Wallet: ${escapeHtml(wallet)}</span>`,
+      `<span class="d-block">Montant: ${escapeHtml(amount)}</span>`,
+      `<span class="d-block">Reference: ${escapeHtml(reference)}</span>`,
+      `<span class="d-block">Transaction: ${escapeHtml(transaction)}</span>`
+    ].join('');
+  }
+
+  function decodeQrData(value) {
+    if (!value) {
+      return {};
+    }
+
+    try {
+      const decoded = JSON.parse(value);
+      return decoded && typeof decoded === 'object' ? decoded : {};
+    } catch (error) {
+      const params = new URLSearchParams(value);
+      const decoded = {};
+      params.forEach((paramValue, key) => {
+        decoded[key] = paramValue;
+      });
+      return decoded;
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    })[char]);
+  }
+</script>
+{% endblock %}
