@@ -198,6 +198,10 @@
                         </div>
 
                         <div class="ft-alert-card-actions">
+                            <a href="{{ alerte.categorie ? path('admin_categorie_show', {'idCategorie': alerte.categorie.idCategorie}) : path('admin_categorie_stats') }}" class="btn ft-btn-soft-primary">
+                                <i class="fas fa-eye me-2"></i>Details
+                            </a>
+
                             <a href="{{ path('admin_categorie_stats') }}" class="btn ft-btn-soft-primary is-main">
                                 <i class="fas fa-chart-column me-2"></i>Analyser la zone
                             </a>
@@ -217,12 +221,6 @@
                                     </button>
                                 </form>
                             {% endif %}
-
-                            <div class="ft-alert-more-wrap">
-                                <a href="{{ alerte.categorie ? path('admin_categorie_show', {'idCategorie': alerte.categorie.idCategorie}) : path('admin_categorie_stats') }}" class="ft-alert-more" title="Analyser">
-                                    <i class="fas fa-ellipsis"></i>
-                                </a>
-                            </div>
                         </div>
                     </div>
                 </article>            {% endfor %}

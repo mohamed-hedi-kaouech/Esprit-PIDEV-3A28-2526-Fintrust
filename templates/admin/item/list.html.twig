@@ -1,142 +1,247 @@
 {% extends 'admin/back.html.twig' %}
 
-{% block title %}Liste des Items{% endblock %}
+{% block title %}Gestion des items{% endblock %}
 
 {% block admin_content %}
+{% set totalItems = 0 %}
+{% set totalAmount = 0 %}
+{% for categoryName, categoryItems in groupedItems %}
+    {% set totalItems = totalItems + categoryItems|length %}
+    {% for item in categoryItems %}
+        {% set totalAmount = totalAmount + item.montant %}
+    {% endfor %}
+{% endfor %}
+{% set averageAmount = totalItems > 0 ? totalAmount / totalItems : 0 %}
+
 <div class="container-fluid mt-4 ft-admin-items-page">
     <section class="ft-items-hero mb-4">
-        <div>
-            <span class="ft-items-kicker">Budget admin</span>
-            <h1>Gestion des Items</h1>
-            <p>Créez et gérez vos articles budgétaires avec une vue claire, moderne et cohérente avec le thème FinTrust.</p>
-        </div>
-        <div class="ft-items-hero-actions">
-            <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
-                <i class="fas fa-plus me-2"></i>Nouvel Item
-            </a>
-            <a href="{{ path('admin_item_export') ~ '?' ~ app.request.queryString }}" class="btn ft-btn-outline-primary">
-                <i class="fas fa-file-pdf me-2"></i>Exporter PDF
-            </a>
+        <div class="ft-items-hero-grid">
+            <div>
+                <span class="ft-items-kicker">
+                    <i class="bi bi-journal-text me-1"></i>Budget admin / items
+                </span>
+                <h1>Gestion des items budgetaires</h1>
+                <p>
+                    Pilotez vos articles budgetaires avec une interface claire, premium et parfaitement alignee au langage visuel FinTrust Budget.
+                </p>
+                <div class="ft-items-hero-meta">
+                    <span><i class="bi bi-journals"></i>{{ totalItems }} item(s)</span>
+                    <span><i class="bi bi-folder2-open"></i>{{ groupedItems|length }} groupe(s)</span>
+                    <span><i class="bi bi-cash-stack"></i>{{ totalAmount|number_format(2, ',', ' ') }} DT</span>
+                </div>
+            </div>
+
+            <div class="ft-items-hero-side">
+                <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
+                    <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
+                        <i class="fas fa-plus me-2"></i>Nouvel item
+                    </a>
+                    <a href="{{ path('admin_item_export') ~ '?' ~ app.request.queryString }}" class="btn ft-btn-outline-primary">
+                        <i class="fas fa-file-pdf me-2"></i>Exporter PDF
+                    </a>
+                </div>
+                <div class="ft-items-hero-panel">
+                    <span class="ft-items-hero-panel-label">Montant moyen</span>
+                    <strong>{{ averageAmount|number_format(2, ',', ' ') }} DT</strong>
+                    <small>Lecture instantanee du niveau moyen par item.</small>
+                </div>
+            </div>
         </div>
     </section>
 
     {% for message in app.flashes('success') %}
-        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
             <i class="fas fa-check-circle me-2"></i>{{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     {% endfor %}
 
+    <section class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-items-kpi is-blue">
+                <span class="ft-items-kpi-icon"><i class="bi bi-journal-check"></i></span>
+                <div class="ft-items-kpi-label">Total items</div>
+                <div class="ft-items-kpi-value">{{ totalItems }}</div>
+                <div class="ft-items-kpi-text">Articles budgets actuellement suivis.</div>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-items-kpi is-cyan">
+                <span class="ft-items-kpi-icon"><i class="bi bi-cash-stack"></i></span>
+                <div class="ft-items-kpi-label">Montant cumule</div>
+                <div class="ft-items-kpi-value">{{ totalAmount|number_format(2, ',', ' ') }} DT</div>
+                <div class="ft-items-kpi-text">Somme de tous les items affiches.</div>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-items-kpi is-violet">
+                <span class="ft-items-kpi-icon"><i class="bi bi-grid-3x3-gap"></i></span>
+                <div class="ft-items-kpi-label">Categories visibles</div>
+                <div class="ft-items-kpi-value">{{ groupedItems|length }}</div>
+                <div class="ft-items-kpi-text">Regroupements categories apres filtre.</div>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-items-kpi is-slate">
+                <span class="ft-items-kpi-icon"><i class="bi bi-bar-chart-line"></i></span>
+                <div class="ft-items-kpi-label">Montant moyen</div>
+                <div class="ft-items-kpi-value">{{ averageAmount|number_format(2, ',', ' ') }} DT</div>
+                <div class="ft-items-kpi-text">Niveau moyen par item dans la vue.</div>
+            </article>
+        </div>
+    </section>
+
     <section class="ft-items-filter-card mb-4">
         <div class="ft-items-filter-head">
-            <h2><i class="fas fa-filter me-2"></i>Filtres et recherche</h2>
+            <div>
+                <span class="ft-items-section-kicker">Recherche avancee</span>
+                <h2>Filtres budgetaires</h2>
+            </div>
+            <span class="ft-items-filter-badge">Vue dynamique</span>
         </div>
+
         <div class="ft-items-filter-body">
-            <form method="GET">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label for="search" class="form-label fw-semibold">Recherche par libellé</label>
-                        <input type="text" class="form-control" id="search" name="search"
-                               value="{{ search }}" placeholder="Entrez un libellé...">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="categorie" class="form-label fw-semibold">Catégorie</label>
-                        <select class="form-select" id="categorie" name="categorie">
-                            <option value="">Toutes les catégories</option>
-                            {% for categorie in categories %}
-                                <option value="{{ categorie.idCategorie }}"
-                                        {% if categorieId == categorie.idCategorie %}selected{% endif %}>
-                                    {{ categorie.nomCategorie }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="min_amount" class="form-label fw-semibold">Montant min</label>
-                        <input type="number" step="0.01" class="form-control" id="min_amount"
-                               name="min_amount" value="{{ minAmount }}" placeholder="0.00">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="max_amount" class="form-label fw-semibold">Montant max</label>
-                        <input type="number" step="0.01" class="form-control" id="max_amount"
-                               name="max_amount" value="{{ maxAmount }}" placeholder="0.00">
-                    </div>
-                    <div class="col-md-6 d-flex align-items-end gap-2 flex-wrap">
-                        <button type="submit" class="btn ft-btn-primary">
-                            <i class="fas fa-search me-2"></i>Rechercher
-                        </button>
-                        <a href="{{ path('admin_item_list') }}" class="btn ft-btn-outline-primary">
-                            <i class="fas fa-rotate-left me-2"></i>Réinitialiser
-                        </a>
-                    </div>
+            <form method="GET" class="row g-3">
+                <div class="col-lg-6">
+                    <label for="search" class="form-label ft-items-label">Recherche par libelle</label>
+                    <input type="text"
+                           class="form-control ft-items-control"
+                           id="search"
+                           name="search"
+                           value="{{ search }}"
+                           placeholder="Entrez un libelle, un nom d article ou un mot cle...">
+                </div>
+
+                <div class="col-lg-6">
+                    <label for="categorie" class="form-label ft-items-label">Categorie</label>
+                    <select class="form-select ft-items-control" id="categorie" name="categorie">
+                        <option value="">Toutes les categories</option>
+                        {% for categorie in categories %}
+                            <option value="{{ categorie.idCategorie }}" {% if categorieId == categorie.idCategorie %}selected{% endif %}>
+                                {{ categorie.nomCategorie }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <label for="min_amount" class="form-label ft-items-label">Montant min</label>
+                    <input type="number"
+                           step="0.01"
+                           class="form-control ft-items-control"
+                           id="min_amount"
+                           name="min_amount"
+                           value="{{ minAmount }}"
+                           placeholder="0.00">
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <label for="max_amount" class="form-label ft-items-label">Montant max</label>
+                    <input type="number"
+                           step="0.01"
+                           class="form-control ft-items-control"
+                           id="max_amount"
+                           name="max_amount"
+                           value="{{ maxAmount }}"
+                           placeholder="0.00">
+                </div>
+
+                <div class="col-lg-6 d-flex align-items-end gap-2 flex-wrap">
+                    <button type="submit" class="btn ft-btn-primary">
+                        <i class="fas fa-search me-2"></i>Rechercher
+                    </button>
+                    <a href="{{ path('admin_item_list') }}" class="btn ft-btn-outline-primary">
+                        <i class="fas fa-rotate-left me-2"></i>Reinitialiser
+                    </a>
                 </div>
             </form>
         </div>
     </section>
 
     {% if groupedItems|length > 0 %}
-        {% for categoryName, categoryItems in groupedItems %}
-            <section class="ft-items-group-card mb-4">
-                <div class="ft-items-group-head">
-                    <div class="ft-items-group-title">
-                        <i class="fas fa-folder-open"></i>
-                        <h2>{{ categoryName }}</h2>
+        <div class="ft-items-groups-stack">
+            {% for categoryName, categoryItems in groupedItems %}
+                {% set categoryAmount = 0 %}
+                {% for item in categoryItems %}
+                    {% set categoryAmount = categoryAmount + item.montant %}
+                {% endfor %}
+                <section class="ft-items-group-card">
+                    <div class="ft-items-group-head">
+                        <div class="ft-items-group-title">
+                            <span class="ft-items-group-icon"><i class="fas fa-folder-open"></i></span>
+                            <div>
+                                <h2>{{ categoryName }}</h2>
+                                <p>{{ categoryItems|length }} item(s) pour {{ categoryAmount|number_format(2, ',', ' ') }} DT</p>
+                            </div>
+                        </div>
+                        <span class="ft-items-group-badge">{{ categoryItems|length }} item(s)</span>
                     </div>
-                    <span class="ft-items-group-badge">{{ categoryItems|length }} item(s)</span>
-                </div>
 
-                <div class="table-responsive">
-                    <table class="table ft-items-table align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Libellé</th>
-                                <th>Montant</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in categoryItems %}
+                    <div class="table-responsive">
+                        <table class="table ft-items-table align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <td>{{ item.idItem }}</td>
-                                    <td>{{ item.libelle }}</td>
-                                    <td class="fw-semibold">{{ item.montant|number_format(2, ',', ' ') }} DT</td>
-                                    <td>
-                                        <div class="ft-items-actions">
-                                            <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}"
-                                               class="btn ft-items-action-btn is-view" title="Voir">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}"
-                                               class="btn ft-items-action-btn is-edit" title="Modifier">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form method="post" action="{{ path('admin_item_delete', {'idItem': item.idItem}) }}"
-                                                  class="d-inline"
-                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet item ?')">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.idItem) }}">
-                                                <button type="submit" class="btn ft-items-action-btn is-delete" title="Supprimer">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
+                                    <th>ID</th>
+                                    <th>Libelle</th>
+                                    <th>Montant</th>
+                                    <th>Actions</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        {% endfor %}
+                            </thead>
+                            <tbody>
+                                {% for item in categoryItems %}
+                                    <tr>
+                                        <td>
+                                            <span class="ft-items-id-pill">#{{ item.idItem }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="ft-items-name-cell">
+                                                <strong>{{ item.libelle }}</strong>
+                                                <small>Article budgetaire FinTrust</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="ft-items-amount">{{ item.montant|number_format(2, ',', ' ') }} DT</span>
+                                        </td>
+                                        <td>
+                                            <div class="ft-items-actions">
+                                                <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}"
+                                                   class="btn ft-items-action-btn is-view"
+                                                   title="Voir">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}"
+                                                   class="btn ft-items-action-btn is-edit"
+                                                   title="Modifier">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <form method="post"
+                                                      action="{{ path('admin_item_delete', {'idItem': item.idItem}) }}"
+                                                      class="d-inline"
+                                                      onsubmit="return confirm('Etes-vous sur de vouloir supprimer cet item ?')">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.idItem) }}">
+                                                    <button type="submit" class="btn ft-items-action-btn is-delete" title="Supprimer">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
     {% else %}
         <div class="ft-items-empty-state">
-            <i class="fas fa-circle-info"></i>
-            <div>
-                <strong>Aucun item trouvé.</strong>
-                <span>Commencez par créer un nouvel item budgétaire.</span>
+            <div class="ft-items-empty-icon"><i class="fas fa-circle-info"></i></div>
+            <div class="ft-items-empty-copy">
+                <strong>Aucun item trouve</strong>
+                <span>Essayez un filtre plus large ou commencez par creer un nouvel item budgetaire.</span>
             </div>
             <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
-                <i class="fas fa-plus me-2"></i>Créer un item
+                <i class="fas fa-plus me-2"></i>Creer un item
             </a>
         </div>
     {% endif %}
@@ -148,54 +253,178 @@
 }
 
 .ft-items-hero {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1.9rem 2rem;
     border-radius: 28px;
+    border: 1px solid rgba(59, 130, 246, 0.14);
     background:
-        radial-gradient(circle at top right, rgba(34, 211, 238, 0.22), transparent 20%),
-        linear-gradient(135deg, #f8fbff 0%, #eef7ff 48%, #dff7ff 100%);
-    border: 1px solid rgba(125, 211, 252, 0.72);
-    box-shadow: 0 22px 46px rgba(14, 165, 233, 0.10);
+        radial-gradient(circle at top right, rgba(34, 211, 238, 0.18), transparent 28%),
+        radial-gradient(circle at left center, rgba(37, 99, 235, 0.08), transparent 26%),
+        linear-gradient(135deg, #ffffff 0%, #f8fbff 40%, #eef5ff 100%);
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+    padding: 1.75rem;
 }
 
-.ft-items-kicker {
-    display: inline-block;
-    margin-bottom: 0.45rem;
-    color: #0ea5e9;
-    font-size: 0.8rem;
+.ft-items-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, .9fr);
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.ft-items-kicker,
+.ft-items-section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    color: #2563eb;
+    font-size: .8rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: .04em;
 }
 
 .ft-items-hero h1 {
-    margin: 0 0 0.35rem;
-    font-size: 2.35rem;
-    font-weight: 900;
+    margin: 1rem 0 .5rem;
+    font-size: clamp(2rem, 3vw, 3rem);
+    font-weight: 800;
     color: #0f172a;
+    letter-spacing: -.04em;
 }
 
 .ft-items-hero p {
     margin: 0;
-    color: #475569;
-    font-size: 1.04rem;
+    color: #64748b;
+    font-size: 1rem;
+    line-height: 1.7;
+    max-width: 48rem;
+}
+
+.ft-items-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    margin-top: 1.15rem;
+}
+
+.ft-items-hero-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .58rem .9rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.88);
+    border: 1px solid rgba(191, 219, 254, 0.95);
+    color: #36527b;
+    font-size: .86rem;
+    font-weight: 700;
+}
+
+.ft-items-hero-side {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }
 
 .ft-items-hero-actions {
     display: flex;
-    gap: 0.75rem;
     flex-wrap: wrap;
+    gap: .75rem;
+    justify-content: flex-end;
+}
+
+.ft-items-hero-panel {
+    margin-top: .5rem;
+    padding: 1rem 1.05rem;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid rgba(191, 219, 254, 0.95);
+    text-align: right;
+}
+
+.ft-items-hero-panel-label {
+    display: block;
+    color: #64748b;
+    font-size: .82rem;
+    font-weight: 700;
+    margin-bottom: .2rem;
+}
+
+.ft-items-hero-panel strong {
+    display: block;
+    color: #0f172a;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.ft-items-hero-panel small {
+    color: #7184aa;
+}
+
+.ft-items-kpi {
+    height: 100%;
+    padding: 1.2rem 1.2rem 1.1rem;
+    border-radius: 24px;
+    border: 1px solid rgba(191, 219, 254, 0.88);
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,250,255,.96));
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+}
+
+.ft-items-kpi-icon {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    color: #fff;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.ft-items-kpi.is-blue .ft-items-kpi-icon {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.ft-items-kpi.is-cyan .ft-items-kpi-icon {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+.ft-items-kpi.is-violet .ft-items-kpi-icon {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+}
+
+.ft-items-kpi.is-slate .ft-items-kpi-icon {
+    background: linear-gradient(135deg, #0f172a, #334155);
+}
+
+.ft-items-kpi-label {
+    color: #64748b;
+    font-size: .85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.ft-items-kpi-value {
+    margin-top: .5rem;
+    color: #0f172a;
+    font-size: 1.85rem;
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -.04em;
+}
+
+.ft-items-kpi-text {
+    margin-top: .55rem;
+    color: #7184aa;
+    font-size: .9rem;
 }
 
 .ft-items-filter-card,
 .ft-items-group-card {
-    background: rgba(255,255,255,0.94);
-    border: 1px solid rgba(191, 219, 254, 0.72);
-    border-radius: 24px;
-    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
+    background: rgba(255,255,255,0.96);
+    border: 1px solid rgba(191, 219, 254, 0.85);
+    border-radius: 28px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
     overflow: hidden;
 }
 
@@ -205,76 +434,146 @@
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    padding: 1.2rem 1.35rem;
+    padding: 1.3rem 1.45rem;
     background: linear-gradient(135deg, #22c1ee, #0ea5e9);
     color: #fff;
 }
 
 .ft-items-filter-head h2,
 .ft-items-group-head h2 {
-    margin: 0;
-    font-size: 1.08rem;
+    margin: .3rem 0 0;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.ft-items-filter-badge,
+.ft-items-group-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .48rem .8rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.92);
+    color: #0ea5e9;
+    font-size: .78rem;
     font-weight: 800;
 }
 
 .ft-items-filter-body {
-    padding: 1.3rem 1.35rem;
+    padding: 1.4rem 1.45rem;
 }
 
-.ft-items-filter-body .form-control,
-.ft-items-filter-body .form-select {
-    min-height: 48px;
-    border-radius: 14px;
+.ft-items-label {
+    color: #0f172a;
+    font-weight: 800;
+    margin-bottom: .55rem;
+}
+
+.ft-items-control {
+    min-height: 52px;
+    border-radius: 16px;
     border-color: rgba(191, 219, 254, 0.94);
+    box-shadow: none;
+}
+
+.ft-items-control:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 .2rem rgba(96, 165, 250, 0.18);
+}
+
+.ft-items-groups-stack {
+    display: grid;
+    gap: 1.25rem;
 }
 
 .ft-items-group-title {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: .95rem;
 }
 
-.ft-items-group-badge {
+.ft-items-group-icon {
+    width: 46px;
+    height: 46px;
     display: inline-flex;
     align-items: center;
-    padding: 0.42rem 0.72rem;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.92);
-    color: #0ea5e9;
-    font-size: 0.78rem;
-    font-weight: 800;
+    justify-content: center;
+    border-radius: 15px;
+    background: rgba(255,255,255,.18);
+    color: #fff;
+    font-size: 1rem;
+}
+
+.ft-items-group-title p {
+    margin: .2rem 0 0;
+    color: rgba(255,255,255,.88);
+    font-size: .92rem;
 }
 
 .ft-items-table thead th {
     color: #64748b;
-    font-size: 0.78rem;
+    font-size: .78rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: .06em;
     border-bottom-color: rgba(191, 219, 254, 0.9);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.ft-items-table tbody td {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    vertical-align: middle;
 }
 
 .ft-items-table tbody tr:hover {
     background: rgba(240, 249, 255, 0.72);
 }
 
+.ft-items-id-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: .4rem .65rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.08);
+    color: #1d4ed8;
+    font-weight: 800;
+    font-size: .82rem;
+}
+
+.ft-items-name-cell strong {
+    display: block;
+    color: #0f172a;
+}
+
+.ft-items-name-cell small {
+    color: #7184aa;
+}
+
+.ft-items-amount {
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
 .ft-items-actions {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: .45rem;
     flex-wrap: wrap;
 }
 
 .ft-items-action-btn {
-    width: 34px;
-    height: 34px;
+    width: 38px;
+    height: 38px;
     padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
+    border-radius: 12px;
     border: none;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform .2s ease, box-shadow .2s ease;
 }
 
 .ft-items-action-btn:hover {
@@ -288,7 +587,7 @@
 }
 
 .ft-items-action-btn.is-edit {
-    background: linear-gradient(135deg, #38bdf8, #60a5fa);
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
     color: #fff;
 }
 
@@ -302,31 +601,73 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.3rem 1.4rem;
-    border-radius: 22px;
+    padding: 1.4rem 1.5rem;
+    border-radius: 24px;
     background: linear-gradient(135deg, #f0f9ff, #ecfeff);
     border: 1px solid rgba(125, 211, 252, 0.8);
     color: #0f172a;
 }
 
-.ft-items-empty-state i {
-    font-size: 1.6rem;
+.ft-items-empty-icon {
+    width: 62px;
+    height: 62px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    background: rgba(14, 165, 233, 0.12);
     color: #0ea5e9;
+    font-size: 1.4rem;
+    flex-shrink: 0;
 }
 
-.ft-items-empty-state strong,
-.ft-items-empty-state span {
+.ft-items-empty-copy strong,
+.ft-items-empty-copy span {
     display: block;
 }
 
-.ft-items-empty-state span {
+.ft-items-empty-copy span {
     color: #64748b;
+    margin-top: .2rem;
 }
 
-@media (max-width: 991px) {
-    .ft-items-hero {
+@media (max-width: 991.98px) {
+    .ft-items-hero-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-items-hero-actions {
+        justify-content: flex-start;
+    }
+
+    .ft-items-hero-panel {
+        text-align: left;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .ft-items-filter-head,
+    .ft-items-group-head,
+    .ft-items-empty-state {
         flex-direction: column;
         align-items: flex-start;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .ft-items-hero,
+    .ft-items-filter-card,
+    .ft-items-group-card {
+        border-radius: 22px;
+    }
+
+    .ft-items-hero,
+    .ft-items-filter-body {
+        padding: 1.15rem;
+    }
+
+    .ft-items-hero h1 {
+        font-size: 1.9rem;
     }
 }
 </style>

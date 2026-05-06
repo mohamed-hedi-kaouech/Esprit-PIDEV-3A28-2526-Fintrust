@@ -1,84 +1,649 @@
 {% extends 'admin/back.html.twig' %}
 
-{% block title %}Détails de la Catégorie{% endblock %}
+{% block title %}Details de la categorie{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="h3 mb-0 text-gray-800">{{ categorie.nomCategorie }}</h1>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ path('admin_item_list', {'categorie': categorie.idCategorie}) }}" class="btn btn-info">
-                <i class="fas fa-list"></i> Voir les items
-            </a>
-            <a href="{{ path('admin_categorie_edit', {'idCategorie': categorie.idCategorie}) }}" class="btn btn-warning">
-                <i class="fas fa-edit"></i> Modifier
-            </a>
-            <a href="{{ path('admin_categorie_list') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Retour
-            </a>
-        </div>
-    </div>
+{% set spent = 0 %}
+{% for item in categorie.items %}
+    {% set spent = spent + item.montant %}
+{% endfor %}
+{% set itemCount = categorie.items|length %}
+{% set remaining = categorie.budgetPrevu - spent %}
+{% set usage = categorie.budgetPrevu > 0 ? (spent / categorie.budgetPrevu) * 100 : 0 %}
+{% set progressWidth = usage > 100 ? 100 : usage %}
+{% set thresholdUsage = categorie.budgetPrevu > 0 ? (categorie.seuilAlerte / categorie.budgetPrevu) * 100 : 0 %}
+{% set averageItem = itemCount > 0 ? spent / itemCount : 0 %}
+{% set thresholdRemaining = categorie.seuilAlerte - spent %}
+{% set statusLabel = usage >= 100 ? 'Depassement' : (usage >= 80 ? 'Vigilance' : 'Sous controle') %}
+{% set statusClass = usage >= 100 ? 'is-danger' : (usage >= 80 ? 'is-warning' : 'is-healthy') %}
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card shadow mb-4">
-                <div class="card-header bg-primary">
-                    <h5 class="text-white mb-0">Informations Catégorie</h5>
+<div class="container-fluid mt-4 ft-category-show-page">
+    <section class="ft-category-show-hero mb-4">
+        <div class="ft-category-show-hero-grid">
+            <div>
+                <span class="ft-category-show-kicker">
+                    <i class="bi bi-folder2-open me-1"></i>Budget admin / detail categorie
+                </span>
+                <h1 class="ft-category-show-title mb-3">{{ categorie.nomCategorie }}</h1>
+                <p class="ft-category-show-subtitle mb-0">
+                    Pilotez cette categorie avec une lecture claire du budget, des seuils de vigilance et des items relies.
+                </p>
+            </div>
+
+            <div class="ft-category-show-hero-side">
+                <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
+                    <a href="{{ path('admin_item_list', {'categorie': categorie.idCategorie}) }}" class="btn ft-btn-primary">
+                        <i class="fas fa-list me-2"></i>Voir les items
+                    </a>
+                    <a href="{{ path('admin_categorie_edit', {'idCategorie': categorie.idCategorie}) }}" class="btn ft-btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Modifier
+                    </a>
+                    <a href="{{ path('admin_categorie_list') }}" class="btn ft-btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Retour
+                    </a>
                 </div>
-                <div class="card-body">
-                    <table class="table table-borderless">
-                        <tr>
-                            <td><strong>ID :</strong></td>
-                            <td>{{ categorie.idCategorie }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Nom :</strong></td>
-                            <td>{{ categorie.nomCategorie }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Budget Prévu :</strong></td>
-                            <td>{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Seuil d'Alerte :</strong></td>
-                            <td>{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} DT</td>
-                        </tr>
-                    </table>
+                <div class="ft-category-show-meta justify-content-lg-end">
+                    <span><i class="bi bi-hash"></i>ID {{ categorie.idCategorie }}</span>
+                    <span><i class="bi bi-journal-text"></i>{{ itemCount }} item(s)</span>
+                    <span><i class="bi bi-speedometer2"></i>{{ statusLabel }}</span>
                 </div>
             </div>
         </div>
+    </section>
 
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-info">
-                    <h5 class="text-white mb-0">Items Associés</h5>
+    <section class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-category-show-kpi is-blue">
+                <span class="ft-category-show-kpi-icon"><i class="bi bi-wallet2"></i></span>
+                <div class="ft-category-show-kpi-label">Budget prevu</div>
+                <div class="ft-category-show-kpi-value">{{ categorie.budgetPrevu|number_format(2, ',', ' ') }} DT</div>
+                <div class="ft-category-show-kpi-text">Base de pilotage de la categorie.</div>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-category-show-kpi is-cyan">
+                <span class="ft-category-show-kpi-icon"><i class="bi bi-bar-chart-line"></i></span>
+                <div class="ft-category-show-kpi-label">Depense totale</div>
+                <div class="ft-category-show-kpi-value">{{ spent|number_format(2, ',', ' ') }} DT</div>
+                <div class="ft-category-show-kpi-text">{{ usage|number_format(1) }}% du budget utilise.</div>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-category-show-kpi is-violet">
+                <span class="ft-category-show-kpi-icon"><i class="bi bi-bell"></i></span>
+                <div class="ft-category-show-kpi-label">Seuil d alerte</div>
+                <div class="ft-category-show-kpi-value">{{ categorie.seuilAlerte|number_format(2, ',', ' ') }} DT</div>
+                <div class="ft-category-show-kpi-text">{{ thresholdUsage|number_format(1) }}% du budget prevu.</div>
+            </article>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <article class="ft-category-show-kpi is-slate">
+                <span class="ft-category-show-kpi-icon"><i class="bi bi-stars"></i></span>
+                <div class="ft-category-show-kpi-label">Reste disponible</div>
+                <div class="ft-category-show-kpi-value">{{ remaining|number_format(2, ',', ' ') }} DT</div>
+                <div class="ft-category-show-kpi-text">Marge restante avant epuisement.</div>
+            </article>
+        </div>
+    </section>
+
+    <section class="row g-4">
+        <div class="col-12 col-xl-7">
+            <article class="ft-category-show-card h-100">
+                <div class="ft-category-show-card-head">
+                    <div>
+                        <span class="ft-category-show-card-kicker">Synthese budgetaire</span>
+                        <h2>Vue d ensemble de la categorie</h2>
+                    </div>
+                    <span class="ft-category-show-status {{ statusClass }}">{{ statusLabel }}</span>
                 </div>
-                <div class="card-body">
-                    {% if categorie.items|length > 0 %}
-                        <div class="list-group">
-                            {% for item in categorie.items %}
-                            <div class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">{{ item.libelle }}</h6>
-                                        <small class="text-muted">Montant: {{ item.montant|number_format(2, ',', ' ') }} DT</small>
+
+                <div class="ft-category-show-metrics">
+                    <div class="ft-category-show-metric-box">
+                        <span>Nom</span>
+                        <strong>{{ categorie.nomCategorie }}</strong>
+                    </div>
+                    <div class="ft-category-show-metric-box">
+                        <span>Moyenne par item</span>
+                        <strong>{{ averageItem|number_format(2, ',', ' ') }} DT</strong>
+                    </div>
+                    <div class="ft-category-show-metric-box">
+                        <span>Marge avant seuil</span>
+                        <strong>{{ thresholdRemaining|number_format(2, ',', ' ') }} DT</strong>
+                    </div>
+                </div>
+
+                <div class="ft-category-show-progress-shell">
+                    <div class="ft-category-show-progress-head">
+                        <span>Utilisation budgetaire</span>
+                        <span>{{ usage|number_format(1) }}%</span>
+                    </div>
+                    <div class="ft-category-show-progress-track">
+                        <div class="ft-category-show-progress-value {{ statusClass }}" style="width: {{ progressWidth }}%;"></div>
+                        {% if categorie.budgetPrevu > 0 %}
+                            <span class="ft-category-show-progress-threshold" style="left: {{ thresholdUsage > 100 ? 100 : thresholdUsage }}%;"></span>
+                        {% endif %}
+                    </div>
+                    <div class="ft-category-show-progress-note">
+                        <span>{{ spent|number_format(2, ',', ' ') }} DT depenses</span>
+                        <span>Seuil: {{ categorie.seuilAlerte|number_format(2, ',', ' ') }} DT</span>
+                    </div>
+                </div>
+
+                <div class="ft-category-show-insight-grid">
+                    <div class="ft-category-show-insight-card">
+                        <span class="ft-category-show-insight-label">Lecture rapide</span>
+                        <strong>{{ itemCount > 0 ? 'Categorie active' : 'Categorie vide' }}</strong>
+                        <p>
+                            {% if itemCount > 0 %}
+                                {{ itemCount }} item(s) surveille(s) avec une charge moyenne de {{ averageItem|number_format(2, ',', ' ') }} DT.
+                            {% else %}
+                                Aucun item n est encore rattache a cette categorie.
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="ft-category-show-insight-card">
+                        <span class="ft-category-show-insight-label">Vigilance</span>
+                        <strong>{{ thresholdRemaining <= 0 ? 'Seuil atteint' : 'Marge disponible' }}</strong>
+                        <p>
+                            {% if thresholdRemaining <= 0 %}
+                                Le volume depense a atteint ou depasse le seuil d alerte. Une action admin est recommandee.
+                            {% else %}
+                                Il reste {{ thresholdRemaining|number_format(2, ',', ' ') }} DT avant la zone d alerte budgetaire.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <article class="ft-category-show-card h-100">
+                <div class="ft-category-show-card-head">
+                    <div>
+                        <span class="ft-category-show-card-kicker">Items relies</span>
+                        <h2>Liste des items associes</h2>
+                    </div>
+                    <span class="ft-category-show-chip">{{ itemCount }} element(s)</span>
+                </div>
+
+                {% if itemCount > 0 %}
+                    <div class="ft-category-show-item-list">
+                        {% for item in categorie.items %}
+                            {% set itemShare = categorie.budgetPrevu > 0 ? (item.montant / categorie.budgetPrevu) * 100 : 0 %}
+                            <div class="ft-category-show-item">
+                                <div class="ft-category-show-item-main">
+                                    <div class="ft-category-show-item-icon">
+                                        <i class="bi bi-journal-text"></i>
                                     </div>
-                                    <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" class="btn btn-sm btn-info">
-                                        Voir
-                                    </a>
+                                    <div>
+                                        <h3>{{ item.libelle }}</h3>
+                                        <p>
+                                            {{ item.montant|number_format(2, ',', ' ') }} DT
+                                            <span class="ft-category-show-item-separator">•</span>
+                                            {{ itemShare|number_format(1) }}% du budget
+                                        </p>
+                                    </div>
                                 </div>
+                                <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}" class="btn ft-btn-outline-primary btn-sm">
+                                    Voir
+                                </a>
                             </div>
-                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="ft-category-show-empty">
+                        <div class="ft-category-show-empty-icon">
+                            <i class="bi bi-journal-x"></i>
                         </div>
-                    {% else %}
-                        <p class="text-muted">Aucun item associé à cette catégorie.</p>
-                    {% endif %}
-                </div>
-            </div>
+                        <h3>Aucun item associe</h3>
+                        <p>Commencez par ajouter ou rattacher des items pour piloter cette categorie avec precision.</p>
+                        <a href="{{ path('admin_item_list', {'categorie': categorie.idCategorie}) }}" class="btn ft-btn-primary">
+                            <i class="fas fa-list me-2"></i>Ouvrir les items
+                        </a>
+                    </div>
+                {% endif %}
+            </article>
         </div>
-    </div>
+    </section>
 </div>
+
+<style>
+.ft-category-show-page {
+    padding-bottom: 2rem;
+}
+
+.ft-category-show-hero {
+    border-radius: 28px;
+    border: 1px solid rgba(59, 130, 246, 0.14);
+    background:
+        radial-gradient(circle at top right, rgba(34, 211, 238, 0.18), transparent 28%),
+        radial-gradient(circle at left center, rgba(37, 99, 235, 0.08), transparent 26%),
+        linear-gradient(135deg, #ffffff 0%, #f8fbff 40%, #eef5ff 100%);
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+    padding: 1.75rem;
+}
+
+.ft-category-show-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, .95fr);
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.ft-category-show-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .45rem .8rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+    font-size: .8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.ft-category-show-title {
+    margin-top: 1rem;
+    font-size: clamp(2rem, 3vw, 3rem);
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -.04em;
+}
+
+.ft-category-show-subtitle {
+    max-width: 50rem;
+    color: #64748b;
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+.ft-category-show-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+}
+
+.ft-category-show-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .58rem .9rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(191, 219, 254, 0.95);
+    color: #36527b;
+    font-size: .86rem;
+    font-weight: 700;
+}
+
+.ft-category-show-kpi {
+    height: 100%;
+    padding: 1.2rem 1.2rem 1.1rem;
+    border-radius: 24px;
+    border: 1px solid rgba(191, 219, 254, 0.88);
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,250,255,.96));
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+}
+
+.ft-category-show-kpi-icon {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    color: #fff;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.ft-category-show-kpi.is-blue .ft-category-show-kpi-icon {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.ft-category-show-kpi.is-cyan .ft-category-show-kpi-icon {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+.ft-category-show-kpi.is-violet .ft-category-show-kpi-icon {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+}
+
+.ft-category-show-kpi.is-slate .ft-category-show-kpi-icon {
+    background: linear-gradient(135deg, #0f172a, #334155);
+}
+
+.ft-category-show-kpi-label {
+    color: #64748b;
+    font-size: .85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.ft-category-show-kpi-value {
+    margin-top: .5rem;
+    color: #0f172a;
+    font-size: 1.85rem;
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -.04em;
+}
+
+.ft-category-show-kpi-text {
+    margin-top: .55rem;
+    color: #7184aa;
+    font-size: .9rem;
+}
+
+.ft-category-show-card {
+    border-radius: 28px;
+    border: 1px solid rgba(191, 219, 254, 0.9);
+    background: linear-gradient(180deg, rgba(255,255,255,.99), rgba(247,250,255,.96));
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+    padding: 1.45rem;
+}
+
+.ft-category-show-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+}
+
+.ft-category-show-card-kicker {
+    display: inline-block;
+    color: #2563eb;
+    font-size: .77rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .4rem;
+}
+
+.ft-category-show-card-head h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.ft-category-show-status,
+.ft-category-show-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .55rem .9rem;
+    border-radius: 999px;
+    font-size: .82rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.ft-category-show-status.is-healthy {
+    background: rgba(34, 197, 94, 0.12);
+    color: #15803d;
+}
+
+.ft-category-show-status.is-warning {
+    background: rgba(249, 115, 22, 0.12);
+    color: #c2410c;
+}
+
+.ft-category-show-status.is-danger {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
+}
+
+.ft-category-show-chip {
+    background: rgba(37, 99, 235, 0.08);
+    color: #1d4ed8;
+}
+
+.ft-category-show-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.ft-category-show-metric-box {
+    padding: 1rem 1.05rem;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid rgba(219, 234, 254, 0.95);
+}
+
+.ft-category-show-metric-box span {
+    display: block;
+    color: #64748b;
+    font-size: .82rem;
+    font-weight: 700;
+    margin-bottom: .35rem;
+}
+
+.ft-category-show-metric-box strong {
+    color: #0f172a;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.ft-category-show-progress-shell {
+    padding: 1.1rem 1.15rem;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #f8fbff, #eff6ff);
+    border: 1px solid rgba(191, 219, 254, 0.95);
+}
+
+.ft-category-show-progress-head,
+.ft-category-show-progress-note {
+    display: flex;
+    justify-content: space-between;
+    gap: .75rem;
+    color: #51657f;
+    font-size: .9rem;
+}
+
+.ft-category-show-progress-head {
+    font-weight: 800;
+    margin-bottom: .75rem;
+}
+
+.ft-category-show-progress-track {
+    position: relative;
+    height: 14px;
+    border-radius: 999px;
+    background: rgba(191, 219, 254, 0.65);
+    overflow: hidden;
+}
+
+.ft-category-show-progress-value {
+    height: 100%;
+    border-radius: inherit;
+}
+
+.ft-category-show-progress-value.is-healthy {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.ft-category-show-progress-value.is-warning {
+    background: linear-gradient(135deg, #fb923c, #f97316);
+}
+
+.ft-category-show-progress-value.is-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.ft-category-show-progress-threshold {
+    position: absolute;
+    top: -4px;
+    width: 3px;
+    height: 22px;
+    border-radius: 999px;
+    background: #0f172a;
+    box-shadow: 0 0 0 3px rgba(255,255,255,.85);
+    transform: translateX(-50%);
+}
+
+.ft-category-show-progress-note {
+    margin-top: .7rem;
+}
+
+.ft-category-show-insight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1.2rem;
+}
+
+.ft-category-show-insight-card {
+    padding: 1rem 1.05rem;
+    border-radius: 20px;
+    background: #fff;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.ft-category-show-insight-label {
+    display: block;
+    color: #7c3aed;
+    font-size: .76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .45rem;
+}
+
+.ft-category-show-insight-card strong {
+    display: block;
+    color: #0f172a;
+    font-size: 1rem;
+    margin-bottom: .35rem;
+}
+
+.ft-category-show-insight-card p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.ft-category-show-item-list {
+    display: grid;
+    gap: .95rem;
+}
+
+.ft-category-show-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.05rem;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid rgba(219, 234, 254, 0.95);
+}
+
+.ft-category-show-item-main {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    min-width: 0;
+}
+
+.ft-category-show-item-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #fff;
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.2);
+}
+
+.ft-category-show-item h3 {
+    margin: 0 0 .15rem;
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.ft-category-show-item p {
+    margin: 0;
+    color: #64748b;
+    font-size: .9rem;
+}
+
+.ft-category-show-item-separator {
+    margin: 0 .35rem;
+    color: #cbd5e1;
+}
+
+.ft-category-show-empty {
+    padding: 2.2rem 1rem;
+    text-align: center;
+}
+
+.ft-category-show-empty-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1rem;
+    border-radius: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    font-size: 1.6rem;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(191, 219, 254, 0.45));
+}
+
+.ft-category-show-empty h3 {
+    color: #0f172a;
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: .5rem;
+}
+
+.ft-category-show-empty p {
+    color: #64748b;
+    max-width: 28rem;
+    margin: 0 auto 1.2rem;
+}
+
+@media (max-width: 1199.98px) {
+    .ft-category-show-hero-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .ft-category-show-metrics,
+    .ft-category-show-insight-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .ft-category-show-hero,
+    .ft-category-show-card {
+        padding: 1.15rem;
+        border-radius: 22px;
+    }
+
+    .ft-category-show-title {
+        font-size: 1.8rem;
+    }
+
+    .ft-category-show-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+</style>
+
 {% include 'admin/budget_ai/_widget.html.twig' %}
 {% endblock %}

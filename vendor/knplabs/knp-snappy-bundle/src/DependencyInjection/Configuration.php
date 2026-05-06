@@ -2,53 +2,82 @@
 
 namespace Knp\Bundle\SnappyBundle\DependencyInjection;
 
-use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
-final class Configuration implements ConfigurationInterface
+/**
+ * Configuration for the emailing bundle.
+ */
+class Configuration implements ConfigurationInterface
 {
+    /**
+     * {@inheritdoc}
+     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
+        $fixOptionKeys = function ($options) {
+            $fixedOptions = [];
+            foreach ($options as $key => $value) {
+                $fixedOptions[str_replace('_', '-', $key)] = $value;
+            }
+
+            return $fixedOptions;
+        };
+
         $treeBuilder = new TreeBuilder('knp_snappy');
-        $rootNode = $treeBuilder->getRootNode();
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC for symfony/config < 4.2
+            $rootNode = $treeBuilder->root('knp_snappy');
+        }
 
         $rootNode
             ->children()
-                ->scalarNode('temporary_folder')->defaultNull()->end()
-                ->integerNode('process_timeout')->defaultNull()->end()
-                ->append($this->createEngineNode('pdf', 'wkhtmltopdf'))
-                ->append($this->createEngineNode('image', 'wkhtmltoimage'))
+                ->scalarNode('temporary_folder')->end()
+                ->integerNode('process_timeout')
+                    ->min(1)
+                    ->info('Generator process timeout in seconds.')
+                ->end()
+                ->arrayNode('pdf')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('enabled')->defaultTrue()->end()
+                        ->scalarNode('binary')->defaultValue('wkhtmltopdf')->end()
+                        ->arrayNode('options')
+                            ->performNoDeepMerging()
+                            ->useAttributeAsKey('name')
+                            ->beforeNormalization()
+                                ->always($fixOptionKeys)
+                            ->end()
+                            ->prototype('scalar')->end()
+                        ->end()
+                        ->arrayNode('env')
+                            ->prototype('scalar')->end()
+                        ->end()
+                    ->end()
+                ->end()
+                ->arrayNode('image')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('enabled')->defaultTrue()->end()
+                        ->scalarNode('binary')->defaultValue('wkhtmltoimage')->end()
+                        ->arrayNode('options')
+                            ->performNoDeepMerging()
+                            ->useAttributeAsKey('name')
+                            ->beforeNormalization()
+                                ->always($fixOptionKeys)
+                            ->end()
+                            ->prototype('scalar')->end()
+                        ->end()
+                        ->arrayNode('env')
+                            ->prototype('scalar')->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 
         return $treeBuilder;
-    }
-
-    private function createEngineNode(string $name, string $defaultBinary): ArrayNodeDefinition
-    {
-        $node = new ArrayNodeDefinition($name);
-
-        $node
-            ->addDefaultsIfNotSet()
-            ->children()
-                ->booleanNode('enabled')->defaultTrue()->end()
-                ->scalarNode('binary')->defaultValue($defaultBinary)->end()
-                ->arrayNode('options')
-                    ->normalizeKeys(false)
-                    ->useAttributeAsKey('name')
-                    ->prototype('variable')->end()
-                    ->defaultValue([])
-                ->end()
-                ->arrayNode('env')
-                    ->normalizeKeys(false)
-                    ->useAttributeAsKey('name')
-                    ->prototype('scalar')->end()
-                    ->defaultValue([])
-                ->end()
-            ->end()
-        ;
-
-        return $node;
     }
 }
