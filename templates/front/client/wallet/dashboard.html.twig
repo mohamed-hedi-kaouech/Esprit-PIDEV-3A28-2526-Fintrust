@@ -1,6 +1,312 @@
 {% extends 'front/front.html.twig' %}
 {% block title %}Mon wallet{% endblock %}
 
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-wallet-studio-hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(96, 165, 250, .28);
+      background:
+        radial-gradient(circle at top right, rgba(34, 211, 238, .22), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(37, 99, 235, .18), transparent 35%),
+        linear-gradient(135deg, rgba(255, 255, 255, .98), rgba(239, 246, 255, .94));
+    }
+    .ft-wallet-studio-hero::after {
+      content: '';
+      position: absolute;
+      inset: auto -12% -40% auto;
+      width: 280px;
+      height: 280px;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, .08);
+      filter: blur(12px);
+      pointer-events: none;
+    }
+    .ft-wallet-studio-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .ft-wallet-module-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.2rem;
+      border: 1px solid rgba(96, 165, 250, .2);
+      padding: 1.15rem;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.95));
+      box-shadow: 0 16px 36px rgba(15, 23, 42, .08);
+      height: 100%;
+    }
+    .ft-wallet-module-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #2563eb, #22c55e, #06b6d4);
+      opacity: .95;
+    }
+    .ft-wallet-module-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: #fff;
+      margin-bottom: .85rem;
+      box-shadow: 0 14px 28px rgba(37, 99, 235, .18);
+    }
+    .ft-wallet-module-icon.blue { background: linear-gradient(135deg, #2563eb, #0ea5e9); }
+    .ft-wallet-module-icon.green { background: linear-gradient(135deg, #16a34a, #10b981); }
+    .ft-wallet-module-icon.cyan { background: linear-gradient(135deg, #0891b2, #22d3ee); }
+    .ft-wallet-module-icon.indigo { background: linear-gradient(135deg, #4f46e5, #2563eb); }
+    .ft-wallet-module-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: .4rem;
+      color: #0f172a;
+    }
+    .ft-wallet-module-card p {
+      color: #475569;
+      font-size: .92rem;
+      margin-bottom: .9rem;
+    }
+    .ft-wallet-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .55rem;
+    }
+    .ft-wallet-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .45rem .8rem;
+      border-radius: 999px;
+      background: rgba(239, 246, 255, .9);
+      border: 1px solid rgba(147, 197, 253, .45);
+      color: #1d4ed8;
+      font-size: .78rem;
+      font-weight: 600;
+    }
+    .ft-wallet-studio-panel {
+      border-radius: 1.4rem;
+      border: 1px solid rgba(148, 163, 184, .18);
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
+      box-shadow: 0 18px 44px rgba(15, 23, 42, .08);
+    }
+    .ft-wallet-studio-panel .ft-app-card-header {
+      background: linear-gradient(90deg, rgba(37, 99, 235, .08), rgba(34, 211, 238, .08));
+    }
+    .ft-wallet-quick-prompt {
+      border: 1px solid rgba(96, 165, 250, .32);
+      background: #fff;
+      border-radius: 999px;
+      padding: .6rem .95rem;
+      font-weight: 600;
+      color: #1d4ed8;
+      transition: all .2s ease;
+    }
+    .ft-wallet-quick-prompt:hover {
+      background: #eff6ff;
+      transform: translateY(-1px);
+    }
+    .ft-wallet-voice-box,
+    .ft-wallet-ai-box {
+      border-radius: 1.1rem;
+      border: 1px solid rgba(226, 232, 240, .95);
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
+      padding: 1rem;
+      height: 100%;
+    }
+    .ft-wallet-mini-stat {
+      border-radius: 1rem;
+      border: 1px solid rgba(226, 232, 240, .9);
+      background: rgba(255, 255, 255, .92);
+      padding: .95rem 1rem;
+    }
+    .ft-wallet-mini-stat-label {
+      display: block;
+      font-size: .78rem;
+      color: #64748b;
+      margin-bottom: .35rem;
+    }
+    .ft-wallet-mini-stat-value {
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .ft-wallet-anchor-btn {
+      min-width: 10rem;
+    }
+    .ft-wallet-feature-panel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.6rem;
+      border: 1px solid rgba(125, 211, 252, .34);
+      background:
+        radial-gradient(circle at top right, rgba(34, 211, 238, .18), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(59, 130, 246, .14), transparent 32%),
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(240,249,255,.95));
+      box-shadow: 0 24px 54px rgba(15, 23, 42, .10);
+    }
+    .ft-wallet-feature-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 5px;
+      background: linear-gradient(90deg, #2563eb, #22d3ee, #38bdf8);
+    }
+    .ft-wallet-feature-panel .ft-app-card-header {
+      position: relative;
+      padding-top: 1.25rem;
+      padding-bottom: 1.25rem;
+      background: linear-gradient(90deg, rgba(219, 234, 254, .7), rgba(224, 242, 254, .7));
+      border-bottom: 1px solid rgba(191, 219, 254, .5);
+    }
+    .ft-wallet-feature-title {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .ft-wallet-feature-icon {
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.1rem;
+      box-shadow: 0 16px 32px rgba(37, 99, 235, .20);
+    }
+    .ft-wallet-feature-icon.qr {
+      background: linear-gradient(135deg, #0284c7, #22d3ee);
+    }
+    .ft-wallet-feature-icon.voice {
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+    }
+    .ft-wallet-feature-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .45rem .8rem;
+      border-radius: 999px;
+      background: rgba(239, 246, 255, .95);
+      border: 1px solid rgba(96, 165, 250, .35);
+      color: #1d4ed8;
+      font-size: .76rem;
+      font-weight: 700;
+    }
+    .ft-wallet-feature-badge.security {
+      color: #0f766e;
+      border-color: rgba(45, 212, 191, .35);
+      background: rgba(240, 253, 250, .92);
+    }
+    .ft-wallet-feature-panel .ft-app-card-body {
+      padding: 1.25rem 1.25rem 1.4rem;
+    }
+    .ft-wallet-status-banner {
+      border-radius: 1rem;
+      border: 1px solid rgba(125, 211, 252, .45);
+      background: linear-gradient(90deg, rgba(207, 250, 254, .95), rgba(224, 242, 254, .95));
+      color: #155e75;
+      padding: .85rem 1rem;
+      font-weight: 600;
+    }
+    .ft-wallet-editor-shell {
+      border-radius: 1.2rem;
+      border: 1px solid rgba(191, 219, 254, .52);
+      background: rgba(255,255,255,.9);
+      padding: 1rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .ft-wallet-editor-shell textarea,
+    .ft-wallet-editor-shell input,
+    .ft-wallet-editor-shell select {
+      border-radius: .95rem;
+      border-color: rgba(191, 219, 254, .9);
+      box-shadow: none;
+    }
+    .ft-wallet-editor-shell textarea {
+      min-height: 10rem;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.98));
+    }
+    .ft-wallet-side-glass {
+      border-radius: 1.2rem;
+      border: 1px solid rgba(191, 219, 254, .52);
+      background: linear-gradient(180deg, rgba(248,250,252,.95), rgba(239,246,255,.92));
+      padding: 1rem;
+      min-height: 100%;
+    }
+    .ft-wallet-side-kicker {
+      font-size: .74rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #64748b;
+      margin-bottom: .45rem;
+      display: block;
+    }
+    .ft-wallet-side-value {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 1rem;
+    }
+    .ft-wallet-inline-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    .ft-wallet-glow-btn {
+      box-shadow: 0 12px 26px rgba(37, 99, 235, .18);
+    }
+    .ft-wallet-response-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .ft-wallet-response-grid .ft-wallet-mini-stat {
+      min-height: 5.8rem;
+    }
+    .ft-wallet-voice-command-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 1.6fr;
+      gap: 1rem;
+      align-items: start;
+    }
+    .ft-wallet-output-box {
+      border-radius: 1.2rem;
+      border: 1px solid rgba(191, 219, 254, .52);
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.95));
+      padding: 1rem 1.05rem;
+      min-height: 10.5rem;
+    }
+    .ft-wallet-output-box strong {
+      color: #0f172a;
+    }
+    @media (max-width: 1199.98px) {
+      .ft-wallet-studio-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .ft-wallet-voice-command-grid,
+      .ft-wallet-response-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 767.98px) {
+      .ft-wallet-studio-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
 {% block body %}
 <div class="ft-app-page">
   <div class="container-fluid px-4 py-4">
@@ -19,13 +325,10 @@
         <a href="{{ path('front_wallet_transactions') }}" class="btn ft-btn-outline-primary">
           <i class="bi bi-arrow-left-right me-1"></i>Transactions
         </a>
-        <a href="{{ path('front_wallet_transfer_history') }}" class="btn ft-btn-outline-primary">
-          <i class="bi bi-send me-1"></i>Transferts
+        <a href="#wallet-studio" class="btn ft-btn-outline-primary ft-wallet-anchor-btn">
+          <i class="bi bi-grid-1x2 me-1"></i>Wallet Studio
         </a>
-        <a href="{{ path('front_wallet_merchant_qr_payment') }}" class="btn ft-btn-outline-primary">
-          <i class="bi bi-qr-code-scan me-1"></i>QR Pay
-        </a>
-        <a href="{{ path('front_wallet_assistant') }}" class="btn ft-btn-outline-primary">
+        <a href="#wallet-ai" class="btn ft-btn-outline-primary ft-wallet-anchor-btn">
           <i class="bi bi-stars me-1"></i>Assistant
         </a>
         <a href="{{ path('front_wallet_cheques') }}" class="btn ft-btn-outline-primary">
@@ -186,11 +489,11 @@
                   <i class="bi bi-arrow-left-right"></i>
                   <span>Historique</span>
                 </a>
-                <a href="{{ path('front_wallet_transfer_new') }}" class="ft-shortcut-tile">
-                  <i class="bi bi-send"></i>
-                  <span>Transferer</span>
+                <a href="#wallet-international" class="ft-shortcut-tile">
+                  <i class="bi bi-globe-americas"></i>
+                  <span>International</span>
                 </a>
-                <a href="{{ path('front_wallet_merchant_qr_payment') }}" class="ft-shortcut-tile">
+                <a href="#wallet-qr" class="ft-shortcut-tile">
                   <i class="bi bi-qr-code-scan"></i>
                   <span>QR Pay</span>
                 </a>
@@ -198,19 +501,62 @@
                   <i class="bi bi-journal-text"></i>
                   <span>Mes cheques</span>
                 </a>
-                <a href="{{ path('front_wallet_assistant') }}" class="ft-shortcut-tile">
+                <a href="#wallet-ai" class="ft-shortcut-tile">
                   <i class="bi bi-stars"></i>
                   <span>Assistant</span>
                 </a>
-                <a href="{{ path('front_wallet_transfer_history') }}" class="ft-shortcut-tile">
-                  <i class="bi bi-clock-history"></i>
-                  <span>Transferts</span>
+                <a href="#wallet-voice" class="ft-shortcut-tile">
+                  <i class="bi bi-mic"></i>
+                  <span>Voice</span>
                 </a>
                 <a href="{{ path('front_wallet_cheque_request') }}" class="ft-shortcut-tile">
                   <i class="bi bi-journal-plus"></i>
                   <span>Nouvelle demande</span>
                 </a>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="wallet-studio" class="ft-app-card ft-premium-card ft-wallet-studio-hero mb-4">
+        <div class="ft-app-card-body p-4 p-xl-5">
+          <div class="d-flex flex-column flex-xl-row justify-content-between gap-4 align-items-xl-center mb-4">
+            <div>
+              <span class="badge ft-badge-blue mb-3">Wallet Studio FinTrust</span>
+              <h2 class="ft-page-title mb-2">Tous vos services wallet dans une seule page</h2>
+              <p class="text-muted mb-0">International, QR Pay, Assistant IA et dictée vocale sont maintenant centralisés ici avec un design cohérent et plus professionnel.</p>
+            </div>
+            <div class="ft-wallet-chip-list">
+              <span class="ft-wallet-chip"><i class="bi bi-shield-check"></i>KYC securise</span>
+              <span class="ft-wallet-chip"><i class="bi bi-lightning-charge"></i>Actions rapides</span>
+              <span class="ft-wallet-chip"><i class="bi bi-stars"></i>Experience unifiee</span>
+            </div>
+          </div>
+          <div class="ft-wallet-studio-grid">
+            <div class="ft-wallet-module-card">
+              <div class="ft-wallet-module-icon blue"><i class="bi bi-globe-americas"></i></div>
+              <h3>International</h3>
+              <p>Preparez vos transferts, suivez le change et lancez votre parcours OTP depuis le meme espace.</p>
+              <a href="#wallet-international" class="btn ft-btn-outline-primary btn-sm">Ouvrir le module</a>
+            </div>
+            <div class="ft-wallet-module-card">
+              <div class="ft-wallet-module-icon cyan"><i class="bi bi-qr-code-scan"></i></div>
+              <h3>QR Pay</h3>
+              <p>Generez, previsualisez et confirmez les paiements QR commercants sans quitter le dashboard.</p>
+              <a href="#wallet-qr" class="btn ft-btn-outline-primary btn-sm">Ouvrir le module</a>
+            </div>
+            <div class="ft-wallet-module-card">
+              <div class="ft-wallet-module-icon indigo"><i class="bi bi-stars"></i></div>
+              <h3>Assistant IA</h3>
+              <p>Posez vos questions sur le solde, les transactions, les prets et les signaux utiles de votre wallet.</p>
+              <a href="#wallet-ai" class="btn ft-btn-outline-primary btn-sm">Poser une question</a>
+            </div>
+            <div class="ft-wallet-module-card">
+              <div class="ft-wallet-module-icon green"><i class="bi bi-mic"></i></div>
+              <h3>Voice</h3>
+              <p>Dictez naturellement votre demande et laissez FinTrust remplir puis analyser la commande.</p>
+              <a href="#wallet-voice" class="btn ft-btn-outline-primary btn-sm">Dicter maintenant</a>
             </div>
           </div>
         </div>
@@ -405,6 +751,251 @@
           </div>
         </div>
       </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-xl-6">
+          <div id="wallet-international" class="ft-app-card ft-wallet-studio-panel h-100">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-globe-americas me-2 text-primary"></i>Transfert international</span>
+              <a href="{{ path('front_wallet_international_transfer_new') }}" class="btn btn-sm ft-btn-outline-primary">Parcours complet</a>
+            </div>
+            <div class="ft-app-card-body">
+              <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                  <div class="ft-wallet-mini-stat">
+                    <span class="ft-wallet-mini-stat-label">Source</span>
+                    <div class="ft-wallet-mini-stat-value">Wallet #{{ wallet.idWallet }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="ft-wallet-mini-stat">
+                    <span class="ft-wallet-mini-stat-label">Devise</span>
+                    <div class="ft-wallet-mini-stat-value">{{ wallet.devise }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="ft-wallet-mini-stat">
+                    <span class="ft-wallet-mini-stat-label">Solde mobilisable</span>
+                    <div class="ft-wallet-mini-stat-value">{{ wallet.solde|number_format(2, ',', ' ') }} {{ wallet.devise }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="ft-history-card mb-3">
+                <span class="ft-history-icon blue"><i class="bi bi-currency-exchange"></i></span>
+                <div>
+                  <strong>Simulation de change et frais</strong>
+                  <p class="mb-0">Le module de transfert international conserve son parcours securise avec recapitulatif et confirmation OTP.</p>
+                </div>
+              </div>
+              <div class="ft-history-card mb-3">
+                <span class="ft-history-icon green"><i class="bi bi-shield-lock"></i></span>
+                <div>
+                  <strong>Validation renforcee</strong>
+                  <p class="mb-0">Le debit reste protege par le statut du wallet, le controle du solde et la verification OTP.</p>
+                </div>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                <a href="{{ path('front_wallet_international_transfer_new') }}" class="btn ft-btn-primary">
+                  <i class="bi bi-send-check me-1"></i>Nouveau transfert
+                </a>
+                <a href="{{ path('front_wallet_transfer_history') }}" class="btn ft-btn-outline-primary">
+                  <i class="bi bi-clock-history me-1"></i>Historique des transferts
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-6">
+          <div id="wallet-ai" class="ft-app-card ft-wallet-studio-panel h-100">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-stars me-2 text-primary"></i>Assistant wallet IA</span>
+              <span class="badge ft-badge-blue">Conversation rapide</span>
+            </div>
+            <div class="ft-app-card-body">
+              <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                  <div class="ft-dash-card ft-dash-card-soft h-100">
+                    <div class="ft-dash-card-label">Transcript</div>
+                    <div id="walletAssistantTranscript" class="small fw-semibold text-break">-</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="ft-dash-card ft-dash-card-soft h-100">
+                    <div class="ft-dash-card-label">Intent</div>
+                    <div id="walletAssistantIntent" class="small fw-semibold">-</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="ft-dash-card ft-dash-card-soft h-100">
+                    <div class="ft-dash-card-label">Confiance</div>
+                    <div id="walletAssistantConfidence" class="small fw-semibold">-</div>
+                  </div>
+                </div>
+              </div>
+              <div class="ft-wallet-ai-box mb-3">
+                <div id="walletAssistantStatus" class="alert alert-info py-2 small mb-3">Posez une question ou utilisez une suggestion rapide.</div>
+                <textarea id="walletAssistantInput" class="form-control mb-3" rows="4" placeholder="Ex: Voir mon solde ou analyse mon wallet"></textarea>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                  <button type="button" class="btn ft-btn-primary" id="walletAssistantSendButton">
+                    <i class="bi bi-send me-1"></i>Analyser
+                  </button>
+                  <a href="{{ path('front_wallet_assistant') }}" class="btn ft-btn-outline-primary">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Version detaillee
+                  </a>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  {% for prompt in ['Voir mon solde', 'Montre mes dernieres transactions', 'Mon wallet est-il stable ?', 'Puis-je demander un pret ?', 'Quel est l etat du marche ?'] %}
+                    <button type="button" class="ft-wallet-quick-prompt wallet-assistant-prompt" data-question="{{ prompt }}">{{ prompt }}</button>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="ft-wallet-ai-box">
+                <div class="small text-muted mb-2">Reponse FinTrust</div>
+                <div id="walletAssistantResponse" class="fs-6 fw-semibold">La reponse apparaitra ici.</div>
+                <div id="walletAssistantDetails" class="list-group list-group-flush mt-3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-xl-6">
+          <div id="wallet-qr" class="ft-app-card ft-wallet-feature-panel h-100">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <div class="ft-wallet-feature-title">
+                <span class="ft-wallet-feature-icon qr"><i class="bi bi-qr-code-scan"></i></span>
+                <div>
+                  <div>QR Pay</div>
+                  <div class="small text-muted fw-normal">Paiement commercant rapide et securise</div>
+                </div>
+              </div>
+              <a href="{{ path('front_wallet_merchant_qr_payment') }}" class="btn btn-sm ft-btn-outline-primary">Version complete</a>
+            </div>
+            <div class="ft-app-card-body">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div id="merchantQrStatus" class="ft-wallet-status-banner flex-grow-1">Collez les donnees QR puis lancez le preview.</div>
+                <span class="ft-wallet-feature-badge security"><i class="bi bi-shield-check"></i>Scan securise</span>
+              </div>
+              <div class="row g-3 mb-3">
+                <div class="col-md-7">
+                  <div class="ft-wallet-editor-shell">
+                    <label for="merchantQrData" class="form-label fw-semibold">QR commercant</label>
+                    <textarea id="merchantQrData" class="form-control ft-input" rows="7">{"merchant_wallet_id": "2", "merchant_name": "FinTrust Store", "amount": 25.50, "reference": "ORDER-2026-001"}</textarea>
+                  </div>
+                </div>
+                <div class="col-md-5">
+                  <div class="ft-wallet-side-glass">
+                    <label for="merchantQrAmount" class="form-label fw-semibold">Montant libre</label>
+                    <input id="merchantQrAmount" type="number" step="0.01" min="0" class="form-control ft-input mb-3" placeholder="Optionnel">
+                    <span class="ft-wallet-side-kicker">Wallet source</span>
+                    <div id="merchantSourceWallet" class="ft-wallet-side-value">#{{ wallet.idWallet }} | {{ wallet.devise }}</div>
+                    <span class="ft-wallet-side-kicker">Montant detecte</span>
+                    <div id="merchantAmount" class="ft-wallet-side-value mb-0">-</div>
+                  </div>
+                </div>
+              </div>
+              <div class="ft-wallet-inline-actions">
+                <button id="merchantPreviewButton" type="button" class="btn ft-btn-outline-primary ft-wallet-glow-btn">
+                  <i class="bi bi-eye me-1"></i>Preview
+                </button>
+                <button id="merchantPayButton" type="button" class="btn ft-btn-primary ft-wallet-glow-btn" disabled>
+                  <i class="bi bi-check2-circle me-1"></i>Confirmer paiement
+                </button>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="ft-wallet-mini-stat">
+                    <span class="ft-wallet-mini-stat-label">Commercant</span>
+                    <div id="merchantName" class="ft-wallet-mini-stat-value">-</div>
+                    <div id="merchantWallet" class="small text-muted mt-1">-</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="ft-wallet-mini-stat">
+                    <span class="ft-wallet-mini-stat-label">Reference</span>
+                    <div id="merchantReference" class="ft-wallet-mini-stat-value text-break">-</div>
+                  </div>
+                </div>
+              </div>
+              <div id="merchantQrResult" class="list-group list-group-flush mt-3"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-6">
+          <div id="wallet-voice" class="ft-app-card ft-wallet-feature-panel h-100">
+            <div class="ft-app-card-header d-flex justify-content-between align-items-center">
+              <div class="ft-wallet-feature-title">
+                <span class="ft-wallet-feature-icon voice"><i class="bi bi-mic"></i></span>
+                <div>
+                  <div>Voice wallet</div>
+                  <div class="small text-muted fw-normal">Commande vocale assistee par l IA FinTrust</div>
+                </div>
+              </div>
+              <a href="{{ path('front_wallet_voice_assistant') }}" class="btn btn-sm ft-btn-outline-primary">Version complete</a>
+            </div>
+            <div class="ft-app-card-body">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <span class="ft-wallet-feature-badge"><i class="bi bi-stars"></i>Assistant vocal en direct</span>
+                <span class="ft-wallet-feature-badge security"><i class="bi bi-fingerprint"></i>Micro securise</span>
+              </div>
+              <div class="ft-wallet-response-grid mb-3">
+                <div class="ft-wallet-mini-stat">
+                  <span class="ft-wallet-mini-stat-label">Transcript</span>
+                  <div id="voiceTranscript" class="ft-wallet-mini-stat-value text-break">-</div>
+                </div>
+                <div class="ft-wallet-mini-stat">
+                  <span class="ft-wallet-mini-stat-label">Intent</span>
+                  <div id="voiceIntent" class="ft-wallet-mini-stat-value">-</div>
+                </div>
+                <div class="ft-wallet-mini-stat">
+                  <span class="ft-wallet-mini-stat-label">Confiance</span>
+                  <div id="voiceConfidence" class="ft-wallet-mini-stat-value">-</div>
+                </div>
+                <div class="ft-wallet-mini-stat">
+                  <span class="ft-wallet-mini-stat-label">Mode</span>
+                  <div class="ft-wallet-mini-stat-value">Dictée intelligente</div>
+                </div>
+              </div>
+              <div class="ft-wallet-editor-shell mb-3">
+                <div class="ft-wallet-voice-command-grid">
+                  <div>
+                    <label class="form-label small fw-semibold" for="voiceLanguage">Langue</label>
+                    <select id="voiceLanguage" class="form-select">
+                      <option value="fr">Francais</option>
+                      <option value="en">English</option>
+                      <option value="wo">Wolof</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="form-label small fw-semibold" for="voiceCommandInput">Commande vocale ou texte</label>
+                    <textarea id="voiceCommandInput" class="form-control" rows="3" placeholder="Ex: Voir mon solde"></textarea>
+                  </div>
+                </div>
+                <div class="ft-wallet-inline-actions">
+                  <button id="voiceMicButton" type="button" class="btn ft-btn-outline-primary ft-wallet-glow-btn">
+                    <i class="bi bi-mic me-1"></i>Dicter
+                  </button>
+                  <button id="voiceSendButton" type="button" class="btn ft-btn-primary ft-wallet-glow-btn">
+                    <i class="bi bi-send me-1"></i>Envoyer
+                  </button>
+                  <button id="voiceSpeakButton" type="button" class="btn ft-btn-outline-primary" disabled>
+                    <i class="bi bi-volume-up me-1"></i>Lire
+                  </button>
+                </div>
+              </div>
+              <div id="voiceStatus" class="ft-wallet-status-banner mb-3">Pret pour une commande vocale. Cliquez sur Dicter pour parler.</div>
+              <div class="ft-wallet-output-box">
+                <div class="small text-muted mb-2">Reponse instantanee</div>
+                <div id="voiceResponse" class="fs-6 fw-semibold mb-2">La reponse apparaitra ici.</div>
+              </div>
+              <div id="voiceDetails" class="list-group list-group-flush"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     {% endif %}
   </div>
 </div>
@@ -440,6 +1031,568 @@
           }
         }
       });
+    }
+
+    const assistantInput = document.getElementById('walletAssistantInput');
+    const assistantSendButton = document.getElementById('walletAssistantSendButton');
+    const assistantStatus = document.getElementById('walletAssistantStatus');
+    const assistantResponse = document.getElementById('walletAssistantResponse');
+    const assistantTranscript = document.getElementById('walletAssistantTranscript');
+    const assistantIntent = document.getElementById('walletAssistantIntent');
+    const assistantConfidence = document.getElementById('walletAssistantConfidence');
+    const assistantDetails = document.getElementById('walletAssistantDetails');
+
+    document.querySelectorAll('.wallet-assistant-prompt').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (!assistantInput) {
+          return;
+        }
+
+        assistantInput.value = button.dataset.question || '';
+        sendWalletAssistantCommand();
+      });
+    });
+
+    if (assistantSendButton) {
+      assistantSendButton.addEventListener('click', sendWalletAssistantCommand);
+    }
+
+    function sendWalletAssistantCommand() {
+      if (!assistantInput) {
+        return;
+      }
+
+      const text = assistantInput.value.trim();
+      if (!text) {
+        assistantStatus.className = 'alert alert-warning py-2 small mb-3';
+        assistantStatus.textContent = 'Saisissez une question pour lancer l assistant.';
+        return;
+      }
+
+      assistantStatus.className = 'alert alert-info py-2 small mb-3';
+      assistantStatus.textContent = 'Analyse de votre question en cours...';
+
+      fetch('{{ path('api_v1_voice_command') }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text, language: 'fr'})
+      })
+        .then(parseJsonResponse)
+        .then((payload) => renderCommandResult(payload, {
+          transcriptEl: assistantTranscript,
+          intentEl: assistantIntent,
+          confidenceEl: assistantConfidence,
+          responseEl: assistantResponse,
+          detailsEl: assistantDetails,
+          statusEl: assistantStatus,
+          speakButtonEl: null
+        }))
+        .catch(() => {
+          assistantStatus.className = 'alert alert-danger py-2 small mb-3';
+          assistantStatus.textContent = 'Impossible de traiter la question pour le moment.';
+        });
+    }
+
+    const qrData = document.getElementById('merchantQrData');
+    const qrAmount = document.getElementById('merchantQrAmount');
+    const previewButton = document.getElementById('merchantPreviewButton');
+    const payButton = document.getElementById('merchantPayButton');
+    const statusBox = document.getElementById('merchantQrStatus');
+    const merchantName = document.getElementById('merchantName');
+    const merchantWallet = document.getElementById('merchantWallet');
+    const merchantAmount = document.getElementById('merchantAmount');
+    const merchantReference = document.getElementById('merchantReference');
+    const merchantSourceWallet = document.getElementById('merchantSourceWallet');
+    const resultBox = document.getElementById('merchantQrResult');
+    let lastMerchantPayload = null;
+
+    if (previewButton) {
+      previewButton.addEventListener('click', () => sendMerchantQr('{{ path('api_v1_merchant_qr_preview') }}', false));
+    }
+    if (payButton) {
+      payButton.addEventListener('click', () => sendMerchantQr('{{ path('api_v1_merchant_qr_pay') }}', true));
+    }
+    if (qrData) {
+      qrData.addEventListener('input', () => {
+        if (payButton) {
+          payButton.disabled = true;
+        }
+      });
+    }
+    if (qrAmount) {
+      qrAmount.addEventListener('input', () => {
+        if (payButton) {
+          payButton.disabled = true;
+        }
+      });
+    }
+
+    function buildMerchantPayload() {
+      const payload = {qr_data: qrData.value.trim()};
+      if (qrAmount.value.trim() !== '') {
+        payload.amount = qrAmount.value.trim();
+      }
+
+      return payload;
+    }
+
+    function sendMerchantQr(url, payment) {
+      const payload = payment && lastMerchantPayload ? lastMerchantPayload : buildMerchantPayload();
+      statusBox.className = 'alert alert-info py-2 small';
+      statusBox.textContent = payment ? 'Confirmation du paiement...' : 'Verification du QR...';
+
+      fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      })
+        .then((response) => response.json().then((body) => ({ok: response.ok, body})))
+        .then(({ok, body}) => {
+          if (!ok) {
+            throw body;
+          }
+
+          payment ? renderMerchantPayment(body) : renderMerchantPreview(body, payload);
+        })
+        .catch((error) => {
+          if (payButton) {
+            payButton.disabled = true;
+          }
+          statusBox.className = 'alert alert-danger py-2 small';
+          statusBox.textContent = error?.error || error?.message || 'Operation QR impossible pour le moment.';
+        });
+    }
+
+    function renderMerchantPreview(payload, rawPayload) {
+      lastMerchantPayload = rawPayload;
+      const valid = Boolean(payload.valid);
+
+      if (payButton) {
+        payButton.disabled = !valid;
+      }
+
+      statusBox.className = valid ? 'alert alert-success py-2 small' : 'alert alert-warning py-2 small';
+      statusBox.textContent = valid ? 'QR valide. Vous pouvez confirmer.' : (payload.errors || []).join(' ');
+
+      merchantName.textContent = payload.merchant?.name || '-';
+      merchantWallet.textContent = payload.merchant?.wallet_id ? `Wallet commercant #${payload.merchant.wallet_id}` : '-';
+      merchantAmount.textContent = payload.payment?.amount ? `${Number(payload.payment.amount).toFixed(2)} ${payload.payment.currency || '{{ wallet.devise }}'}` : '-';
+      merchantReference.textContent = payload.payment?.reference || '-';
+      merchantSourceWallet.textContent = payload.source_wallet
+        ? `#${payload.source_wallet.wallet_id} | solde ${Number(payload.source_wallet.balance).toFixed(2)} ${payload.source_wallet.currency}`
+        : '#{{ wallet.idWallet }} | {{ wallet.devise }}';
+
+      renderMerchantRows([
+        `Wallet commercant: #${payload.merchant?.wallet_id || '-'}`,
+        `Type QR: ${payload.payment?.qr_type || '-'}`,
+        `Montant libre: ${payload.payment?.free_amount ? 'oui' : 'non'}`,
+        `Transaction commercant: ${payload.payment?.transaction_id || '-'}`,
+        `Controle solde: ${valid ? 'OK' : 'a verifier'}`
+      ]);
+    }
+
+    function renderMerchantPayment(payload) {
+      if (payButton) {
+        payButton.disabled = true;
+      }
+
+      statusBox.className = 'alert alert-success py-2 small';
+      statusBox.textContent = payload.message || 'Paiement confirme.';
+
+      renderMerchantRows([
+        `Reference transfert: ${payload.transfer?.reference || '-'}`,
+        `Transaction: #${payload.transfer?.id || '-'}`,
+        `Statut: ${payload.transfer?.status || 'VALIDE'}`
+      ]);
+    }
+
+    function renderMerchantRows(items) {
+      resultBox.innerHTML = '';
+      items.forEach((item) => {
+        const row = document.createElement('div');
+        row.className = 'list-group-item px-0';
+        row.innerHTML = '<i class="bi bi-check2-circle text-primary me-2"></i>' + escapeHtml(item);
+        resultBox.appendChild(row);
+      });
+    }
+
+    const voiceInput = document.getElementById('voiceCommandInput');
+    const voiceLanguage = document.getElementById('voiceLanguage');
+    const voiceSendButton = document.getElementById('voiceSendButton');
+    const voiceMicButton = document.getElementById('voiceMicButton');
+    const voiceSpeakButton = document.getElementById('voiceSpeakButton');
+    const voiceStatus = document.getElementById('voiceStatus');
+    const voiceResponse = document.getElementById('voiceResponse');
+    const voiceTranscript = document.getElementById('voiceTranscript');
+    const voiceIntent = document.getElementById('voiceIntent');
+    const voiceConfidence = document.getElementById('voiceConfidence');
+    const voiceDetails = document.getElementById('voiceDetails');
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let lastVoiceText = '';
+    let recognition = null;
+    let isListening = false;
+    let finalTranscript = '';
+    let dictationBaseText = '';
+    let hasCapturedSpeech = false;
+    let noSpeechRetryCount = 0;
+    const maxNoSpeechRetries = 1;
+    let silenceTimer = null;
+    const silenceDelayMs = 1800;
+
+    if (!Recognition && voiceStatus) {
+      voiceStatus.className = 'alert alert-warning py-2 small';
+      voiceStatus.textContent = 'La dictee vocale n est pas prise en charge par ce navigateur. Utilisez Chrome ou Edge pour activer le micro.';
+      if (voiceMicButton) {
+        voiceMicButton.disabled = true;
+      }
+    }
+
+    if (Recognition && voiceStatus && !window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      voiceStatus.className = 'alert alert-warning py-2 small';
+      voiceStatus.textContent = 'La dictée vocale du navigateur demande une page securisee HTTPS ou localhost.';
+    }
+
+    if (voiceSendButton) {
+      voiceSendButton.addEventListener('click', sendVoiceCommand);
+    }
+
+    if (voiceMicButton) {
+      voiceMicButton.addEventListener('click', async () => {
+        if (!Recognition) {
+          if (voiceInput) {
+            voiceInput.focus();
+          }
+          return;
+        }
+
+        if (isListening && recognition) {
+          recognition.stop();
+          return;
+        }
+
+        const micReady = await ensureMicrophoneAvailability();
+        if (!micReady) {
+          return;
+        }
+
+        startVoiceRecognition();
+      });
+    }
+
+    if (voiceSpeakButton) {
+      voiceSpeakButton.addEventListener('click', () => {
+        if (!lastVoiceText || !window.speechSynthesis) {
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(lastVoiceText);
+        utterance.lang = voiceLanguage.value === 'en' ? 'en-US' : 'fr-FR';
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+
+    function sendVoiceCommand() {
+      if (!voiceInput) {
+        return;
+      }
+
+      const text = voiceInput.value.trim();
+      if (!text) {
+        voiceStatus.className = 'alert alert-warning py-2 small';
+        voiceStatus.textContent = 'Saisissez ou dictez une commande.';
+        return;
+      }
+
+      voiceStatus.className = 'alert alert-info py-2 small';
+      voiceStatus.textContent = 'Analyse de la commande...';
+
+      fetch('{{ path('api_v1_voice_command') }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text, language: voiceLanguage.value})
+      })
+        .then(parseJsonResponse)
+        .then((payload) => {
+          renderCommandResult(payload, {
+            transcriptEl: voiceTranscript,
+            intentEl: voiceIntent,
+            confidenceEl: voiceConfidence,
+            responseEl: voiceResponse,
+            detailsEl: voiceDetails,
+            statusEl: voiceStatus,
+            speakButtonEl: voiceSpeakButton
+          });
+          lastVoiceText = payload.response_text || '';
+        })
+        .catch(() => {
+          voiceStatus.className = 'alert alert-danger py-2 small';
+          voiceStatus.textContent = 'Impossible de traiter la commande vocale.';
+        });
+    }
+
+    function startVoiceRecognition() {
+      recognition = new Recognition();
+      recognition.lang = getRecognitionLang();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      finalTranscript = '';
+      dictationBaseText = voiceInput ? voiceInput.value.trim() : '';
+      hasCapturedSpeech = false;
+      clearSilenceTimer();
+
+      recognition.onstart = () => {
+        isListening = true;
+        updateMicButton(true);
+        voiceStatus.className = 'alert alert-info py-2 small';
+        voiceStatus.textContent = 'Ecoute en cours... Parlez maintenant, le texte s ecrit automatiquement.';
+      };
+
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+
+        for (let index = event.resultIndex; index < event.results.length; index += 1) {
+          const transcript = event.results[index][0]?.transcript || '';
+          if (event.results[index].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        const currentTranscript = (finalTranscript + interimTranscript).trim();
+        hasCapturedSpeech = currentTranscript.length > 0;
+        const mergedTranscript = mergeDictationText(dictationBaseText, currentTranscript);
+        voiceInput.value = mergedTranscript;
+        voiceTranscript.textContent = mergedTranscript || '-';
+        voiceStatus.className = 'alert alert-info py-2 small';
+        voiceStatus.textContent = interimTranscript
+          ? 'Transcription en cours... Continuez a parler.'
+          : 'Texte capture. Vous pouvez continuer ou attendre l envoi automatique.';
+        voiceConfidence.textContent = event.results[event.results.length - 1]?.[0]?.confidence
+          ? Math.round(Number(event.results[event.results.length - 1][0].confidence) * 100) + '%'
+          : '-';
+        scheduleRecognitionStop();
+      };
+
+      recognition.onerror = (event) => {
+        clearSilenceTimer();
+
+        if (event.error === 'no-speech' && noSpeechRetryCount < maxNoSpeechRetries && !hasCapturedSpeech) {
+          voiceStatus.className = 'alert alert-info py-2 small';
+          voiceStatus.textContent = 'Je n ai pas encore capte votre voix. Nouvelle tentative en cours...';
+          return;
+        }
+
+        isListening = false;
+        updateMicButton(false);
+        voiceStatus.className = 'alert alert-warning py-2 small';
+        voiceStatus.textContent = getSpeechErrorMessage(event.error);
+      };
+
+      recognition.onend = () => {
+        const transcript = voiceInput.value.trim();
+        isListening = false;
+        updateMicButton(false);
+        clearSilenceTimer();
+
+        if (!hasCapturedSpeech && noSpeechRetryCount < maxNoSpeechRetries) {
+          noSpeechRetryCount += 1;
+          voiceStatus.className = 'alert alert-info py-2 small';
+          voiceStatus.textContent = 'Aucune voix detectee. Je relance automatiquement l ecoute...';
+          startVoiceRecognition();
+          return;
+        }
+
+        if (!transcript || transcript === dictationBaseText) {
+          noSpeechRetryCount = 0;
+          voiceStatus.className = 'alert alert-warning py-2 small';
+          voiceStatus.textContent = 'Aucune phrase detectee. Reessayez en parlant plus pres du micro.';
+          return;
+        }
+
+        noSpeechRetryCount = 0;
+        voiceStatus.className = 'alert alert-success py-2 small';
+        voiceStatus.textContent = 'Texte dicte ajoute automatiquement. Analyse en cours...';
+        sendVoiceCommand();
+      };
+
+      try {
+        recognition.start();
+      } catch (error) {
+        isListening = false;
+        updateMicButton(false);
+        voiceStatus.className = 'alert alert-warning py-2 small';
+        voiceStatus.textContent = 'Impossible de lancer la dictee vocale pour le moment. Rechargez la page et reessayez.';
+      }
+    }
+
+    function updateMicButton(listening) {
+      if (!voiceMicButton) {
+        return;
+      }
+
+      voiceMicButton.classList.toggle('btn-danger', listening);
+      voiceMicButton.classList.toggle('ft-btn-outline-primary', !listening);
+      voiceMicButton.innerHTML = listening
+        ? '<i class="bi bi-stop-circle me-1"></i>Arreter'
+        : '<i class="bi bi-mic me-1"></i>Dicter';
+    }
+
+    function getRecognitionLang() {
+      if (voiceLanguage.value === 'en') {
+        return 'en-US';
+      }
+
+      if (voiceLanguage.value === 'wo') {
+        return 'fr-FR';
+      }
+
+      return 'fr-FR';
+    }
+
+    function getSpeechErrorMessage(errorCode) {
+      switch (errorCode) {
+        case 'audio-capture':
+          return 'Aucun micro n a ete detecte sur cet appareil.';
+        case 'not-allowed':
+        case 'service-not-allowed':
+          return 'L acces au micro a ete refuse. Autorisez le microphone dans le navigateur puis reessayez.';
+        case 'no-speech':
+          return 'Aucune voix n a ete captee. Parlez plus distinctement et reessayez.';
+        case 'network':
+          return 'Le service de reconnaissance vocale du navigateur est momentanement indisponible.';
+        default:
+          return 'La dictee vocale a rencontre un probleme. Vous pouvez toujours saisir votre commande au clavier.';
+      }
+    }
+
+    async function ensureMicrophoneAccess() {
+      if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        voiceStatus.className = 'alert alert-warning py-2 small';
+        voiceStatus.textContent = 'Le navigateur bloque le micro hors HTTPS. Ouvrez cette page en HTTPS ou sur localhost.';
+        return false;
+      }
+
+      if (!navigator.permissions || !navigator.permissions.query) {
+        return true;
+      }
+
+      try {
+        const permissionStatus = await navigator.permissions.query({name: 'microphone'});
+        if (permissionStatus.state === 'denied') {
+          voiceStatus.className = 'alert alert-warning py-2 small';
+          voiceStatus.textContent = 'Le microphone est refuse dans le navigateur. Autorisez le micro puis reessayez.';
+          return false;
+        }
+
+        return true;
+      } catch (error) {
+        return true;
+      }
+    }
+
+    async function ensureMicrophoneAvailability() {
+      if (!await ensureMicrophoneAccess()) {
+        return false;
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return true;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+        stream.getTracks().forEach((track) => track.stop());
+        return true;
+      } catch (error) {
+        voiceStatus.className = 'alert alert-warning py-2 small';
+        voiceStatus.textContent = 'Le microphone est bloque ou indisponible. Autorisez l acces micro dans le navigateur puis reessayez.';
+        return false;
+      }
+    }
+
+    function mergeDictationText(baseText, transcript) {
+      const cleanBase = baseText.trim();
+      const cleanTranscript = transcript.trim();
+
+      if (!cleanBase) {
+        return cleanTranscript;
+      }
+
+      if (!cleanTranscript) {
+        return cleanBase;
+      }
+
+      return `${cleanBase} ${cleanTranscript}`.replace(/\s+/g, ' ').trim();
+    }
+
+    function parseJsonResponse(response) {
+      return response.text().then((text) => {
+        let body = {};
+
+        if (text) {
+          try {
+            body = JSON.parse(text);
+          } catch (error) {
+            body = {message: text};
+          }
+        }
+
+        if (!response.ok) {
+          return Promise.reject(body);
+        }
+
+        return body;
+      });
+    }
+
+    function scheduleRecognitionStop() {
+      clearSilenceTimer();
+      silenceTimer = window.setTimeout(() => {
+        if (recognition && isListening) {
+          recognition.stop();
+        }
+      }, silenceDelayMs);
+    }
+
+    function clearSilenceTimer() {
+      if (silenceTimer !== null) {
+        window.clearTimeout(silenceTimer);
+        silenceTimer = null;
+      }
+    }
+
+    function renderCommandResult(payload, elements) {
+      elements.transcriptEl.textContent = payload.transcript || '-';
+      elements.intentEl.textContent = payload.intent || '-';
+      elements.confidenceEl.textContent = payload.confidence ? Math.round(Number(payload.confidence) * 100) + '%' : '-';
+      elements.responseEl.textContent = payload.response_text || 'Aucune reponse.';
+      elements.statusEl.className = 'alert alert-success py-2 small' + (elements.statusEl.id === 'walletAssistantStatus' ? ' mb-3' : '');
+      elements.statusEl.textContent = (payload.action || 'voice.command.done') + ' | langue: ' + (payload.language || 'fr');
+
+      if (elements.speakButtonEl) {
+        elements.speakButtonEl.disabled = !payload.response_text || !window.speechSynthesis;
+      }
+
+      elements.detailsEl.innerHTML = '';
+      const items = payload.details?.items || payload.details?.cheques || payload.suggestions || payload.details || [];
+      (Array.isArray(items) ? items : []).slice(0, 6).forEach((item) => {
+        const row = document.createElement('div');
+        row.className = 'list-group-item px-0';
+        row.innerHTML = '<i class="bi bi-check2-circle text-primary me-2"></i>' + escapeHtml(typeof item === 'string' ? item : JSON.stringify(item));
+        elements.detailsEl.appendChild(row);
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>\"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      })[char]);
     }
   </script>
 {% endblock %}

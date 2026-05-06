@@ -39,7 +39,7 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-semibold" for="voiceCommandInput">Commande vocale simulee</label>
+              <label class="form-label small fw-semibold" for="voiceCommandInput">Commande vocale ou texte</label>
               <textarea id="voiceCommandInput" class="form-control" rows="4" placeholder="Ex: Voir mon solde"></textarea>
             </div>
 
@@ -94,7 +94,7 @@
               </div>
             </div>
 
-            <div id="voiceStatus" class="alert alert-info py-2 small">Pret pour une commande vocale simulee.</div>
+            <div id="voiceStatus" class="alert alert-info py-2 small">Pret pour une commande vocale. Cliquez sur Dicter pour parler.</div>
             <p id="voiceResponse" class="fs-5 fw-semibold mb-3">La reponse apparaitra ici.</p>
             <div id="voiceDetails" class="list-group list-group-flush"></div>
           </div>
@@ -119,7 +119,17 @@
   const voiceIntent = document.getElementById('voiceIntent');
   const voiceConfidence = document.getElementById('voiceConfidence');
   const voiceDetails = document.getElementById('voiceDetails');
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let lastVoiceText = '';
+  let recognition = null;
+  let isListening = false;
+  let finalTranscript = '';
+  let dictationBaseText = '';
+  let hasCapturedSpeech = false;
+  let noSpeechRetryCount = 0;
+  const maxNoSpeechRetries = 1;
+  let silenceTimer = null;
+  const silenceDelayMs = 1800;
 
   document.querySelectorAll('.voice-suggestion').forEach((button) => {
     button.addEventListener('click', () => {
@@ -130,31 +140,34 @@
 
   voiceSendButton.addEventListener('click', sendVoiceCommand);
 
-  voiceMicButton.addEventListener('click', () => {
-    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) {
+    voiceStatus.className = 'alert alert-warning py-2 small';
+    voiceStatus.textContent = 'La dictee vocale n est pas prise en charge par ce navigateur. Utilisez Chrome ou Edge pour activer le micro.';
+    voiceMicButton.disabled = true;
+  }
+
+  if (Recognition && !window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    voiceStatus.className = 'alert alert-warning py-2 small';
+    voiceStatus.textContent = 'La dictée vocale du navigateur demande une page securisee HTTPS ou localhost.';
+  }
+
+  voiceMicButton.addEventListener('click', async () => {
     if (!Recognition) {
-      voiceStatus.className = 'alert alert-warning py-2 small';
-      voiceStatus.textContent = 'Reconnaissance vocale navigateur indisponible. Utilisez la zone texte.';
       voiceInput.focus();
       return;
     }
 
-    const recognition = new Recognition();
-    recognition.lang = voiceLanguage.value === 'en' ? 'en-US' : 'fr-FR';
-    recognition.interimResults = false;
-    recognition.onstart = () => {
-      voiceStatus.className = 'alert alert-info py-2 small';
-      voiceStatus.textContent = 'Ecoute en cours...';
-    };
-    recognition.onresult = (event) => {
-      voiceInput.value = event.results[0][0].transcript;
-      sendVoiceCommand();
-    };
-    recognition.onerror = () => {
-      voiceStatus.className = 'alert alert-warning py-2 small';
-      voiceStatus.textContent = 'Dictee non disponible. La simulation texte reste active.';
-    };
-    recognition.start();
+    if (isListening && recognition) {
+      recognition.stop();
+      return;
+    }
+
+    const micReady = await ensureMicrophoneAvailability();
+    if (!micReady) {
+      return;
+    }
+
+    startVoiceRecognition();
   });
 
   voiceSpeakButton.addEventListener('click', () => {
@@ -183,12 +196,241 @@
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({text, language: voiceLanguage.value})
     })
-      .then((response) => response.ok ? response.json() : Promise.reject(response))
+      .then(parseJsonResponse)
       .then(renderVoiceResult)
       .catch(() => {
         voiceStatus.className = 'alert alert-danger py-2 small';
         voiceStatus.textContent = 'Impossible de traiter la commande vocale.';
       });
+  }
+
+  function startVoiceRecognition() {
+    recognition = new Recognition();
+    recognition.lang = getRecognitionLang();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    finalTranscript = '';
+    dictationBaseText = voiceInput.value.trim();
+    hasCapturedSpeech = false;
+    clearSilenceTimer();
+
+    recognition.onstart = () => {
+      isListening = true;
+      updateMicButton(true);
+      voiceStatus.className = 'alert alert-info py-2 small';
+      voiceStatus.textContent = 'Ecoute en cours... Parlez maintenant, le texte s ecrit automatiquement.';
+    };
+
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const transcript = event.results[index][0]?.transcript || '';
+        if (event.results[index].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      const currentTranscript = (finalTranscript + interimTranscript).trim();
+      hasCapturedSpeech = currentTranscript.length > 0;
+      const mergedTranscript = mergeDictationText(dictationBaseText, currentTranscript);
+      voiceInput.value = mergedTranscript;
+      voiceTranscript.textContent = mergedTranscript || '-';
+      voiceStatus.className = 'alert alert-info py-2 small';
+      voiceStatus.textContent = interimTranscript
+        ? 'Transcription en cours... Continuez a parler.'
+        : 'Texte capture. Vous pouvez continuer ou attendre l envoi automatique.';
+      voiceConfidence.textContent = event.results[event.results.length - 1]?.[0]?.confidence
+        ? Math.round(Number(event.results[event.results.length - 1][0].confidence) * 100) + '%'
+        : '-';
+      scheduleRecognitionStop();
+    };
+
+    recognition.onerror = (event) => {
+      clearSilenceTimer();
+
+      if (event.error === 'no-speech' && noSpeechRetryCount < maxNoSpeechRetries && !hasCapturedSpeech) {
+        voiceStatus.className = 'alert alert-info py-2 small';
+        voiceStatus.textContent = 'Je n ai pas encore capte votre voix. Nouvelle tentative en cours...';
+        return;
+      }
+
+      isListening = false;
+      updateMicButton(false);
+      voiceStatus.className = 'alert alert-warning py-2 small';
+      voiceStatus.textContent = getSpeechErrorMessage(event.error);
+    };
+
+    recognition.onend = () => {
+      const transcript = voiceInput.value.trim();
+      isListening = false;
+      updateMicButton(false);
+      clearSilenceTimer();
+
+      if (!hasCapturedSpeech && noSpeechRetryCount < maxNoSpeechRetries) {
+        noSpeechRetryCount += 1;
+        voiceStatus.className = 'alert alert-info py-2 small';
+        voiceStatus.textContent = 'Aucune voix detectee. Je relance automatiquement l ecoute...';
+        startVoiceRecognition();
+        return;
+      }
+
+      if (!transcript || transcript === dictationBaseText) {
+        noSpeechRetryCount = 0;
+        voiceStatus.className = 'alert alert-warning py-2 small';
+        voiceStatus.textContent = 'Aucune phrase detectee. Reessayez en parlant plus pres du micro.';
+        return;
+      }
+
+      noSpeechRetryCount = 0;
+      voiceStatus.className = 'alert alert-success py-2 small';
+      voiceStatus.textContent = 'Texte dicte ajoute automatiquement. Analyse en cours...';
+      sendVoiceCommand();
+    };
+
+    try {
+      recognition.start();
+    } catch (error) {
+      isListening = false;
+      updateMicButton(false);
+      voiceStatus.className = 'alert alert-warning py-2 small';
+      voiceStatus.textContent = 'Impossible de lancer la dictee vocale pour le moment. Rechargez la page et reessayez.';
+    }
+  }
+
+  function updateMicButton(listening) {
+    voiceMicButton.classList.toggle('btn-danger', listening);
+    voiceMicButton.classList.toggle('ft-btn-outline-primary', !listening);
+    voiceMicButton.innerHTML = listening
+      ? '<i class="bi bi-stop-circle me-1"></i>Arreter'
+      : '<i class="bi bi-mic me-1"></i>Dicter';
+  }
+
+  function getRecognitionLang() {
+    if (voiceLanguage.value === 'en') {
+      return 'en-US';
+    }
+
+    if (voiceLanguage.value === 'wo') {
+      return 'fr-FR';
+    }
+
+    return 'fr-FR';
+  }
+
+  function getSpeechErrorMessage(errorCode) {
+    switch (errorCode) {
+      case 'audio-capture':
+        return 'Aucun micro n a ete detecte sur cet appareil.';
+      case 'not-allowed':
+      case 'service-not-allowed':
+        return 'L acces au micro a ete refuse. Autorisez le microphone dans le navigateur puis reessayez.';
+      case 'no-speech':
+        return 'Aucune voix n a ete captee. Parlez plus distinctement et reessayez.';
+      case 'network':
+        return 'Le service de reconnaissance vocale du navigateur est momentanement indisponible.';
+      default:
+        return 'La dictee vocale a rencontre un probleme. Vous pouvez toujours saisir votre commande au clavier.';
+    }
+  }
+
+  async function ensureMicrophoneAccess() {
+    if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      voiceStatus.className = 'alert alert-warning py-2 small';
+      voiceStatus.textContent = 'Le navigateur bloque le micro hors HTTPS. Ouvrez cette page en HTTPS ou sur localhost.';
+      return false;
+    }
+
+    if (!navigator.permissions || !navigator.permissions.query) {
+      return true;
+    }
+
+    try {
+      const permissionStatus = await navigator.permissions.query({name: 'microphone'});
+      if (permissionStatus.state === 'denied') {
+        voiceStatus.className = 'alert alert-warning py-2 small';
+        voiceStatus.textContent = 'Le microphone est refuse dans le navigateur. Autorisez le micro puis reessayez.';
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      return true;
+    }
+  }
+
+  async function ensureMicrophoneAvailability() {
+    if (!await ensureMicrophoneAccess()) {
+      return false;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return true;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+      stream.getTracks().forEach((track) => track.stop());
+      return true;
+    } catch (error) {
+      voiceStatus.className = 'alert alert-warning py-2 small';
+      voiceStatus.textContent = 'Le microphone est bloque ou indisponible. Autorisez l acces micro dans le navigateur puis reessayez.';
+      return false;
+    }
+  }
+
+  function mergeDictationText(baseText, transcript) {
+    const cleanBase = baseText.trim();
+    const cleanTranscript = transcript.trim();
+
+    if (!cleanBase) {
+      return cleanTranscript;
+    }
+
+    if (!cleanTranscript) {
+      return cleanBase;
+    }
+
+    return `${cleanBase} ${cleanTranscript}`.replace(/\s+/g, ' ').trim();
+  }
+
+  function parseJsonResponse(response) {
+    return response.text().then((text) => {
+      let body = {};
+
+      if (text) {
+        try {
+          body = JSON.parse(text);
+        } catch (error) {
+          body = {message: text};
+        }
+      }
+
+      if (!response.ok) {
+        return Promise.reject(body);
+      }
+
+      return body;
+    });
+  }
+
+  function scheduleRecognitionStop() {
+    clearSilenceTimer();
+    silenceTimer = window.setTimeout(() => {
+      if (recognition && isListening) {
+        recognition.stop();
+      }
+    }, silenceDelayMs);
+  }
+
+  function clearSilenceTimer() {
+    if (silenceTimer !== null) {
+      window.clearTimeout(silenceTimer);
+      silenceTimer = null;
+    }
   }
 
   function renderVoiceResult(payload) {

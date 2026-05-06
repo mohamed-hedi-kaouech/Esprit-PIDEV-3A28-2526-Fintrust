@@ -71,25 +71,17 @@ class VoiceLanguageService
     public function normalizeText(string $text): string
     {
         $text = mb_strtolower(trim($text));
+        $normalized = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text);
 
-        return strtr($text, [
-            'à' => 'a',
-            'â' => 'a',
-            'ä' => 'a',
-            'ç' => 'c',
-            'é' => 'e',
-            'è' => 'e',
-            'ê' => 'e',
-            'ë' => 'e',
-            'î' => 'i',
-            'ï' => 'i',
-            'ô' => 'o',
-            'ö' => 'o',
-            'ù' => 'u',
-            'û' => 'u',
-            'ü' => 'u',
-            'ÿ' => 'y',
+        if ($normalized === false) {
+            $normalized = $text;
+        }
+
+        $normalized = strtr($normalized, [
             "'" => ' ',
+            '-' => ' ',
         ]);
+
+        return preg_replace('/\s+/', ' ', $normalized) ?? $normalized;
     }
 }

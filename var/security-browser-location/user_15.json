@@ -1,10 +1,10 @@
 {
-    "latitude": 36.73788937949314,
-    "longitude": 10.30068354953785,
-    "accuracy": 69,
-    "label": "Avenue Habib Bourguiba, Ezzahra",
-    "detail": "D\u00e9l\u00e9gation Ezzahra, Cite El Habib, Gouvernorat Ben Arous",
-    "coordinates": "36.737889, 10.300684",
-    "checkedAt": "2026-04-26T19:52:38+00:00",
-    "distanceMeters": 897.47
+    "latitude": 36.90103844598772,
+    "longitude": 10.18842141620678,
+    "accuracy": 64,
+    "label": "36.90104, 10.18842",
+    "detail": "D\u00e9l\u00e9gation Raoued, Jaafar, Gouvernorat Ariana",
+    "coordinates": "36.901038, 10.188421",
+    "checkedAt": "2026-05-06T12:30:17+00:00",
+    "distanceMeters": 20711.54
 }
