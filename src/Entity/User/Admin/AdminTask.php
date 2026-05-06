@@ -61,11 +61,11 @@ class AdminTask
 
     #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'created_by', referencedColumnName: 'id')]
-    private User $creator;
+    private ?User $creator = null;
 
     #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'assigned_to', referencedColumnName: 'id')]
-    private User $assignee;
+    private ?User $assignee = null;
     
 
 
@@ -236,23 +236,23 @@ class AdminTask
         return $this;
     }
 
-    public function getCreator(): User
+    public function getCreator(): ?User
     {
         return $this->creator;
     }
 
-    public function setCreator(User $creator): static
+    public function setCreator(?User $creator): static
     {
         $this->creator = $creator;
         return $this;
     }
 
-    public function getAssignee(): User
+    public function getAssignee(): ?User
     {
         return $this->assignee;
     }
 
-    public function setAssignee(User $assignee): static
+    public function setAssignee(?User $assignee): static
     {
         $this->assignee = $assignee;
         return $this;

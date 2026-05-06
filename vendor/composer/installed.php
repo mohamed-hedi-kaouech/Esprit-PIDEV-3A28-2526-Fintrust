@@ -3,7 +3,11 @@
         'name' => '__root__',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
+<<<<<<< HEAD
         'reference' => 'f5d608c36df635fc9299e5085753a480f4b1565c',
+=======
+        'reference' => '1b4b56b9989ca9d94a2c26855cebc0927a7df1d9',
+>>>>>>> gs-users
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +17,11 @@
         '__root__' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
+<<<<<<< HEAD
             'reference' => 'f5d608c36df635fc9299e5085753a480f4b1565c',
+=======
+            'reference' => '1b4b56b9989ca9d94a2c26855cebc0927a7df1d9',
+>>>>>>> gs-users
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -435,6 +443,15 @@
             'install_path' => __DIR__ . '/../phpstan/phpdoc-parser',
             'aliases' => array(),
             'dev_requirement' => false,
+        ),
+        'phpstan/phpstan' => array(
+            'pretty_version' => '2.1.53',
+            'version' => '2.1.53.0',
+            'reference' => 'ef67586798c003274797b288a68b221e4270dca7',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpstan/phpstan',
+            'aliases' => array(),
+            'dev_requirement' => true,
         ),
         'phpunit/php-code-coverage' => array(
             'pretty_version' => '9.2.32',

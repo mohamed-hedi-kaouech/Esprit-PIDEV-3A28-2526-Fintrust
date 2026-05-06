@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>FinTrust Admin Report</title>
+  <style>
+    @page { margin: 22px 18px; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "DejaVu Sans", Arial, sans-serif;
+      font-size: 11px;
+      color: #10224f;
+      background: #ffffff;
+    }
+    .hero {
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #0f2f78, #2166f3 58%, #4e46e5);
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+    .hero-kicker {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.18);
+      margin-bottom: 10px;
+    }
+    .hero-title {
+      font-size: 26px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+    .hero-copy {
+      font-size: 12px;
+      line-height: 1.65;
+      margin: 0;
+      max-width: 520px;
+      color: rgba(245, 248, 255, .96);
+    }
+    .meta {
+      margin-top: 12px;
+      font-size: 10px;
+      color: rgba(255,255,255,.86);
+    }
+    .section {
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #12326f;
+      margin: 0 0 10px;
+      padding-left: 10px;
+      border-left: 4px solid #2166f3;
+    }
+    .kpi-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 8px;
+      margin: 0 -8px;
+    }
+    .kpi-card {
+      width: 25%;
+      border: 1px solid #dbe7ff;
+      background: #f8fbff;
+      border-radius: 14px;
+      padding: 12px;
+      vertical-align: top;
+    }
+    .kpi-label {
+      color: #7287af;
+      font-size: 9px;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #10224f;
+    }
+    .kpi-note {
+      font-size: 10px;
+      color: #5f7399;
+      margin-top: 6px;
+    }
+    .two-cols {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 10px;
+      margin: 0 -10px;
+    }
+    .panel {
+      width: 50%;
+      border: 1px solid #dde7fb;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 12px;
+      vertical-align: top;
+    }
+    .panel-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #173876;
+      margin-bottom: 10px;
+    }
+    .list-line {
+      margin: 0 0 6px;
+      line-height: 1.55;
+      color: #43597f;
+    }
+    .list-line strong {
+      color: #10224f;
+    }
+    .bar-wrap {
+      margin-top: 8px;
+      background: #e9f1ff;
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .bar {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #2166f3, #4e46e5);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead th {
+      background: #0f2f78;
+      color: #ffffff;
+      text-align: left;
+      padding: 8px 7px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    tbody td {
+      padding: 7px;
+      border-bottom: 1px solid #e8eefb;
+      vertical-align: top;
+      color: #31476e;
+    }
+    tbody tr:nth-child(even) td {
+      background: #f9fbff;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: 700;
+    }
+    .danger { color: #bf1e3f; background: #ffe4ea; }
+    .warning { color: #b86a00; background: #fff0d5; }
+    .success { color: #18895d; background: #def8eb; }
+    .info { color: #1c56d7; background: #e5eeff; }
+    .secondary { color: #5b68a1; background: #eef2ff; }
+    .mini-card {
+      border: 1px solid #e1e9fb;
+      border-radius: 14px;
+      background: #fbfdff;
+      padding: 10px 11px;
+      margin-bottom: 8px;
+    }
+    .mini-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #153474;
+      margin: 0 0 4px;
+    }
+    .muted {
+      color: #7184a8;
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="hero-kicker">FinTrustAdminReportBundle</div>
+    <h1 class="hero-title">Rapport intelligent administration</h1>
+    <p class="hero-copy">
+      Rapport PDF intelligent pour l'administration FinTrust, centralisant les indicateurs utilisateurs,
+      KYC, alertes, securite et recommandations actionnables.
+    </p>
+    <div class="meta">Genere le {{ report.generatedAt|date('d/m/Y H:i') }}</div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">1. Resume global admin</h2>
+    <table class="kpi-grid">
+      <tr>
+        <td class="kpi-card">
+          <div class="kpi-label">Total utilisateurs</div>
+          <div class="kpi-value">{{ report.summary.totalUsers }}</div>
+          <div class="kpi-note">Vue plateforme globale</div>
+        </td>
+        <td class="kpi-card">
+          <div class="kpi-label">Actifs / Inactifs</div>
+          <div class="kpi-value">{{ report.summary.activeUsers }}/{{ report.summary.inactiveUsers }}</div>
+          <div class="kpi-note">Comptes suivis actuellement</div>
+        </td>
+        <td class="kpi-card">
+          <div class="kpi-label">KYC approuves</div>
+          <div class="kpi-value">{{ report.summary.kycApproved }}</div>
+          <div class="kpi-note">{{ report.summary.kycPending }} en attente · {{ report.summary.kycRejected }} refuses</div>
+        </td>
+        <td class="kpi-card">
+          <div class="kpi-label">Alertes importantes</div>
+          <div class="kpi-value">{{ report.summary.importantAlerts }}</div>
+          <div class="kpi-note">Alertes budgetaires actives</div>
+        </td>
+      </tr>
+    </table>
+  </section>
+
+  <section class="section">
+    <table class="two-cols">
+      <tr>
+        <td class="panel">
+          <div class="panel-title">Synthese KYC</div>
+          <p class="list-line">En attente <strong>{{ report.kycOverview.pending }}</strong></p>
+          <p class="list-line">Approuves <strong>{{ report.kycOverview.approved }}</strong></p>
+          <p class="list-line">Refuses <strong>{{ report.kycOverview.refused }}</strong></p>
+          <p class="list-line">Approuves aujourd'hui <strong>{{ report.kycOverview.approvedToday }}</strong></p>
+          <p class="list-line">Temps moyen traitement <strong>{{ report.kycOverview.avgProcessingMinutes }} min</strong></p>
+        </td>
+        <td class="panel">
+          <div class="panel-title">Patterns de risque</div>
+          <p class="list-line">Low <strong>{{ report.riskPatterns.distribution.LOW }}</strong></p>
+          <p class="list-line">Medium <strong>{{ report.riskPatterns.distribution.MEDIUM }}</strong></p>
+          <p class="list-line">High <strong>{{ report.riskPatterns.distribution.HIGH }}</strong></p>
+          <p class="list-line">Critical <strong>{{ report.riskPatterns.distribution.CRITICAL }}</strong></p>
+          <div class="bar-wrap"><div class="bar" style="width: {{ report.summary.totalUsers > 0 ? ((report.riskPatterns.distribution.HIGH + report.riskPatterns.distribution.CRITICAL) / report.summary.totalUsers * 100)|round(0, 'floor') : 0 }}%"></div></div>
+        </td>
+      </tr>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">2. Analyse des utilisateurs</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Bloc</th>
+          <th>Nom</th>
+          <th>Segment / Statut</th>
+          <th>Signal principal</th>
+          <th>Action recommandee</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in report.analysis.atRiskUsers %}
+          <tr>
+            <td><span class="badge danger">Risque</span></td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.segment }} · {{ item.kycStatus }}</td>
+            <td>{{ item.mainSignal }}</td>
+            <td>{{ item.actionTitle }}</td>
+          </tr>
+        {% endfor %}
+        {% for user in report.analysis.latestUsers %}
+          <tr>
+            <td><span class="badge info">Nouveau</span></td>
+            <td>{{ user.fullName }}</td>
+            <td>{{ user.clientSegment }} · {{ user.status }}</td>
+            <td>Inscription recente</td>
+            <td>Onboarding et verification initiale</td>
+          </tr>
+        {% endfor %}
+        {% for user in report.analysis.blockedUsers %}
+          <tr>
+            <td><span class="badge warning">Bloque</span></td>
+            <td>{{ user.fullName }}</td>
+            <td>{{ user.clientSegment }} · {{ user.status }}</td>
+            <td>Compte suspendu</td>
+            <td>Relecture admin ou recontact</td>
+          </tr>
+        {% endfor %}
+        {% for user in report.analysis.nonVerifiedUsers %}
+          <tr>
+            <td><span class="badge secondary">Non verifie</span></td>
+            <td>{{ user.fullName }}</td>
+            <td>{{ user.clientSegment }} · {{ user.kycStatus ?? 'NON_SOUMIS' }}</td>
+            <td>Verification ou KYC incomplet</td>
+            <td>Relance et accompagnement</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">3. Securite & conformite</h2>
+    <table class="two-cols">
+      <tr>
+        <td class="panel">
+          <div class="panel-title">Dernieres connexions suspectes</div>
+          {% for login in report.security.suspiciousLogins %}
+            <div class="mini-card">
+              <div class="mini-title">{{ login.userName }}</div>
+              <div class="muted">{{ login.city ?? 'Ville inconnue' }}, {{ login.country ?? 'Pays inconnu' }}</div>
+              <div class="muted">{{ login.isp ?? 'Source reseau indisponible' }} · {{ login.checkedAt|date('d/m/Y H:i') }}</div>
+            </div>
+          {% else %}
+            <div class="muted">Aucune connexion de securite recente disponible.</div>
+          {% endfor %}
+        </td>
+        <td class="panel">
+          <div class="panel-title">Changements de localisation</div>
+          {% for location in report.security.locationChanges %}
+            <div class="mini-card">
+              <div class="mini-title">{{ location.userName }}</div>
+              <div class="muted">{{ location.detail ?? location.label ?? 'Position navigateur' }}</div>
+              <div class="muted">{{ location.coordinates ?? '' }}{% if location.accuracy is defined %} · precision {{ location.accuracy }} m{% endif %}</div>
+            </div>
+          {% else %}
+            <div class="muted">Aucune localisation recente disponible.</div>
+          {% endfor %}
+        </td>
+      </tr>
+    </table>
+    <table class="two-cols">
+      <tr>
+        <td class="panel">
+          <div class="panel-title">Comptes desactives / a revoir</div>
+          {% for hypothesis in report.security.deactivatedAccounts %}
+            <div class="mini-card">
+              <div class="mini-title">{{ hypothesis.name }}</div>
+              <div class="muted">{{ hypothesis.mainHypothesis }}</div>
+              <div class="muted">{{ hypothesis.recommendedAction }}</div>
+            </div>
+          {% else %}
+            <div class="muted">Aucune hypothese critique de desactivation.</div>
+          {% endfor %}
+        </td>
+        <td class="panel">
+          <div class="panel-title">Dossiers KYC incomplets</div>
+          {% for kyc in report.security.incompleteKyc %}
+            <div class="mini-card">
+              <div class="mini-title">{{ kyc.user.fullName }}</div>
+              <div class="muted">Statut {{ kyc.statut }} · soumis le {{ kyc.dateSubmission|date('d/m/Y H:i') }}</div>
+              <div class="muted">CIN {{ kyc.cin }}</div>
+            </div>
+          {% else %}
+            <div class="muted">Aucun dossier KYC incomplet prioritaire.</div>
+          {% endfor %}
+        </td>
+      </tr>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">4. Recommandations intelligentes</h2>
+    {% for recommendation in report.recommendations %}
+      <div class="mini-card">
+        <div class="mini-title">{{ recommendation.title }}</div>
+        <div class="muted">{{ recommendation.detail }}</div>
+      </div>
+    {% endfor %}
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">Alertes importantes & support</h2>
+    <table class="two-cols">
+      <tr>
+        <td class="panel">
+          <div class="panel-title">Alertes budgetaires recentes</div>
+          {% for alerte in report.alerts %}
+            <div class="mini-card">
+              <div class="mini-title">{{ alerte.categorie.nomCategorie ?? ('Categorie #' ~ alerte.idCategorie) }}</div>
+              <div class="muted">{{ alerte.message }}</div>
+              <div class="muted">Seuil {{ alerte.seuil|number_format(2, ',', ' ') }} DT · {{ alerte.createdAt|date('d/m/Y H:i') }}</div>
+            </div>
+          {% else %}
+            <div class="muted">Aucune alerte budgetaire recente.</div>
+          {% endfor %}
+        </td>
+        <td class="panel">
+          <div class="panel-title">Support & signaux admin</div>
+          <p class="list-line">Temps moyen de traitement <strong>{{ report.supportInsights.averageResolutionTime }}</strong></p>
+          <p class="list-line">Top categories support :</p>
+          {% for item in report.supportInsights.topCategories %}
+            <p class="list-line">{{ item.label }} <strong>{{ item.count }}</strong></p>
+          {% endfor %}
+          <p class="muted" style="margin-top:10px;">{{ report.supportInsights.serviceNote }}</p>
+        </td>
+      </tr>
+    </table>
+  </section>
+</body>
+</html>

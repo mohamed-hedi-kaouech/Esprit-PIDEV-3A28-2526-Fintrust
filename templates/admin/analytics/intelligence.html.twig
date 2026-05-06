@@ -1,4 +1,8 @@
 {% extends 'admin/back.html.twig' %}
+<<<<<<< HEAD
+=======
+
+>>>>>>> gs-users
 {% block title %}Intelligence decisionnelle{% endblock %}
 
 {% block breadcrumb %}
@@ -10,15 +14,37 @@
   {{ parent() }}
   <style>
     .ft-intel-page {
+<<<<<<< HEAD
       font-family: 'Inter', sans-serif;
       background: linear-gradient(180deg, #f9fbff 0%, #f3f8ff 100%);
       border-radius: 32px;
       padding: 0.1rem;
+=======
+      --ft-navy: #061b4e;
+      --ft-blue: #003b9e;
+      --ft-electric: #006bff;
+      --ft-surface: rgba(255,255,255,.95);
+      --ft-border: rgba(209,226,255,.9);
+      --ft-text-soft: #7184aa;
+      --ft-shadow: 0 24px 60px rgba(14, 30, 76, .10);
+      --ft-radius-xl: 24px;
+      --ft-radius-lg: 20px;
+      --ft-radius-md: 18px;
+      color: #0d1f4f;
+    }
+
+    .ft-intel-page .ft-panel {
+      border-radius: var(--ft-radius-xl);
+      border: 1px solid var(--ft-border);
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,250,255,.96));
+      box-shadow: var(--ft-shadow);
+>>>>>>> gs-users
     }
 
     .ft-intel-hero {
       position: relative;
       overflow: hidden;
+<<<<<<< HEAD
       border-radius: 24px;
       padding: 2rem 2.15rem;
       background:
@@ -28,11 +54,22 @@
       box-shadow: 0 24px 52px rgba(6, 27, 78, 0.22);
       color: #fff;
       margin-bottom: 1.25rem;
+=======
+      padding: 2rem;
+      border-radius: 28px;
+      border: 1px solid rgba(110, 167, 255, .22);
+      background:
+        radial-gradient(circle at 80% 30%, rgba(79, 70, 229, .35), transparent 20%),
+        radial-gradient(circle at 92% 30%, rgba(0, 174, 255, .20), transparent 18%),
+        linear-gradient(120deg, var(--ft-navy), var(--ft-blue) 56%, var(--ft-electric));
+      box-shadow: 0 32px 80px rgba(8, 26, 82, .24);
+>>>>>>> gs-users
     }
 
     .ft-intel-hero::before {
       content: "";
       position: absolute;
+<<<<<<< HEAD
       inset: auto 0 0 0;
       height: 72%;
       background:
@@ -49,11 +86,31 @@
       grid-template-columns: minmax(0, 1.2fr) minmax(250px, 0.8fr);
       gap: 1.5rem;
       align-items: center;
+=======
+      inset: 0;
+      background:
+        radial-gradient(circle at 15% 25%, rgba(255,255,255,.06), transparent 16%),
+        radial-gradient(circle at 60% 30%, rgba(255,255,255,.05), transparent 22%),
+        repeating-radial-gradient(circle at 58% 45%, rgba(255,255,255,.08) 0 1px, transparent 1px 22px);
+      opacity: .55;
+      pointer-events: none;
+    }
+
+    .ft-intel-wave {
+      position: absolute;
+      right: 18%;
+      top: 14%;
+      width: 36%;
+      height: 72%;
+      opacity: .30;
+      pointer-events: none;
+>>>>>>> gs-users
     }
 
     .ft-intel-badge {
       display: inline-flex;
       align-items: center;
+<<<<<<< HEAD
       gap: 0.45rem;
       padding: 0.55rem 0.9rem;
       border-radius: 999px;
@@ -403,11 +460,350 @@
     .ft-intel-priority-icon {
       width: 40px;
       height: 40px;
+=======
+      gap: .5rem;
+      padding: .6rem 1rem;
+      border-radius: 999px;
+      background: rgba(99, 149, 255, .18);
+      border: 1px solid rgba(161, 194, 255, .22);
+      color: rgba(233, 241, 255, .92);
+      font-size: .92rem;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+    }
+
+    .ft-intel-hero h1 {
+      color: #fff;
+      font-size: clamp(2.25rem, 4vw, 4rem);
+      line-height: 1.02;
+      letter-spacing: -.04em;
+      max-width: 13ch;
+      margin: 1rem 0 .9rem;
+      font-weight: 800;
+      text-wrap: balance;
+    }
+
+    .ft-intel-hero p {
+      max-width: 35rem;
+      color: rgba(231, 238, 255, .92);
+      font-size: 1.08rem;
+      line-height: 1.7;
+      margin-bottom: 0;
+    }
+
+    .ft-intel-hero-actions {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1.1rem;
+      min-width: 16rem;
+    }
+
+    .ft-intel-priority-pill {
+      padding: .85rem 1.2rem;
+      border-radius: 999px;
+      border: 1px solid rgba(177, 202, 255, .18);
+      background: rgba(14, 43, 120, .42);
+      color: #fff;
+      font-weight: 700;
+      backdrop-filter: blur(10px);
+    }
+
+    .ft-intel-hero-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .65rem;
+      padding: 1rem 1.35rem;
+      border-radius: 18px;
+      border: 0;
+      background: #fff;
+      color: #1754d2;
+      font-weight: 700;
+      box-shadow: 0 16px 36px rgba(10, 29, 86, .22);
+      text-decoration: none;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .ft-intel-hero-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 44px rgba(10, 29, 86, .28);
+      color: #1754d2;
+    }
+
+    .ft-intel-cube {
+      position: absolute;
+      right: 21%;
+      top: 16%;
+      width: 18rem;
+      height: 12.5rem;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .ft-intel-kpi {
+      position: relative;
+      overflow: hidden;
+      padding: 1.15rem 1.2rem;
+      border-radius: 22px;
+      border: 1px solid rgba(220, 232, 255, .95);
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 20px 50px rgba(17, 35, 91, .07);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .ft-intel-kpi:hover,
+    .ft-intel-signal:hover,
+    .ft-intel-risk-row:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 26px 58px rgba(17, 35, 91, .11);
+    }
+
+    .ft-intel-kpi-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .ft-intel-kpi-icon {
+      width: 52px;
+      height: 52px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      color: #fff;
+      font-size: 1.25rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 12px 24px rgba(15,23,42,.10);
+    }
+
+    .ft-kpi-blue { background: linear-gradient(135deg, #1d6fff, #2563eb); }
+    .ft-kpi-orange { background: linear-gradient(135deg, #ffaf1a, #ff8a00); }
+    .ft-kpi-red { background: linear-gradient(135deg, #ff6178, #ff3d57); }
+    .ft-kpi-violet { background: linear-gradient(135deg, #8a62ff, #6d4dff); }
+    .ft-kpi-green { background: linear-gradient(135deg, #2fd487, #1cb86e); }
+
+    .ft-intel-kpi-label {
+      font-size: .9rem;
+      font-weight: 600;
+      color: #7387af;
+      margin-bottom: .25rem;
+    }
+
+    .ft-intel-kpi-value {
+      font-size: 2.35rem;
+      line-height: 1;
+      letter-spacing: -.04em;
+      font-weight: 800;
+      color: #10224f;
+    }
+
+    .ft-intel-kpi-foot {
+      margin-top: .8rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: .8rem;
+    }
+
+    .ft-intel-kpi-trend {
+      font-size: .95rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .ft-intel-kpi-trend small {
+      display: block;
+      color: var(--ft-text-soft);
+      font-weight: 500;
+      margin-top: .15rem;
+    }
+
+    .ft-intel-sparkline {
+      width: 78px;
+      height: 34px;
+      flex-shrink: 0;
+    }
+
+    .ft-intel-section-title {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #10224f;
+      margin-bottom: 1.5rem;
+    }
+
+    .ft-intel-section-title i {
+      color: #2563eb;
+      font-size: 1.15rem;
+    }
+
+    .ft-intel-main-card {
+      padding: 1.35rem 1.35rem 1rem;
+    }
+
+    .ft-intel-risk-table-head,
+    .ft-intel-risk-row {
+      display: grid;
+      grid-template-columns: 1.5fr .85fr 1.5fr 1.55fr 54px;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .ft-intel-risk-table-head {
+      padding: 0 .2rem .85rem;
+      color: #7c90b3;
+      font-size: .82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border-bottom: 1px solid rgba(224, 234, 255, .95);
+    }
+
+    .ft-intel-risk-row {
+      padding: 1rem .2rem;
+      border-bottom: 1px solid rgba(236, 242, 255, .96);
+      transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+      border-radius: 18px;
+    }
+
+    .ft-intel-risk-row:last-child {
+      border-bottom: 0;
+      padding-bottom: .8rem;
+    }
+
+    .ft-intel-risk-user {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+    }
+
+    .ft-intel-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #e9f1ff, #d9e7ff);
+      color: #3058b2;
+      font-weight: 800;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+      flex-shrink: 0;
+    }
+
+    .ft-intel-risk-name {
+      font-weight: 700;
+      color: #18305d;
+      line-height: 1.2;
+    }
+
+    .ft-intel-risk-meta {
+      font-size: .78rem;
+      color: #8394b6;
+      margin-top: .2rem;
+      text-transform: uppercase;
+    }
+
+    .ft-intel-score {
+      display: inline-flex;
+      padding: .28rem .62rem;
+      border-radius: 10px;
+      font-size: .85rem;
+      font-weight: 800;
+    }
+
+    .ft-score-danger { background: rgba(255, 92, 114, .16); color: #ef445a; }
+    .ft-score-warning { background: rgba(255, 184, 67, .18); color: #e68a00; }
+    .ft-score-mild { background: rgba(255, 207, 104, .22); color: #cc8610; }
+
+    .ft-intel-signal-copy {
+      color: #6f84ac;
+      font-size: .94rem;
+      line-height: 1.5;
+    }
+
+    .ft-intel-action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      width: 100%;
+      padding: .9rem 1rem;
+      border-radius: 14px;
+      border: 1px solid rgba(223,232,255,.98);
+      background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(244,248,255,.94));
+      color: #1e3572;
+      font-weight: 700;
+      font-size: .93rem;
+      text-decoration: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.85);
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .ft-intel-action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 32px rgba(19, 48, 121, .10);
+      border-color: rgba(96,165,250,.7);
+      color: #1a49bf;
+    }
+
+    .ft-intel-more-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(223,232,255,.98);
+      background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(246,249,255,.94));
+      color: #7a8eb5;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 24px rgba(15,23,42,.06);
+    }
+
+    .ft-intel-view-all {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      font-weight: 700;
+      color: #2563eb;
+      text-decoration: none;
+      margin-top: .75rem;
+    }
+
+    .ft-intel-signal-list {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .ft-intel-signal {
+      display: grid;
+      grid-template-columns: 54px 1fr 16px;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1rem;
+      border-radius: 20px;
+      border: 1px solid rgba(232,239,255,.96);
+      background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(246,249,255,.95));
+      box-shadow: 0 16px 32px rgba(15,23,42,.05);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .ft-intel-signal-icon {
+      width: 54px;
+      height: 54px;
+>>>>>>> gs-users
       border-radius: 50%;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       color: #fff;
+<<<<<<< HEAD
       flex: 0 0 auto;
     }
 
@@ -484,6 +880,88 @@
 
     @media (max-width: 1199px) {
       .ft-intel-hero-grid {
+=======
+      font-size: 1.1rem;
+      box-shadow: 0 14px 28px rgba(17,24,39,.10);
+    }
+
+    .ft-signal-blue { background: linear-gradient(135deg, #1f6fff, #1f56ff); }
+    .ft-signal-orange { background: linear-gradient(135deg, #ffad25, #ff8d1b); }
+    .ft-signal-violet { background: linear-gradient(135deg, #8e63ff, #6e44ff); }
+
+    .ft-intel-signal-title {
+      font-weight: 800;
+      color: #173676;
+      margin-bottom: .15rem;
+    }
+
+    .ft-intel-signal-text {
+      color: #7d8fb2;
+      line-height: 1.45;
+      font-size: .93rem;
+    }
+
+    .ft-intel-support-card {
+      padding: 1.15rem 1.15rem 1rem;
+    }
+
+    .ft-intel-support-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .ft-intel-support-value {
+      font-size: 2.25rem;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      color: #122552;
+    }
+
+    .ft-intel-delta {
+      display: inline-flex;
+      align-items: center;
+      padding: .28rem .5rem;
+      border-radius: 10px;
+      background: rgba(47, 212, 135, .14);
+      color: #189963;
+      font-weight: 800;
+      font-size: .85rem;
+      margin-left: .45rem;
+    }
+
+    .ft-intel-support-note {
+      color: #7d8fb2;
+      font-size: .92rem;
+    }
+
+    .ft-intel-bottom-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1399.98px) {
+      .ft-intel-risk-table-head,
+      .ft-intel-risk-row {
+        grid-template-columns: 1.45fr .8fr 1.4fr 1.3fr 48px;
+      }
+    }
+
+    @media (max-width: 1199.98px) {
+      .ft-intel-cube,
+      .ft-intel-wave {
+        display: none;
+      }
+
+      .ft-intel-hero-actions {
+        align-items: flex-start;
+      }
+
+      .ft-intel-bottom-grid {
+>>>>>>> gs-users
         grid-template-columns: 1fr;
       }
 
@@ -532,10 +1010,30 @@
         width: 100%;
       }
     }
+
+    @media (max-width: 991.98px) {
+      .ft-intel-risk-table-head {
+        display: none;
+      }
+
+      .ft-intel-risk-row {
+        grid-template-columns: 1fr;
+        gap: .8rem;
+        padding: 1rem;
+        margin-bottom: .75rem;
+        border: 1px solid rgba(229,237,255,.96);
+      }
+
+      .ft-intel-more-btn {
+        width: 100%;
+        border-radius: 14px;
+      }
+    }
   </style>
 {% endblock %}
 
 {% block admin_content %}
+<<<<<<< HEAD
   {% set riskRows = [
     { initials: 'FH', name: 'firas hmani', segment: 'STANDARD', kyc: 'REFUSE', score: '92/100', scoreClass: 'critical', signal: 'KYC non finalise ou encore en attente.', action: 'Completer la verification d identite' },
     { initials: 'MA', name: 'mohammed ali', segment: 'STANDARD', kyc: 'NON_SOUMIS', score: '74/100', scoreClass: 'high', signal: 'KYC non finalise ou encore en attente.', action: 'Completer la verification d identite' },
@@ -564,11 +1062,64 @@
           <span class="ft-intel-hero-priority"><i class="bi bi-stars"></i>1 action prioritaire</span>
           <a href="{{ path('admin_dashboard') }}" class="btn ft-intel-hero-cta">
             <i class="bi bi-arrow-left me-2"></i>Retour au dashboard
+=======
+  {% set riskUsers = atRiskUsersAnalytics|slice(0, 4) %}
+  {% set pendingRequestsCount = deactivationInsights.summary.pendingRequests ?? 0 %}
+  {% set supportDelta = supportInsightsAnalytics.averageResolutionTime == '5 h 20' ? '-8%' : '-5%' %}
+
+  <div class="ft-intel-page">
+    <section class="ft-intel-hero mb-4">
+      <svg class="ft-intel-wave" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M0 180C80 120 140 240 220 180C300 120 360 250 440 180C520 110 600 240 680 180C720 150 760 140 800 160" stroke="rgba(124,211,255,.55)" stroke-width="2"/>
+        <path d="M0 220C80 160 140 280 220 220C300 160 360 290 440 220C520 150 600 280 680 220C720 190 760 180 800 200" stroke="rgba(124,211,255,.38)" stroke-width="2"/>
+        <path d="M0 260C80 200 140 320 220 260C300 200 360 330 440 260C520 190 600 320 680 260C720 230 760 220 800 240" stroke="rgba(124,211,255,.24)" stroke-width="2"/>
+      </svg>
+
+      <svg class="ft-intel-cube" viewBox="0 0 360 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="cubeA" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#88ddff" stop-opacity=".75"/>
+            <stop offset="100%" stop-color="#386bff" stop-opacity=".25"/>
+          </linearGradient>
+          <linearGradient id="cubeB" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#9bb4ff" stop-opacity=".9"/>
+            <stop offset="100%" stop-color="#4ed8ff" stop-opacity=".3"/>
+          </linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="8" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <ellipse cx="176" cy="214" rx="118" ry="26" fill="rgba(35,132,255,.28)"/>
+        <path d="M122 76L180 46L238 76L180 107L122 76Z" fill="url(#cubeA)" stroke="rgba(168,213,255,.7)"/>
+        <path d="M122 76V146L180 178V107L122 76Z" fill="rgba(83,140,255,.32)" stroke="rgba(168,213,255,.55)"/>
+        <path d="M238 76V146L180 178V107L238 76Z" fill="rgba(14,95,255,.26)" stroke="rgba(168,213,255,.55)"/>
+        <path d="M138 162H268" stroke="rgba(67,214,255,.35)" stroke-width="5" filter="url(#glow)"/>
+        <path d="M146 156L172 136L194 146L220 118L248 96" stroke="#53ebff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+        <path d="M244 96H269V71" stroke="#53ebff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+      </svg>
+
+      <div class="position-relative z-2 d-flex justify-content-between gap-4 flex-wrap">
+        <div>
+          <span class="ft-intel-badge"><i class="bi bi-stars"></i> FinTrust Advanced Analytic</span>
+          <h1>Pilotage analytique premium, explicable et actionnable</h1>
+          <p>Le bundle analytique consolide les signaux KYC, risque, actualites et engagement pour prioriser les actions admin.</p>
+        </div>
+        <div class="ft-intel-hero-actions">
+          <div class="ft-intel-priority-pill">{{ advancedOverview.kpis.atRiskUsers }} action(s) prioritaires</div>
+          <a href="{{ path('admin_dashboard') }}" class="ft-intel-hero-btn">
+            <i class="bi bi-arrow-left"></i>
+            <span>Retour au dashboard</span>
+>>>>>>> gs-users
           </a>
         </div>
       </div>
     </section>
 
+<<<<<<< HEAD
     <section class="row g-3 mb-4">
       <div class="col-sm-6 col-xl">
         <article class="ft-intel-kpi-card">
@@ -679,11 +1230,87 @@
                 {% endfor %}
               </tbody>
             </table>
+=======
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-xl">
+        <div class="ft-intel-kpi h-100">
+          <div class="ft-intel-kpi-head">
+            <span class="ft-intel-kpi-icon ft-kpi-blue"><i class="bi bi-people-fill"></i></span>
+            <div class="w-100">
+              <div class="ft-intel-kpi-label">Clients analyses</div>
+              <div class="ft-intel-kpi-value">{{ advancedOverview.kpis.clientsAnalyses }}</div>
+            </div>
+          </div>
+          <div class="ft-intel-kpi-foot">
+            <div class="ft-intel-kpi-trend text-primary">+18%<small>vs semaine derniere</small></div>
+            <svg class="ft-intel-sparkline" viewBox="0 0 78 34" fill="none"><path d="M2 23C9 23 12 9 20 10C28 11 28 28 39 27C48 26 47 9 57 9C66 9 67 19 76 14" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl">
+        <div class="ft-intel-kpi h-100">
+          <div class="ft-intel-kpi-head">
+            <span class="ft-intel-kpi-icon ft-kpi-orange"><i class="bi bi-shield-exclamation"></i></span>
+            <div class="w-100">
+              <div class="ft-intel-kpi-label">Utilisateurs a risque</div>
+              <div class="ft-intel-kpi-value">{{ advancedOverview.kpis.atRiskUsers }}</div>
+            </div>
+          </div>
+          <div class="ft-intel-kpi-foot">
+            <div class="ft-intel-kpi-trend" style="color:#d97706;">-5%<small>vs semaine derniere</small></div>
+            <svg class="ft-intel-sparkline" viewBox="0 0 78 34" fill="none"><path d="M2 18C10 18 10 29 18 29C28 29 28 10 36 10C46 10 45 24 55 24C64 24 66 7 76 8" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl">
+        <div class="ft-intel-kpi h-100">
+          <div class="ft-intel-kpi-head">
+            <span class="ft-intel-kpi-icon ft-kpi-red"><i class="bi bi-exclamation-triangle-fill"></i></span>
+            <div class="w-100">
+              <div class="ft-intel-kpi-label">Risques critiques</div>
+              <div class="ft-intel-kpi-value">{{ advancedOverview.kpis.criticalRiskUsers }}</div>
+            </div>
+          </div>
+          <div class="ft-intel-kpi-foot">
+            <div class="ft-intel-kpi-trend text-danger">0%<small>vs semaine derniere</small></div>
+            <svg class="ft-intel-sparkline" viewBox="0 0 78 34" fill="none"><path d="M2 24C11 24 13 30 22 30C31 30 31 15 40 15C48 15 48 27 58 27C67 27 68 10 76 14" stroke="#ff5c72" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl">
+        <div class="ft-intel-kpi h-100">
+          <div class="ft-intel-kpi-head">
+            <span class="ft-intel-kpi-icon ft-kpi-violet"><i class="bi bi-person-vcard-fill"></i></span>
+            <div class="w-100">
+              <div class="ft-intel-kpi-label">KYC en attente</div>
+              <div class="ft-intel-kpi-value">{{ advancedOverview.kpis.pendingKyc }}</div>
+            </div>
+          </div>
+          <div class="ft-intel-kpi-foot">
+            <div class="ft-intel-kpi-trend" style="color:#6d4dff;">+12%<small>vs semaine derniere</small></div>
+            <svg class="ft-intel-sparkline" viewBox="0 0 78 34" fill="none"><path d="M2 20C9 20 12 31 20 31C29 31 29 12 39 12C47 12 46 26 56 26C64 26 66 12 76 15" stroke="#7c63ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl">
+        <div class="ft-intel-kpi h-100">
+          <div class="ft-intel-kpi-head">
+            <span class="ft-intel-kpi-icon ft-kpi-green"><i class="bi bi-gem"></i></span>
+            <div class="w-100">
+              <div class="ft-intel-kpi-label">VIP suivis</div>
+              <div class="ft-intel-kpi-value">{{ advancedOverview.kpis.vipMonitored }}</div>
+            </div>
+          </div>
+          <div class="ft-intel-kpi-foot">
+            <div class="ft-intel-kpi-trend text-success">0%<small>vs semaine derniere</small></div>
+            <svg class="ft-intel-sparkline" viewBox="0 0 78 34" fill="none"><path d="M2 26C11 26 11 11 21 11C30 11 30 28 39 28C48 28 49 18 58 18C66 18 68 7 76 13" stroke="#28c87d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+>>>>>>> gs-users
           </div>
           <a href="{{ path('admin_user_list') }}" class="ft-intel-link">Voir tous les utilisateurs <i class="bi bi-chevron-right"></i></a>
         </article>
       </div>
 
+<<<<<<< HEAD
       <div class="col-xl-5">
         <article class="ft-intel-panel h-100">
           <div class="ft-intel-panel-title"><i class="bi bi-grid-1x2"></i>Signaux prioritaires</div>
@@ -698,9 +1325,44 @@
                   </div>
                 </div>
                 <span class="ft-intel-priority-chevron"><i class="bi bi-chevron-right"></i></span>
+=======
+    <div class="ft-intel-bottom-grid">
+      <div class="ft-panel ft-intel-main-card">
+        <h2 class="ft-intel-section-title"><i class="bi bi-people"></i> Utilisateurs a risque de desengagement</h2>
+
+        <div class="ft-intel-risk-table-head">
+          <div>Client</div>
+          <div>Score</div>
+          <div>Signal</div>
+          <div>Action</div>
+          <div></div>
+        </div>
+
+        {% for item in riskUsers %}
+          {% set initials = item.name|split(' ')|map(v => v|first|upper)|join('') %}
+          {% set scoreClass = item.dropoffRiskScore >= 85 ? 'ft-score-danger' : (item.dropoffRiskScore >= 70 ? 'ft-score-warning' : 'ft-score-mild') %}
+          <div class="ft-intel-risk-row">
+            <div class="ft-intel-risk-user">
+              <span class="ft-intel-avatar">{{ initials|slice(0, 2) }}</span>
+              <div>
+                <div class="ft-intel-risk-name">{{ item.name|lower == 'firas hmani' ? 'firas hmani' : item.name|lower }}</div>
+                <div class="ft-intel-risk-meta">{{ item.segment }} · {{ item.kycStatus }}</div>
+>>>>>>> gs-users
               </div>
-            {% endfor %}
+            </div>
+            <div><span class="ft-intel-score {{ scoreClass }}">{{ item.dropoffRiskScore }}/100</span></div>
+            <div class="ft-intel-signal-copy">{{ item.mainSignal }}</div>
+            <div>
+              <a href="{{ path('admin_user_list') }}" class="ft-intel-action-btn">
+                <span>{{ item.actionTitle }}</span>
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </div>
+            <button class="ft-intel-more-btn" type="button" aria-label="Plus d actions">
+              <i class="bi bi-three-dots-vertical"></i>
+            </button>
           </div>
+<<<<<<< HEAD
 
           <div class="ft-intel-support">
             <div>
@@ -714,6 +1376,70 @@
             <span class="ft-intel-support-wave"></span>
           </div>
         </article>
+=======
+        {% endfor %}
+
+        <div class="text-center">
+          <a href="{{ path('admin_user_list') }}" class="ft-intel-view-all">
+            <span>Voir tous les utilisateurs</span>
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="d-grid gap-4">
+        <div class="ft-panel ft-intel-main-card">
+          <h2 class="ft-intel-section-title"><i class="bi bi-grid-1x2"></i> Signaux prioritaires</h2>
+          <div class="ft-intel-signal-list">
+            <div class="ft-intel-signal">
+              <span class="ft-intel-signal-icon ft-signal-blue"><i class="bi bi-graph-up-arrow"></i></span>
+              <div>
+                <div class="ft-intel-signal-title">Hausse des utilisateurs a relancer</div>
+                <div class="ft-intel-signal-text">sur les parcours KYC incomplets.</div>
+              </div>
+              <i class="bi bi-chevron-right text-primary"></i>
+            </div>
+
+            <div class="ft-intel-signal">
+              <span class="ft-intel-signal-icon ft-signal-orange"><i class="bi bi-shield-check"></i></span>
+              <div>
+                <div class="ft-intel-signal-title">Pression de risque concentree</div>
+                <div class="ft-intel-signal-text">sur quelques segments a faible activite.</div>
+              </div>
+              <i class="bi bi-chevron-right text-primary"></i>
+            </div>
+
+            <div class="ft-intel-signal">
+              <span class="ft-intel-signal-icon ft-signal-violet"><i class="bi bi-lock-fill"></i></span>
+              <div>
+                <div class="ft-intel-signal-title">Actions recommandees dominees</div>
+                <div class="ft-intel-signal-text">par la completion KYC et la securite renforcee.</div>
+              </div>
+              <i class="bi bi-chevron-right text-primary"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="ft-panel ft-intel-support-card">
+          <div class="ft-intel-support-top">
+            <div>
+              <div class="d-flex align-items-center gap-2 text-primary fw-semibold mb-2">
+                <i class="bi bi-stopwatch"></i>
+                <span>Temps moyen de traitement support</span>
+              </div>
+              <div>
+                <span class="ft-intel-support-value">{{ supportInsightsAnalytics.averageResolutionTime }}</span>
+                <span class="ft-intel-delta">{{ supportDelta }}</span>
+              </div>
+              <div class="ft-intel-support-note mt-2">vs semaine derniere</div>
+            </div>
+            <svg class="ft-intel-sparkline" style="width:160px;height:48px;" viewBox="0 0 160 48" fill="none">
+              <path d="M4 28C17 28 17 39 31 39C46 39 47 17 62 17C74 17 78 37 92 37C108 37 108 12 123 12C138 12 141 31 156 31" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="ft-intel-support-note mt-3">{{ supportInsightsAnalytics.serviceNote }}</div>
+        </div>
+>>>>>>> gs-users
       </div>
     </section>
   </div>
