@@ -22,13 +22,16 @@
         <a href="{{ path('front_wallet_transfer_history') }}" class="btn ft-btn-outline-primary">
           <i class="bi bi-send me-1"></i>Transferts
         </a>
+        <a href="{{ path('front_wallet_merchant_qr_payment') }}" class="btn ft-btn-outline-primary">
+          <i class="bi bi-qr-code-scan me-1"></i>QR Pay
+        </a>
         <a href="{{ path('front_wallet_assistant') }}" class="btn ft-btn-outline-primary">
           <i class="bi bi-stars me-1"></i>Assistant
         </a>
         <a href="{{ path('front_wallet_cheques') }}" class="btn ft-btn-outline-primary">
           <i class="bi bi-receipt me-1"></i>Cheques
         </a>
-        <a href="{{ path('front_wallet_cheque_request') }}" class="btn ft-btn-primary{% if wallet and wallet.estBloque %} disabled{% endif %}">
+<a href="{{ path('front_wallet_cheque_request') }}" class="btn ft-btn-primary{% if wallet and wallet.estBloque %} disabled{% endif %}">
           <i class="bi bi-journal-plus me-1"></i>Demander un chequier
         </a>
       </div>
@@ -186,6 +189,10 @@
                 <a href="{{ path('front_wallet_transfer_new') }}" class="ft-shortcut-tile">
                   <i class="bi bi-send"></i>
                   <span>Transferer</span>
+                </a>
+                <a href="{{ path('front_wallet_merchant_qr_payment') }}" class="ft-shortcut-tile">
+                  <i class="bi bi-qr-code-scan"></i>
+                  <span>QR Pay</span>
                 </a>
                 <a href="{{ path('front_wallet_cheques') }}" class="ft-shortcut-tile">
                   <i class="bi bi-journal-text"></i>

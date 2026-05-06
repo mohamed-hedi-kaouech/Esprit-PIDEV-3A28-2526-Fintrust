@@ -1,0 +1,40 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../bin"
+		},
+		{
+			"path": "../config"
+		},
+		{
+			"path": "../migrations"
+		},
+		{
+			"path": "../public"
+		},
+		{
+			"path": "../requirements"
+		},
+		{
+			"path": "../src"
+		},
+		{
+			"path": "../templates"
+		},
+		{
+			"path": "../tests"
+		},
+		{
+			"path": "../translations"
+		},
+		{
+			"path": "../var"
+		},
+		{
+			"path": "../vendor"
+		}
+	]
+}

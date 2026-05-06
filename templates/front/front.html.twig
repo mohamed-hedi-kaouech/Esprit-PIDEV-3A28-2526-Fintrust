@@ -67,7 +67,7 @@
             </li>
 
             <li class="nav-item">
-              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') starts with 'front_wallet_' and app.request.attributes.get('_route') not in ['front_wallet_transactions', 'front_wallet_cheques', 'front_wallet_cheque_request', 'front_wallet_assistant'] and not (app.request.attributes.get('_route') starts with 'front_wallet_international_transfer_') %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_dashboard') : path('front_kyc_status') }}">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') starts with 'front_wallet_' and app.request.attributes.get('_route') not in ['front_wallet_transactions', 'front_wallet_cheques', 'front_wallet_cheque_request', 'front_wallet_assistant', 'front_wallet_voice_assistant', 'front_wallet_merchant_qr_payment'] and not (app.request.attributes.get('_route') starts with 'front_wallet_international_transfer_') %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_dashboard') : path('front_kyc_status') }}">
                 <i class="bi bi-wallet2 me-1"></i>Wallet
               </a>
             </li>
@@ -85,14 +85,26 @@
             </li>
 
             <li class="nav-item">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_wallet_merchant_qr_payment' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_merchant_qr_payment') : path('front_kyc_status') }}">
+                <i class="bi bi-qr-code-scan me-1"></i>QR Pay
+              </a>
+            </li>
+
+            <li class="nav-item">
               <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') in ['front_wallet_cheques', 'front_wallet_cheque_request'] %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_cheques') : path('front_kyc_status') }}">
                 <i class="bi bi-journal-check me-1"></i>Cheques
               </a>
             </li>
 
             <li class="nav-item">
-              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_wallet_assistant' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_assistant') : path('front_kyc_status') }}">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') in ['front_wallet_assistant', 'front_wallet_voice_assistant'] %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_assistant') : path('front_kyc_status') }}">
                 <i class="bi bi-stars me-1"></i>Assistant
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link ft-app-link {% if app.request.attributes.get('_route') == 'front_wallet_voice_assistant' %}active{% endif %}" href="{{ app.user.kycApproved ? path('front_wallet_voice_assistant') : path('front_kyc_status') }}">
+                <i class="bi bi-mic me-1"></i>Voice
               </a>
             </li>
 
@@ -225,6 +237,11 @@
                   </a>
                 </li>
                 <li>
+                  <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_wallet_merchant_qr_payment') : path('front_kyc_status') }}">
+                    <i class="bi bi-qr-code-scan me-2 text-primary"></i>Paiement QR
+                  </a>
+                </li>
+                <li>
                   <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_wallet_cheques') : path('front_kyc_status') }}">
                     <i class="bi bi-journal-check me-2 text-primary"></i>Cheques
                   </a>
@@ -232,6 +249,11 @@
                 <li>
                   <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_wallet_assistant') : path('front_kyc_status') }}">
                     <i class="bi bi-stars me-2 text-primary"></i>Assistant
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2" href="{{ app.user.kycApproved ? path('front_wallet_voice_assistant') : path('front_kyc_status') }}">
+                    <i class="bi bi-mic me-2 text-primary"></i>Assistant vocal
                   </a>
                 </li>
                 <li>
