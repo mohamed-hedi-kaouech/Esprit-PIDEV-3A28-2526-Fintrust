@@ -78,13 +78,13 @@ class KycController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        if (!$this->isCsrfTokenValid('kyc_approve_' . $id, $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('kyc_approve_' . $id, (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('admin_kyc_list');
         }
 
-        $this->kycService->approveKyc($kyc, $request->request->get('commentaire'));
+        $this->kycService->approveKyc($kyc, $request->request->get('commentaire') !== null ? (string) $request->request->get('commentaire') : null);
         $this->notificationService->notifyKycApproved($kyc->getUser());
 
         $this->addFlash('success', "✔ KYC de {$kyc->getUser()->getFullName()} approuve. Compte active.");
@@ -101,7 +101,7 @@ class KycController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        if (!$this->isCsrfTokenValid('kyc_refuse_' . $id, $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('kyc_refuse_' . $id, (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('admin_kyc_list');
@@ -119,7 +119,10 @@ class KycController extends AbstractController
         ]);
 
         if (count($errors) > 0) {
-            $this->addFlash('error', (string) $errors[0]->getMessage());
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error->getMessage());
+                break;
+            }
 
             return $this->redirectToRoute('admin_kyc_view', ['id' => $id]);
         }

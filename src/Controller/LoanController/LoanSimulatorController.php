@@ -27,7 +27,7 @@ class LoanSimulatorController extends AbstractController
     public function simulator(Request $request): Response
     {
         $loan = new Loan();
-        $loan->setInterestRate(8.25);
+        $loan->setInterestRate('8.25');
         $loan->setLoanType('PERSONNEL');
 
         $form = $this->createForm(LoanSimulatorType::class, $loan);
@@ -84,10 +84,10 @@ class LoanSimulatorController extends AbstractController
         }
 
         $loan = new Loan();
-        $loan->setAmount($data['amount']);
-        $loan->setDuration($data['duration']);
-        $loan->setInterestRate($data['interestRate']);
-        $loan->setLoanType($data['loanType']);
+        $loan->setAmount((string) $data['amount']);
+        $loan->setDuration((int) $data['duration']);
+        $loan->setInterestRate((string) $data['interestRate']);
+        $loan->setLoanType((string) $data['loanType']);
 
         $repaymentPlan  = $this->loanService->generateRepaymentPreview($loan);
         $monthlyPayment = $this->loanService->calculateMonthlyPayment($loan);
@@ -113,7 +113,7 @@ class LoanSimulatorController extends AbstractController
     #[Route('/confirm', name: 'confirm', methods: ['POST'])]
     public function confirm(Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('confirm_loan', $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('confirm_loan', (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
             return $this->redirectToRoute('loan_simulator');
         }
@@ -126,13 +126,18 @@ class LoanSimulatorController extends AbstractController
         }
 
         $loan = new Loan();
-        $loan->setAmount($data['amount']);
-        $loan->setDuration($data['duration']);
-        $loan->setInterestRate($data['interestRate']);
-        $loan->setLoanType($data['loanType']);
+        $loan->setAmount((string) $data['amount']);
+        $loan->setDuration((int) $data['duration']);
+        $loan->setInterestRate((string) $data['interestRate']);
+        $loan->setLoanType((string) $data['loanType']);
         $loan->setStatus('PENDING');
         // TODO: $loan->setUser($this->getUser()); — add after user module merge
-        $loan->setUser($this->getUser());
+        $user = $this->getUser();
+        if (!$user instanceof \App\Entity\User\User) {
+            $this->addFlash('error', 'Veuillez vous connecter.');
+            return $this->redirectToRoute('app_login');
+        }
+        $loan->setUser($user);
         $this->loanService->createLoan($loan);
 
         $request->getSession()->remove('loan_simulation');

@@ -138,7 +138,7 @@ class MarketWatchService
     private function getSessionSymbols(): array
     {
         $session = $this->requestStack->getSession();
-        $symbols = $session?->get(self::SESSION_KEY);
+        $symbols = $session->get(self::SESSION_KEY);
 
         if (!is_array($symbols) || $symbols === []) {
             $symbols = ['AAPL', 'BANKX', 'EUR/TND'];
@@ -153,7 +153,7 @@ class MarketWatchService
      */
     private function storeSessionSymbols(array $symbols): void
     {
-        $this->requestStack->getSession()?->set(self::SESSION_KEY, array_values(array_unique($symbols)));
+        $this->requestStack->getSession()->set(self::SESSION_KEY, array_values(array_unique($symbols)));
     }
 
     /**

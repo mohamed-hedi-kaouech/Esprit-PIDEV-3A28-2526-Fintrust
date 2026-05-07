@@ -233,6 +233,10 @@ class AdminWalletController extends AbstractController
 
         $response = new StreamedResponse(function () use ($wallets) {
             $handle = fopen('php://output', 'w');
+            if ($handle === false) {
+                return;
+            }
+
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, ['idWallet', 'nomProprietaire', 'email', 'telephone', 'solde', 'devise', 'statut', 'estActif', 'estBloque', 'dateCreation'], ';');
             foreach ($wallets as $wallet) {
@@ -320,8 +324,8 @@ class AdminWalletController extends AbstractController
             'analysis' => $result['analysis'],
             'model' => $result['model'],
             'analysisSource' => $result['source'],
-            'explanationSource' => $result['explanation_source'] ?? 'local',
-            'openAiAvailable' => (bool) ($result['openai_available'] ?? false),
+            'explanationSource' => $result['explanation_source'],
+            'openAiAvailable' => $result['openai_available'],
         ]);
     }
 

@@ -2,10 +2,8 @@
 
 namespace App\Controller\Product;
 
-use App\Entity\Product\ProductSubscription;
-use App\Repository\Product\ProductRepository;
+use App\Entity\User\User;
 use App\Repository\Product\ProductSubscriptionRepository;
-use App\Repository\User\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,11 +17,16 @@ final class ClientSubscriptionController extends AbstractController
         Request $request,
         ProductSubscriptionRepository $subscriptionRepo
     ): Response {
-        $user         = $this->getUser();
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $clientId     = $user->getId();
-        $typeFilter   = $request->query->get('type', '');
-        $statusFilter = $request->query->get('status', '');
-        $search       = trim($request->query->get('search', ''));
+        $typeFilter   = (string) $request->query->get('type', '');
+        $statusFilter = (string) $request->query->get('status', '');
+        $search       = trim((string) $request->query->get('search', ''));
 
         $subscriptions = $subscriptionRepo->findByFilters(
             $typeFilter,

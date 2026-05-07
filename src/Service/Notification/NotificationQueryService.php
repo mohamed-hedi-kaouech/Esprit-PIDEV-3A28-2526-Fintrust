@@ -92,6 +92,10 @@ class NotificationQueryService
     /**
      * @return array<int, array<string, mixed>>
      */
+    /**
+     * @param Notification[] $notifications
+     * @return array<int, array<string, mixed>>
+     */
     public function serializeList(array $notifications): array
     {
         return array_map(fn (Notification $notification): array => $this->formatter->toArray($notification), $notifications);

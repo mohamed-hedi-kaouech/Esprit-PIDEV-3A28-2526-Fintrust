@@ -180,7 +180,7 @@ class CategorieController extends AbstractController
                 $bestManagedCandidates,
                 static fn (array $left, array $right): int => $right['healthScore'] <=> $left['healthScore']
             );
-            $bestManaged = $bestManagedCandidates[0] ?? null;
+            $bestManaged = $bestManagedCandidates[0];
         }
 
         $rewardSnapshot = $rewardService->buildRewardSnapshot();
@@ -319,7 +319,7 @@ class CategorieController extends AbstractController
     public function delete(Request $request, Categorie $categorie): Response
     {
         if ($request->isMethod('POST')) {
-            if ($this->isCsrfTokenValid('delete' . $categorie->getIdCategorie(), $request->request->get('_token'))) {
+            if ($this->isCsrfTokenValid('delete' . $categorie->getIdCategorie(), (string) $request->request->get('_token'))) {
                 // Vérifier si la catégorie a des items associés
                 if (!$categorie->getItems()->isEmpty()) {
                     $this->addFlash('error', 'Impossible de supprimer cette categorie car elle contient des items. Supprimez d abord les items associes.');

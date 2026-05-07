@@ -46,6 +46,9 @@ class PublicationService
         $this->em->flush();
     }
 
+    /**
+     * @return array{total_publications:int,published_publications:int,total_feedbacks:int,total_comments:int}
+     */
     public function getStatistics(): array
     {
         $totalPublications = $this->publicationRepo->count([]);
@@ -64,6 +67,9 @@ class PublicationService
         ];
     }
 
+    /**
+     * @return array{comments:int,likes:int,dislikes:int,engagement_score:int}
+     */
     public function getFeedbackStatistics(): array
     {
         $repo = $this->em->getRepository(\App\Entity\User\Feedback::class);
@@ -97,6 +103,9 @@ class PublicationService
         ];
     }
 
+    /**
+     * @return list<array{label:string,count:int}>
+     */
     public function getPublicationTrend(int $months = 6): array
     {
         $startDate = (new \DateTimeImmutable())
@@ -126,6 +135,9 @@ class PublicationService
         return array_map(fn($count, $label) => ['label' => $label, 'count' => $count], $trend, array_keys($trend));
     }
 
+    /**
+     * @return list<array{category:string,publications:int,comments:int,likes:int,dislikes:int,engagement:int,publication_ratio:int,engagement_ratio:int}>
+     */
     public function getCategoryPerformanceStats(): array
     {
         $sql = <<<SQL
@@ -146,6 +158,17 @@ class PublicationService
         );
     }
 
+    /**
+     * @return array{
+     *   totals: array{comments:int,likes:int,dislikes:int,engagement_score:int},
+     *   total_signals:int,
+     *   positive_rate:int,
+     *   negative_rate:int,
+     *   comment_rate:int,
+     *   engagement_score:int,
+     *   top_feedback_categories:list<array{category:string,comments:int,likes:int,dislikes:int,total:int,engagement_score:int}>
+     * }
+     */
     public function getFeedbackInsightStats(): array
     {
         $feedbackStats = $this->getFeedbackStatistics();
@@ -174,12 +197,12 @@ class PublicationService
         SQL;
 
         $categories = array_map(static function (array $row) {
-            $comments = (int) ($row['comments'] ?? $row['comment_count'] ?? 0);
-            $likes = (int) ($row['likes'] ?? $row['like_count'] ?? 0);
-            $dislikes = (int) ($row['dislikes'] ?? $row['dislike_count'] ?? 0);
+            $comments = (int) $row['comments'];
+            $likes = (int) $row['likes'];
+            $dislikes = (int) $row['dislikes'];
 
             return [
-                'category' => $row['category'] ?? $row['category_name'] ?? 'Non definie',
+                'category' => $row['category'],
                 'comments' => $comments,
                 'likes' => $likes,
                 'dislikes' => $dislikes,
@@ -209,6 +232,9 @@ class PublicationService
         return $this->publicationRepo->findTopByEngagement($limit);
     }
 
+    /**
+     * @return list<array{label:string,count:int,ratio:int}>
+     */
     public function getWeeklyPublicationStats(): array
     {
         $sql = <<<SQL
@@ -269,6 +295,10 @@ class PublicationService
         $publication->setEstVisible(false);
     }
 
+    /**
+     * @param list<array<string, mixed>> $rows
+     * @return list<array{category:string,publications:int,comments:int,likes:int,dislikes:int,engagement:int,publication_ratio:int,engagement_ratio:int}>
+     */
     private function normalizeCategoryStatRows(array $rows): array
     {
         $grouped = [];

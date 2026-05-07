@@ -30,9 +30,9 @@ final class ProductController extends AbstractController
     }
 
     #[Route('/deleteProduct/{id}', name: 'product_delete', methods: ['POST'])]
-    public function delete($id, ProductRepository $repository, EntityManagerInterface $em): Response{
+    public function delete(int $id, ProductRepository $repository, EntityManagerInterface $em): Response{
         $product = $repository->find($id);
-        if (!$product) {
+        if (!$product instanceof Product) {
             throw $this->createNotFoundException('Product not found');
         }
         $em->remove($product);
@@ -53,7 +53,7 @@ final class ProductController extends AbstractController
         $id = $request->query->get('id');
         $product = $repository->find($id);
 
-        if (!$product) {
+        if (!$product instanceof Product) {
             throw $this->createNotFoundException('Product not found');
         }
 
@@ -130,6 +130,9 @@ final class ProductController extends AbstractController
     // 🔥 Reusable validation
 
 
+    /**
+     * @return list<string>
+     */
     private function validateProductData(Product $product): array
     {
         $errors = [];
@@ -138,7 +141,7 @@ final class ProductController extends AbstractController
             $errors[] = 'La catégorie est obligatoire';
         }
 
-        if (!is_numeric($product->getPrice()) || $product->getPrice() < 0) {
+        if ($product->getPrice() < 0) {
             $errors[] = 'Le prix doit être un nombre positif';
         }
 
@@ -153,30 +156,16 @@ final class ProductController extends AbstractController
     // 🔥 Reusable hydration
     private function hydrateProduct(Product $product, Request $request): void
     {
-        $product->setCategory($request->request->get('category'));
-        $product->setPrice((float)$request->request->get('price'));
-        $product->setDescription(trim($request->request->get('description')));
+        $product->setCategory((string) $request->request->get('category', ''));
+        $product->setPrice((float) $request->request->get('price', 0));
+        $product->setDescription(trim((string) $request->request->get('description', '')));
 
     }
 
+    /**
+     * @return list<string>
+     */
     private function getProductCategories(): array{
-        return [
-            'COMPTE_COURANT',
-            'COMPTE_EPARGNE',
-            'COMPTE_PREMIUM',
-            'COMPTE_JEUNE',
-            'COMPTE_ENTREPRISE',
-            'CARTE_DEBIT',
-            'CARTE_CREDIT',
-            'CARTE_PREMIUM',
-            'CARTE_VIRTUELLE',
-            'EPARGNE_CLASSIQUE',
-            'EPARGNE_LOGEMENT',
-            'DEPOT_A_TERME',
-            'PLACEMENT_INVESTISSEMENT',
-            'ASSURANCE_VIE',
-            'ASSURANCE_HABITATION',
-            'ASSURANCE_VOYAGE',
-        ];
+        return array_values(Product::getAllowedCategories());
     }
 }

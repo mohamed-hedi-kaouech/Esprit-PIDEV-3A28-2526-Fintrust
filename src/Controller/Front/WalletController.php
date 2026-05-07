@@ -201,6 +201,10 @@ class WalletController extends AbstractController
 
         $response = new StreamedResponse(function () use ($transactions, $wallet) {
             $handle = fopen('php://output', 'w');
+            if ($handle === false) {
+                return;
+            }
+
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, ['ID', 'Type', 'Montant', 'Description', 'Date', 'Devise'], ';');
 
@@ -292,38 +296,36 @@ class WalletController extends AbstractController
                 $form->get('montant')->addError(new FormError('Solde insuffisant pour effectuer cette operation.'));
             }
 
-            if ($form->isValid()) {
-                $nouveauSolde = $type === 'depot'
-                    ? $soldeActuel + $montant
-                    : $soldeActuel - $montant;
+            $nouveauSolde = $type === 'depot'
+                ? $soldeActuel + $montant
+                : $soldeActuel - $montant;
 
-                $description = trim((string) $transaction->getDescription());
+            $description = trim((string) $transaction->getDescription());
 
-                $transaction
-                    ->setType($type)
-                    ->setMontant($montant)
-                    ->setDescription($description !== '' ? $description : null)
-                    ->setWallet($wallet)
-                    ->setIdWallet($wallet->getIdWallet())
-                    ->setDateTransaction(new \DateTime());
+            $transaction
+                ->setType($type)
+                ->setMontant($montant)
+                ->setDescription($description !== '' ? $description : null)
+                ->setWallet($wallet)
+                ->setIdWallet($wallet->getIdWallet())
+                ->setDateTransaction(new \DateTime());
 
-                $wallet->setSolde(number_format($nouveauSolde, 2, '.', ''));
+            $wallet->setSolde(number_format($nouveauSolde, 2, '.', ''));
 
-                $this->entityManager->persist($transaction);
-                $this->entityManager->flush();
+            $this->entityManager->persist($transaction);
+            $this->entityManager->flush();
 
-                $this->walletAuditService->log('wallet.transaction.created', [
-                    'user_id' => $user->getId(),
-                    'wallet_id' => $wallet->getIdWallet(),
-                    'transaction_id' => $transaction->getIdTransaction(),
-                    'type' => $type,
-                    'amount' => $montant,
-                ]);
+            $this->walletAuditService->log('wallet.transaction.created', [
+                'user_id' => $user->getId(),
+                'wallet_id' => $wallet->getIdWallet(),
+                'transaction_id' => $transaction->getIdTransaction(),
+                'type' => $type,
+                'amount' => $montant,
+            ]);
 
-                $this->addFlash('success', 'La transaction a ete enregistree avec succes.');
+            $this->addFlash('success', 'La transaction a ete enregistree avec succes.');
 
-                return $this->redirectToRoute('front_wallet_transactions');
-            }
+            return $this->redirectToRoute('front_wallet_transactions');
         }
 
         return $this->render('front/client/wallet/transaction_new.html.twig', [
@@ -472,6 +474,10 @@ class WalletController extends AbstractController
 
         $response = new StreamedResponse(function () use ($cheques, $wallet) {
             $handle = fopen('php://output', 'w');
+            if ($handle === false) {
+                return;
+            }
+
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, ['Numero', 'Beneficiaire', 'Montant', 'Statut', 'Date emission', 'Motif rejet', 'Devise'], ';');
 

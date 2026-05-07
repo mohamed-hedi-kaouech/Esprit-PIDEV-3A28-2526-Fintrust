@@ -30,14 +30,14 @@ class DashboardController extends AbstractController
         $products = $this->productRepo->findAll();
         $subscriptions = $this->subscriptionRepo->findAll();
 
-        $products = array_filter($products, fn ($p) => $p && $p->getPrice() !== null && $p->getCategory() !== null);
-        $subscriptions = array_filter($subscriptions, fn ($s) => $s && $s->getProductObj() && $s->getClientUser());
+        $products = array_filter($products, fn ($p) => $p->getPrice() !== null && $p->getCategory() !== null);
+        $subscriptions = array_filter($subscriptions, fn ($s) => $s->getProductObj() && $s->getClientUser());
 
         $totalProducts = count($products);
         $prices = array_map(fn ($p) => $p->getPrice(), $products);
         $avgPrice = $totalProducts ? array_sum($prices) / $totalProducts : 0;
-        $minPrice = $totalProducts ? min($prices) : 0;
-        $maxPrice = $totalProducts ? max($prices) : 0;
+        $minPrice = $prices !== [] ? min($prices) : 0;
+        $maxPrice = $prices !== [] ? max($prices) : 0;
 
         $productsByCategory = [];
         foreach ($products as $product) {
@@ -136,15 +136,15 @@ class DashboardController extends AbstractController
         $products = $this->productRepo->findAll();
         $subscriptions = $this->subscriptionRepo->findAll();
 
-        $products = array_filter($products, fn ($p) => $p && $p->getPrice() !== null);
-        $subscriptions = array_filter($subscriptions, fn ($s) => $s && $s->getProductObj());
+        $products = array_filter($products, fn ($p) => $p->getPrice() !== null);
+        $subscriptions = array_filter($subscriptions, fn ($s) => $s->getProductObj());
 
         $totalProducts = count($products);
         $prices = array_map(fn ($p) => $p->getPrice(), $products);
 
         $avgPrice = $totalProducts ? array_sum($prices) / $totalProducts : 0;
-        $minPrice = $totalProducts ? min($prices) : 0;
-        $maxPrice = $totalProducts ? max($prices) : 0;
+        $minPrice = $prices !== [] ? min($prices) : 0;
+        $maxPrice = $prices !== [] ? max($prices) : 0;
 
         $totalSubs = count($subscriptions);
         $activeSubs = 0;

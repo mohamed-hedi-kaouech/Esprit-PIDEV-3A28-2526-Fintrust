@@ -29,6 +29,9 @@ class ExportService
     {
         $response = new StreamedResponse(function () use ($users) {
             $handle = fopen('php://output', 'w');
+            if ($handle === false) {
+                return;
+            }
 
             fwrite($handle, "\xEF\xBB\xBF");
 
@@ -95,6 +98,9 @@ class ExportService
     {
         $response = new StreamedResponse(function () use ($publications) {
             $handle = fopen('php://output', 'w');
+            if ($handle === false) {
+                return;
+            }
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, ['ID', 'Titre', 'Catégorie', 'Statut', 'Date de publication', 'Commentaires', 'Likes', 'Dislikes'], ';');
 
@@ -166,9 +172,9 @@ class ExportService
             $rows .= sprintf(
                 '<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%d</td><td>%d</td><td>%d</td></tr>',
                 $publication->getId(),
-                htmlspecialchars($publication->getTitre()),
-                htmlspecialchars($publication->getCategorie() ?: 'Non défini'),
-                htmlspecialchars($publication->getStatut()),
+                htmlspecialchars((string) $publication->getTitre()),
+                htmlspecialchars((string) ($publication->getCategorie() ?: 'Non défini')),
+                htmlspecialchars((string) $publication->getStatut()),
                 $publication->getDatePublication()?->format('d/m/Y H:i') ?: '—',
                 $commentCount,
                 $likeCount,

@@ -33,10 +33,6 @@ class ClientNotificationExtension extends AbstractExtension
 
         $session = $this->requestStack->getSession();
 
-        if ($session === null) {
-            return $this->notificationService->getUnreadCountForUser($user);
-        }
-
         return $this->notificationService->getUnreadCountForUser($user)
             + $this->dynamicNotificationService->getUnreadCount($user, $session);
     }

@@ -44,7 +44,7 @@ class RepaymentEmailService
     public function sendPaymentReceipt(Repayment $repayment, Loan $loan, string $userEmail, string $pdfContent): void
     {
         $email = (new TemplatedEmail())
-            ->from(new Address($this->fromEmail, 'FinTrust'))
+            ->from(new Address($this->testUserEmail, 'FinTrust'))
             ->to($userEmail)
             ->subject('Reçu de paiement - Prêt #' . $loan->getLoanId())
             ->htmlTemplate('html/Loan/User/repayment_receipt.html.twig')

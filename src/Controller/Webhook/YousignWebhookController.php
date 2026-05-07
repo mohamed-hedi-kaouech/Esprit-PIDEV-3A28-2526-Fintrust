@@ -30,7 +30,7 @@ class YousignWebhookController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $rawPayload = $request->getContent();
-        $signatureHeader = $request->headers->get('X-Yousign-Signature-256', '');
+        $signatureHeader = (string) $request->headers->get('X-Yousign-Signature-256', '');
 
         if (!$this->yousignService->verifyWebhookSignature($rawPayload, $signatureHeader)) {
             $this->logger->warning('Yousign webhook: signature invalide', [

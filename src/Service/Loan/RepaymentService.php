@@ -57,7 +57,7 @@ class RepaymentService
     // ======================
     // UPDATE REMAINING PRINCIPAL
     // ======================
-        public function findNextUnpaid(int $loanId): ?Repayment
+    public function findNextUnpaid(int $loanId): ?Repayment
     {
         return $this->repaymentRepo->findNextUnpaid($loanId);
     }
@@ -179,6 +179,15 @@ class RepaymentService
 
     /**
      * Get repayment statistics for a loan
+     *
+     * @return array{
+     *     paidCount: int,
+     *     unpaidCount: int,
+     *     totalPaid: float,
+     *     totalUnpaid: float,
+     *     progressPercent: float|int,
+     *     isCompleted: bool
+     * }
      */
     public function getRepaymentStats(int $loanId): array
     {
@@ -227,15 +236,17 @@ class RepaymentService
             ->getQuery()
             ->getSingleScalarResult();
 
-        $total = $paidCount + $unpaidCount;
+        $paidCountInt = (int) $paidCount;
+        $unpaidCountInt = (int) $unpaidCount;
+        $total = $paidCountInt + $unpaidCountInt;
 
         return [
-            'paidCount' => (int) $paidCount,
-            'unpaidCount' => (int) $unpaidCount,
+            'paidCount' => $paidCountInt,
+            'unpaidCount' => $unpaidCountInt,
             'totalPaid' => (float) $totalPaid,
             'totalUnpaid' => (float) $totalUnpaid,
-            'progressPercent' => $total > 0 ? round(($paidCount / $total) * 100) : 0,
-            'isCompleted' => $unpaidCount == 0 && $total > 0,
+            'progressPercent' => $total > 0 ? round(($paidCountInt / $total) * 100) : 0,
+            'isCompleted' => $unpaidCountInt === 0 && $total > 0,
         ];
    }
 

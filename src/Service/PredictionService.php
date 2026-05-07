@@ -129,6 +129,11 @@ class PredictionService
      * @param array<string, mixed> $metrics
      * @return array<int, string>
      */
+    /**
+     * @param array<string, mixed> $metrics
+     * @param array<string, mixed> $balanceTrend
+     * @return array<int, string>
+     */
     private function buildRationale(array $metrics, int $score, int $highSeverityCount, array $balanceTrend, string $adminRecommendation): array
     {
         $rationale = [

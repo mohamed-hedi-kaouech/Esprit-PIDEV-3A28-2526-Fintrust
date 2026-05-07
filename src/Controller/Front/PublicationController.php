@@ -236,8 +236,7 @@ class PublicationController extends AbstractController
     }
 
     /**
-     * @param array{decision:string,message:string,severity:string} $analysis
-     *
+     * @param array<string, string> $analysis
      * @return array{type:string,message:string}
      */
     private function buildCommentNotice(array $analysis): array

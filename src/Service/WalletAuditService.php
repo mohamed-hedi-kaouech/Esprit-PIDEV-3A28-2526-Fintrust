@@ -32,6 +32,9 @@ class WalletAuditService
         file_put_contents($this->logPath, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
     }
 
+    /**
+     * @param array<string, mixed> $transfer
+     */
     public function logTransfer(array $transfer, User $sender, ?User $recipient = null): void
     {
         $this->log('wallet.transfer.validated', [

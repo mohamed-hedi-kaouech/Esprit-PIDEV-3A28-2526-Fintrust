@@ -150,7 +150,7 @@ class RiskScoringService
         $score = min(100, $score);
         $level = $this->computeRiskLevel($score);
 
-        usort($factors, static fn (array $left, array $right): int => ((int) ($right['points'] ?? 0)) <=> ((int) ($left['points'] ?? 0)));
+        usort($factors, static fn (array $left, array $right): int => ((int) $right['points']) <=> ((int) $left['points']));
 
         return [
             'score' => $score,
@@ -180,7 +180,7 @@ class RiskScoringService
         }
 
         $topFactors = array_slice(array_map(
-            static fn (array $factor): string => sprintf('%s (+%d)', (string) ($factor['label'] ?? 'Facteur'), (int) ($factor['points'] ?? 0)),
+            static fn (array $factor): string => sprintf('%s (+%d)', (string) ($factor['label'] ?? 'Facteur'), (int) $factor['points']),
             $factors
         ), 0, 3);
 

@@ -147,7 +147,7 @@ class OpenAIWalletAnalysisService
             'status' => $wallet->getStatut(),
             'is_active' => (bool) $wallet->getEstActif(),
             'is_blocked' => (bool) $wallet->getEstBloque(),
-            'created_at' => $wallet->getDateCreation()?->format('Y-m-d H:i:s'),
+            'created_at' => $wallet->getDateCreation()->format('Y-m-d H:i:s'),
             'failed_attempts' => (int) ($wallet->getTentativesEchouees() ?? 0),
             'total_transactions' => (int) ($metrics['total_transactions'] ?? 0),
             'transactions_last_24h' => (int) ($metrics['transactions_last_24h'] ?? 0),
@@ -200,7 +200,7 @@ class OpenAIWalletAnalysisService
             . 'Le ton doit etre professionnel, bancaire, prudent et exploitable par un administrateur.';
 
         $input = json_encode($snapshot, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        if (!is_string($input) || $input === '') {
+        if ($input === false) {
             throw new \RuntimeException('La serialisation du snapshot wallet a echoue avant l appel OpenAI.');
         }
 
@@ -244,14 +244,15 @@ class OpenAIWalletAnalysisService
             }
 
             if ($statusCode >= 400) {
-                $apiMessage = is_string($payload['error']['message'] ?? null)
-                    ? $payload['error']['message']
+                $errorPayload = is_array($payload['error'] ?? null) ? $payload['error'] : [];
+                $apiMessage = is_string($errorPayload['message'] ?? null)
+                    ? $errorPayload['message']
                     : 'Erreur OpenAI inconnue.';
-                $apiCode = is_string($payload['error']['code'] ?? null)
-                    ? $payload['error']['code']
+                $apiCode = is_string($errorPayload['code'] ?? null)
+                    ? $errorPayload['code']
                     : null;
-                $apiType = is_string($payload['error']['type'] ?? null)
-                    ? $payload['error']['type']
+                $apiType = is_string($errorPayload['type'] ?? null)
+                    ? $errorPayload['type']
                     : null;
 
                 throw $this->buildHttpException($statusCode, $apiMessage, $apiCode, $apiType);

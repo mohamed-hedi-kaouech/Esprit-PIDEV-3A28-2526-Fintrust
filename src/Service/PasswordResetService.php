@@ -69,6 +69,10 @@ class PasswordResetService
     /**
      * @return array{sent:bool,request:?PasswordResetRequest,debug_reset_url:?string}
      */
+    /**
+     * @param array{identifier:string,recoveryHash:string,userId:int|null,maskedEmail:string,throttled:bool} $flow
+     * @return array{sent:bool,request:?PasswordResetRequest,debug_reset_url:?string}
+     */
     public function dispatchEmail(array $flow, Request $request): array
     {
         $requestIp = $this->resolveRequestIp($request);
@@ -269,6 +273,9 @@ class PasswordResetService
         );
     }
 
+    /**
+     * @param array{userId?: int|null} $flow
+     */
     public function getFlowUser(array $flow): ?User
     {
         $userId = $flow['userId'] ?? null;
@@ -361,7 +368,7 @@ class PasswordResetService
             ->setChannel($channel)
             ->setRequestIp($this->resolveRequestIp($request))
             ->setUserAgent($request->headers->get('User-Agent'))
-            ->setContext($context === [] ? null : json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            ->setContext($context === [] ? null : (json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: null));
 
         $this->entityManager->persist($auditLog);
         $this->entityManager->flush();

@@ -170,14 +170,14 @@ class ItemController extends AbstractController
     #[Route('/bulk-delete', name: 'bulk_delete', methods: ['POST'])]
     public function bulkDelete(Request $request): Response
     {
-        $itemIds = $request->request->all('items', []);
+        $itemIds = $request->request->all('items');
 
         if (empty($itemIds)) {
             $this->addFlash('error', 'Aucun item selectionne.');
             return $this->redirectToRoute('admin_item_list');
         }
 
-        if (!$this->isCsrfTokenValid('bulk_delete', $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('bulk_delete', (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
             return $this->redirectToRoute('admin_item_list');
         }
@@ -199,7 +199,7 @@ class ItemController extends AbstractController
     #[Route('/delete/{idItem}', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, Item $item): Response
     {
-        if (!$this->isCsrfTokenValid('delete' . $item->getIdItem(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete' . $item->getIdItem(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
             return $this->redirectToRoute('admin_item_list');
         }
@@ -311,10 +311,10 @@ class ItemController extends AbstractController
                 fputcsv($handle, [
                     $item->getIdItem(),
                     $item->getLibelle(),
-                    $categorie?->getNomCategorie() ?? 'N/A',
+                    $categorie->getNomCategorie(),
                     number_format($item->getMontant(), 2, '.', ''),
-                    $categorie instanceof Categorie ? number_format($categorie->getBudgetPrevu(), 2, '.', '') : '',
-                    $categorie instanceof Categorie ? number_format($categorie->getSeuilAlerte(), 2, '.', '') : '',
+                    number_format($categorie->getBudgetPrevu(), 2, '.', ''),
+                    number_format($categorie->getSeuilAlerte(), 2, '.', ''),
                 ], ';');
             }
 

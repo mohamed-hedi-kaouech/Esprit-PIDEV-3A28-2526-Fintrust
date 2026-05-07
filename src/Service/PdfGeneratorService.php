@@ -6,6 +6,9 @@ use TCPDF;
 
 class PdfGeneratorService
 {
+    /**
+     * @param list<array{name:string,budget:int|float|string,items:list<string>}> $categories
+     */
     public function generateCategorieInvoice(array $categories): string
     {
         $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);

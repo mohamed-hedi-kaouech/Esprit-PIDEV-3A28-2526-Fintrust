@@ -98,7 +98,9 @@ class IntelligenceController extends AbstractController
         ]));
 
         if (count($errors) > 0) {
-            return $this->json(['message' => (string) $errors[0]->getMessage()], 422);
+            foreach ($errors as $error) {
+                return $this->json(['message' => $error->getMessage()], 422);
+            }
         }
 
         return $this->json($this->kycVerificationCenterService->verifyDocumentFromPayload($payload));
@@ -116,7 +118,9 @@ class IntelligenceController extends AbstractController
         ]));
 
         if (count($errors) > 0) {
-            return $this->json(['message' => (string) $errors[0]->getMessage()], 422);
+            foreach ($errors as $error) {
+                return $this->json(['message' => $error->getMessage()], 422);
+            }
         }
 
         return $this->json($this->kycVerificationCenterService->verifySelfieMatchFromPayload($payload));
@@ -352,7 +356,7 @@ class IntelligenceController extends AbstractController
             $payload = [];
         }
 
-        return is_array($payload) ? $payload : [];
+        return $payload;
     }
 
     /**
@@ -374,7 +378,9 @@ class IntelligenceController extends AbstractController
         ]));
 
         if (count($errors) > 0) {
-            return $this->json(['message' => (string) $errors[0]->getMessage()], 422);
+            foreach ($errors as $error) {
+                return $this->json(['message' => $error->getMessage()], 422);
+            }
         }
 
         return null;
@@ -402,7 +408,9 @@ class IntelligenceController extends AbstractController
         ]));
 
         if (count($errors) > 0) {
-            return $this->json(['message' => (string) $errors[0]->getMessage()], 422);
+            foreach ($errors as $error) {
+                return $this->json(['message' => $error->getMessage()], 422);
+            }
         }
 
         return null;

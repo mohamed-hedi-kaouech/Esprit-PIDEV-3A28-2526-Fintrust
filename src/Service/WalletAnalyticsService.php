@@ -114,8 +114,8 @@ class WalletAnalyticsService
 
         $totalAmount = round(array_sum($amounts), 2);
         $averageAmount = $counts['total'] > 0 ? round($totalAmount / $counts['total'], 2) : 0.0;
-        $minAmount = $counts['total'] > 0 ? round(min($amounts), 2) : 0.0;
-        $maxAmount = $counts['total'] > 0 ? round(max($amounts), 2) : 0.0;
+        $minAmount = $amounts !== [] ? round(min($amounts), 2) : 0.0;
+        $maxAmount = $amounts !== [] ? round(max($amounts), 2) : 0.0;
         $signedAverage = $counts['total'] > 0 ? round(array_sum($signedAmounts) / $counts['total'], 2) : 0.0;
 
         $rapidSequences = $this->detectRapidSequences($transactions);

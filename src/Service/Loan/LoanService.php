@@ -43,6 +43,9 @@ class LoanService
         return $loan;
     }
 
+    /**
+     * @return array<int, Loan>
+     */
     public function getLoansByUser(User $user): array
     {
         return $this->loanRepository->findByUser($user);
@@ -61,6 +64,8 @@ class LoanService
 
     /**
      * Get all loans
+     *
+     * @return array<int, Loan>
      */
     public function getAllLoans(): array
     {
@@ -70,14 +75,15 @@ class LoanService
     /**
      * Get loan by ID
      */
- public function getLoanById(int $id): ?Loan
-{
-    // Use findOneBy because primary key is loanId, not id
-    return $this->loanRepository->findOneBy(['loanId' => $id]);
-}
+    public function getLoanById(int $id): ?Loan
+    {
+        return $this->loanRepository->findOneBy(['loanId' => $id]);
+    }
 
     /**
      * Get loans by user ID
+     *
+     * @return array<int, Loan>
      */
     public function getLoansByUserId(int $userId): array
     {
@@ -86,6 +92,8 @@ class LoanService
 
     /**
      * Get loans by status
+     *
+     * @return array<int, Loan>
      */
     public function getLoansByStatus(string $status): array
     {
@@ -130,6 +138,8 @@ class LoanService
 
     /**
      * Generate repayment plan for a loan
+     *
+     * @return array<int, Repayment>
      */
     public function generateRepaymentPlan(Loan $loan): array
     {
@@ -150,11 +160,11 @@ class LoanService
             $repayment = new Repayment();
             $repayment->setLoan($loan);
             $repayment->setMonth($i);
-            $repayment->setStartingBalance($balance);
-            $repayment->setMonthlyPayment($monthlyPayment);
-            $repayment->setCapitalPart($capital);
-            $repayment->setInterestPart($interest);
-            $repayment->setRemainingBalance($remaining);
+            $repayment->setStartingBalance(number_format($balance, 2, '.', ''));
+            $repayment->setMonthlyPayment(number_format($monthlyPayment, 2, '.', ''));
+            $repayment->setCapitalPart(number_format($capital, 2, '.', ''));
+            $repayment->setInterestPart(number_format($interest, 2, '.', ''));
+            $repayment->setRemainingBalance(number_format($remaining, 2, '.', ''));
             $repayment->setStatus('UNPAID');
 
             $this->em->persist($repayment);
@@ -167,8 +177,16 @@ class LoanService
 
         return $repayments;
     }
-
-
+    /**
+     * @return list<array{
+     *     month: int,
+     *     startingBalance: float,
+     *     monthlyPayment: float,
+     *     capitalPart: float,
+     *     interestPart: float,
+     *     remainingBalance: float
+     * }>
+     */
     public function generateRepaymentPreview(Loan $loan): array
     {
         $plan = [];
@@ -195,18 +213,20 @@ class LoanService
 
         return $plan;
     }
-
-        public function getNextUnpaidRepayment(Loan $loan): ?Repayment
+    public function getNextUnpaidRepayment(Loan $loan): ?Repayment
     {
         foreach ($loan->getRepayments() as $repayment) {
             if ($repayment->getStatus() === 'UNPAID') {
                 return $repayment;
             }
         }
+
         return null;
     }
     /**
      * Get loan statistics for dashboard
+     *
+     * @return array{total: int, active: int, pending: int, completed: int}
      */
     public function getStatistics(): array
     {
@@ -220,9 +240,7 @@ class LoanService
             'completed' => $this->loanRepository->countByStatus('COMPLETED'),
         ];
     }
-
-
-        public function calculateTotalInterest(Loan $loan): float
+    public function calculateTotalInterest(Loan $loan): float
     {
         $monthlyPayment = $this->calculateMonthlyPayment($loan);
         $totalPaid = $monthlyPayment * $loan->getDuration();
@@ -268,6 +286,16 @@ class LoanService
 
     /**
      * Get loan statistics for dashboard
+     *
+     * @return array{
+     *     paidCount: int,
+     *     unpaidCount: int,
+     *     totalPaid: float,
+     *     totalUnpaid: float,
+     *     progress: float|int,
+     *     monthlyPayment: float,
+     *     totalInterest: float
+     * }
      */
     public function getLoanStats(Loan $loan): array
     {
@@ -301,34 +329,31 @@ class LoanService
     }
 
     public function payRepayment(int $repaymentId, int $userId): void
-        {
-            $repayment = $this->repaymentRepository->find($repaymentId);
-            
-            if (!$repayment) {
-                throw new \Exception('Repayment not found');
-            }
+    {
+        $repayment = $this->repaymentRepository->find($repaymentId);
 
-            $loan = $repayment->getLoan();
-            
-            // Verify ownership
-            if ($loan->getUser()->getId() !== $userId) {
-                throw new \Exception('Access denied');
-            }
-
-            // Verify loan is active
-            if ($loan->getStatus() !== 'ACTIVE') {
-                throw new \Exception('Loan is not active');
-            }
-
-            // Verify previous repayments are paid
-            foreach ($loan->getRepayments() as $r) {
-                if ($r->getMonth() < $repayment->getMonth() && $r->getStatus() === 'UNPAID') {
-                    throw new \Exception('Previous installments must be paid first');
-                }
-            }
-
-            // Mark as paid
-            $this->markRepaymentPaid($repayment);
+        if (!$repayment instanceof Repayment) {
+            throw new Exception('Repayment not found');
         }
+
+        $loan = $repayment->getLoan();
+        $user = $loan->getUser();
+
+        if (!$user instanceof User || $user->getId() !== $userId) {
+            throw new Exception('Access denied');
+        }
+
+        if ($loan->getStatus() !== 'ACTIVE') {
+            throw new Exception('Loan is not active');
+        }
+
+        foreach ($loan->getRepayments() as $existingRepayment) {
+            if ($existingRepayment->getMonth() < $repayment->getMonth() && $existingRepayment->getStatus() === 'UNPAID') {
+                throw new Exception('Previous installments must be paid first');
+            }
+        }
+
+        $this->markRepaymentPaid($repayment);
+    }
         
 }

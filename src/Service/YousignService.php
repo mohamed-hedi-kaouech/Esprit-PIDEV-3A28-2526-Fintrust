@@ -119,6 +119,9 @@ class YousignService
     // Private API call helpers
     // -------------------------------------------------------------------------
 
+    /**
+     * @return array<string, mixed>
+     */
     private function createSigningRequest(Cheque $cheque): array
     {
         $response = $this->httpClient->request('POST', $this->apiUrl('/signature_requests'), [
@@ -216,6 +219,9 @@ class YousignService
         return $signerId;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function activateSigningRequest(string $requestId): array
     {
         $response = $this->httpClient->request(
@@ -227,6 +233,9 @@ class YousignService
         return $this->decodeOrFail($response, 'activate signing request');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function fetchSigner(string $requestId, string $signerId): array
     {
         $response = $this->httpClient->request(
@@ -240,6 +249,10 @@ class YousignService
 
     /**
      * @param array<string, mixed> $activatedRequest
+     */
+    /**
+     * @param array<string, mixed> $activatedRequest
+     * @return array<string, mixed>
      */
     private function extractSigner(array $activatedRequest, string $signerId): array
     {
@@ -339,6 +352,9 @@ class YousignService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function decodeOrFail(\Symfony\Contracts\HttpClient\ResponseInterface $response, string $step): array
     {
         $statusCode = $response->getStatusCode();

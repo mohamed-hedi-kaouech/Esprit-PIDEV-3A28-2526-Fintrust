@@ -90,7 +90,7 @@ class AdminLoanController extends AbstractController
     public function approveLoan(int $id, LoanRepository $loanRepo, Request $request): Response
     {
         if (!$this->csrfTokenManager->isTokenValid(
-            new CsrfToken('approve_loan_' . $id, $request->request->get('_token'))
+            new CsrfToken('approve_loan_' . $id, (string) $request->request->get('_token'))
         )) {
             $this->addFlash('error', 'Invalid security token');
             return $this->redirectToRoute('admin_loan_dashboard');
@@ -113,7 +113,7 @@ class AdminLoanController extends AbstractController
     public function rejectLoan(int $id, LoanRepository $loanRepo, Request $request): Response
     {
         if (!$this->csrfTokenManager->isTokenValid(
-            new CsrfToken('reject_loan_' . $id, $request->request->get('_token'))
+            new CsrfToken('reject_loan_' . $id, (string) $request->request->get('_token'))
         )) {
             $this->addFlash('error', 'Invalid security token');
             return $this->redirectToRoute('admin_loan_dashboard');

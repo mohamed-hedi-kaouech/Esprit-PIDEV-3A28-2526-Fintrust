@@ -32,9 +32,9 @@ class PublicationController extends AbstractController
     public function index(Request $request): Response
     {
         $page = max(1, (int) $request->query->get('page', 1));
-        $search = $request->query->get('search', '');
-        $categoryName = $request->query->get('category', null);
-        $sortBy = $request->query->get('sort', 'newest');
+        $search = trim((string) $request->query->get('search', ''));
+        $categoryName = $request->query->get('category') !== null ? trim((string) $request->query->get('category')) : null;
+        $sortBy = trim((string) $request->query->get('sort', 'newest'));
 
         $qb = $this->em->getRepository(Publication::class)->createQueryBuilder('p')
             ->leftJoin('p.feedbacks', 'f')
@@ -103,7 +103,8 @@ class PublicationController extends AbstractController
         $feedbackInsights = $this->publicationService->getFeedbackInsightStats();
         $weeklyPublicationStats = $this->publicationService->getWeeklyPublicationStats();
         $topPublications = $this->publicationService->getTopPublicationsByEngagement(5);
-        $trendMax = max(array_map(fn(array $point) => $point['count'], $publicationTrend)) ?: 1;
+        $trendCounts = array_map(static fn (array $point): int => (int) $point['count'], $publicationTrend);
+        $trendMax = $trendCounts !== [] ? max($trendCounts) : 1;
 
         return $this->render('admin/publication/index.html.twig', [
             'publications' => $publications,
@@ -129,8 +130,8 @@ class PublicationController extends AbstractController
     #[Route('/export/csv', name: 'export_csv', methods: ['GET'])]
     public function exportCsv(Request $request): Response
     {
-        $search = $request->query->get('search', '');
-        $categoryName = $request->query->get('category', null);
+        $search = trim((string) $request->query->get('search', ''));
+        $categoryName = $request->query->get('category') !== null ? trim((string) $request->query->get('category')) : null;
 
         $publications = $this->publicationRepo->createFilteredQueryBuilder($search, $categoryName)
             ->orderBy('p.datePublication', 'DESC')
@@ -143,8 +144,8 @@ class PublicationController extends AbstractController
     #[Route('/export/pdf', name: 'export_pdf', methods: ['GET'])]
     public function exportPdf(Request $request): Response
     {
-        $search = $request->query->get('search', '');
-        $categoryName = $request->query->get('category', null);
+        $search = trim((string) $request->query->get('search', ''));
+        $categoryName = $request->query->get('category') !== null ? trim((string) $request->query->get('category')) : null;
 
         $publications = $this->publicationRepo->createFilteredQueryBuilder($search, $categoryName)
             ->orderBy('p.datePublication', 'DESC')
@@ -200,7 +201,7 @@ class PublicationController extends AbstractController
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Publication $publication, Request $request): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $publication->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $publication->getId(), (string) $request->request->get('_token'))) {
             $this->publicationService->deletePublication($publication);
             $this->addFlash('success', 'Publication supprimee avec succes!');
         }

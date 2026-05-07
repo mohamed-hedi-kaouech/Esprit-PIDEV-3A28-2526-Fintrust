@@ -2,7 +2,9 @@
 
 namespace App\Controller\Product;
 
+use App\Entity\Product\Product;
 use App\Entity\Product\ProductSubscription;
+use App\Entity\User\User;
 use App\Entity\Wallet\Wallet;
 use App\Repository\Product\ProductRepository;
 use App\Repository\User\UserRepository;
@@ -19,9 +21,9 @@ final class ClientProductController extends AbstractController
     public function list(Request $request, ProductRepository $repo): Response
     {
         $products = $repo->findFiltered(
-            $request->query->get('search', ''),
-            $request->query->get('category', ''),
-            $request->query->get('sort', '')
+            (string) $request->query->get('search', ''),
+            (string) $request->query->get('category', ''),
+            (string) $request->query->get('sort', '')
         );
 
         return $this->render('html/Product/Client/ProductList.html.twig', [
@@ -40,7 +42,7 @@ final class ClientProductController extends AbstractController
         // ── User ─────────────────────────────────────────────
         $user = $this->getUser();
 
-        if (!$user) {
+        if (!$user instanceof User) {
             return $this->redirectToRoute('Client_product_list', [
                 'swal'    => 'error',
                 'msg'     => 'Utilisateur non connecté.',
@@ -53,7 +55,7 @@ final class ClientProductController extends AbstractController
         $productId = (int)$request->request->get('Productid');
         $product = $productRepo->find($productId);
 
-        if (!$product) {
+        if (!$product instanceof Product) {
             return $this->redirectToRoute('Client_product_list', [
                 'swal' => 'error',
                 'msg'  => 'Produit introuvable.',
@@ -72,7 +74,7 @@ final class ClientProductController extends AbstractController
         }
 
         // ── Balance check ────────────────────────────────────
-        if ($wallet->getSolde() < $product->getPrice()) {
+        if ((float) $wallet->getSolde() < (float) $product->getPrice()) {
             return $this->redirectToRoute('Client_product_list', [
                 'swal' => 'error',
                 'msg'  => 'Solde insuffisant.',
@@ -80,7 +82,7 @@ final class ClientProductController extends AbstractController
         }
 
         // ── CSRF ─────────────────────────────────────────────
-        if (!$this->isCsrfTokenValid('BuyProduct_', $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('BuyProduct_', (string) $request->request->get('_token'))) {
             return $this->redirectToRoute('Client_product_list', [
                 'swal' => 'error',
                 'msg'  => 'Requête invalide (CSRF).',
@@ -89,7 +91,7 @@ final class ClientProductController extends AbstractController
 
         // ── Type validation ──────────────────────────────────
         $allowedTypes = ['MONTHLY', 'ANNUALLY', 'TRANSACTION', 'ONE_TIME'];
-        $type = strtoupper($request->request->get('type', ''));
+        $type = strtoupper((string) $request->request->get('type', ''));
 
         if (!in_array($type, $allowedTypes, true)) {
             return $this->redirectToRoute('Client_product_list', [
@@ -119,7 +121,7 @@ final class ClientProductController extends AbstractController
         $subscription->setExpirationDate($expiration);
 
         // ── Update wallet ────────────────────────────────────
-        $wallet->setSolde($wallet->getSolde() - $product->getPrice());
+        $wallet->setSolde(number_format((float) $wallet->getSolde() - (float) $product->getPrice(), 2, '.', ''));
 
         $em->persist($wallet);
         $em->persist($subscription);
@@ -160,15 +162,23 @@ final class ClientProductController extends AbstractController
     }
 
     // ── Reusable webhook function ────────────────────────────
+    /**
+     * @param array<string, int|float|string> $data
+     */
     private function callWebhook(string $url, array $data): void
     {
         $ch = curl_init($url);
+        $payload = json_encode($data);
+
+        if ($payload === false) {
+            return;
+        }
 
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-            CURLOPT_POSTFIELDS     => json_encode($data),
+            CURLOPT_POSTFIELDS     => $payload,
             CURLOPT_TIMEOUT        => 5,
         ]);
 

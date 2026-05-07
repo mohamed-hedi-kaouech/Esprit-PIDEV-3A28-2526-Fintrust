@@ -87,7 +87,7 @@ class ChatBotController extends AbstractController
     private function normalizeQuestion(string $q): string
     {
         $q = strtolower(trim($q));
-        $q = preg_replace('/\s+/', ' ', $q);
+        $q = preg_replace('/\s+/', ' ', $q) ?? $q;
 
         // normalize common phrases
         $q = str_replace([

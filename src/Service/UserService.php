@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Entity\Produit\ProductSubscription;
+use App\Entity\Product\ProductSubscription;
 use App\Entity\User\Client\Kyc;
 use App\Entity\User\Client\KycFile;
 use App\Entity\User\Client\Notification;
@@ -26,8 +26,43 @@ class UserService
         private readonly string $projectDir,
     ) {}
 
+    public function validateIdentity(User $user): void
+    {
+        if (trim($user->getNom()) === '' || trim($user->getPrenom()) === '') {
+            throw new \InvalidArgumentException('Le nom ou le prenom est obligatoire.');
+        }
+    }
+
+    public function validateEmail(string $email): void
+    {
+        if (filter_var(trim($email), FILTER_VALIDATE_EMAIL) === false) {
+            throw new \InvalidArgumentException('Email invalide');
+        }
+    }
+
+    public function validatePassword(string $plainPassword): void
+    {
+        if (mb_strlen($plainPassword) < 8) {
+            throw new \InvalidArgumentException('Le mot de passe doit contenir au moins 8 caracteres.');
+        }
+    }
+
+    public function canActivate(User $user): bool
+    {
+        return $user->getKycStatus() !== User::KYC_REFUSE;
+    }
+
+    public function canAccessAdmin(User $user): bool
+    {
+        return $user->isAdmin();
+    }
+
     public function registerClient(User $user, string $plainPassword): void
     {
+        $this->validateIdentity($user);
+        $this->validateEmail($user->getEmail());
+        $this->validatePassword($plainPassword);
+
         $user->setRole(User::ROLE_CLIENT);
         $user->setStatus(User::STATUS_EN_ATTENTE);
         $user->setCreatedAt(new \DateTime());
@@ -44,6 +79,10 @@ class UserService
 
     public function createClientByAdmin(User $user, string $plainPassword): void
     {
+        $this->validateIdentity($user);
+        $this->validateEmail($user->getEmail());
+        $this->validatePassword($plainPassword);
+
         $user->setRole(User::ROLE_CLIENT);
         $user->setCreatedAt(new \DateTime());
         $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
@@ -97,6 +136,10 @@ class UserService
 
     public function activateUser(User $user): void
     {
+        if (!$this->canActivate($user)) {
+            return;
+        }
+
         $user->setStatus(User::STATUS_ACTIF);
         $this->em->flush();
     }

@@ -128,6 +128,10 @@ class WalletTransferController extends AbstractController
 
         $response = new StreamedResponse(function () use ($transfers, $wallet) {
             $handle = fopen('php://output', 'w');
+            if ($handle === false) {
+                return;
+            }
+
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, ['Reference', 'Sens', 'Statut', 'Montant', 'Contrepartie', 'Libelle', 'Date', 'Devise'], ';');
 

@@ -25,9 +25,9 @@ final class SubscriptionController extends AbstractController
     ): Response
     {
 
-        $typeFilter = $request->query->get('type', '');
-        $statusFilter = $request->query->get('status', '');
-        $search = trim($request->query->get('search', ''));
+        $typeFilter = (string) $request->query->get('type', '');
+        $statusFilter = (string) $request->query->get('status', '');
+        $search = trim((string) $request->query->get('search', ''));
 
         $subscriptions = $subscriptionRepo->findByFilters(
             $typeFilter,
@@ -72,7 +72,7 @@ final class SubscriptionController extends AbstractController
 
 
     #[Route('/subscriptiondelete/{id}', name: 'subscriptiondelete', methods: ['POST'])]
-    public function subscriptiondelete($id, ProductSubscriptionRepository $repository, EntityManagerInterface $em): Response
+    public function subscriptiondelete(int $id, ProductSubscriptionRepository $repository, EntityManagerInterface $em): Response
     {
         $subproduct = $repository->find($id);
 

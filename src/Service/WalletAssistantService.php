@@ -99,6 +99,11 @@ class WalletAssistantService
     /**
      * @return array<string, mixed>
      */
+    /**
+     * @param array<string, mixed> $analytics
+     * @param array<string, mixed> $risk
+     * @return array{score:int,decision:string,explanation:string,recommendation:string,signals:list<string>}
+     */
     public function buildLoanAdvice(Wallet $wallet, array $analytics, array $risk): array
     {
         $metrics = is_array($analytics['metrics'] ?? null) ? $analytics['metrics'] : [];
@@ -167,6 +172,10 @@ class WalletAssistantService
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    /**
+     * @param array{score:int,decision:string,explanation:string,recommendation:string,signals:list<string>} $loanAdvice
      * @return array<string, mixed>
      */
     private function transactionsAnswer(Wallet $wallet, array $loanAdvice): array

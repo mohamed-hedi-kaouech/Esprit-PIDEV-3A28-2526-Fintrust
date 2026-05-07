@@ -42,12 +42,12 @@ class UserController extends AbstractController
     public function list(Request $request): Response
     {
         $filters = [
-            'search' => $request->query->get('search', ''),
-            'role' => $request->query->get('role', ''),
-            'status' => $request->query->get('status', ''),
-            'kycStatus' => $request->query->get('kycStatus', ''),
-            'sort' => $request->query->get('sort', 'createdAt'),
-            'dir' => $request->query->get('dir', 'DESC'),
+            'search' => trim((string) $request->query->get('search', '')),
+            'role' => trim((string) $request->query->get('role', '')),
+            'status' => trim((string) $request->query->get('status', '')),
+            'kycStatus' => trim((string) $request->query->get('kycStatus', '')),
+            'sort' => trim((string) $request->query->get('sort', 'createdAt')),
+            'dir' => trim((string) $request->query->get('dir', 'DESC')),
         ];
 
         $page = max(1, (int) $request->query->get('page', 1));
@@ -147,7 +147,7 @@ class UserController extends AbstractController
     #[Route('/{id}/supprimer', name: 'delete', methods: ['POST'])]
     public function delete(User $user, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('delete_user_' . $user->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete_user_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('admin_user_list');
@@ -163,7 +163,7 @@ class UserController extends AbstractController
     #[Route('/{id}/activer', name: 'activate', methods: ['POST'])]
     public function activate(User $user, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('activate_' . $user->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('activate_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('admin_user_list');
@@ -179,7 +179,7 @@ class UserController extends AbstractController
     #[Route('/{id}/suspendre', name: 'suspend', methods: ['POST'])]
     public function suspend(User $user, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('suspend_' . $user->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('suspend_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('admin_user_list');
@@ -195,7 +195,7 @@ class UserController extends AbstractController
     #[Route('/{id}/notifier', name: 'notify', methods: ['POST'])]
     public function notify(User $user, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('notify_' . $user->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('notify_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('admin_user_list');
@@ -232,7 +232,10 @@ class UserController extends AbstractController
                 $this->addFlash('error', $exception->getMessage());
             }
         } else {
-            $this->addFlash('error', (string) $errors[0]->getMessage());
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error->getMessage());
+                break;
+            }
         }
 
         return $this->redirectToRoute('admin_user_edit', ['id' => $user->getId()]);
@@ -241,7 +244,7 @@ class UserController extends AbstractController
     #[Route('/notifier-client', name: 'notify_client', methods: ['POST'])]
     public function quickNotify(Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('notify_client', $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('notify_client', (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('admin_dashboard');
@@ -276,7 +279,10 @@ class UserController extends AbstractController
         ]);
 
         if (count($errors) > 0) {
-            $this->addFlash('error', (string) $errors[0]->getMessage());
+            foreach ($errors as $error) {
+                $this->addFlash('error', $error->getMessage());
+                break;
+            }
 
             return $this->redirectToRoute('admin_dashboard');
         }
@@ -363,15 +369,18 @@ class UserController extends AbstractController
         return $this->exportService->exportUsersPdf($users, $this->buildUserStats($users));
     }
 
+    /**
+     * @return array{search:string,role:string,status:string,kycStatus:string,sort:string,dir:string}
+     */
     private function getFilters(Request $request): array
     {
         return [
-            'search' => $request->query->get('search', ''),
-            'role' => $request->query->get('role', ''),
-            'status' => $request->query->get('status', ''),
-            'kycStatus' => $request->query->get('kycStatus', ''),
-            'sort' => $request->query->get('sort', 'createdAt'),
-            'dir' => $request->query->get('dir', 'DESC'),
+            'search' => trim((string) $request->query->get('search', '')),
+            'role' => trim((string) $request->query->get('role', '')),
+            'status' => trim((string) $request->query->get('status', '')),
+            'kycStatus' => trim((string) $request->query->get('kycStatus', '')),
+            'sort' => trim((string) $request->query->get('sort', 'createdAt')),
+            'dir' => trim((string) $request->query->get('dir', 'DESC')),
         ];
     }
 

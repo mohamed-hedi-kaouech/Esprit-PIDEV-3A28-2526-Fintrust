@@ -1,6 +1,7 @@
 parameters:
-    level: 8
-    paths:
-        - src
-    ignoreErrors:
-        - '#Call to an undefined method#'
+  level: 8
+  treatPhpDocTypesAsCertain: false
+  paths:
+    - src
+  ignoreErrors:
+    - '#Call to an undefined method#'

@@ -36,7 +36,7 @@ class AlerteController extends AbstractController
     #[Route('/mark-read/{idAlerte}', name: 'mark_read', methods: ['POST'])]
     public function markRead(Alerte $alerte, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('mark_read' . $alerte->getIdAlerte(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('mark_read' . $alerte->getIdAlerte(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
             return $this->redirectToRoute('admin_alerte_list');
         }
@@ -51,7 +51,7 @@ class AlerteController extends AbstractController
     #[Route('/mark-unread/{idAlerte}', name: 'mark_unread', methods: ['POST'])]
     public function markUnread(Alerte $alerte, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('mark_unread' . $alerte->getIdAlerte(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('mark_unread' . $alerte->getIdAlerte(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
             return $this->redirectToRoute('admin_alerte_list');
         }
@@ -66,7 +66,7 @@ class AlerteController extends AbstractController
     #[Route('/delete/{idAlerte}', name: 'delete', methods: ['POST'])]
     public function delete(Alerte $alerte, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('delete' . $alerte->getIdAlerte(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete' . $alerte->getIdAlerte(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
             return $this->redirectToRoute('admin_alerte_list');
         }
