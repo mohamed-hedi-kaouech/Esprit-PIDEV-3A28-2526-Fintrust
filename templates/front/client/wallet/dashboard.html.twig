@@ -121,6 +121,43 @@
       padding: 1rem;
       height: 100%;
     }
+    .ft-wallet-ai-layout {
+      display: grid;
+      gap: 1rem;
+    }
+    .ft-wallet-ai-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .ft-wallet-ai-stats .ft-dash-card {
+      min-height: 6rem;
+      padding: 1.1rem 1.15rem;
+    }
+    .ft-wallet-ai-stats .ft-dash-card-label {
+      margin-bottom: .55rem;
+    }
+    .ft-wallet-ai-composer {
+      display: grid;
+      gap: 1rem;
+    }
+    .ft-wallet-ai-composer textarea {
+      min-height: 8.25rem;
+      resize: vertical;
+    }
+    .ft-wallet-ai-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+    }
+    .ft-wallet-ai-actions .btn {
+      min-width: 11.5rem;
+    }
+    .ft-wallet-ai-prompts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .75rem;
+    }
     .ft-wallet-mini-stat {
       border-radius: 1rem;
       border: 1px solid rgba(226, 232, 240, .9);
@@ -290,10 +327,58 @@
     .ft-wallet-output-box strong {
       color: #0f172a;
     }
+    .ft-cheque-preview-list {
+      display: grid;
+      gap: .9rem;
+      padding: 1rem;
+    }
+    .ft-cheque-preview-item {
+      border: 1px solid rgba(191, 219, 254, .45);
+      border-radius: 1.15rem;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
+      padding: 1rem 1.1rem;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, .05);
+    }
+    .ft-cheque-preview-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1.1fr) auto auto;
+      gap: 1rem 1.25rem;
+      align-items: start;
+    }
+    .ft-cheque-preview-field {
+      min-width: 0;
+    }
+    .ft-cheque-preview-label {
+      display: block;
+      font-size: .74rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #64748b;
+      margin-bottom: .3rem;
+      font-weight: 700;
+    }
+    .ft-cheque-preview-value {
+      color: #0f172a;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .ft-cheque-preview-value.soft {
+      font-weight: 600;
+      color: #334155;
+    }
+    .ft-cheque-preview-value.break {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
     @media (max-width: 1199.98px) {
       .ft-wallet-studio-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+      .ft-cheque-preview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .ft-wallet-ai-stats,
+      .ft-wallet-ai-prompts,
       .ft-wallet-voice-command-grid,
       .ft-wallet-response-grid {
         grid-template-columns: 1fr;
@@ -302,6 +387,23 @@
     @media (max-width: 767.98px) {
       .ft-wallet-studio-grid {
         grid-template-columns: 1fr;
+      }
+      .ft-cheque-preview-list {
+        padding: .9rem;
+      }
+      .ft-cheque-preview-item {
+        padding: .95rem 1rem;
+      }
+      .ft-cheque-preview-grid {
+        grid-template-columns: 1fr;
+        gap: .85rem;
+      }
+      .ft-wallet-ai-box {
+        padding: .9rem;
+      }
+      .ft-wallet-ai-actions .btn,
+      .ft-wallet-quick-prompt {
+        width: 100%;
       }
     }
   </style>
@@ -719,32 +821,32 @@
               {% if latestCheques is empty %}
                 <div class="p-4 text-muted">Aucune demande de cheque enregistree.</div>
               {% else %}
-                <div class="table-responsive">
-                  <table class="table align-middle mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Numero</th>
-                        <th>Beneficiaire</th>
-                        <th>Statut</th>
-                        <th>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for cheque in latestCheques %}
-                        {% set statut = cheque.statut|lower %}
-                        <tr>
-                          <td class="fw-semibold">{{ cheque.numeroCheque }}</td>
-                          <td>{{ cheque.beneficiaire ?: 'Non renseigne' }}</td>
-                          <td>
-                            <span class="badge {{ statut == 'accepte' ? 'ft-badge-success' : (statut == 'refuse' ? 'ft-badge-danger' : 'ft-badge-warning') }}">
-                              {{ cheque.statut|replace({'_': ' '})|title }}
-                            </span>
-                          </td>
-                          <td>{{ cheque.dateEmission|date('d/m/Y H:i') }}</td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
+                <div class="ft-cheque-preview-list">
+                  {% for cheque in latestCheques %}
+                    {% set statut = cheque.statut|lower %}
+                    <div class="ft-cheque-preview-item">
+                      <div class="ft-cheque-preview-grid">
+                        <div class="ft-cheque-preview-field">
+                          <span class="ft-cheque-preview-label">Numero</span>
+                          <div class="ft-cheque-preview-value break">{{ cheque.numeroCheque }}</div>
+                        </div>
+                        <div class="ft-cheque-preview-field">
+                          <span class="ft-cheque-preview-label">Beneficiaire</span>
+                          <div class="ft-cheque-preview-value soft break">{{ cheque.beneficiaire ?: 'Non renseigne' }}</div>
+                        </div>
+                        <div class="ft-cheque-preview-field">
+                          <span class="ft-cheque-preview-label">Statut</span>
+                          <span class="badge {{ statut == 'accepte' ? 'ft-badge-success' : (statut == 'refuse' ? 'ft-badge-danger' : 'ft-badge-warning') }}">
+                            {{ cheque.statut|replace({'_': ' '})|title }}
+                          </span>
+                        </div>
+                        <div class="ft-cheque-preview-field">
+                          <span class="ft-cheque-preview-label">Date</span>
+                          <div class="ft-cheque-preview-value soft">{{ cheque.dateEmission|date('d/m/Y H:i') }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
                 </div>
               {% endif %}
             </div>
@@ -813,47 +915,45 @@
               <span class="badge ft-badge-blue">Conversation rapide</span>
             </div>
             <div class="ft-app-card-body">
-              <div class="row g-3 mb-3">
-                <div class="col-md-4">
+              <div class="ft-wallet-ai-layout">
+                <div class="ft-wallet-ai-stats">
                   <div class="ft-dash-card ft-dash-card-soft h-100">
                     <div class="ft-dash-card-label">Transcript</div>
                     <div id="walletAssistantTranscript" class="small fw-semibold text-break">-</div>
                   </div>
-                </div>
-                <div class="col-md-4">
                   <div class="ft-dash-card ft-dash-card-soft h-100">
                     <div class="ft-dash-card-label">Intent</div>
-                    <div id="walletAssistantIntent" class="small fw-semibold">-</div>
+                    <div id="walletAssistantIntent" class="small fw-semibold text-break">-</div>
                   </div>
-                </div>
-                <div class="col-md-4">
                   <div class="ft-dash-card ft-dash-card-soft h-100">
                     <div class="ft-dash-card-label">Confiance</div>
                     <div id="walletAssistantConfidence" class="small fw-semibold">-</div>
                   </div>
                 </div>
-              </div>
-              <div class="ft-wallet-ai-box mb-3">
-                <div id="walletAssistantStatus" class="alert alert-info py-2 small mb-3">Posez une question ou utilisez une suggestion rapide.</div>
-                <textarea id="walletAssistantInput" class="form-control mb-3" rows="4" placeholder="Ex: Voir mon solde ou analyse mon wallet"></textarea>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                  <button type="button" class="btn ft-btn-primary" id="walletAssistantSendButton">
-                    <i class="bi bi-send me-1"></i>Analyser
-                  </button>
-                  <a href="{{ path('front_wallet_assistant') }}" class="btn ft-btn-outline-primary">
-                    <i class="bi bi-box-arrow-up-right me-1"></i>Version detaillee
-                  </a>
+                <div class="ft-wallet-ai-box">
+                  <div class="ft-wallet-ai-composer">
+                    <div id="walletAssistantStatus" class="alert alert-info py-2 small mb-0">Posez une question ou utilisez une suggestion rapide.</div>
+                    <textarea id="walletAssistantInput" class="form-control" rows="4" placeholder="Ex: Voir mon solde ou analyse mon wallet"></textarea>
+                    <div class="ft-wallet-ai-actions">
+                      <button type="button" class="btn ft-btn-primary" id="walletAssistantSendButton">
+                        <i class="bi bi-send me-1"></i>Analyser
+                      </button>
+                      <a href="{{ path('front_wallet_assistant') }}" class="btn ft-btn-outline-primary">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Version detaillee
+                      </a>
+                    </div>
+                  </div>
                 </div>
-                <div class="d-flex flex-wrap gap-2">
+                <div class="ft-wallet-ai-prompts">
                   {% for prompt in ['Voir mon solde', 'Montre mes dernieres transactions', 'Mon wallet est-il stable ?', 'Puis-je demander un pret ?', 'Quel est l etat du marche ?'] %}
                     <button type="button" class="ft-wallet-quick-prompt wallet-assistant-prompt" data-question="{{ prompt }}">{{ prompt }}</button>
                   {% endfor %}
                 </div>
-              </div>
-              <div class="ft-wallet-ai-box">
-                <div class="small text-muted mb-2">Reponse FinTrust</div>
-                <div id="walletAssistantResponse" class="fs-6 fw-semibold">La reponse apparaitra ici.</div>
-                <div id="walletAssistantDetails" class="list-group list-group-flush mt-3"></div>
+                <div class="ft-wallet-ai-box">
+                  <div class="small text-muted mb-2">Reponse FinTrust</div>
+                  <div id="walletAssistantResponse" class="fs-6 fw-semibold">La reponse apparaitra ici.</div>
+                  <div id="walletAssistantDetails" class="list-group list-group-flush mt-3"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -1234,10 +1334,12 @@
     let finalTranscript = '';
     let dictationBaseText = '';
     let hasCapturedSpeech = false;
+    let heardSpeechSignal = false;
     let noSpeechRetryCount = 0;
-    const maxNoSpeechRetries = 1;
+    let shouldRestartRecognition = false;
+    const maxNoSpeechRetries = 2;
     let silenceTimer = null;
-    const silenceDelayMs = 1800;
+    const silenceDelayMs = 2400;
 
     if (!Recognition && voiceStatus) {
       voiceStatus.className = 'alert alert-warning py-2 small';
@@ -1275,7 +1377,9 @@
           return;
         }
 
-        startVoiceRecognition();
+        window.setTimeout(() => {
+          startVoiceRecognition();
+        }, 180);
       });
     }
 
@@ -1331,14 +1435,23 @@
     }
 
     function startVoiceRecognition() {
+      if (recognition) {
+        try {
+          recognition.abort();
+        } catch (error) {
+        }
+      }
+
       recognition = new Recognition();
       recognition.lang = getRecognitionLang();
-      recognition.continuous = true;
+      recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
+      recognition.maxAlternatives = 3;
       finalTranscript = '';
       dictationBaseText = voiceInput ? voiceInput.value.trim() : '';
       hasCapturedSpeech = false;
+      heardSpeechSignal = false;
+      shouldRestartRecognition = false;
       clearSilenceTimer();
 
       recognition.onstart = () => {
@@ -1346,6 +1459,17 @@
         updateMicButton(true);
         voiceStatus.className = 'alert alert-info py-2 small';
         voiceStatus.textContent = 'Ecoute en cours... Parlez maintenant, le texte s ecrit automatiquement.';
+      };
+
+      recognition.onaudiostart = () => {
+        voiceStatus.className = 'alert alert-info py-2 small';
+        voiceStatus.textContent = 'Micro active. Parlez naturellement.';
+      };
+
+      recognition.onspeechstart = () => {
+        heardSpeechSignal = true;
+        voiceStatus.className = 'alert alert-info py-2 small';
+        voiceStatus.textContent = 'Voix detectee. Transcription en direct...';
       };
 
       recognition.onresult = (event) => {
@@ -1362,9 +1486,10 @@
 
         const currentTranscript = (finalTranscript + interimTranscript).trim();
         hasCapturedSpeech = currentTranscript.length > 0;
+        heardSpeechSignal = heardSpeechSignal || hasCapturedSpeech;
+        noSpeechRetryCount = 0;
         const mergedTranscript = mergeDictationText(dictationBaseText, currentTranscript);
-        voiceInput.value = mergedTranscript;
-        voiceTranscript.textContent = mergedTranscript || '-';
+        applyVoiceText(mergedTranscript);
         voiceStatus.className = 'alert alert-info py-2 small';
         voiceStatus.textContent = interimTranscript
           ? 'Transcription en cours... Continuez a parler.'
@@ -1379,8 +1504,13 @@
         clearSilenceTimer();
 
         if (event.error === 'no-speech' && noSpeechRetryCount < maxNoSpeechRetries && !hasCapturedSpeech) {
+          shouldRestartRecognition = true;
           voiceStatus.className = 'alert alert-info py-2 small';
           voiceStatus.textContent = 'Je n ai pas encore capte votre voix. Nouvelle tentative en cours...';
+          try {
+            recognition.stop();
+          } catch (error) {
+          }
           return;
         }
 
@@ -1396,11 +1526,21 @@
         updateMicButton(false);
         clearSilenceTimer();
 
-        if (!hasCapturedSpeech && noSpeechRetryCount < maxNoSpeechRetries) {
+        if (shouldRestartRecognition && noSpeechRetryCount < maxNoSpeechRetries) {
           noSpeechRetryCount += 1;
           voiceStatus.className = 'alert alert-info py-2 small';
           voiceStatus.textContent = 'Aucune voix detectee. Je relance automatiquement l ecoute...';
-          startVoiceRecognition();
+          window.setTimeout(() => {
+            startVoiceRecognition();
+          }, 250);
+          return;
+        }
+
+        if (heardSpeechSignal && transcript && transcript !== dictationBaseText) {
+          noSpeechRetryCount = 0;
+          voiceStatus.className = 'alert alert-success py-2 small';
+          voiceStatus.textContent = 'Texte dicte ajoute automatiquement. Analyse en cours...';
+          sendVoiceCommand();
           return;
         }
 
@@ -1424,6 +1564,20 @@
         updateMicButton(false);
         voiceStatus.className = 'alert alert-warning py-2 small';
         voiceStatus.textContent = 'Impossible de lancer la dictee vocale pour le moment. Rechargez la page et reessayez.';
+      }
+    }
+
+    function applyVoiceText(text) {
+      const value = text || '';
+
+      if (voiceInput) {
+        voiceInput.value = value;
+        voiceInput.dispatchEvent(new Event('input', {bubbles: true}));
+        voiceInput.dispatchEvent(new Event('change', {bubbles: true}));
+      }
+
+      if (voiceTranscript) {
+        voiceTranscript.textContent = value || '-';
       }
     }
 

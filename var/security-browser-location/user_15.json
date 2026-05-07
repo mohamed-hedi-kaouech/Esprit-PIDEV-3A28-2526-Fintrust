@@ -1,10 +1,10 @@
 {
-    "latitude": 36.90103844598772,
-    "longitude": 10.18842141620678,
-    "accuracy": 64,
-    "label": "36.90104, 10.18842",
-    "detail": "D\u00e9l\u00e9gation Raoued, Jaafar, Gouvernorat Ariana",
-    "coordinates": "36.901038, 10.188421",
-    "checkedAt": "2026-05-06T12:30:17+00:00",
-    "distanceMeters": 20711.54
+    "latitude": 36.735101061450685,
+    "longitude": 10.291318939838558,
+    "accuracy": 84,
+    "label": "36.73510, 10.29132",
+    "detail": "D\u00e9l\u00e9gation Bou Mhel El Bassatine, El Bassatine, Gouvernorat Ben Arous",
+    "coordinates": "36.735101, 10.291319",
+    "checkedAt": "2026-05-07T02:52:08+00:00",
+    "distanceMeters": 20599.79
 }

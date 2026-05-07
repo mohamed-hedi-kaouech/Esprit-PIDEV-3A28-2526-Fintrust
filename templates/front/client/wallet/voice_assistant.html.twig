@@ -126,10 +126,12 @@
   let finalTranscript = '';
   let dictationBaseText = '';
   let hasCapturedSpeech = false;
+  let heardSpeechSignal = false;
   let noSpeechRetryCount = 0;
-  const maxNoSpeechRetries = 1;
+  let shouldRestartRecognition = false;
+  const maxNoSpeechRetries = 2;
   let silenceTimer = null;
-  const silenceDelayMs = 1800;
+  const silenceDelayMs = 2400;
 
   document.querySelectorAll('.voice-suggestion').forEach((button) => {
     button.addEventListener('click', () => {
@@ -167,7 +169,9 @@
       return;
     }
 
-    startVoiceRecognition();
+    window.setTimeout(() => {
+      startVoiceRecognition();
+    }, 180);
   });
 
   voiceSpeakButton.addEventListener('click', () => {
@@ -205,14 +209,23 @@
   }
 
   function startVoiceRecognition() {
+    if (recognition) {
+      try {
+        recognition.abort();
+      } catch (error) {
+      }
+    }
+
     recognition = new Recognition();
     recognition.lang = getRecognitionLang();
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
+    recognition.maxAlternatives = 3;
     finalTranscript = '';
     dictationBaseText = voiceInput.value.trim();
     hasCapturedSpeech = false;
+    heardSpeechSignal = false;
+    shouldRestartRecognition = false;
     clearSilenceTimer();
 
     recognition.onstart = () => {
@@ -220,6 +233,17 @@
       updateMicButton(true);
       voiceStatus.className = 'alert alert-info py-2 small';
       voiceStatus.textContent = 'Ecoute en cours... Parlez maintenant, le texte s ecrit automatiquement.';
+    };
+
+    recognition.onaudiostart = () => {
+      voiceStatus.className = 'alert alert-info py-2 small';
+      voiceStatus.textContent = 'Micro active. Parlez naturellement.';
+    };
+
+    recognition.onspeechstart = () => {
+      heardSpeechSignal = true;
+      voiceStatus.className = 'alert alert-info py-2 small';
+      voiceStatus.textContent = 'Voix detectee. Transcription en direct...';
     };
 
     recognition.onresult = (event) => {
@@ -236,9 +260,10 @@
 
       const currentTranscript = (finalTranscript + interimTranscript).trim();
       hasCapturedSpeech = currentTranscript.length > 0;
+      heardSpeechSignal = heardSpeechSignal || hasCapturedSpeech;
+      noSpeechRetryCount = 0;
       const mergedTranscript = mergeDictationText(dictationBaseText, currentTranscript);
-      voiceInput.value = mergedTranscript;
-      voiceTranscript.textContent = mergedTranscript || '-';
+      applyVoiceText(mergedTranscript);
       voiceStatus.className = 'alert alert-info py-2 small';
       voiceStatus.textContent = interimTranscript
         ? 'Transcription en cours... Continuez a parler.'
@@ -253,8 +278,13 @@
       clearSilenceTimer();
 
       if (event.error === 'no-speech' && noSpeechRetryCount < maxNoSpeechRetries && !hasCapturedSpeech) {
+        shouldRestartRecognition = true;
         voiceStatus.className = 'alert alert-info py-2 small';
         voiceStatus.textContent = 'Je n ai pas encore capte votre voix. Nouvelle tentative en cours...';
+        try {
+          recognition.stop();
+        } catch (error) {
+        }
         return;
       }
 
@@ -270,11 +300,21 @@
       updateMicButton(false);
       clearSilenceTimer();
 
-      if (!hasCapturedSpeech && noSpeechRetryCount < maxNoSpeechRetries) {
+      if (shouldRestartRecognition && noSpeechRetryCount < maxNoSpeechRetries) {
         noSpeechRetryCount += 1;
         voiceStatus.className = 'alert alert-info py-2 small';
         voiceStatus.textContent = 'Aucune voix detectee. Je relance automatiquement l ecoute...';
-        startVoiceRecognition();
+        window.setTimeout(() => {
+          startVoiceRecognition();
+        }, 250);
+        return;
+      }
+
+      if (heardSpeechSignal && transcript && transcript !== dictationBaseText) {
+        noSpeechRetryCount = 0;
+        voiceStatus.className = 'alert alert-success py-2 small';
+        voiceStatus.textContent = 'Texte dicte ajoute automatiquement. Analyse en cours...';
+        sendVoiceCommand();
         return;
       }
 
@@ -307,6 +347,15 @@
     voiceMicButton.innerHTML = listening
       ? '<i class="bi bi-stop-circle me-1"></i>Arreter'
       : '<i class="bi bi-mic me-1"></i>Dicter';
+  }
+
+  function applyVoiceText(text) {
+    const value = text || '';
+
+    voiceInput.value = value;
+    voiceInput.dispatchEvent(new Event('input', {bubbles: true}));
+    voiceInput.dispatchEvent(new Event('change', {bubbles: true}));
+    voiceTranscript.textContent = value || '-';
   }
 
   function getRecognitionLang() {
