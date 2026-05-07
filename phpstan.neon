@@ -5,3 +5,4 @@ parameters:
     - src
   ignoreErrors:
     - '#Call to an undefined method#'
+

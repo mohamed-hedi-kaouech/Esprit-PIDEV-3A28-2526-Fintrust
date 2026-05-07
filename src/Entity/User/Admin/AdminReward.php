@@ -15,9 +15,6 @@ class AdminReward
     #[ORM\GeneratedValue]
     private int $id;
 
-    #[ORM\Column(name: 'admin_id', type: 'integer')]
-    private int $adminId;
-
     #[ORM\Column(name: 'total_stars', type: 'integer')]
     private int $totalStars = 0;
 
@@ -43,17 +40,6 @@ class AdminReward
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function getAdminId(): int
-    {
-        return $this->adminId;
-    }
-
-    public function setAdminId(int $adminId): static
-    {
-        $this->adminId = $adminId;
-        return $this;
     }
 
     public function getTotalStars(): int

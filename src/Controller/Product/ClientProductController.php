@@ -111,8 +111,6 @@ final class ClientProductController extends AbstractController
 
         // ── Create subscription ──────────────────────────────
         $subscription = new ProductSubscription();
-        $subscription->setClient($clientId);
-        $subscription->setProduct($productId);
         $subscription->setClientUser($user);
         $subscription->setProductObj($product);
         $subscription->setType($type);
@@ -129,7 +127,7 @@ final class ClientProductController extends AbstractController
 
         // ── Webhook 1 (n8n) ─────────────────────────────────
         $this->callWebhook(
-            "http://localhost:5680/webhook/775c96dd-935c-455d-a9d4-5cb84ff1ea8a",
+            "http://192.168.1.155:5680/webhook/775c96dd-935c-455d-a9d4-5cb84ff1ea8a",
             [
                 "ProductCategorie" => $product->getCategory(),
                 "ProductType"      => $type,
@@ -141,7 +139,7 @@ final class ClientProductController extends AbstractController
         $invoiceNumber = 'INV-' . date('Ymd') . '-' . rand(100, 999);
 
         $this->callWebhook(
-            "http://localhost:5680/webhook/generate-bankfintrust-invoice",
+            "http://192.168.1.155:5680/webhook/generate-bankfintrust-invoice",
             [
                 "invoiceNumber"      => $invoiceNumber,
                 "subscriptionId"     => 1,

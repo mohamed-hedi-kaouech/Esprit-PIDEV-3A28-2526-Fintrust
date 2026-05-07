@@ -74,7 +74,7 @@ class Publication
     #[ORM\Column(name: 'date_publication', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $datePublication = null;
 
-    #[ORM\OneToMany(targetEntity: Feedback::class, mappedBy: 'publication', cascade: ['remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Feedback::class, mappedBy: 'publication')]
     private Collection $feedbacks;
 
     public function __construct()

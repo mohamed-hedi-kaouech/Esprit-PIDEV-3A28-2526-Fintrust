@@ -435,7 +435,8 @@ class AdminChequeController extends AbstractController
 
         if ($filters['wallet'] !== '') {
             $qb
-                ->andWhere('c.idWallet = :walletId')
+                ->join('c.wallet', 'wallet_filter')
+                ->andWhere('wallet_filter.idWallet = :walletId')
                 ->setParameter('walletId', (int) $filters['wallet']);
         }
 

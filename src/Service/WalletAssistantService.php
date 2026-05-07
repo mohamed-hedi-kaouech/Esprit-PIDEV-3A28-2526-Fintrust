@@ -183,8 +183,8 @@ class WalletAssistantService
         /** @var Transaction[] $transactions */
         $transactions = $this->entityManager->getRepository(Transaction::class)
             ->createQueryBuilder('t')
-            ->andWhere('t.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->andWhere('t.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->orderBy('t.dateTransaction', 'DESC')
             ->setMaxResults(5)
             ->getQuery()

@@ -188,11 +188,10 @@ class AppFixtures extends Fixture
         foreach ($transactions as [$date, $amount, $type, $description]) {
             $transaction = (new Transaction())
                 ->setWallet($wallet)
-                ->setIdWallet($wallet->getIdWallet())
                 ->setMontant($amount)
                 ->setType($type)
                 ->setDescription($description)
-                ->setDateTransaction(new \DateTime($date));
+                ->markOccurredAt(new \DateTime($date));
 
             $manager->persist($transaction);
         }
@@ -209,7 +208,6 @@ class AppFixtures extends Fixture
         foreach ($cheques as $index => [$emissionDate, $presentationDate, $amount, $status, $beneficiary, $rejectReason]) {
             $cheque = (new Cheque())
                 ->setWallet($wallet)
-                ->setIdWallet($wallet->getIdWallet())
                 ->setNumeroCheque(sprintf('CHQ%04d%02d', $wallet->getIdWallet(), $index + 1))
                 ->setMontant($amount)
                 ->setDateEmission(new \DateTime($emissionDate))

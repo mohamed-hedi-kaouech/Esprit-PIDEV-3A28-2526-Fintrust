@@ -14,9 +14,6 @@ class OtpAudit
     #[ORM\GeneratedValue]
     private int $id;
 
-    #[ORM\Column(name: 'user_id', type: 'integer', nullable: true)]
-    private int|null $userId = null;
-
     #[ORM\Column(name: 'email', type: 'string', length: 190, nullable: true)]
     private string|null $email = null;
 
@@ -48,17 +45,6 @@ class OtpAudit
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function getUserId(): int|null
-    {
-        return $this->userId;
-    }
-
-    public function setUserId(int|null $userId): static
-    {
-        $this->userId = $userId;
-        return $this;
     }
 
     public function getEmail(): string|null

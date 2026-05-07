@@ -38,7 +38,7 @@ class Categorie
     #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Alerte::class, mappedBy: 'categorie')]
     private Collection $alertes;
 
-    #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Item::class, mappedBy: 'categorie')]
+    #[ORM\OneToMany(targetEntity: \App\Entity\Categorie\Item::class, mappedBy: 'categorie', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
     public function __construct()
@@ -124,6 +124,7 @@ class Categorie
     {
         if (!$this->items->contains($item)) {
             $this->items->add($item);
+            $item->setCategorie($this);
         }
         return $this;
     }

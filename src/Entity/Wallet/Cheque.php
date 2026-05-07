@@ -28,9 +28,6 @@ class Cheque
     #[ORM\Column(name: 'statut', type: 'string', length: 20)]
     private string $statut;
 
-    #[ORM\Column(name: 'id_wallet', type: 'integer')]
-    private int $idWallet;
-
     #[ORM\Column(name: 'beneficiaire', type: 'string', length: 100, nullable: true)]
     private string|null $beneficiaire = null;
 
@@ -116,13 +113,7 @@ class Cheque
 
     public function getIdWallet(): int
     {
-        return $this->idWallet;
-    }
-
-    public function setIdWallet(int $idWallet): static
-    {
-        $this->idWallet = $idWallet;
-        return $this;
+        return $this->wallet->getIdWallet();
     }
 
     public function getBeneficiaire(): string|null

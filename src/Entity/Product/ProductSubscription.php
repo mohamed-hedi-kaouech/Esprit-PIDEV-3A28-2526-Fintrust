@@ -14,12 +14,6 @@ class ProductSubscription
     #[ORM\GeneratedValue]
     private int $subscriptionId;
 
-    #[ORM\Column(name: 'client', type: 'integer')]
-    private int $client;
-
-    #[ORM\Column(name: 'product', type: 'integer')]
-    private int $product;
-
     #[ORM\Column(name: 'type', type: 'string')]
     private string $type;
 
@@ -48,24 +42,12 @@ class ProductSubscription
 
     public function getClient(): int
     {
-        return $this->client;
-    }
-
-    public function setClient(int $client): static
-    {
-        $this->client = $client;
-        return $this;
+        return $this->clientUser->getId();
     }
 
     public function getProduct(): int
     {
-        return $this->product;
-    }
-
-    public function setProduct(int $product): static
-    {
-        $this->product = $product;
-        return $this;
+        return $this->productObj->getProductId();
     }
 
     public function getType(): string

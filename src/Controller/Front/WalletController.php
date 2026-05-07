@@ -307,8 +307,7 @@ class WalletController extends AbstractController
                 ->setMontant($montant)
                 ->setDescription($description !== '' ? $description : null)
                 ->setWallet($wallet)
-                ->setIdWallet($wallet->getIdWallet())
-                ->setDateTransaction(new \DateTime());
+                ->markOccurredAt(new \DateTime());
 
             $wallet->setSolde(number_format($nouveauSolde, 2, '.', ''));
 
@@ -367,7 +366,6 @@ class WalletController extends AbstractController
 
             $cheque
                 ->setWallet($wallet)
-                ->setIdWallet($wallet->getIdWallet())
                 ->setNumeroCheque($this->generateChequeNumber($wallet))
                 ->setDateEmission(new \DateTime())
                 ->setStatut('en_attente')
@@ -610,8 +608,8 @@ class WalletController extends AbstractController
         /** @var Transaction[] $transactions */
         $transactions = $this->entityManager->getRepository(Transaction::class)
             ->createQueryBuilder('t')
-            ->andWhere('t.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->andWhere('t.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->orderBy('t.dateTransaction', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
@@ -628,8 +626,8 @@ class WalletController extends AbstractController
         /** @var Cheque[] $cheques */
         $cheques = $this->entityManager->getRepository(Cheque::class)
             ->createQueryBuilder('c')
-            ->andWhere('c.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->andWhere('c.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->orderBy('c.dateEmission', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
@@ -643,8 +641,8 @@ class WalletController extends AbstractController
         return (int) $this->entityManager->getRepository(Transaction::class)
             ->createQueryBuilder('t')
             ->select('COUNT(t.idTransaction)')
-            ->andWhere('t.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->andWhere('t.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -654,8 +652,8 @@ class WalletController extends AbstractController
         return (int) $this->entityManager->getRepository(Cheque::class)
             ->createQueryBuilder('c')
             ->select('COUNT(c.idCheque)')
-            ->andWhere('c.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->andWhere('c.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -667,8 +665,8 @@ class WalletController extends AbstractController
     {
         $qb = $this->entityManager->getRepository(Transaction::class)
             ->createQueryBuilder('t')
-            ->andWhere('t.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet());
+            ->andWhere('t.wallet = :wallet')
+            ->setParameter('wallet', $wallet);
 
         if ($filters['type'] !== '') {
             $qb
@@ -704,11 +702,11 @@ class WalletController extends AbstractController
         $existing = $this->entityManager->getRepository(Cheque::class)
             ->createQueryBuilder('c')
             ->select('COUNT(c.idCheque)')
-            ->andWhere('c.idWallet = :walletId')
+            ->andWhere('c.wallet = :wallet')
             ->andWhere('LOWER(c.statut) = :statut')
             ->andWhere('LOWER(COALESCE(c.beneficiaire, :emptyValue)) = :beneficiaire')
             ->andWhere('c.montant = :montant')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->setParameter('wallet', $wallet)
             ->setParameter('statut', 'en_attente')
             ->setParameter('emptyValue', '')
             ->setParameter('beneficiaire', mb_strtolower(trim((string) $cheque->getBeneficiaire())))

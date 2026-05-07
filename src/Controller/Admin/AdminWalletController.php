@@ -431,16 +431,16 @@ class AdminWalletController extends AbstractController
         $this->entityManager->getRepository(Transaction::class)
             ->createQueryBuilder('t')
             ->delete()
-            ->andWhere('t.idWallet = :walletId')
-            ->setParameter('walletId', $walletId)
+            ->andWhere('t.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->getQuery()
             ->execute();
 
         $this->entityManager->getRepository(Cheque::class)
             ->createQueryBuilder('c')
             ->delete()
-            ->andWhere('c.idWallet = :walletId')
-            ->setParameter('walletId', $walletId)
+            ->andWhere('c.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->getQuery()
             ->execute();
 
@@ -656,8 +656,8 @@ class AdminWalletController extends AbstractController
         /** @var Transaction[] $latestTransactions */
         $latestTransactions = $this->entityManager->getRepository(Transaction::class)
             ->createQueryBuilder('t')
-            ->andWhere('t.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->andWhere('t.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->orderBy('t.dateTransaction', 'DESC')
             ->setMaxResults(10)
             ->getQuery()
@@ -695,8 +695,8 @@ class AdminWalletController extends AbstractController
         /** @var Cheque[] $latestCheques */
         $latestCheques = $this->entityManager->getRepository(Cheque::class)
             ->createQueryBuilder('c')
-            ->andWhere('c.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->andWhere('c.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->orderBy('c.dateEmission', 'DESC')
             ->setMaxResults(10)
             ->getQuery()

@@ -60,11 +60,11 @@ class AdminTask
     private \DateTimeInterface $updatedAt;
 
     #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
-    #[ORM\JoinColumn(name: 'created_by', referencedColumnName: 'id')]
-    private ?User $creator = null;
+    #[ORM\JoinColumn(name: 'creator_id', referencedColumnName: 'id', nullable: false)]
+    private User $creator;
 
     #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
-    #[ORM\JoinColumn(name: 'assigned_to', referencedColumnName: 'id')]
+    #[ORM\JoinColumn(name: 'assignee_id', referencedColumnName: 'id')]
     private ?User $assignee = null;
     
 
@@ -241,7 +241,7 @@ class AdminTask
         return $this->creator;
     }
 
-    public function setCreator(?User $creator): static
+    protected function setCreator(?User $creator): static
     {
         $this->creator = $creator;
         return $this;

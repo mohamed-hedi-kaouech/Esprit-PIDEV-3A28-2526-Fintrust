@@ -191,8 +191,8 @@ class WalletAnalyticsService
     {
         return $this->entityManager->getRepository(Transaction::class)
             ->createQueryBuilder('t')
-            ->andWhere('t.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->andWhere('t.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->orderBy('t.dateTransaction', 'ASC')
             ->getQuery()
             ->getResult();
@@ -205,8 +205,8 @@ class WalletAnalyticsService
     {
         return $this->entityManager->getRepository(Cheque::class)
             ->createQueryBuilder('c')
-            ->andWhere('c.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->andWhere('c.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->orderBy('c.dateEmission', 'DESC')
             ->getQuery()
             ->getResult();

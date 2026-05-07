@@ -98,8 +98,8 @@ class VoiceResponseBuilderService
     {
         $qb = $this->entityManager->getRepository(Cheque::class)
             ->createQueryBuilder('c')
-            ->andWhere('c.idWallet = :walletId')
-            ->setParameter('walletId', $wallet->getIdWallet())
+            ->andWhere('c.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
             ->orderBy('c.dateEmission', 'DESC')
             ->setMaxResults(5);
 

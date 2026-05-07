@@ -200,7 +200,7 @@ class DashboardController extends AbstractController
         try {
             $response = $client->request(
                 'POST',
-                'http://localhost:5680/webhook/Rapport_Admin', // ✅ FIXED PORT
+                'http://192.168.1.155:5680/webhook/Rapport_Admin', // ✅ FIXED PORT
                 [
                     'json' => $data
                 ]
@@ -229,7 +229,7 @@ class DashboardController extends AbstractController
         try {
             $response = $client->request(
                 'GET',
-                'http://localhost:5680/webhook-test/Ai-Agent', // ✅ FIXED PORT
+                'http://192.168.1.155:5680/webhook/Ai-Agent', // ✅ FIXED PORT
             );
 
 

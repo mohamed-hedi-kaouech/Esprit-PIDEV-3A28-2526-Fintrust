@@ -99,7 +99,6 @@ class PublicationController extends AbstractController
                 $feedback = new Feedback();
                 $feedback->setPublication($publication);
                 $feedback->setUser($user);
-                $feedback->setIdUser($user->getId());
                 $feedback->setCommentaire($commentText);
                 $feedback->setTypeReaction('RATING_' . (int) ($data['rating'] ?? 5));
                 $feedback->setDateFeedback(new \DateTimeImmutable());
@@ -152,7 +151,6 @@ class PublicationController extends AbstractController
         $feedback = new Feedback();
         $feedback->setPublication($publication);
         $feedback->setUser($user);
-        $feedback->setIdUser($user->getId());
         $feedback->setTypeReaction($reaction);
         $feedback->setDateFeedback(new \DateTimeImmutable());
 

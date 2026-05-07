@@ -6,15 +6,13 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'security_events')]
+#[ORM\HasLifecycleCallbacks]
 class SecurityEvent
 {
     #[ORM\Id]
     #[ORM\Column(type: 'integer')]
     #[ORM\GeneratedValue]
     private int $id;
-
-    #[ORM\Column(name: 'user_id', type: 'integer', nullable: true)]
-    private int|null $userId = null;
 
     #[ORM\Column(type: 'string', length: 80, nullable: true)]
     private string|null $ip = null;
@@ -28,20 +26,13 @@ class SecurityEvent
     #[ORM\Column(name: 'created_at', type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'creator_id', referencedColumnName: 'id', nullable: false)]
+    private User $creator;
+
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function getUserId(): int|null
-    {
-        return $this->userId;
-    }
-
-    public function setUserId(int|null $userId): static
-    {
-        $this->userId = $userId;
-        return $this;
     }
 
     public function getIp(): string|null
@@ -82,9 +73,26 @@ class SecurityEvent
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    protected function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
         return $this;
+    }
+
+    public function getCreator(): User
+    {
+        return $this->creator;
+    }
+
+    protected function setCreator(User $creator): static
+    {
+        $this->creator = $creator;
+        return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function initializeCreatedAt(): void
+    {
+        $this->createdAt ??= new \DateTimeImmutable();
     }
 }

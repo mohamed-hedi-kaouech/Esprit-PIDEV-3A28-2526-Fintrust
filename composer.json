@@ -57,8 +57,7 @@
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/intl-extra": "^3.24",
         "twig/twig": "^2.12|^3.0",
-        "twilio/sdk": "^8.11",
-        "webmozart/assert": "1.12.1"
+        "twilio/sdk": "^8.11"
     },
     "config": {
         "allow-plugins": {
@@ -111,6 +110,7 @@
         }
     },
     "require-dev": {
+        "ahmed-bhs/doctrine-doctor": "^1.0",
         "doctrine/doctrine-fixtures-bundle": "^4.3",
         "phpstan/phpstan": "*",
         "phpunit/phpunit": "^9.5",
@@ -120,6 +120,7 @@
         "symfony/maker-bundle": "^1.67",
         "symfony/phpunit-bridge": "^8.0",
         "symfony/stopwatch": "6.4.*",
-        "symfony/web-profiler-bundle": "6.4.*"
+        "symfony/web-profiler-bundle": "6.4.*",
+        "webmozart/assert": "^1.11"
     }
 }

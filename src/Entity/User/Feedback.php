@@ -14,9 +14,6 @@ class Feedback
     #[ORM\GeneratedValue]
     private int $idFeedback;
 
-    #[ORM\Column(name: 'id_user', type: 'integer')]
-    private int $idUser;
-
     #[ORM\Column(name: 'commentaire', type: 'text', nullable: true)]
     private string|null $commentaire = null;
 
@@ -44,17 +41,6 @@ class Feedback
     public function getIdFeedback(): int
     {
         return $this->idFeedback;
-    }
-
-    public function getIdUser(): int
-    {
-        return $this->idUser;
-    }
-
-    public function setIdUser(int $idUser): static
-    {
-        $this->idUser = $idUser;
-        return $this;
     }
 
     public function getCommentaire(): string|null

@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'user_qr_tokens')]
+#[ORM\HasLifecycleCallbacks]
 class UserQrToken
 {
     #[ORM\Id]
@@ -19,11 +20,11 @@ class UserQrToken
     #[ORM\Column(type: 'boolean')]
     private bool $active = true;
 
-    #[ORM\Column(name: 'expires_at', type: 'datetime')]
-    private \DateTimeInterface $expiresAt;
+    #[ORM\Column(name: 'expires_at', type: 'datetime_immutable')]
+    private \DateTimeImmutable $expiresAt;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime')]
-    private \DateTimeInterface $createdAt;
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
@@ -56,26 +57,20 @@ class UserQrToken
         return $this;
     }
 
-    public function getExpiresAt(): \DateTimeInterface
+    public function getExpiresAt(): \DateTimeImmutable
     {
         return $this->expiresAt;
     }
 
-    public function setExpiresAt(\DateTimeInterface $expiresAt): static
+    public function scheduleExpiration(\DateTimeImmutable $expiresAt): static
     {
         $this->expiresAt = $expiresAt;
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeInterface $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-        return $this;
     }
 
     public function getUser(): User
@@ -92,5 +87,11 @@ class UserQrToken
     public function isActive(): ?bool
     {
         return $this->active;
+    }
+
+    #[ORM\PrePersist]
+    public function initializeCreatedAt(): void
+    {
+        $this->createdAt ??= new \DateTimeImmutable();
     }
 }

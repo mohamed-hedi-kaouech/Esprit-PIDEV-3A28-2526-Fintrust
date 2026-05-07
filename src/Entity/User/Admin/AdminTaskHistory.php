@@ -14,12 +14,6 @@ class AdminTaskHistory
     #[ORM\GeneratedValue]
     private int $id;
 
-    #[ORM\Column(name: 'task_id', type: 'integer')]
-    private int $taskId;
-
-    #[ORM\Column(name: 'actor_admin_id', type: 'integer')]
-    private int $actorAdminId;
-
     #[ORM\Column(name: 'action', type: 'string', length: 40)]
     private string $action;
 
@@ -50,28 +44,6 @@ class AdminTaskHistory
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function getTaskId(): int
-    {
-        return $this->taskId;
-    }
-
-    public function setTaskId(int $taskId): static
-    {
-        $this->taskId = $taskId;
-        return $this;
-    }
-
-    public function getActorAdminId(): int
-    {
-        return $this->actorAdminId;
-    }
-
-    public function setActorAdminId(int $actorAdminId): static
-    {
-        $this->actorAdminId = $actorAdminId;
-        return $this;
     }
 
     public function getAction(): string

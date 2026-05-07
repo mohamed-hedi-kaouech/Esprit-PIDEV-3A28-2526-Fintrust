@@ -4,9 +4,11 @@ namespace App\Entity\User;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use SensitiveParameter;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -87,6 +89,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private string $role = self::ROLE_CLIENT;
 
     /** Mot de passe hashé (bcrypt/argon2 via Symfony) */
+    #[Ignore]
     #[ORM\Column(type: 'string', length: 255)]
     private string $password;
 
@@ -303,7 +306,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRole(string $v): static { $this->role = $v; return $this; }
 
     public function getPassword(): string { return $this->password; }
-    public function setPassword(string $v): static { $this->password = $v; return $this; }
+    public function setPassword(#[SensitiveParameter] string $v): static { $this->password = $v; return $this; }
 
     public function getKycStatus(): ?string { return $this->kycStatus; }
     public function setKycStatus(?string $v): static { $this->kycStatus = $v; return $this; }

@@ -25,10 +25,6 @@ class Transaction
     #[ORM\Column(name: 'date_transaction', type: 'datetime')]
     private \DateTimeInterface $dateTransaction;
 
-    #[ORM\Column(name: 'id_wallet', type: 'integer')]
-    private int $idWallet;
-
-    // FIX: added ManyToOne relation with inversedBy: 'transactions' to match Wallet#transactions OneToMany
     #[ORM\ManyToOne(targetEntity: \App\Entity\Wallet\Wallet::class, inversedBy: 'transactions')]
     #[ORM\JoinColumn(name: 'id_wallet', referencedColumnName: 'id_wallet')]
     private Wallet $wallet;
@@ -76,7 +72,7 @@ class Transaction
         return $this->dateTransaction;
     }
 
-    public function setDateTransaction(\DateTimeInterface $dateTransaction): static
+    public function markOccurredAt(\DateTimeInterface $dateTransaction): static
     {
         $this->dateTransaction = $dateTransaction;
         return $this;
@@ -84,13 +80,7 @@ class Transaction
 
     public function getIdWallet(): int
     {
-        return $this->idWallet;
-    }
-
-    public function setIdWallet(int $idWallet): static
-    {
-        $this->idWallet = $idWallet;
-        return $this;
+        return $this->wallet->getIdWallet();
     }
 
     public function getWallet(): Wallet

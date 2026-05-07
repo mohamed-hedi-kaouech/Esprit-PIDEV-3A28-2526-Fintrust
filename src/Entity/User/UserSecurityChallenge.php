@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'user_security_challenges')]
+#[ORM\HasLifecycleCallbacks]
 class UserSecurityChallenge
 {
     #[ORM\Id]
@@ -28,8 +29,8 @@ class UserSecurityChallenge
     #[ORM\Column(type: 'integer')]
     private int $target = 1;
 
-    #[ORM\Column(name: 'updated_at', type: 'datetime')]
-    private \DateTimeInterface $updatedAt;
+    #[ORM\Column(name: 'updated_at', type: 'datetime_immutable')]
+    private \DateTimeImmutable $updatedAt;
 
     #[ORM\ManyToOne(targetEntity: \App\Entity\User\User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
@@ -95,15 +96,9 @@ class UserSecurityChallenge
         return $this;
     }
 
-    public function getUpdatedAt(): \DateTimeInterface
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-        return $this;
     }
 
     public function getUser(): User
@@ -115,5 +110,12 @@ class UserSecurityChallenge
     {
         $this->user = $user;
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function refreshUpdatedAt(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

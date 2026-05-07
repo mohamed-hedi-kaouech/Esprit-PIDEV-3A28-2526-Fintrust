@@ -14,9 +14,6 @@ class PasswordReset
     #[ORM\GeneratedValue]
     private int $id;
 
-    #[ORM\Column(name: 'user_id', type: 'integer')]
-    private int $userId;
-
     #[ORM\Column(name: 'code_hash', type: 'string', length: 255)]
     private string $codeHash;
 
@@ -39,17 +36,6 @@ class PasswordReset
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function getUserId(): int
-    {
-        return $this->userId;
-    }
-
-    public function setUserId(int $userId): static
-    {
-        $this->userId = $userId;
-        return $this;
     }
 
     public function getCodeHash(): string
