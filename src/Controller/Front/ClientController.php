@@ -127,11 +127,65 @@ class ClientController extends AbstractController
         $user = $this->getUser();
         $this->behavioralProfileService->refreshUserBehavior($user);
 
+        $recommendation = $this->advancedAnalyticsService->getNextBestAction($user);
+        $prioritySummary = $this->advancedAnalyticsService->getActionPrioritySummary($user);
+        $dropoffRisk = $this->advancedAnalyticsService->getDropoffRisk($user);
+        $profileEnrichment = $this->userIntelligenceService->buildProfileEnrichment($user);
+        $riskProfile = $this->userIntelligenceService->getRiskProfile($user);
+        $behaviorSummary = $this->userIntelligenceService->getFinancialBehaviorSummary($user);
+
+        $profileFields = [
+            trim($user->getNom()) !== '',
+            trim($user->getPrenom()) !== '',
+            trim($user->getEmail()) !== '',
+            trim((string) $user->getNumTel()) !== '',
+            $user->isVerified(),
+            $user->getKycStatus() !== null,
+        ];
+        $profileCompletion = (int) round((array_sum(array_map(static fn (bool $done): int => $done ? 1 : 0, $profileFields)) / count($profileFields)) * 100);
+
+        $securityScore = (int) max(
+            24,
+            min(
+                98,
+                round(
+                    100
+                    - ((float) $riskProfile['globalRiskScore'] * 0.28)
+                    - ((float) $user->getFraudScore() * 0.16)
+                    + ($user->isVerified() ? 10 : 0)
+                    + ($user->isKycApproved() ? 12 : 0)
+                )
+            )
+        );
+
+        $securityLevel = $securityScore >= 85 ? 'Elevee' : ($securityScore >= 60 ? 'Moyenne' : 'Renforcee');
+        $trustScore = (int) ($profileEnrichment['trustScore'] ?? 0);
+        $trustLevel = $trustScore >= 80 ? 'High' : ($trustScore >= 55 ? 'Medium' : 'Low');
+        $globalUserScore = (int) round(($trustScore * 0.45) + ((int) ($behaviorSummary['stabilityScore'] ?? 0) * 0.30) + ($profileCompletion * 0.25));
+        $accountTone = $globalUserScore >= 80 ? 'BON ETAT' : ($globalUserScore >= 55 ? 'A SURVEILLER' : 'A RENFORCER');
+
+        $userInsights = [
+            'profileEnrichment' => $profileEnrichment,
+            'riskProfile' => $riskProfile,
+            'behaviorSummary' => $behaviorSummary,
+            'profileCompletion' => $profileCompletion,
+            'securityScore' => $securityScore,
+            'securityLevel' => $securityLevel,
+            'trustScore' => $trustScore,
+            'trustLevel' => $trustLevel,
+            'globalUserScore' => $globalUserScore,
+            'accountTone' => $accountTone,
+            'identityStatus' => $user->isKycApproved() ? 'Valide' : ($user->getKycStatus() === User::KYC_EN_ATTENTE ? 'En revue' : 'A finaliser'),
+            'accessLabel' => $user->isAdmin() ? 'Admin' : 'Client',
+            'recommendedActions' => array_slice(array_values($recommendation['secondaryActions'] ?? []), 0, 3),
+        ];
+
         return $this->render('front/client/recommended_actions.html.twig', [
             'user' => $user,
-            'recommendation' => $this->advancedAnalyticsService->getNextBestAction($user),
-            'prioritySummary' => $this->advancedAnalyticsService->getActionPrioritySummary($user),
-            'dropoffRisk' => $this->advancedAnalyticsService->getDropoffRisk($user),
+            'recommendation' => $recommendation,
+            'prioritySummary' => $prioritySummary,
+            'dropoffRisk' => $dropoffRisk,
+            'userInsights' => $userInsights,
         ]);
     }
 

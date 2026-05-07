@@ -183,6 +183,111 @@ class BudgetController extends AbstractController
         ]);
     }
 
+    #[Route('/intelligence', name: 'intelligence', methods: ['GET'])]
+    public function intelligence(): Response
+    {
+        $categories = $this->categorieRepository->searchByFilters('', null, null, null, 'usage');
+        $savingCategory = null;
+        $totalBudget = 0.0;
+        $totalSpent = 0.0;
+
+        foreach ($categories as $categorie) {
+            $spent = $this->itemRepository->getTotalMontantByCategorie($categorie->getIdCategorie());
+            $totalBudget += $categorie->getBudgetPrevu();
+            $totalSpent += $spent;
+
+            if (mb_strtolower($categorie->getNomCategorie()) === 'epargne') {
+                $savingCategory = [
+                    'entity' => $categorie,
+                    'budget' => $categorie->getBudgetPrevu(),
+                    'spent' => $spent,
+                    'remaining' => $categorie->getBudgetPrevu() - $spent,
+                ];
+            }
+        }
+
+        $monthlyCapacity = $savingCategory !== null
+            ? max(120.0, round($savingCategory['budget'] - $savingCategory['spent'] + 160.0, 2))
+            : max(120.0, round(($totalBudget - $totalSpent) * 0.35, 2));
+        $currentSaved = $savingCategory !== null ? max(0.0, round($savingCategory['spent'], 2)) : max(900.0, round($totalSpent * 0.18, 2));
+        $targetAmount = max(2800.0, round($currentSaved + 1800.0, 2));
+        $remainingAmount = max($targetAmount - $currentSaved, 0.0);
+        $completionRate = $targetAmount > 0 ? (int) round(($currentSaved / $targetAmount) * 100) : 0;
+        $recommendedMonthly = max($monthlyCapacity, round($remainingAmount / 6, 2));
+        $probability = (int) max(62, min(96, round(70 + ($monthlyCapacity / max($targetAmount, 1)) * 100 + ($completionRate * 0.12))));
+        $simulationImpactMonths = max(1, (int) round($recommendedMonthly / 220));
+        $simulationSavingsGain = (int) round($recommendedMonthly * 1.28);
+
+        $projection = [
+            'goalName' => 'Voyage a Istanbul',
+            'targetAmount' => $targetAmount,
+            'currentSaved' => $currentSaved,
+            'remainingAmount' => $remainingAmount,
+            'completionRate' => $completionRate,
+            'recommendedMonthly' => $recommendedMonthly,
+            'monthlyCapacity' => $monthlyCapacity,
+            'probability' => $probability,
+            'impactMonths' => $simulationImpactMonths,
+            'impactSavings' => $simulationSavingsGain,
+            'targetMonthLabel' => 'Decembre 2025',
+            'estimatedMonthLabel' => 'Juin 2025',
+            'secondaryGoalName' => 'Ordinateur portable',
+            'secondaryTarget' => max(1800.0, round($targetAmount * 0.56, 2)),
+            'secondarySaved' => max(700.0, round($currentSaved * 0.35, 2)),
+            'secondaryEta' => 'Sept. 2025',
+            'lateRisk' => max(8, 100 - $probability),
+            'aiHint' => sprintf(
+                'En maintenant %.0f DT/mois, vous atteindrez votre objectif en 6 mois. Une reduction de 12%% sur les loisirs peut vous faire gagner 1 mois.',
+                $recommendedMonthly
+            ),
+            'projectionLabels' => ['Mai 2025', 'Juin 2025', 'Juil. 2025', 'Aout 2025', 'Sept. 2025', 'Oct. 2025', 'Nov. 2025', 'Dec. 2025'],
+            'currentSeries' => [max(400.0, $currentSaved * 0.2), max(700.0, $currentSaved * 0.34), max(1100.0, $currentSaved * 0.48), max(1550.0, $currentSaved * 0.62), max(2050.0, $currentSaved * 0.74), max(2480.0, $currentSaved * 0.82), max(2860.0, $currentSaved * 0.9), $currentSaved],
+            'projectedSeries' => [max(500.0, $currentSaved * 0.22), max(920.0, $currentSaved * 0.4), max(1450.0, $currentSaved * 0.58), max(2120.0, $currentSaved * 0.76), max(2860.0, $currentSaved * 0.92), max(3580.0, $currentSaved + $recommendedMonthly), max(4320.0, $currentSaved + ($recommendedMonthly * 2)), $targetAmount],
+            'goalLineSeries' => array_fill(0, 8, $targetAmount),
+        ];
+
+        $simulation = [
+            'actions' => [
+                ['label' => 'Reduire alimentation -10%', 'icon' => 'bi-basket'],
+                ['label' => 'Supprimer un abonnement 50 DT', 'icon' => 'bi-ban'],
+                ['label' => 'Ajouter un revenu +300 DT', 'icon' => 'bi-plus-circle'],
+                ['label' => 'Reduire transport -15%', 'icon' => 'bi-car-front'],
+                ['label' => 'Ajouter une action', 'icon' => 'bi-plus-lg'],
+            ],
+            'current' => [
+                'capacity' => $monthlyCapacity,
+                'targetDate' => 'Juin 2025',
+                'remainingBudget' => max(320.0, round($monthlyCapacity * 1.62, 2)),
+                'score' => max(60, min(84, $probability - 12)),
+            ],
+            'simulated' => [
+                'capacity' => $simulationSavingsGain,
+                'targetDate' => 'Avr. 2025',
+                'remainingBudget' => max(480.0, round($simulationSavingsGain * 0.88, 2)),
+                'score' => min(98, $probability + 6),
+            ],
+            'delta' => [
+                'capacity' => $simulationSavingsGain - $monthlyCapacity,
+                'months' => $simulationImpactMonths,
+                'remainingBudget' => max(100.0, round(($simulationSavingsGain * 0.88) - ($monthlyCapacity * 1.62), 2)),
+                'score' => min(18, 6 + $simulationImpactMonths * 3),
+            ],
+            'bars' => [
+                ['label' => 'Situation actuelle', 'short' => 'Base', 'value' => (int) round($monthlyCapacity), 'tone' => 'slate'],
+                ['label' => 'Scenario 1', 'short' => 'Abonnement + revenu', 'value' => (int) round($simulationSavingsGain), 'tone' => 'mint'],
+                ['label' => 'Scenario 2', 'short' => 'Loisirs + transport', 'value' => (int) round($monthlyCapacity + 360), 'tone' => 'blue'],
+                ['label' => 'Scenario 3', 'short' => 'Alimentation + revenu', 'value' => (int) round($monthlyCapacity + 490), 'tone' => 'violet'],
+            ],
+        ];
+        $maxScenarioBar = max(array_map(static fn (array $bar): int => $bar['value'], $simulation['bars']));
+
+        return $this->render('front/client/budget/intelligence.html.twig', [
+            'projection' => $projection,
+            'simulation' => $simulation,
+            'maxScenarioBar' => $maxScenarioBar,
+        ]);
+    }
+
     #[Route('/categories', name: 'categories', methods: ['GET'])]
     public function categories(Request $request): Response
     {

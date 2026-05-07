@@ -1,0 +1,498 @@
+{% extends 'front/front.html.twig' %}
+
+{% block title %}Financial Intelligence{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-client-finintel-page {
+      --fi-blue: #2563eb;
+      --fi-cyan: #06b6d4;
+      --fi-violet: #7c3aed;
+      --fi-mint: #10b981;
+      --fi-amber: #f59e0b;
+      --fi-border: rgba(163, 184, 214, 0.28);
+      --fi-shadow: 0 26px 70px rgba(37, 99, 235, 0.08);
+      --fi-muted: #61708f;
+      padding: 2rem 0 3rem;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 18%),
+        radial-gradient(circle at top right, rgba(6, 182, 212, 0.08), transparent 16%),
+        linear-gradient(180deg, #f7fbff 0%, #eef5fd 100%);
+    }
+    .ft-client-finintel-page .container-fluid { max-width: 1400px; }
+    .ft-cfi-hero, .ft-cfi-card, .ft-cfi-kpi, .ft-cfi-action-card {
+      border: 1px solid var(--fi-border);
+      border-radius: 28px;
+      background: rgba(255,255,255,.96);
+      box-shadow: var(--fi-shadow);
+    }
+    .ft-cfi-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(320px, .9fr);
+      gap: 2rem;
+      padding: 2.2rem;
+      background:
+        radial-gradient(circle at top right, rgba(103,232,249,.22), transparent 32%),
+        radial-gradient(circle at top left, rgba(59,130,246,.14), transparent 34%),
+        linear-gradient(180deg, #eef6ff 0%, #ffffff 100%);
+      margin-bottom: 1.5rem;
+    }
+    .ft-cfi-kicker, .ft-cfi-badge, .ft-cfi-chip {
+      display: inline-flex; align-items: center; gap: .45rem; border-radius: 999px; font-weight: 700;
+    }
+    .ft-cfi-kicker { padding: .55rem .95rem; font-size: .8rem; color: var(--fi-blue); background: rgba(37,99,235,.09); text-transform: uppercase; letter-spacing: .04em; }
+    .ft-cfi-kicker-row, .ft-cfi-badges, .ft-cfi-actions, .ft-cfi-sim-actions { display: flex; flex-wrap: wrap; gap: .8rem; }
+    .ft-cfi-hero h1 { font-size: clamp(2rem, 4vw, 3.25rem); font-weight: 800; letter-spacing: -.04em; margin: 0; }
+    .ft-cfi-hero p { margin: 1rem 0 0; color: var(--fi-muted); font-size: 1.03rem; max-width: 820px; }
+    .ft-cfi-badge, .ft-cfi-chip { padding: .55rem .9rem; font-size: .82rem; }
+    .ft-cfi-badge.is-mint { background: rgba(16,185,129,.12); color: #0f9f74; }
+    .ft-cfi-badge.is-blue { background: rgba(37,99,235,.1); color: var(--fi-blue); }
+    .ft-cfi-badge.is-violet { background: rgba(124,58,237,.1); color: var(--fi-violet); }
+    .ft-cfi-btn-primary, .ft-cfi-btn-secondary, .ft-cfi-btn-small {
+      border-radius: 18px; padding: .92rem 1.25rem; font-weight: 700; border: 1px solid transparent;
+    }
+    .ft-cfi-btn-primary, .ft-cfi-btn-small { color: #fff; background: linear-gradient(135deg, #2563eb, #1749c6); box-shadow: 0 18px 36px rgba(37,99,235,.22); }
+    .ft-cfi-btn-secondary { color: var(--fi-blue); background: rgba(255,255,255,.9); border-color: rgba(37,99,235,.2); }
+    .ft-cfi-note { padding: 1.2rem 1.25rem; border-radius: 22px; background: linear-gradient(135deg, rgba(37,99,235,.08), rgba(14,165,233,.09)); border: 1px solid rgba(37,99,235,.12); }
+    .ft-cfi-note strong { display: block; margin-bottom: .4rem; }
+    .ft-cfi-action-card, .ft-cfi-kpi, .ft-cfi-card { padding: 1.4rem; }
+    .ft-cfi-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; }
+    .ft-cfi-field label { display: block; margin-bottom: .5rem; font-weight: 700; color: #233553; }
+    .ft-cfi-field .form-control { border-radius: 16px; min-height: 54px; border-color: rgba(186,202,229,.7); }
+    .ft-cfi-form-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .8rem; }
+    .ft-cfi-kpi { height: 100%; }
+    .ft-cfi-kpi-top { display: flex; gap: 1rem; align-items: flex-start; }
+    .ft-cfi-kpi-icon, .ft-cfi-mini-icon, .ft-cfi-reco-icon { width: 56px; height: 56px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 1.35rem; }
+    .ft-cfi-kpi.is-blue .ft-cfi-kpi-icon { background: linear-gradient(135deg, #2563eb, #1749c6); }
+    .ft-cfi-kpi.is-cyan .ft-cfi-kpi-icon { background: linear-gradient(135deg, #06b6d4, #0f9ec0); }
+    .ft-cfi-kpi.is-violet .ft-cfi-kpi-icon { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+    .ft-cfi-kpi.is-amber .ft-cfi-kpi-icon { background: linear-gradient(135deg, #f59e0b, #f97316); }
+    .ft-cfi-kpi-value { font-size: 1.7rem; font-weight: 800; line-height: 1.15; }
+    .ft-cfi-kpi-note, .ft-cfi-kpi-extra { margin-top: .7rem; color: var(--fi-muted); }
+    .ft-cfi-kpi-progress { margin-top: 1rem; height: 9px; border-radius: 999px; background: rgba(214,226,244,.72); overflow: hidden; }
+    .ft-cfi-kpi-progress span { display: block; height: 100%; background: linear-gradient(90deg, #2563eb, #60a5fa); }
+    .ft-cfi-card-head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 1.2rem; }
+    .ft-cfi-section-kicker, .ft-cfi-side-kicker, .ft-cfi-subtitle { color: var(--fi-blue); font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+    .ft-cfi-card h2 { font-size: 1.15rem; margin: .35rem 0 0; font-weight: 800; color: #12203f; }
+    .ft-cfi-grid-main { display: grid; grid-template-columns: minmax(0, 1.6fr) 220px minmax(260px,.9fr); gap: 1rem; }
+    .ft-cfi-goal-box, .ft-cfi-reco-box, .ft-cfi-mini-card, .ft-cfi-projection, .ft-cfi-reco-card, .ft-cfi-compare-card, .ft-cfi-insight-card, .ft-cfi-best-card {
+      border: 1px solid rgba(186,202,229,.34); border-radius: 24px; background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,251,255,.92));
+    }
+    .ft-cfi-goal-box, .ft-cfi-reco-box, .ft-cfi-mini-card, .ft-cfi-compare-card, .ft-cfi-insight-card, .ft-cfi-best-card { padding: 1rem; }
+    .ft-cfi-goal-head { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .ft-cfi-thumb { width: 96px; height: 72px; border-radius: 18px; background: linear-gradient(135deg, rgba(250,204,21,.3), rgba(249,115,22,.08)), linear-gradient(135deg, #1d4ed8, #7c3aed); }
+    .ft-cfi-goal-stats { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .9rem; }
+    .ft-cfi-goal-stat { padding: .95rem 1rem; border-radius: 18px; background: rgba(244,248,255,.78); }
+    .ft-cfi-goal-stat span { display: block; color: #70809d; font-size: .82rem; margin-bottom: .45rem; }
+    .ft-cfi-goal-stat strong { font-size: 1.12rem; }
+    .ft-cfi-recommended { display: flex; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding: .95rem 1rem; border-radius: 18px; background: linear-gradient(135deg, rgba(37,99,235,.09), rgba(37,99,235,.03)); color: #173ea7; font-weight: 700; }
+    .ft-cfi-donut { --size: 190px; width: var(--size); height: var(--size); border-radius: 50%; background: conic-gradient(var(--fi-blue) calc(var(--value) * 1%), rgba(226,233,247,.9) 0); display: grid; place-items: center; position: relative; margin: auto; }
+    .ft-cfi-donut::after { content:""; position:absolute; inset:16px; border-radius:50%; background:#fff; }
+    .ft-cfi-donut-core { position: relative; z-index: 1; text-align: center; }
+    .ft-cfi-donut-core strong { display: block; font-size: 2.2rem; font-weight: 800; line-height: 1; }
+    .ft-cfi-mini-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; margin-top: 1rem; }
+    .ft-cfi-mini-card strong { display: block; margin: .35rem 0; }
+    .ft-cfi-mini-card p, .ft-cfi-mini-card span, .ft-cfi-reco-box p, .ft-cfi-reco-content p, .ft-cfi-score-copy p, .ft-cfi-insight-card p, .ft-cfi-insight-card ul { color: var(--fi-muted); }
+    .ft-cfi-mini-card span { display:block; margin-top:.55rem; }
+    .ft-cfi-mini-card.is-slate .ft-cfi-mini-icon { background: linear-gradient(135deg, #64748b, #334155); }
+    .ft-cfi-mini-card.is-green .ft-cfi-mini-icon { background: linear-gradient(135deg, #10b981, #059669); }
+    .ft-cfi-mini-card.is-amber .ft-cfi-mini-icon { background: linear-gradient(135deg, #f59e0b, #fb7185); }
+    .ft-cfi-projection { display:grid; grid-template-columns:minmax(0,1.7fr) 200px; gap:1rem; padding:1rem; margin-top:1rem; }
+    .ft-cfi-chart-shell { position: relative; padding-left: 2.3rem; }
+    .ft-cfi-chart-y { position:absolute; top:0; left:0; height:220px; display:flex; flex-direction:column; justify-content:space-between; color:#7d8cab; font-size:.78rem; }
+    .ft-cfi-chart-x { display:grid; grid-template-columns:repeat(8,1fr); gap:.6rem; margin-top:.4rem; color:#7d8cab; font-size:.78rem; text-align:center; }
+    .ft-cfi-chart-axis, .ft-cfi-chart-grid { stroke: rgba(186,202,229,.5); stroke-width:1.1; }
+    .ft-cfi-line { fill:none; stroke-width:4.5; stroke-linecap:round; }
+    .ft-cfi-line.is-blue { stroke:#2563eb; }
+    .ft-cfi-line.is-dashed { stroke:#3b82f6; stroke-dasharray:10 8; }
+    .ft-cfi-line.is-violet { stroke:#8b5cf6; stroke-width:3.2; stroke-dasharray:7 8; }
+    .ft-cfi-point { fill:#fff; stroke:#2563eb; stroke-width:4; }
+    .ft-cfi-side-stat { padding:1rem; border-radius:20px; background:linear-gradient(180deg, rgba(246,249,255,.95), rgba(255,255,255,.92)); border:1px solid rgba(186,202,229,.28); }
+    .ft-cfi-side-stat strong { display:block; margin:.45rem 0; font-size:1.35rem; }
+    .ft-cfi-sticky { position: sticky; top: 1rem; }
+    .ft-cfi-reco-list { display:flex; flex-direction:column; gap:1rem; }
+    .ft-cfi-reco-card { display:grid; grid-template-columns:54px minmax(0,1fr) 20px; gap:.9rem; align-items:center; padding:1rem; }
+    .ft-cfi-reco-card.is-mint .ft-cfi-reco-icon { background: linear-gradient(135deg, #10b981, #0f9f74); }
+    .ft-cfi-reco-card.is-amber .ft-cfi-reco-icon { background: linear-gradient(135deg, #fb923c, #f97316); }
+    .ft-cfi-reco-card.is-violet .ft-cfi-reco-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .ft-cfi-score-card { display:flex; flex-direction:column; gap:1rem; text-align:center; }
+    .ft-cfi-score-ring { --size:150px; width:var(--size); height:var(--size); border-radius:50%; background: conic-gradient(#2563eb 62%, #10b981 87%, rgba(226,233,247,.95) 0); display:grid; place-items:center; position:relative; margin:auto; }
+    .ft-cfi-score-ring::after { content:""; position:absolute; inset:16px; border-radius:50%; background:#fff; }
+    .ft-cfi-score-ring-core { position:relative; z-index:1; }
+    .ft-cfi-sim-chip { display:inline-flex; align-items:center; gap:.55rem; padding:.8rem 1rem; border-radius:18px; background:rgba(246,249,255,.98); border:1px solid rgba(186,202,229,.3); color:#23408f; font-weight:700; }
+    .ft-cfi-compare-grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)) minmax(260px,.95fr); gap:1rem; }
+    .ft-cfi-compare-card.is-current { background: linear-gradient(180deg, rgba(241,245,249,.92), rgba(255,255,255,.96)); }
+    .ft-cfi-compare-card.is-simulated { background: linear-gradient(180deg, rgba(220,252,231,.76), rgba(255,255,255,.96)); }
+    .ft-cfi-compare-card.is-improvement { background: linear-gradient(180deg, rgba(236,253,245,.88), rgba(255,255,255,.96)); }
+    .ft-cfi-compare-row { display:flex; justify-content:space-between; gap:1rem; padding:.75rem 0; border-top:1px solid rgba(186,202,229,.26); color:var(--fi-muted); }
+    .ft-cfi-compare-row strong { color:#0f172a; }
+    .ft-cfi-bars-section { display:grid; grid-template-columns:minmax(0,1fr) 220px; gap:1rem; margin-top:1.2rem; align-items:end; }
+    .ft-cfi-bars { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem; align-items:end; min-height:290px; }
+    .ft-cfi-bar-track { height:170px; display:flex; align-items:flex-end; justify-content:center; border-bottom:1px solid rgba(186,202,229,.5); padding-bottom:.4rem; }
+    .ft-cfi-bar { width:78%; border-radius:22px 22px 8px 8px; display:block; }
+    .ft-cfi-bar.is-slate { background: linear-gradient(180deg, #94a3b8, #cbd5e1); }
+    .ft-cfi-bar.is-mint { background: linear-gradient(180deg, #10b981, #6ee7b7); }
+    .ft-cfi-bar.is-blue { background: linear-gradient(180deg, #2563eb, #60a5fa); }
+    .ft-cfi-bar.is-violet { background: linear-gradient(180deg, #8b5cf6, #c4b5fd); }
+    @media (max-width: 1399.98px) { .ft-cfi-grid-main, .ft-cfi-compare-grid, .ft-cfi-bars-section { grid-template-columns:1fr; } .ft-cfi-sticky { position:static; } }
+    @media (max-width: 991.98px) { .ft-cfi-hero, .ft-cfi-projection, .ft-cfi-form-grid { grid-template-columns:1fr; } }
+    @media (max-width: 767.98px) { .ft-cfi-goal-stats, .ft-cfi-mini-grid { grid-template-columns:1fr; } .ft-cfi-bars { grid-template-columns:repeat(2,minmax(0,1fr)); min-height:auto; } .ft-cfi-chart-x { grid-template-columns:repeat(4,1fr); } }
+  </style>
+{% endblock %}
+
+{% block body %}
+<div class="ft-client-finintel-page">
+  <div class="container-fluid px-4">
+    <section class="ft-cfi-hero">
+      <div>
+        <div class="ft-cfi-kicker-row mb-3">
+          <span class="ft-cfi-kicker"><i class="bi bi-cpu me-2"></i>Budget client</span>
+          <span class="ft-cfi-kicker" style="background:transparent;padding:0;color:#6b7a98;">/ Financial Intelligence</span>
+        </div>
+        <h1>Objectifs d epargne &amp; Simulation intelligente</h1>
+        <p>L IA analyse vos habitudes, projette votre capacite d epargne et vous aide a prendre de meilleures decisions pour atteindre vos objectifs.</p>
+        <div class="ft-cfi-badges mt-4">
+          <span class="ft-cfi-badge is-mint"><i class="bi bi-stars"></i>IA active</span>
+          <span class="ft-cfi-badge is-blue"><i class="bi bi-calendar3"></i>Prevision mensuelle</span>
+          <span class="ft-cfi-badge is-violet"><i class="bi bi-person-check"></i>Analyse personnalisee</span>
+        </div>
+      </div>
+      <div class="d-flex flex-column justify-content-between gap-3">
+        <div class="ft-cfi-actions justify-content-xl-end">
+          <button type="button" class="btn ft-cfi-btn-primary" id="cfiOpenGoal"><i class="bi bi-plus-circle me-2"></i>Creer un objectif</button>
+          <button type="button" class="btn ft-cfi-btn-secondary" id="cfiOpenSimulation"><i class="bi bi-play-circle me-2"></i>Lancer une simulation</button>
+        </div>
+        <div class="ft-cfi-note">
+          <strong>Assistant d epargne actif</strong>
+          <p class="mb-0">Votre rythme actuel permet deja une projection positive. Une optimisation simple peut vous faire gagner {{ projection.impactMonths }} mois.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-4 d-grid gap-3">
+      <article class="ft-cfi-action-card d-none" id="cfiGoalPanel">
+        <div class="ft-cfi-card-head">
+          <div>
+            <div class="ft-cfi-section-kicker">Creation guidee</div>
+            <h2>Definir mon objectif d epargne</h2>
+          </div>
+        </div>
+        <form id="cfiGoalForm" class="ft-cfi-form-grid">
+          <div class="ft-cfi-field"><label for="cfiGoalName">Nom de l objectif</label><input id="cfiGoalName" class="form-control" type="text" value="{{ projection.goalName }}"></div>
+          <div class="ft-cfi-field"><label for="cfiGoalTarget">Montant cible (DT)</label><input id="cfiGoalTarget" class="form-control" type="number" value="{{ projection.targetAmount }}" min="1" step="0.01"></div>
+          <div class="ft-cfi-field"><label for="cfiGoalSaved">Epargne actuelle (DT)</label><input id="cfiGoalSaved" class="form-control" type="number" value="{{ projection.currentSaved }}" min="0" step="0.01"></div>
+          <div class="ft-cfi-field"><label for="cfiGoalMonthly">Epargne mensuelle (DT)</label><input id="cfiGoalMonthly" class="form-control" type="number" value="{{ projection.recommendedMonthly }}" min="1" step="0.01"></div>
+          <div class="ft-cfi-field"><label for="cfiGoalDeadline">Echeance souhaitee</label><input id="cfiGoalDeadline" class="form-control" type="month" value="2025-12"></div>
+          <div class="ft-cfi-field"><label for="cfiGoalSecondary">Objectif secondaire</label><input id="cfiGoalSecondary" class="form-control" type="text" value="{{ projection.secondaryGoalName }}"></div>
+          <div class="ft-cfi-form-actions">
+            <button type="submit" class="btn ft-cfi-btn-primary"><i class="bi bi-check2-circle me-2"></i>Mettre a jour mon objectif</button>
+            <button type="button" class="btn ft-cfi-btn-secondary" id="cfiResetGoal">Valeurs conseillees</button>
+          </div>
+        </form>
+      </article>
+
+      <article class="ft-cfi-action-card d-none" id="cfiSimulationPanel">
+        <div class="ft-cfi-card-head">
+          <div>
+            <div class="ft-cfi-section-kicker">Simulation live</div>
+            <h2>Tester un scenario "Et si ?"</h2>
+          </div>
+        </div>
+        <form id="cfiSimulationForm" class="ft-cfi-form-grid">
+          <div class="ft-cfi-field"><label for="cfiBaseSavings">Capacite actuelle (DT/mois)</label><input id="cfiBaseSavings" class="form-control" type="number" value="{{ simulation.current.capacity }}" min="0" step="0.01"></div>
+          <div class="ft-cfi-field"><label for="cfiSubCut">Abonnement supprime (DT)</label><input id="cfiSubCut" class="form-control" type="number" value="50" min="0" step="0.01"></div>
+          <div class="ft-cfi-field"><label for="cfiExtraIncome">Revenu ajoute (DT)</label><input id="cfiExtraIncome" class="form-control" type="number" value="300" min="0" step="0.01"></div>
+          <div class="ft-cfi-field"><label for="cfiFoodReduction">Reduction alimentation (%)</label><input id="cfiFoodReduction" class="form-control" type="number" value="10" min="0" max="100" step="1"></div>
+          <div class="ft-cfi-field"><label for="cfiTransportReduction">Reduction transport (%)</label><input id="cfiTransportReduction" class="form-control" type="number" value="15" min="0" max="100" step="1"></div>
+          <div class="ft-cfi-field"><label for="cfiTargetGain">Objectif d avance</label><input id="cfiTargetGain" class="form-control" type="number" value="{{ simulation.delta.months }}" min="0" step="1"></div>
+          <div class="ft-cfi-form-actions">
+            <button type="submit" class="btn ft-cfi-btn-primary"><i class="bi bi-play-circle me-2"></i>Calculer</button>
+            <button type="button" class="btn ft-cfi-btn-secondary" id="cfiResetSimulation">Valeurs demo</button>
+          </div>
+        </form>
+      </article>
+    </section>
+
+    <section class="row g-3 mb-4">
+      <div class="col-12 col-md-6 col-xl-3"><div class="ft-cfi-kpi is-blue"><div class="ft-cfi-kpi-top"><span class="ft-cfi-kpi-icon"><i class="bi bi-bullseye"></i></span><div><div class="small text-muted fw-bold">Objectif principal</div><div class="ft-cfi-kpi-value" id="cfiMainGoalKpi">{{ projection.goalName }} - {{ projection.targetAmount|number_format(0, ',', ' ') }} DT</div></div></div><div class="ft-cfi-kpi-note" id="cfiMainGoalNote">{{ projection.currentSaved|number_format(0, ',', ' ') }} DT epargnes ({{ projection.completionRate }}%)</div><div class="ft-cfi-kpi-extra">Progression stable ce mois-ci</div><div class="ft-cfi-kpi-progress"><span id="cfiMainGoalProgress" style="width: {{ projection.completionRate }}%;"></span></div></div></div>
+      <div class="col-12 col-md-6 col-xl-3"><div class="ft-cfi-kpi is-cyan"><div class="ft-cfi-kpi-top"><span class="ft-cfi-kpi-icon"><i class="bi bi-calculator"></i></span><div><div class="small text-muted fw-bold">Epargne mensuelle recommandee</div><div class="ft-cfi-kpi-value" id="cfiMonthlyKpi">{{ projection.recommendedMonthly|number_format(0, ',', ' ') }} DT / mois</div></div></div><div class="ft-cfi-kpi-note">Optimale selon vos objectifs</div><div class="ft-cfi-kpi-extra">Automatisation conseillee</div><div class="ft-cfi-kpi-progress"><span id="cfiMonthlyProgress" style="width: 72%;"></span></div></div></div>
+      <div class="col-12 col-md-6 col-xl-3"><div class="ft-cfi-kpi is-violet"><div class="ft-cfi-kpi-top"><span class="ft-cfi-kpi-icon"><i class="bi bi-graph-up-arrow"></i></span><div><div class="small text-muted fw-bold">Probabilite d atteinte</div><div class="ft-cfi-kpi-value" id="cfiProbabilityKpi">{{ projection.probability }}%</div></div></div><div class="ft-cfi-kpi-note">+6% vs mois dernier</div><div class="ft-cfi-kpi-extra">Projection IA positive</div><div class="ft-cfi-kpi-progress"><span id="cfiProbabilityProgress" style="width: {{ projection.probability }}%;"></span></div></div></div>
+      <div class="col-12 col-md-6 col-xl-3"><div class="ft-cfi-kpi is-amber"><div class="ft-cfi-kpi-top"><span class="ft-cfi-kpi-icon"><i class="bi bi-stars"></i></span><div><div class="small text-muted fw-bold">Impact de la simulation</div><div class="ft-cfi-kpi-value" id="cfiImpactKpi">+{{ projection.impactMonths }} mois gagnes</div></div></div><div class="ft-cfi-kpi-note" id="cfiImpactNote">ou +{{ projection.impactSavings|number_format(0, ',', ' ') }} DT economises</div><div class="ft-cfi-kpi-extra">Scenario 1 recommande</div><div class="ft-cfi-kpi-progress"><span id="cfiImpactProgress" style="width: 78%;"></span></div></div></div>
+    </section>
+
+    <section class="row g-4">
+      <div class="col-12 col-xl-9">
+        <article class="ft-cfi-card">
+          <div class="ft-cfi-card-head"><div><div class="ft-cfi-section-kicker">Objectifs d epargne intelligents <span class="ft-cfi-chip" style="background:rgba(37,99,235,.08);color:#2563eb;">IA</span></div><h2>Suivi intelligent et projections basees sur vos donnees</h2></div></div>
+          <div class="ft-cfi-grid-main">
+            <div class="ft-cfi-goal-box">
+              <div class="ft-cfi-goal-head">
+                <div class="ft-cfi-thumb"></div>
+                <div><span class="ft-cfi-section-kicker">Objectif principal</span><h3 id="cfiGoalTitle">{{ projection.goalName }}</h3><p id="cfiGoalDeadline">Echeance souhaitee : {{ projection.targetMonthLabel }}</p></div>
+              </div>
+              <div class="ft-cfi-goal-stats">
+                <div class="ft-cfi-goal-stat"><span>Montant cible</span><strong id="cfiGoalTargetDisplay">{{ projection.targetAmount|number_format(2, ',', ' ') }} DT</strong></div>
+                <div class="ft-cfi-goal-stat"><span>Epargne a ce jour</span><strong id="cfiGoalSavedDisplay">{{ projection.currentSaved|number_format(2, ',', ' ') }} DT</strong></div>
+                <div class="ft-cfi-goal-stat"><span>Montant restant</span><strong id="cfiGoalRemainingDisplay">{{ projection.remainingAmount|number_format(2, ',', ' ') }} DT</strong></div>
+                <div class="ft-cfi-goal-stat"><span>Echeance estimee</span><strong id="cfiGoalEtaDisplay">{{ projection.estimatedMonthLabel }}</strong></div>
+              </div>
+              <div class="ft-cfi-recommended"><span>Epargne recommandee</span><strong id="cfiGoalRecommendedDisplay">{{ projection.recommendedMonthly|number_format(2, ',', ' ') }} DT / mois</strong></div>
+            </div>
+            <div class="d-flex align-items-center justify-content-center">
+              <div class="ft-cfi-donut" id="cfiGoalDonut" style="--value: {{ projection.completionRate }};">
+                <div class="ft-cfi-donut-core"><strong id="cfiGoalCompletion">{{ projection.completionRate }}%</strong><span>Complete</span></div>
+              </div>
+            </div>
+            <div class="ft-cfi-reco-box">
+              <div class="ft-cfi-side-kicker"><i class="bi bi-stars me-2"></i>Recommandations IA</div>
+              <p id="cfiGoalReco">{{ projection.aiHint }}</p>
+              <p id="cfiGoalRecoSecondary">Si vous reduisez les depenses loisirs de 12%, vous gagnez 1 mois sur l echeance estimee.</p>
+              <button type="button" class="btn ft-cfi-btn-secondary" id="cfiOpenGoalFromCard">Voir le plan d action</button>
+            </div>
+          </div>
+          <div class="ft-cfi-mini-grid">
+            <article class="ft-cfi-mini-card is-slate"><div class="ft-cfi-mini-icon"><i class="bi bi-laptop"></i></div><div class="ft-cfi-section-kicker">Objectif secondaire</div><strong id="cfiSecondaryTitle">{{ projection.secondaryGoalName }}</strong><p id="cfiSecondaryBody">Cible : {{ projection.secondaryTarget|number_format(0, ',', ' ') }} DT</p><span id="cfiSecondaryFoot">Epargne : {{ projection.secondarySaved|number_format(0, ',', ' ') }} DT - Echeance : {{ projection.secondaryEta }}</span></article>
+            <article class="ft-cfi-mini-card is-green"><div class="ft-cfi-mini-icon"><i class="bi bi-shield-exclamation"></i></div><div class="ft-cfi-section-kicker">Risque de retard</div><strong id="cfiRiskTitle">Faible</strong><p id="cfiRiskBody">Probabilite de retard : {{ projection.lateRisk }}%</p><span id="cfiRiskFoot">Signal sain sur les 3 derniers mois</span></article>
+            <article class="ft-cfi-mini-card is-amber"><div class="ft-cfi-mini-icon"><i class="bi bi-lightbulb"></i></div><div class="ft-cfi-section-kicker">Conseil IA</div><strong>Automatiser un virement</strong><p id="cfiAdviceBody">Programmez {{ projection.recommendedMonthly|number_format(0, ',', ' ') }} DT au debut de chaque mois.</p><span>Objectif securise sans effort supplementaire</span></article>
+          </div>
+          <div class="ft-cfi-projection">
+            <div>
+              <div class="ft-cfi-subtitle">Projection d epargne - <span id="cfiProjectionGoalTitle">{{ projection.goalName }}</span></div>
+              <div class="ft-cfi-chart-shell">
+                <div class="ft-cfi-chart-y"><span>6K DT</span><span>4K DT</span><span>2K DT</span><span>0 DT</span></div>
+                <svg viewBox="0 0 760 260" style="width:100%;height:220px" preserveAspectRatio="none" aria-hidden="true">
+                  <line x1="56" y1="220" x2="720" y2="220" class="ft-cfi-chart-axis"></line>
+                  <line x1="56" y1="165" x2="720" y2="165" class="ft-cfi-chart-grid"></line>
+                  <line x1="56" y1="110" x2="720" y2="110" class="ft-cfi-chart-grid"></line>
+                  <line x1="56" y1="55" x2="720" y2="55" class="ft-cfi-chart-grid"></line>
+                  <path d="M78 205 C135 188, 164 174, 214 160 S314 128, 356 118 S449 111, 500 97 S597 82, 720 68" class="ft-cfi-line is-blue"></path>
+                  <path d="M78 205 C135 185, 164 166, 214 148 S314 118, 356 106 S449 88, 500 74 S597 52, 720 35" class="ft-cfi-line is-dashed"></path>
+                  <path d="M78 205 L720 22" class="ft-cfi-line is-violet"></path>
+                  <circle cx="214" cy="160" r="5" class="ft-cfi-point"></circle>
+                  <circle cx="356" cy="118" r="5" class="ft-cfi-point"></circle>
+                  <circle cx="500" cy="97" r="5" class="ft-cfi-point"></circle>
+                  <circle cx="620" cy="77" r="5" class="ft-cfi-point"></circle>
+                </svg>
+                <div class="ft-cfi-chart-x">{% for label in projection.projectionLabels %}<span>{{ label }}</span>{% endfor %}</div>
+              </div>
+            </div>
+            <aside class="d-flex flex-column gap-3">
+              <div class="ft-cfi-side-stat"><span>Atteinte prevue</span><strong id="cfiProjectedDate">{{ projection.estimatedMonthLabel }}</strong><small id="cfiProjectedMonths">6 mois restants</small></div>
+              <div class="ft-cfi-side-stat"><span>Gain potentiel</span><strong class="text-success" id="cfiProjectedGain">+1 mois</strong><small>en optimisant vos depenses</small></div>
+            </aside>
+          </div>
+        </article>
+
+        <article class="ft-cfi-card mt-4">
+          <div class="ft-cfi-card-head"><div><div class="ft-cfi-section-kicker">Simulation "Et si ?" <span class="ft-cfi-chip" style="background:rgba(124,58,237,.08);color:#7c3aed;">Aide a la decision</span></div><h2>Testez differents scenarios et choisissez la meilleure strategie</h2></div></div>
+          <div class="ft-cfi-sim-actions mb-3">
+            {% for action in simulation.actions %}
+              <button type="button" class="ft-cfi-sim-chip"><i class="bi {{ action.icon }}"></i>{{ action.label }}</button>
+            {% endfor %}
+          </div>
+          <div class="ft-cfi-compare-grid">
+            <div class="ft-cfi-compare-card is-current p-3">
+              <div class="fw-bold mb-2">Situation actuelle</div>
+              <div class="ft-cfi-compare-row"><span>Capacite d epargne</span><strong id="cfiCompareCurrentCapacity">{{ simulation.current.capacity|number_format(0, ',', ' ') }} DT / mois</strong></div>
+              <div class="ft-cfi-compare-row"><span>Date d atteinte</span><strong>{{ simulation.current.targetDate }}</strong></div>
+              <div class="ft-cfi-compare-row"><span>Budget mensuel restant</span><strong id="cfiCompareCurrentBudget">{{ simulation.current.remainingBudget|number_format(0, ',', ' ') }} DT</strong></div>
+              <div class="ft-cfi-compare-row"><span>Score de sante financiere</span><strong id="cfiCompareCurrentScore">{{ simulation.current.score }}/100</strong></div>
+            </div>
+            <div class="ft-cfi-compare-card is-simulated p-3">
+              <div class="fw-bold mb-2">Scenario simule</div>
+              <div class="ft-cfi-compare-row"><span>Capacite d epargne</span><strong id="cfiCompareSimCapacity">{{ simulation.simulated.capacity|number_format(0, ',', ' ') }} DT / mois</strong></div>
+              <div class="ft-cfi-compare-row"><span>Date d atteinte</span><strong id="cfiCompareSimDate">{{ simulation.simulated.targetDate }}</strong></div>
+              <div class="ft-cfi-compare-row"><span>Budget mensuel restant</span><strong id="cfiCompareSimBudget">{{ simulation.simulated.remainingBudget|number_format(0, ',', ' ') }} DT</strong></div>
+              <div class="ft-cfi-compare-row"><span>Score de sante financiere</span><strong id="cfiCompareSimScore">{{ simulation.simulated.score }}/100</strong></div>
+            </div>
+            <div class="ft-cfi-compare-card is-improvement p-3">
+              <div class="fw-bold mb-2">Amelioration</div>
+              <div class="ft-cfi-compare-row"><span>Capacite d epargne</span><strong id="cfiCompareDeltaCapacity">+{{ simulation.delta.capacity|number_format(0, ',', ' ') }} DT / mois</strong></div>
+              <div class="ft-cfi-compare-row"><span>Date d atteinte</span><strong id="cfiCompareDeltaMonths">-{{ simulation.delta.months }} mois</strong></div>
+              <div class="ft-cfi-compare-row"><span>Budget mensuel restant</span><strong id="cfiCompareDeltaBudget">+{{ simulation.delta.remainingBudget|number_format(0, ',', ' ') }} DT</strong></div>
+              <div class="ft-cfi-compare-row"><span>Score de sante financiere</span><strong id="cfiCompareDeltaScore">+{{ simulation.delta.score }} points</strong></div>
+            </div>
+            <div class="ft-cfi-insight-card p-3">
+              <div class="ft-cfi-side-kicker"><i class="bi bi-stars me-2"></i>Insight IA</div>
+              <p id="cfiInsightText">Le meilleur scenario combine la suppression d un abonnement et l ajout d un revenu complementaire.</p>
+              <ul>
+                <li id="cfiInsightLine1">+{{ simulation.delta.capacity|number_format(0, ',', ' ') }} DT/mois de capacite d epargne</li>
+                <li id="cfiInsightLine2">Objectif atteint {{ simulation.delta.months }} mois plus tot</li>
+                <li id="cfiInsightLine3">Score de sante financiere estime a {{ simulation.simulated.score }}/100</li>
+              </ul>
+              <button type="button" class="btn ft-cfi-btn-small" id="cfiApplyScenario">Appliquer ce scenario</button>
+            </div>
+          </div>
+          <div class="ft-cfi-bars-section">
+            <div>
+              <div class="ft-cfi-subtitle">Comparaison des scenarios - Capacite d epargne mensuelle</div>
+              <div class="ft-cfi-bars">
+                {% for bar in simulation.bars %}
+                  <div class="text-center">
+                    <div class="fw-bold small mb-2" id="cfiBarValue{{ loop.index }}">{{ bar.value }} DT</div>
+                    <div class="ft-cfi-bar-track"><span class="ft-cfi-bar is-{{ bar.tone }}" id="cfiBar{{ loop.index }}" style="height: {{ (bar.value / maxScenarioBar) * 100 }}%;"></span></div>
+                    <strong class="d-block mt-3">{{ bar.label }}</strong>
+                    <small class="text-muted">{{ bar.short }}</small>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="ft-cfi-best-card">
+              <div class="ft-cfi-badge is-mint mb-2"><i class="bi bi-trophy"></i>Meilleur scenario</div>
+              <strong id="cfiBestScenario">Scenario 1</strong>
+              <span id="cfiBestGain">+{{ simulation.delta.capacity|number_format(0, ',', ' ') }} DT / mois</span>
+              <span id="cfiBestTime">+{{ simulation.delta.months }} mois gagnes</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="col-12 col-xl-3">
+        <div class="ft-cfi-sticky">
+          <article class="ft-cfi-card">
+            <div class="ft-cfi-card-head"><div><div class="ft-cfi-section-kicker">Recommandations intelligentes</div><h2>Actions prioritaires basees sur l IA</h2></div></div>
+            <div class="ft-cfi-reco-list">
+              <article class="ft-cfi-reco-card is-mint"><div class="ft-cfi-reco-icon"><i class="bi bi-pie-chart"></i></div><div class="ft-cfi-reco-content"><strong>Optimiser vos depenses loisirs</strong><p>Une reduction de 12% libere 50 DT/mois.</p><span>Impact : +1 mois gagne</span></div><i class="bi bi-chevron-right"></i></article>
+              <article class="ft-cfi-reco-card is-amber"><div class="ft-cfi-reco-icon"><i class="bi bi-shield-check"></i></div><div class="ft-cfi-reco-content"><strong>Securiser un fonds d urgence</strong><p>Constituez un fonds de 1 000 DT (2 mois de depenses).</p><span>Impact : Plus de securite</span></div><i class="bi bi-chevron-right"></i></article>
+              <article class="ft-cfi-reco-card is-violet"><div class="ft-cfi-reco-icon"><i class="bi bi-rocket-takeoff"></i></div><div class="ft-cfi-reco-content"><strong>Atteindre l objectif plus tot</strong><p>Augmentez votre epargne a 500 DT/mois.</p><span>Impact : +2 mois gagnes</span></div><i class="bi bi-chevron-right"></i></article>
+            </div>
+          </article>
+          <article class="ft-cfi-card mt-4">
+            <div class="ft-cfi-score-card">
+              <div class="ft-cfi-score-ring" id="cfiScoreRing" style="--value: {{ projection.probability }};">
+                <div class="ft-cfi-score-ring-core"><strong id="cfiScoreValue">{{ projection.probability }}</strong><span>/100</span></div>
+              </div>
+              <div class="ft-cfi-score-copy">
+                <div class="ft-cfi-section-kicker">Score d atteinte</div>
+                <h3 id="cfiScoreLabel" class="text-success">Excellent</h3>
+                <p id="cfiScoreText">Vous etes sur la bonne voie avec un rythme d epargne solide et un objectif realiste.</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    (() => {
+      const goalPanel = document.getElementById('cfiGoalPanel');
+      const simulationPanel = document.getElementById('cfiSimulationPanel');
+      const toggle = (panel) => {
+        [goalPanel, simulationPanel].forEach((el) => el?.classList.add('d-none'));
+        panel?.classList.remove('d-none');
+        panel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      document.getElementById('cfiOpenGoal')?.addEventListener('click', () => toggle(goalPanel));
+      document.getElementById('cfiOpenGoalFromCard')?.addEventListener('click', () => toggle(goalPanel));
+      document.getElementById('cfiOpenSimulation')?.addEventListener('click', () => toggle(simulationPanel));
+      document.getElementById('cfiApplyScenario')?.addEventListener('click', () => toggle(simulationPanel));
+
+      const money = (value) => `${Number(value).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DT`;
+      const intMoney = (value) => `${Math.round(Number(value)).toLocaleString('fr-FR')} DT`;
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+      const monthNames = ['Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'];
+      const monthLabel = (value) => {
+        const [year, month] = value.split('-').map(Number);
+        return `${monthNames[(month || 1) - 1]} ${year}`;
+      };
+
+      const updateGoal = () => {
+        const name = document.getElementById('cfiGoalName').value.trim() || 'Nouvel objectif';
+        const target = Number(document.getElementById('cfiGoalTarget').value || 0);
+        const saved = Number(document.getElementById('cfiGoalSaved').value || 0);
+        const monthly = Math.max(Number(document.getElementById('cfiGoalMonthly').value || 0), 1);
+        const deadline = document.getElementById('cfiGoalDeadline').value || '2025-12';
+        const secondary = document.getElementById('cfiGoalSecondary').value.trim() || 'Objectif secondaire';
+        const remaining = Math.max(target - saved, 0);
+        const progress = clamp(Math.round((saved / Math.max(target, 1)) * 100), 0, 100);
+        const recommended = Math.max(monthly, remaining / 6);
+        const probability = clamp(Math.round(70 + progress * 0.18 + monthly / 18), 45, 98);
+        const risk = 100 - probability;
+
+        document.getElementById('cfiGoalTitle').textContent = name;
+        document.getElementById('cfiProjectionGoalTitle').textContent = name;
+        document.getElementById('cfiGoalDeadline').textContent = `Echeance souhaitee : ${monthLabel(deadline)}`;
+        document.getElementById('cfiGoalTargetDisplay').textContent = money(target);
+        document.getElementById('cfiGoalSavedDisplay').textContent = money(saved);
+        document.getElementById('cfiGoalRemainingDisplay').textContent = money(remaining);
+        document.getElementById('cfiGoalRecommendedDisplay').textContent = `${money(recommended)} / mois`;
+        document.getElementById('cfiGoalDonut').style.setProperty('--value', progress);
+        document.getElementById('cfiGoalCompletion').textContent = `${progress}%`;
+        document.getElementById('cfiGoalReco').textContent = `En maintenant ${intMoney(monthly)}/mois, vous atteindrez votre objectif en environ ${Math.max(1, Math.ceil(remaining / monthly))} mois.`;
+        document.getElementById('cfiSecondaryTitle').textContent = secondary;
+        document.getElementById('cfiSecondaryBody').textContent = `Cible : ${intMoney(target * 0.56)}`;
+        document.getElementById('cfiSecondaryFoot').textContent = `Epargne : ${intMoney(saved * 0.35)} - Echeance : ${monthLabel(deadline)}`;
+        document.getElementById('cfiRiskTitle').textContent = risk <= 20 ? 'Faible' : risk <= 40 ? 'Modere' : 'Eleve';
+        document.getElementById('cfiRiskBody').textContent = `Probabilite de retard : ${risk}%`;
+        document.getElementById('cfiAdviceBody').textContent = `Programmez ${intMoney(recommended)} au debut de chaque mois.`;
+        document.getElementById('cfiMainGoalKpi').textContent = `${name} - ${Math.round(target).toLocaleString('fr-FR')} DT`;
+        document.getElementById('cfiMainGoalNote').textContent = `${Math.round(saved).toLocaleString('fr-FR')} DT epargnes (${progress}%)`;
+        document.getElementById('cfiMainGoalProgress').style.width = `${progress}%`;
+        document.getElementById('cfiMonthlyKpi').textContent = `${Math.round(recommended).toLocaleString('fr-FR')} DT / mois`;
+        document.getElementById('cfiProbabilityKpi').textContent = `${probability}%`;
+        document.getElementById('cfiProbabilityProgress').style.width = `${probability}%`;
+        document.getElementById('cfiScoreValue').textContent = String(probability);
+        document.getElementById('cfiScoreRing').style.setProperty('--value', probability);
+      };
+
+      const updateSimulation = () => {
+        const base = Number(document.getElementById('cfiBaseSavings').value || 0);
+        const sub = Number(document.getElementById('cfiSubCut').value || 0);
+        const income = Number(document.getElementById('cfiExtraIncome').value || 0);
+        const food = Number(document.getElementById('cfiFoodReduction').value || 0) * 4;
+        const transport = Number(document.getElementById('cfiTransportReduction').value || 0) * 3;
+        const months = Number(document.getElementById('cfiTargetGain').value || 0);
+        const simulated = Math.round(base + sub + income + food + transport);
+        const delta = simulated - base;
+        const scoreDelta = clamp(Math.round(delta / 40), 4, 20);
+        document.getElementById('cfiCompareCurrentCapacity').textContent = `${Math.round(base).toLocaleString('fr-FR')} DT / mois`;
+        document.getElementById('cfiCompareSimCapacity').textContent = `${simulated.toLocaleString('fr-FR')} DT / mois`;
+        document.getElementById('cfiCompareDeltaCapacity').textContent = `+${delta.toLocaleString('fr-FR')} DT / mois`;
+        document.getElementById('cfiCompareDeltaMonths').textContent = `-${months} mois`;
+        document.getElementById('cfiCompareDeltaBudget').textContent = `+${Math.round(delta * 0.3).toLocaleString('fr-FR')} DT`;
+        document.getElementById('cfiCompareDeltaScore').textContent = `+${scoreDelta} points`;
+        document.getElementById('cfiImpactKpi').textContent = `+${months} mois gagnes`;
+        document.getElementById('cfiImpactNote').textContent = `ou +${delta.toLocaleString('fr-FR')} DT economises`;
+        document.getElementById('cfiInsightLine1').textContent = `+${delta.toLocaleString('fr-FR')} DT/mois de capacite d epargne`;
+        document.getElementById('cfiInsightLine2').textContent = `Objectif atteint ${months} mois plus tot`;
+        document.getElementById('cfiBestGain').textContent = `+${delta.toLocaleString('fr-FR')} DT / mois`;
+        document.getElementById('cfiBestTime').textContent = `+${months} mois gagnes`;
+      };
+
+      document.getElementById('cfiGoalForm')?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        updateGoal();
+        goalPanel?.classList.add('d-none');
+      });
+      document.getElementById('cfiResetGoal')?.addEventListener('click', () => {
+        document.getElementById('cfiGoalName').value = '{{ projection.goalName }}';
+        document.getElementById('cfiGoalTarget').value = '{{ projection.targetAmount }}';
+        document.getElementById('cfiGoalSaved').value = '{{ projection.currentSaved }}';
+        document.getElementById('cfiGoalMonthly').value = '{{ projection.recommendedMonthly }}';
+        document.getElementById('cfiGoalDeadline').value = '2025-12';
+        document.getElementById('cfiGoalSecondary').value = '{{ projection.secondaryGoalName }}';
+        updateGoal();
+      });
+      document.getElementById('cfiSimulationForm')?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        updateSimulation();
+        simulationPanel?.classList.add('d-none');
+      });
+      document.getElementById('cfiResetSimulation')?.addEventListener('click', () => {
+        document.getElementById('cfiBaseSavings').value = '{{ simulation.current.capacity }}';
+        document.getElementById('cfiSubCut').value = '50';
+        document.getElementById('cfiExtraIncome').value = '300';
+        document.getElementById('cfiFoodReduction').value = '10';
+        document.getElementById('cfiTransportReduction').value = '15';
+        document.getElementById('cfiTargetGain').value = '{{ simulation.delta.months }}';
+        updateSimulation();
+      });
+    })();
+  </script>
+{% endblock %}

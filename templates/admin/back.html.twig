@@ -62,14 +62,22 @@
 
         <div class="ft-sidebar-section-label mt-3">Gestion</div>
 
+        {% set currentAdminRoute = app.request.attributes.get('_route') %}
+
         <a href="{{ path('admin_user_list') }}"
-           class="ft-sidebar-link {% if 'admin_user_' in app.request.attributes.get('_route') %}active{% endif %}">
+           class="ft-sidebar-link {% if 'admin_user_' in currentAdminRoute and currentAdminRoute not in ['admin_user_create', 'admin_user_insights'] %}active{% endif %}">
           <i class="bi bi-people-fill"></i>
           <span>Utilisateurs</span>
         </a>
 
+        <a href="{{ path('admin_user_insights') }}"
+           class="ft-sidebar-link {% if currentAdminRoute == 'admin_user_insights' %}active{% endif %}">
+          <i class="bi bi-graph-up-arrow"></i>
+          <span>Insights utilisateurs</span>
+        </a>
+
         <a href="{{ path('admin_user_create') }}"
-           class="ft-sidebar-link {% if app.request.attributes.get('_route') == 'admin_user_create' %}active{% endif %}">
+           class="ft-sidebar-link {% if currentAdminRoute == 'admin_user_create' %}active{% endif %}">
           <i class="bi bi-person-plus-fill"></i>
           <span>Ajouter un client</span>
         </a>
@@ -157,6 +165,12 @@
            class="ft-sidebar-link {% if app.request.attributes.get('_route') == 'admin_categorie_stats' %}active{% endif %}">
           <i class="bi bi-calculator"></i>
           <span>Statistiques budget</span>
+        </a>
+
+        <a href="{{ path('admin_budget_ai_chat') }}"
+           class="ft-sidebar-link {% if 'admin_budget_ai_' in app.request.attributes.get('_route') %}active{% endif %}">
+          <i class="bi bi-cpu"></i>
+          <span>Suivi epargne clients</span>
         </a>
 
         <a href="{{ path('admin_publications_index') }}"

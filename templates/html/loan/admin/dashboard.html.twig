@@ -1,284 +1,765 @@
-{# templates/admin/dashboard.html.twig #}
 {% extends 'html/loan/admin/base.html.twig' %}
 {% block title %}Admin Dashboard - Loans{% endblock %}
 
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-loan-admin-page {
+      --ft-loan-blue: #2563eb;
+      --ft-loan-green: #16a34a;
+      --ft-loan-amber: #f59e0b;
+      --ft-loan-violet: #7c3aed;
+      --ft-loan-red: #ef4444;
+      --ft-loan-text: #0f172a;
+      --ft-loan-soft: #64748b;
+      --ft-loan-border: rgba(219, 234, 254, .95);
+      --ft-loan-shadow: 0 22px 52px rgba(15, 23, 42, .07);
+      position: relative;
+      padding: 1.25rem;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, .10), transparent 26%),
+        radial-gradient(circle at top right, rgba(34, 197, 94, .08), transparent 22%),
+        linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+      min-height: 100%;
+    }
+    .ft-loan-admin-shell {
+      display: grid;
+      gap: 1.35rem;
+    }
+    .ft-loan-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .ft-loan-kpi-card,
+    .ft-loan-panel,
+    .ft-loan-filter-bar,
+    .ft-loan-table-shell {
+      border-radius: 1.55rem;
+      border: 1px solid var(--ft-loan-border);
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,255,.96));
+      box-shadow: var(--ft-loan-shadow);
+    }
+    .ft-loan-kpi-card {
+      position: relative;
+      overflow: hidden;
+      padding: 1.2rem 1.15rem 1.15rem;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .ft-loan-kpi-card:hover,
+    .ft-loan-panel:hover,
+    .ft-loan-table-shell:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 28px 60px rgba(15, 23, 42, .10);
+    }
+    .ft-loan-kpi-card::before {
+      content: "";
+      position: absolute;
+      inset: auto auto 0 0;
+      width: 3.4rem;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--ft-loan-accent, var(--ft-loan-blue));
+      margin: 0 0 1rem 1rem;
+    }
+    .ft-loan-kpi-head {
+      display: flex;
+      align-items: flex-start;
+      gap: .9rem;
+      margin-bottom: .9rem;
+    }
+    .ft-loan-kpi-icon {
+      width: 3.35rem;
+      height: 3.35rem;
+      border-radius: 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.88);
+      color: var(--ft-loan-accent, var(--ft-loan-blue));
+      background: color-mix(in srgb, var(--ft-loan-accent, var(--ft-loan-blue)) 12%, white);
+      border: 1px solid color-mix(in srgb, var(--ft-loan-accent, var(--ft-loan-blue)) 18%, white);
+      flex-shrink: 0;
+    }
+    .ft-loan-kpi-label {
+      color: var(--ft-loan-accent, var(--ft-loan-blue));
+      font-size: .78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: .35rem;
+    }
+    .ft-loan-kpi-value {
+      color: var(--ft-loan-text);
+      font-size: 2rem;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      margin-bottom: .35rem;
+    }
+    .ft-loan-kpi-copy {
+      color: var(--ft-loan-soft);
+      font-size: .82rem;
+      line-height: 1.55;
+    }
+    .is-blue { --ft-loan-accent: var(--ft-loan-blue); }
+    .is-amber { --ft-loan-accent: var(--ft-loan-amber); }
+    .is-green { --ft-loan-accent: var(--ft-loan-green); }
+    .is-violet { --ft-loan-accent: var(--ft-loan-violet); }
+    .is-red { --ft-loan-accent: var(--ft-loan-red); }
+
+    .ft-loan-panel {
+      padding: 1.2rem;
+    }
+    .ft-loan-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .ft-loan-panel-title {
+      display: inline-flex;
+      align-items: center;
+      gap: .7rem;
+      color: #1f4076;
+      font-weight: 800;
+      font-size: 1.2rem;
+    }
+    .ft-loan-panel-title i {
+      width: 2.45rem;
+      height: 2.45rem;
+      border-radius: .95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ft-loan-blue);
+      background: rgba(219, 234, 254, .92);
+      border: 1px solid rgba(191, 219, 254, .9);
+    }
+    .ft-loan-panel-controls {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+    .ft-loan-select {
+      min-width: 12rem;
+      min-height: 3rem;
+      border-radius: .95rem;
+      border: 1px solid rgba(203, 213, 225, .9);
+      background: rgba(255,255,255,.98);
+      color: #334155;
+      padding: .75rem .95rem;
+      font-size: .9rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.85);
+    }
+    .ft-loan-select:focus,
+    .ft-loan-search:focus {
+      outline: none;
+      border-color: rgba(96, 165, 250, .95);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, .10);
+    }
+    .ft-loan-analytics-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(320px, .95fr);
+      gap: 1rem;
+      align-items: stretch;
+    }
+    .ft-loan-chart-card {
+      border-radius: 1.25rem;
+      padding: 1rem 1.05rem;
+      border: 1px solid rgba(226, 232, 240, .92);
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,250,255,.96));
+      min-height: 19rem;
+    }
+    .ft-loan-risk-stack {
+      display: grid;
+      gap: .9rem;
+    }
+    .ft-loan-risk-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: .95rem;
+      border-radius: 1.15rem;
+      padding: 1rem 1.05rem;
+      border: 1px solid rgba(226, 232, 240, .92);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+    .ft-loan-risk-card i {
+      width: 2.7rem;
+      height: 2.7rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      background: rgba(255,255,255,.84);
+    }
+    .ft-loan-risk-card strong {
+      display: block;
+      margin-bottom: .2rem;
+    }
+    .ft-loan-risk-card small {
+      color: var(--ft-loan-soft);
+      display: block;
+    }
+    .ft-loan-risk-total {
+      font-size: 1.9rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .ft-loan-risk-card.is-low {
+      background: linear-gradient(180deg, rgba(240,253,244,.98), rgba(236,253,245,.92));
+      border-color: rgba(187,247,208,.9);
+      color: #15803d;
+    }
+    .ft-loan-risk-card.is-medium {
+      background: linear-gradient(180deg, rgba(255,251,235,.98), rgba(254,243,199,.92));
+      border-color: rgba(253,230,138,.9);
+      color: #b45309;
+    }
+    .ft-loan-risk-card.is-high {
+      background: linear-gradient(180deg, rgba(254,242,242,.98), rgba(254,226,226,.92));
+      border-color: rgba(252,165,165,.92);
+      color: #dc2626;
+    }
+    .ft-loan-filter-bar {
+      padding: .9rem 1rem;
+      display: flex;
+      gap: .9rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .ft-loan-search-wrap {
+      position: relative;
+      flex: 1 1 18rem;
+      min-width: 18rem;
+    }
+    .ft-loan-search-wrap i {
+      position: absolute;
+      left: .95rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+    }
+    .ft-loan-search {
+      width: 100%;
+      min-height: 3rem;
+      border-radius: .95rem;
+      border: 1px solid rgba(203, 213, 225, .9);
+      background: rgba(255,255,255,.98);
+      padding: .78rem 1rem .78rem 2.75rem;
+      color: #334155;
+      font-size: .9rem;
+    }
+    .ft-loan-filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      min-height: 3rem;
+      border-radius: .95rem;
+      border: 1px solid rgba(191, 219, 254, .95);
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(239,246,255,.96));
+      color: #1e40af;
+      font-weight: 700;
+      padding: .78rem 1rem;
+      text-decoration: none;
+      box-shadow: 0 12px 22px rgba(37, 99, 235, .06);
+    }
+    .ft-loan-table-shell {
+      overflow: hidden;
+    }
+    .ft-loan-table-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.1rem 1.2rem;
+      border-bottom: 1px solid rgba(226, 232, 240, .92);
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,255,.95));
+      flex-wrap: wrap;
+    }
+    .ft-loan-table-title {
+      color: var(--ft-loan-text);
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin: 0;
+    }
+    .ft-loan-table-count {
+      display: inline-flex;
+      align-items: center;
+      padding: .55rem .9rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(239,246,255,.98), rgba(219,234,254,.96));
+      color: #1d4ed8;
+      font-size: .84rem;
+      font-weight: 800;
+    }
+    .ft-loan-table-wrap {
+      overflow-x: auto;
+    }
+    .ft-loan-table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+    .ft-loan-table thead {
+      background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+    }
+    .ft-loan-table th {
+      padding: 1rem .95rem;
+      text-align: left;
+      font-size: .77rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #475569;
+      font-weight: 800;
+    }
+    .ft-loan-table td {
+      padding: 1rem .95rem;
+      vertical-align: middle;
+      border-top: 1px solid rgba(237, 242, 251, .96);
+      color: #334155;
+    }
+    .ft-loan-table tbody tr {
+      transition: background .2s ease, box-shadow .2s ease;
+    }
+    .ft-loan-table tbody tr:hover {
+      background: linear-gradient(90deg, rgba(239,246,255,.64), rgba(248,250,252,.92));
+      box-shadow: inset 4px 0 0 #60a5fa;
+    }
+    .ft-loan-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #1e40af;
+      font-weight: 700;
+    }
+    .ft-loan-type-badge,
+    .ft-loan-status-badge,
+    .ft-loan-risk-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: .48rem .78rem;
+      font-size: .76rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .ft-loan-type-badge {
+      background: rgba(241,245,249,.95);
+      color: #475569;
+      border: 1px solid rgba(226,232,240,.9);
+    }
+    .ft-loan-status-badge.is-pending { background: rgba(255,247,237,.96); color: #b45309; border: 1px solid rgba(253,186,116,.85); }
+    .ft-loan-status-badge.is-active,
+    .ft-loan-status-badge.is-approved { background: rgba(240,253,244,.96); color: #15803d; border: 1px solid rgba(134,239,172,.85); }
+    .ft-loan-status-badge.is-completed { background: rgba(245,243,255,.96); color: #6d28d9; border: 1px solid rgba(196,181,253,.85); }
+    .ft-loan-status-badge.is-rejected { background: rgba(254,242,242,.96); color: #dc2626; border: 1px solid rgba(252,165,165,.88); }
+    .ft-loan-risk-badge.is-low { background: rgba(240,253,244,.96); color: #15803d; }
+    .ft-loan-risk-badge.is-medium { background: rgba(255,251,235,.96); color: #b45309; }
+    .ft-loan-risk-badge.is-high { background: rgba(254,242,242,.96); color: #dc2626; }
+    .ft-loan-actions {
+      display: flex;
+      gap: .55rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .ft-loan-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .45rem;
+      min-height: 2.65rem;
+      border-radius: .9rem;
+      padding: .62rem .9rem;
+      border: 1px solid transparent;
+      font-size: .82rem;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 10px 20px rgba(15,23,42,.08);
+      transition: transform .2s ease, box-shadow .2s ease;
+      background: #fff;
+    }
+    .ft-loan-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 26px rgba(15,23,42,.12);
+    }
+    .ft-loan-btn.is-view { background: linear-gradient(135deg, #4f46e5, #2563eb); color: #fff; }
+    .ft-loan-btn.is-approve { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+    .ft-loan-btn.is-reject { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+    .ft-loan-btn.is-payments { background: rgba(240,253,244,.96); color: #15803d; border-color: rgba(134,239,172,.85); }
+    .ft-loan-empty {
+      padding: 4rem 1.5rem;
+      text-align: center;
+      color: #94a3b8;
+    }
+    .ft-loan-empty i {
+      font-size: 2.8rem;
+      margin-bottom: .9rem;
+      display: inline-block;
+      color: #cbd5e1;
+    }
+    .ft-loan-flash {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .95rem 1rem;
+      border-radius: 1rem;
+      border: 1px solid transparent;
+      box-shadow: 0 14px 26px rgba(15,23,42,.06);
+    }
+    .ft-loan-flash.is-success { background: rgba(240,253,244,.96); color: #166534; border-color: rgba(134,239,172,.85); }
+    .ft-loan-flash.is-danger,
+    .ft-loan-flash.is-error { background: rgba(254,242,242,.96); color: #991b1b; border-color: rgba(252,165,165,.88); }
+
+    @media (max-width: 1199.98px) {
+      .ft-loan-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .ft-loan-analytics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 767.98px) {
+      .ft-loan-admin-page {
+        padding: .85rem;
+      }
+      .ft-loan-kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      .ft-loan-search-wrap {
+        min-width: 100%;
+      }
+      .ft-loan-panel,
+      .ft-loan-filter-bar,
+      .ft-loan-table-head {
+        padding-left: .95rem;
+        padding-right: .95rem;
+      }
+    }
+  </style>
+{% endblock %}
+
 {% block admin_content %}
-
-        <div class="min-h-screen bg-slate-50">
-            {# Main Content #}
-            <main class="p-2 p-lg-3">
-                {# Filter Cards #}
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-                    <a href="{{ path('admin_loan_dashboard', {status: 'all'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'all' ? 'border-emerald-500' : 'border-transparent' }} hover:shadow-md transition-all">
-                        <p class="text-slate-500 text-xs font-medium uppercase">All</p>
-                        <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ counts.all }}</h3>
-                    </a>
-                    
-                    <a href="{{ path('admin_loan_dashboard', {status: 'pending'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'pending' ? 'border-amber-500' : 'border-transparent' }} hover:shadow-md transition-all">
-                        <p class="text-amber-600 text-xs font-medium uppercase">Pending</p>
-                        <h3 class="text-2xl font-bold text-amber-600 mt-1">{{ counts.pending }}</h3>
-                    </a>
-                    
-                    <a href="{{ path('admin_loan_dashboard', {status: 'active'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'active' ? 'border-emerald-500' : 'border-transparent' }} hover:shadow-md transition-all">
-                        <p class="text-emerald-600 text-xs font-medium uppercase">Active</p>
-                        <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ counts.active }}</h3>
-                    </a>
-                    
-                    <a href="{{ path('admin_loan_dashboard', {status: 'completed'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'completed' ? 'border-purple-500' : 'border-transparent' }} hover:shadow-md transition-all">
-                        <p class="text-purple-600 text-xs font-medium uppercase">Completed</p>
-                        <h3 class="text-2xl font-bold text-purple-600 mt-1">{{ counts.completed }}</h3>
-                    </a>
-                    
-                    <a href="{{ path('admin_loan_dashboard', {status: 'rejected'}) }}" class="bg-white rounded-xl shadow-sm p-4 border-2 {{ currentFilter == 'rejected' ? 'border-red-500' : 'border-transparent' }} hover:shadow-md transition-all">
-                        <p class="text-red-600 text-xs font-medium uppercase">Rejected</p>
-                        <h3 class="text-2xl font-bold text-red-600 mt-1">{{ counts.rejected }}</h3>
-                    </a>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
-            <h2 class="text-xl font-bold text-slate-800 mb-4">Risk Analytics</h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <!-- Chart -->
-                <div>
-                    <canvas id="riskChart"></canvas>
-                </div>
-
-                <!-- Stats -->
-                <div class="flex flex-col justify-center space-y-4">
-
-                    <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                        <span class="text-green-700 font-medium">Low Risk</span>
-                        <span class="text-green-700 font-bold text-lg">{{ riskCounts.LOW }}</span>
-                    </div>
-
-                    <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
-                        <span class="text-yellow-700 font-medium">Medium Risk</span>
-                        <span class="text-yellow-700 font-bold text-lg">{{ riskCounts.MEDIUM }}</span>
-                    </div>
-
-                    <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                        <span class="text-red-700 font-medium">High Risk</span>
-                        <span class="text-red-700 font-bold text-lg">{{ riskCounts.HIGH }}</span>
-                    </div>
-
-                </div>
-
+  <div class="ft-loan-admin-page">
+    <div class="ft-loan-admin-shell">
+      <section class="ft-loan-kpi-grid">
+        <a href="{{ path('admin_loan_dashboard', {status: 'all'}) }}" class="ft-loan-kpi-card is-blue">
+          <div class="ft-loan-kpi-head">
+            <span class="ft-loan-kpi-icon"><i class="bi bi-pie-chart"></i></span>
+            <div>
+              <div class="ft-loan-kpi-label">Tous</div>
+              <div class="ft-loan-kpi-value">{{ counts.all }}</div>
+              <div class="ft-loan-kpi-copy">Total des credits</div>
             </div>
+          </div>
+        </a>
+        <a href="{{ path('admin_loan_dashboard', {status: 'pending'}) }}" class="ft-loan-kpi-card is-amber">
+          <div class="ft-loan-kpi-head">
+            <span class="ft-loan-kpi-icon"><i class="bi bi-hourglass-split"></i></span>
+            <div>
+              <div class="ft-loan-kpi-label">En attente</div>
+              <div class="ft-loan-kpi-value">{{ counts.pending }}</div>
+              <div class="ft-loan-kpi-copy">En attente d examen</div>
             </div>
-                {# Flash Messages #}
-                {% for label, messages in app.flashes %}
-                    {% for message in messages %}
-                        <div class="mb-6 p-4 rounded-lg {% if label == 'success' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% else %}bg-red-100 text-red-800 border border-red-200{% endif %} flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endfor %}
-                <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center">
-
-            <!-- Search -->
-                <input type="text" id="searchInput"
-                    placeholder="Search loans..."
-                    class="border px-3 py-2 rounded-lg w-64">
-
-                <!-- Status Filter -->
-                <select id="statusFilter" class="border px-3 py-2 rounded-lg">
-                    <option value="">All Status</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="APPROVED">Approved</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="REJECTED">Rejected</option>
-                </select>
-
-                <!-- Risk Filter -->
-                <select id="riskFilter" class="border px-3 py-2 rounded-lg">
-                    <option value="">All Risk</option>
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                </select>
-
+          </div>
+        </a>
+        <a href="{{ path('admin_loan_dashboard', {status: 'active'}) }}" class="ft-loan-kpi-card is-green">
+          <div class="ft-loan-kpi-head">
+            <span class="ft-loan-kpi-icon"><i class="bi bi-check-circle"></i></span>
+            <div>
+              <div class="ft-loan-kpi-label">Actifs</div>
+              <div class="ft-loan-kpi-value">{{ counts.active }}</div>
+              <div class="ft-loan-kpi-copy">Credits actifs</div>
             </div>
-                {# Loans Table #}
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                        <h2 class="text-lg font-bold text-slate-800">{{ currentFilter|capitalize }} Loans</h2>
-                        <span class="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1 rounded-full">{{ loans|length }} loans</span>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
-                                <tr>
-                                    <th class="px-6 py-3 text-left font-semibold">ID</th>
-                                    <th class="px-6 py-3 text-left font-semibold">Type</th>
-                                    <th class="px-6 py-3 text-left font-semibold">Amount</th>
-                                    <th class="px-6 py-3 text-left font-semibold">Duration</th>
-                                    <th class="px-6 py-3 text-left font-semibold">Rate</th>
-                                    <th class="px-6 py-3 text-left font-semibold">Status</th>
-                                    <th class="px-6 py-3 text-left font-semibold">Date</th>
-                                    <th class="px-6 py-3 text-center font-semibold">Actions</th>
-                                </tr>
-                                
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                {% for loan in loans %}
-                                    {% set risk = loanRisks[loan.loanId] ?? null %}
+          </div>
+        </a>
+        <a href="{{ path('admin_loan_dashboard', {status: 'completed'}) }}" class="ft-loan-kpi-card is-violet">
+          <div class="ft-loan-kpi-head">
+            <span class="ft-loan-kpi-icon"><i class="bi bi-award"></i></span>
+            <div>
+              <div class="ft-loan-kpi-label">Termines</div>
+              <div class="ft-loan-kpi-value">{{ counts.completed }}</div>
+              <div class="ft-loan-kpi-copy">Credits termines</div>
+            </div>
+          </div>
+        </a>
+        <a href="{{ path('admin_loan_dashboard', {status: 'rejected'}) }}" class="ft-loan-kpi-card is-red">
+          <div class="ft-loan-kpi-head">
+            <span class="ft-loan-kpi-icon"><i class="bi bi-x-circle"></i></span>
+            <div>
+              <div class="ft-loan-kpi-label">Rejetes</div>
+              <div class="ft-loan-kpi-value">{{ counts.rejected }}</div>
+              <div class="ft-loan-kpi-copy">Credits rejetes</div>
+            </div>
+          </div>
+        </a>
+      </section>
 
-                                    <tr 
-                                        class="hover:bg-slate-50 transition-colors"
-                                        data-status="{{ loan.status|upper|trim }}"
-                                        data-risk="{{ risk ? risk.level|upper|trim : 'UNKNOWN' }}"
-                                    >                            
-                                    <td class="px-6 py-4 font-mono text-slate-600">#{{ loan.loanId }}</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium">{{ loan.loanType }}</span>
-                                    </td>
-                                    <td class="px-6 py-4 font-bold text-slate-800">${{ loan.amount|number_format(2) }}</td>
-                                    <td class="px-6 py-4 text-slate-600">{{ loan.duration }} months</td>
-                                    <td class="px-6 py-4 text-slate-600">{{ loan.interestRate }}%</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 rounded text-xs font-bold 
-                                            {{ loan.status == 'PENDING' ? 'bg-amber-100 text-amber-700' : 
-                                            loan.status == 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : 
-                                            loan.status == 'APPROVED' ? 'bg-blue-100 text-blue-700' : 
-                                            loan.status == 'COMPLETED' ? 'bg-purple-100 text-purple-700' : 
-                                            'bg-red-100 text-red-700' }}">
-                                            {{ loan.status }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-slate-500 text-sm">{{ loan.createdAt|date('M d, Y') }}</td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex gap-2 justify-center">
-                                            <a href="{{ path('admin_loan_review', {id: loan.loanId}) }}" class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                {{ loan.status == 'PENDING' ? 'Review' : 'View' }}
-                                            </a>
-                                            
-                                            {% if loan.status == 'PENDING' %}
-                                                <form action="{{ path('admin_loan_approve', {id: loan.loanId}) }}" method="POST" class="inline">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('approve_loan_' ~ loan.loanId) }}">
-                                                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1.5 rounded-lg text-sm transition-colors" onclick="return confirm('Approve this loan?')" title="Approve">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                    </button>
-                                                </form>
-                                                <form action="{{ path('admin_loan_reject', {id: loan.loanId}) }}" method="POST" class="inline">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('reject_loan_' ~ loan.loanId) }}">
-                                                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1.5 rounded-lg text-sm transition-colors" onclick="return confirm('Reject this loan?')" title="Reject">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                    </button>
-                                                </form>
-                                            {% endif %}
-                                            
-                                            {% if loan.status in ['ACTIVE', 'APPROVED', 'COMPLETED'] %}
-                                                <a href="{{ path('admin_loan_repayments', {id: loan.loanId}) }}" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
-                                                    Payments
-                                                </a>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="8" class="px-6 py-12 text-center text-slate-400">
-                                        <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        No {{ currentFilter }} loans found
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </main>
+      <section class="ft-loan-panel">
+        <div class="ft-loan-panel-head">
+          <div class="ft-loan-panel-title">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Risk Analytics</span>
+          </div>
+          <div class="ft-loan-panel-controls">
+            <select class="ft-loan-select" aria-label="Vue actuelle">
+              <option>Vue actuelle</option>
+            </select>
+            <select class="ft-loan-select" aria-label="Période">
+              <option>30 derniers jours</option>
+            </select>
+          </div>
         </div>
-        {% endblock %}
 
-        {% block javascripts %}
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> {# Add this line #}
+        <div class="ft-loan-analytics-grid">
+          <div class="ft-loan-chart-card">
+            <canvas id="riskChart"></canvas>
+          </div>
 
-        <script>
-        document.addEventListener("DOMContentLoaded", function () {
+          <div class="ft-loan-risk-stack">
+            <article class="ft-loan-risk-card is-low">
+              <i class="bi bi-shield-check"></i>
+              <div>
+                <strong>Risque faible</strong>
+                <small>Dossiers a faible risque</small>
+              </div>
+              <span class="ft-loan-risk-total">{{ riskCounts.LOW }}</span>
+            </article>
+            <article class="ft-loan-risk-card is-medium">
+              <i class="bi bi-exclamation-triangle"></i>
+              <div>
+                <strong>Risque moyen</strong>
+                <small>Dossiers a risque moyen</small>
+              </div>
+              <span class="ft-loan-risk-total">{{ riskCounts.MEDIUM }}</span>
+            </article>
+            <article class="ft-loan-risk-card is-high">
+              <i class="bi bi-x-octagon"></i>
+              <div>
+                <strong>Risque eleve</strong>
+                <small>Dossiers a risque eleve</small>
+              </div>
+              <span class="ft-loan-risk-total">{{ riskCounts.HIGH }}</span>
+            </article>
+          </div>
+        </div>
+      </section>
 
-            const ctx = document.getElementById('riskChart');
+      {% for label, messages in app.flashes %}
+        {% for message in messages %}
+          <div class="ft-loan-flash {{ label in ['success'] ? 'is-success' : 'is-danger' }}">
+            <i class="bi {{ label in ['success'] ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill' }}"></i>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      {% endfor %}
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Low Risk', 'Medium Risk', 'High Risk'],
-                    datasets: [{
-                        label: 'Risk Distribution',
-                        data: [
-                            {{ riskCounts.LOW }},
-                            {{ riskCounts.MEDIUM }},
-                            {{ riskCounts.HIGH }}
-                        ],
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true
-                        }
-                    }
+      <section class="ft-loan-filter-bar">
+        <div class="ft-loan-search-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text" id="searchInput" class="ft-loan-search" placeholder="Rechercher un credit..." />
+        </div>
+        <select id="statusFilter" class="ft-loan-select">
+          <option value="">Tous les statuts</option>
+          <option value="PENDING">Pending</option>
+          <option value="ACTIVE">Active</option>
+          <option value="APPROVED">Approved</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+        <select id="riskFilter" class="ft-loan-select">
+          <option value="">Tous les risques</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+        </select>
+        <span class="ft-loan-filter-btn"><i class="bi bi-sliders"></i>Filtres avances</span>
+      </section>
+
+      <section class="ft-loan-table-shell">
+        <div class="ft-loan-table-head">
+          <div>
+            <h2 class="ft-loan-table-title">Tous les credits</h2>
+          </div>
+          <span class="ft-loan-table-count">{{ loans|length }} credit{{ loans|length > 1 ? 's' : '' }}</span>
+        </div>
+
+        <div class="ft-loan-table-wrap">
+          <table class="ft-loan-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Montant</th>
+                <th>Duree</th>
+                <th>Taux</th>
+                <th>Statut</th>
+                <th>Risque</th>
+                <th>Date</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for loan in loans %}
+                {% set risk = loanRisks[loan.loanId] ?? null %}
+                {% set statusClass = loan.status == 'PENDING' ? 'is-pending' : (loan.status in ['ACTIVE', 'APPROVED'] ? 'is-active' : (loan.status == 'COMPLETED' ? 'is-completed' : 'is-rejected')) %}
+                {% set riskClass = risk and risk.level == 'LOW' ? 'is-low' : (risk and risk.level == 'MEDIUM' ? 'is-medium' : 'is-high') %}
+                <tr data-status="{{ loan.status|upper|trim }}" data-risk="{{ risk ? risk.level|upper|trim : 'UNKNOWN' }}">
+                  <td><span class="ft-loan-id">#{{ loan.loanId }}</span></td>
+                  <td><span class="ft-loan-type-badge">{{ loan.loanType }}</span></td>
+                  <td class="fw-bold text-dark">{{ loan.amount|number_format(2, '.', ' ') }} TND</td>
+                  <td>{{ loan.duration }} mois</td>
+                  <td>{{ loan.interestRate }}%</td>
+                  <td><span class="ft-loan-status-badge {{ statusClass }}">{{ loan.status }}</span></td>
+                  <td>
+                    {% if risk %}
+                      <span class="ft-loan-risk-badge {{ riskClass }}">{{ risk.level }} · {{ risk.score|default(0)|number_format(0, '.', ' ') }}/100</span>
+                    {% else %}
+                      <span class="ft-loan-risk-badge is-low">N/A</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ loan.createdAt|date('d/m/Y') }}</td>
+                  <td>
+                    <div class="ft-loan-actions">
+                      <a href="{{ path('admin_loan_review', {id: loan.loanId}) }}" class="ft-loan-btn is-view">
+                        <i class="bi bi-eye"></i>
+                        <span>{{ loan.status == 'PENDING' ? 'Review' : 'View' }}</span>
+                      </a>
+
+                      {% if loan.status == 'PENDING' %}
+                        <form action="{{ path('admin_loan_approve', {id: loan.loanId}) }}" method="POST" class="d-inline">
+                          <input type="hidden" name="_token" value="{{ csrf_token('approve_loan_' ~ loan.loanId) }}">
+                          <button type="submit" class="ft-loan-btn is-approve" onclick="return confirm('Approve this loan?')">
+                            <i class="bi bi-check-lg"></i>
+                          </button>
+                        </form>
+                        <form action="{{ path('admin_loan_reject', {id: loan.loanId}) }}" method="POST" class="d-inline">
+                          <input type="hidden" name="_token" value="{{ csrf_token('reject_loan_' ~ loan.loanId) }}">
+                          <button type="submit" class="ft-loan-btn is-reject" onclick="return confirm('Reject this loan?')">
+                            <i class="bi bi-x-lg"></i>
+                          </button>
+                        </form>
+                      {% endif %}
+
+                      {% if loan.status in ['ACTIVE', 'APPROVED', 'COMPLETED'] %}
+                        <a href="{{ path('admin_loan_repayments', {id: loan.loanId}) }}" class="ft-loan-btn is-payments">
+                          <i class="bi bi-cash-stack"></i>
+                          <span>Payments</span>
+                        </a>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="9">
+                    <div class="ft-loan-empty">
+                      <i class="bi bi-folder2-open"></i>
+                      <div>Aucun credit {{ currentFilter != 'all' ? currentFilter : '' }} trouve.</div>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const ctx = document.getElementById('riskChart');
+
+      if (ctx) {
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['Risque faible', 'Risque moyen', 'Risque eleve'],
+            datasets: [{
+              label: 'Distribution des risques',
+              data: [{{ riskCounts.LOW }}, {{ riskCounts.MEDIUM }}, {{ riskCounts.HIGH }}],
+              fill: true,
+              tension: 0.38,
+              borderWidth: 3,
+              pointRadius: 5,
+              pointHoverRadius: 6,
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37, 99, 235, 0.16)',
+              pointBackgroundColor: '#2563eb',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { precision: 0, color: '#64748b' },
+                grid: { color: 'rgba(226, 232, 240, 0.9)' }
+              },
+              x: {
+                ticks: { color: '#475569' },
+                grid: { display: false }
+              }
+            },
+            plugins: {
+              legend: {
+                display: true,
+                labels: {
+                  color: '#334155',
+                  usePointStyle: true,
+                  boxWidth: 10,
+                  boxHeight: 10
                 }
-            });
-
-        });
-        </script>
-
-
-
-        <script>
-        $(document).ready(function () {
-
-            function filterTable() {
-                let search = $('#searchInput').val().toLowerCase().trim();
-                let status = $('#statusFilter').val().toUpperCase().trim();
-                let risk = $('#riskFilter').val().toUpperCase().trim();
-
-                $('tbody tr').each(function () {
-
-                    let row = $(this);
-
-                    let text = row.text().toLowerCase();
-                    let rowStatus = (row.data('status') + '').toUpperCase().trim();
-                    let rowRisk = (row.data('risk') + '').toUpperCase().trim();
-
-                    let matchSearch = text.includes(search);
-                    let matchStatus = !status || rowStatus === status;
-                    let matchRisk = !risk || rowRisk === risk;
-
-                    if (matchSearch && matchStatus && matchRisk) {
-                        row.show();
-                    } else {
-                        row.hide();
-                    }
-
-                });
+              }
             }
-
-            $('#searchInput').on('keyup', filterTable);
-            $('#statusFilter').on('change', filterTable);
-            $('#riskFilter').on('change', filterTable);
-
+          }
         });
-        </script>
-        {% endblock %}
+      }
+    });
+  </script>
+  <script>
+    $(document).ready(function () {
+      function filterTable() {
+        let search = $('#searchInput').val().toLowerCase().trim();
+        let status = $('#statusFilter').val().toUpperCase().trim();
+        let risk = $('#riskFilter').val().toUpperCase().trim();
 
+        $('.ft-loan-table tbody tr').each(function () {
+          const row = $(this);
+
+          if (row.find('.ft-loan-empty').length) {
+            row.show();
+            return;
+          }
+
+          let text = row.text().toLowerCase();
+          let rowStatus = String(row.data('status') || '').toUpperCase().trim();
+          let rowRisk = String(row.data('risk') || '').toUpperCase().trim();
+
+          let matchSearch = text.includes(search);
+          let matchStatus = !status || rowStatus === status;
+          let matchRisk = !risk || rowRisk === risk;
+
+          row.toggle(matchSearch && matchStatus && matchRisk);
+        });
+      }
+
+      $('#searchInput').on('keyup', filterTable);
+      $('#statusFilter').on('change', filterTable);
+      $('#riskFilter').on('change', filterTable);
+    });
+  </script>
+{% endblock %}

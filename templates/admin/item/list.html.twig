@@ -14,44 +14,18 @@
 {% set averageAmount = totalItems > 0 ? totalAmount / totalItems : 0 %}
 
 <div class="container-fluid mt-4 ft-admin-items-page">
-    <section class="ft-items-hero mb-4">
-        <div class="ft-items-hero-grid">
-            <div>
-                <span class="ft-items-kicker">
-                    <i class="bi bi-journal-text me-1"></i>Budget admin / items
-                </span>
-                <h1>Gestion des items budgetaires</h1>
-                <p>
-                    Pilotez vos articles budgetaires avec une interface claire, premium et parfaitement alignee au langage visuel FinTrust Budget.
-                </p>
-                <div class="ft-items-hero-meta">
-                    <span><i class="bi bi-journals"></i>{{ totalItems }} item(s)</span>
-                    <span><i class="bi bi-folder2-open"></i>{{ groupedItems|length }} groupe(s)</span>
-                    <span><i class="bi bi-cash-stack"></i>{{ totalAmount|number_format(2, ',', ' ') }} DT</span>
-                </div>
-            </div>
-
-            <div class="ft-items-hero-side">
-                <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
-                    <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
-                        <i class="fas fa-plus me-2"></i>Nouvel item
-                    </a>
-                    <a href="{{ path('admin_item_export') ~ '?' ~ app.request.queryString }}" class="btn ft-btn-outline-primary">
-                        <i class="fas fa-file-pdf me-2"></i>Exporter PDF
-                    </a>
-                </div>
-                <div class="ft-items-hero-panel">
-                    <span class="ft-items-hero-panel-label">Montant moyen</span>
-                    <strong>{{ averageAmount|number_format(2, ',', ' ') }} DT</strong>
-                    <small>Lecture instantanee du niveau moyen par item.</small>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="d-flex flex-wrap gap-2 justify-content-end mb-4">
+        <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Nouvel item
+        </a>
+        <a href="{{ path('admin_item_export') ~ '?' ~ app.request.queryString }}" class="btn ft-btn-outline-primary">
+            <i class="bi bi-file-earmark-pdf me-2"></i>Exporter PDF
+        </a>
+    </div>
 
     {% for message in app.flashes('success') %}
         <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ message }}
+            <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     {% endfor %}
@@ -97,7 +71,7 @@
                 <span class="ft-items-section-kicker">Recherche avancee</span>
                 <h2>Filtres budgetaires</h2>
             </div>
-            <span class="ft-items-filter-badge">Vue dynamique</span>
+            <span class="ft-items-filter-badge"><i class="bi bi-bar-chart-line-fill me-2"></i>Vue dynamique</span>
         </div>
 
         <div class="ft-items-filter-body">
@@ -148,10 +122,10 @@
 
                 <div class="col-lg-6 d-flex align-items-end gap-2 flex-wrap">
                     <button type="submit" class="btn ft-btn-primary">
-                        <i class="fas fa-search me-2"></i>Rechercher
+                        <i class="bi bi-search me-2"></i>Rechercher
                     </button>
                     <a href="{{ path('admin_item_list') }}" class="btn ft-btn-outline-primary">
-                        <i class="fas fa-rotate-left me-2"></i>Reinitialiser
+                        <i class="bi bi-arrow-counterclockwise me-2"></i>Reinitialiser
                     </a>
                 </div>
             </form>
@@ -168,7 +142,7 @@
                 <section class="ft-items-group-card">
                     <div class="ft-items-group-head">
                         <div class="ft-items-group-title">
-                            <span class="ft-items-group-icon"><i class="fas fa-folder-open"></i></span>
+                            <span class="ft-items-group-icon"><i class="bi bi-folder2-open"></i></span>
                             <div>
                                 <h2>{{ categoryName }}</h2>
                                 <p>{{ categoryItems|length }} item(s) pour {{ categoryAmount|number_format(2, ',', ' ') }} DT</p>
@@ -207,12 +181,12 @@
                                                 <a href="{{ path('admin_item_show', {'idItem': item.idItem}) }}"
                                                    class="btn ft-items-action-btn is-view"
                                                    title="Voir">
-                                                    <i class="fas fa-eye"></i>
+                                                    <i class="bi bi-eye"></i>
                                                 </a>
                                                 <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}"
                                                    class="btn ft-items-action-btn is-edit"
                                                    title="Modifier">
-                                                    <i class="fas fa-edit"></i>
+                                                    <i class="bi bi-pencil-square"></i>
                                                 </a>
                                                 <form method="post"
                                                       action="{{ path('admin_item_delete', {'idItem': item.idItem}) }}"
@@ -220,7 +194,7 @@
                                                       onsubmit="return confirm('Etes-vous sur de vouloir supprimer cet item ?')">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.idItem) }}">
                                                     <button type="submit" class="btn ft-items-action-btn is-delete" title="Supprimer">
-                                                        <i class="fas fa-trash"></i>
+                                                        <i class="bi bi-trash3"></i>
                                                     </button>
                                                 </form>
                                             </div>
@@ -235,13 +209,13 @@
         </div>
     {% else %}
         <div class="ft-items-empty-state">
-            <div class="ft-items-empty-icon"><i class="fas fa-circle-info"></i></div>
+            <div class="ft-items-empty-icon"><i class="bi bi-info-circle-fill"></i></div>
             <div class="ft-items-empty-copy">
                 <strong>Aucun item trouve</strong>
                 <span>Essayez un filtre plus large ou commencez par creer un nouvel item budgetaire.</span>
             </div>
             <a href="{{ path('admin_item_create') }}" class="btn ft-btn-primary">
-                <i class="fas fa-plus me-2"></i>Creer un item
+                <i class="bi bi-plus-lg me-2"></i>Creer un item
             </a>
         </div>
     {% endif %}
@@ -249,7 +223,11 @@
 
 <style>
 .ft-admin-items-page {
+    position: relative;
     padding-bottom: 2rem;
+    background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 24%),
+        radial-gradient(circle at top right, rgba(34, 211, 238, 0.08), transparent 22%);
 }
 
 .ft-items-hero {
@@ -360,12 +338,32 @@
 }
 
 .ft-items-kpi {
+    position: relative;
+    overflow: hidden;
     height: 100%;
-    padding: 1.2rem 1.2rem 1.1rem;
+    padding: 1.25rem 1.2rem 1.15rem;
     border-radius: 24px;
     border: 1px solid rgba(191, 219, 254, 0.88);
     background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,250,255,.96));
     box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.ft-items-kpi::after {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    bottom: .95rem;
+    width: 3.1rem;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: .95;
+}
+
+.ft-items-kpi:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 22px 48px rgba(15, 23, 42, 0.10);
 }
 
 .ft-items-kpi-icon {
@@ -381,19 +379,31 @@
 }
 
 .ft-items-kpi.is-blue .ft-items-kpi-icon {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+}
+.ft-items-kpi.is-blue {
+    color: #38bdf8;
 }
 
 .ft-items-kpi.is-cyan .ft-items-kpi-icon {
-    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    background: linear-gradient(135deg, #a5f3fc, #67e8f9);
+}
+.ft-items-kpi.is-cyan {
+    color: #22c7ee;
 }
 
 .ft-items-kpi.is-violet .ft-items-kpi-icon {
     background: linear-gradient(135deg, #7c3aed, #5b21b6);
 }
+.ft-items-kpi.is-violet {
+    color: #7c3aed;
+}
 
 .ft-items-kpi.is-slate .ft-items-kpi-icon {
-    background: linear-gradient(135deg, #0f172a, #334155);
+    background: linear-gradient(135deg, #93c5fd, #60a5fa);
+}
+.ft-items-kpi.is-slate {
+    color: #60a5fa;
 }
 
 .ft-items-kpi-label {
@@ -435,7 +445,7 @@
     align-items: center;
     gap: 1rem;
     padding: 1.3rem 1.45rem;
-    background: linear-gradient(135deg, #22c1ee, #0ea5e9);
+    background: linear-gradient(135deg, #1d4ed8, #2563eb 46%, #4f46e5 100%);
     color: #fff;
 }
 
@@ -454,7 +464,7 @@
     padding: .48rem .8rem;
     border-radius: 999px;
     background: rgba(255,255,255,.92);
-    color: #0ea5e9;
+    color: #2563eb;
     font-size: .78rem;
     font-weight: 800;
 }
@@ -499,7 +509,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 15px;
-    background: rgba(255,255,255,.18);
+    background: rgba(255,255,255,.22);
     color: #fff;
     font-size: 1rem;
 }
@@ -529,6 +539,7 @@
 
 .ft-items-table tbody tr:hover {
     background: rgba(240, 249, 255, 0.72);
+    box-shadow: inset 4px 0 0 #60a5fa;
 }
 
 .ft-items-id-pill {
@@ -536,7 +547,7 @@
     align-items: center;
     padding: .4rem .65rem;
     border-radius: 999px;
-    background: rgba(37, 99, 235, 0.08);
+    background: rgba(37, 99, 235, 0.10);
     color: #1d4ed8;
     font-weight: 800;
     font-size: .82rem;
@@ -582,12 +593,12 @@
 }
 
 .ft-items-action-btn.is-view {
-    background: linear-gradient(135deg, #22c1ee, #0ea5e9);
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
     color: #fff;
 }
 
 .ft-items-action-btn.is-edit {
-    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    background: linear-gradient(135deg, #7dd3fc, #38bdf8);
     color: #fff;
 }
 

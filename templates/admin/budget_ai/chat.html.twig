@@ -1,1 +1,295 @@
-{%- extends 'admin/back.html.twig' -%}
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Suivi epargne clients{% endblock %}
+
+{% block breadcrumb %}
+  <span class="text-muted small">Budget admin</span>
+  <i class="bi bi-chevron-right small text-muted mx-1"></i>
+  <span class="fw-semibold">Suivi epargne clients</span>
+{% endblock %}
+
+{% block admin_content %}
+<div class="ft-savings-admin-page">
+  <section class="ft-sap-hero mb-4">
+    <div class="ft-sap-hero-grid">
+      <div>
+        <span class="ft-sap-kicker"><i class="bi bi-activity"></i> Suivi comportemental</span>
+        <h1>Suivi du comportement d epargne des clients</h1>
+        <p>Cette vue admin suit l adoption de l epargne, la discipline financiere, les profils a coacher et les clients a surveiller. L objectif n est pas de creer des objectifs a leur place, mais de piloter leur comportement de facon intelligente.</p>
+      </div>
+      <div class="ft-sap-hero-panel">
+        <span class="ft-sap-hero-label">Parc analyse</span>
+        <strong>{{ totalClients }} clients</strong>
+        <div class="ft-sap-hero-metrics">
+          <div><span>Taux d adoption</span><strong>{{ adoptionRate }}%</strong></div>
+          <div><span>Reserve estimee</span><strong>{{ estimatedSavingsPool|number_format(0, ',', ' ') }} DT</strong></div>
+        </div>
+        <div class="ft-sap-hero-note">Chaque signal aide a prioriser l accompagnement, l education budgetaire et la detection des profils fragiles.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="row g-3 mb-4">
+    {% for kpi in kpis %}
+      <div class="col-12 col-md-6 col-xl">
+        <article class="ft-sap-kpi is-{{ kpi.tone }}">
+          <div class="ft-sap-kpi-top">
+            <span class="ft-sap-kpi-icon"><i class="bi {{ kpi.icon }}"></i></span>
+            <div class="ft-sap-kpi-label">{{ kpi.label }}</div>
+          </div>
+          <div class="ft-sap-kpi-value">{{ kpi.value }}</div>
+          <div class="ft-sap-kpi-meta">{{ kpi.meta }}</div>
+          <div class="ft-sap-kpi-accent"></div>
+        </article>
+      </div>
+    {% endfor %}
+  </section>
+
+  <section class="row g-4 mb-4">
+    <div class="col-12 col-xl-5">
+      <article class="ft-sap-card h-100">
+        <div class="ft-sap-card-head">
+          <div>
+            <span class="ft-sap-section-kicker">Analyse centrale</span>
+            <h2>Lecture du parc epargne</h2>
+          </div>
+        </div>
+        <div class="ft-sap-gauge-grid">
+          <div class="ft-sap-gauge" style="--score: {{ averageDiscipline }};">
+            <div class="ft-sap-gauge-core">
+              <strong>{{ averageDiscipline }}/100</strong>
+              <span>Discipline moyenne</span>
+            </div>
+          </div>
+          <div class="ft-sap-gauge-copy">
+            <div class="ft-sap-chip-row">
+              <span class="ft-sap-chip is-green">Adoption active</span>
+              <span class="ft-sap-chip is-blue">Surveillance continue</span>
+            </div>
+            <p>Les clients avec bonne discipline et capacite mensuelle elevee peuvent etre actives vers des routines d epargne automatiques. Les profils plus faibles doivent etre relances via coaching ou education budgetaire.</p>
+            <div class="ft-sap-priority">
+              <i class="bi bi-lightning-charge-fill"></i>
+              <div>
+                <strong>Action prioritaire</strong>
+                <span>Relancer {{ targetedCoaching }} client(s) a coacher et consolider {{ underWatch }} profil(s) sous surveillance.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-3">
+      <article class="ft-sap-card h-100">
+        <div class="ft-sap-card-head">
+          <div>
+            <span class="ft-sap-section-kicker">Segmentation</span>
+            <h2>Typologies d epargne</h2>
+          </div>
+        </div>
+        <div class="ft-sap-segment-grid">
+          {% for segment in segments %}
+            <div class="ft-sap-segment-card is-{{ segment.tone }}">
+              <span class="ft-sap-segment-icon"><i class="bi {{ segment.icon }}"></i></span>
+              <div class="ft-sap-segment-label">{{ segment.label }}</div>
+              <strong>{{ segment.value }}</strong>
+              <span class="ft-sap-segment-sub">clients</span>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <article class="ft-sap-card h-100">
+        <div class="ft-sap-card-head">
+          <div>
+            <span class="ft-sap-section-kicker">Actions recommandees</span>
+            <h2>Leviers admin</h2>
+          </div>
+        </div>
+        <div class="ft-sap-reco-list">
+          {% for recommendation in recommendations %}
+            <article class="ft-sap-reco-card is-{{ recommendation.tone }}">
+              <span class="ft-sap-reco-icon"><i class="bi {{ recommendation.icon }}"></i></span>
+              <div>
+                <strong>{{ recommendation.title }}</strong>
+                <p>{{ recommendation.text }}</p>
+              </div>
+              <i class="bi bi-chevron-right"></i>
+            </article>
+          {% endfor %}
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="ft-sap-card">
+    <div class="ft-sap-card-head">
+      <div>
+        <span class="ft-sap-section-kicker">Profils prioritaires</span>
+        <h2>Clients a suivre de plus pres</h2>
+      </div>
+      <span class="ft-sap-pill">{{ priorityProfiles|length }} profils</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table ft-sap-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Discipline</th>
+            <th>Capacite mensuelle</th>
+            <th>Epargne estimee</th>
+            <th>Segment</th>
+            <th>Etat</th>
+            <th>Derniere sync</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for profile in priorityProfiles %}
+            <tr>
+              <td>
+                <div class="ft-sap-user">
+                  <span class="ft-sap-avatar">{{ profile.user.prenom|first|upper }}{{ profile.user.nom|first|upper }}</span>
+                  <div>
+                    <strong>{{ profile.user.fullName }}</strong>
+                    <small>{{ profile.user.email }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ft-sap-score">
+                  <strong>{{ profile.disciplineScore }}/100</strong>
+                  <div class="ft-sap-score-bar"><span style="width: {{ profile.disciplineScore }}%;"></span></div>
+                </div>
+              </td>
+              <td>{{ profile.monthlyCapacity|number_format(0, ',', ' ') }} DT</td>
+              <td>{{ profile.estimatedSavings|number_format(0, ',', ' ') }} DT</td>
+              <td><span class="ft-sap-badge is-{{ profile.segmentTone }}">{{ profile.segmentLabel }}</span></td>
+              <td><span class="ft-sap-badge is-{{ profile.statusTone }}">{{ profile.statusLabel }}</span></td>
+              <td>{{ profile.lastSync }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="7" class="text-center text-muted py-4">Aucun client disponible pour cette vue.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .ft-savings-admin-page {
+      --sap-blue: #2563eb;
+      --sap-cyan: #06b6d4;
+      --sap-green: #10b981;
+      --sap-amber: #f59e0b;
+      --sap-violet: #7c3aed;
+      --sap-red: #ef4444;
+      --sap-border: rgba(163, 184, 214, 0.28);
+      --sap-shadow: 0 26px 70px rgba(37, 99, 235, 0.08);
+      --sap-muted: #64748b;
+    }
+    .ft-sap-hero, .ft-sap-kpi, .ft-sap-card {
+      border: 1px solid var(--sap-border);
+      border-radius: 28px;
+      background: rgba(255,255,255,.96);
+      box-shadow: var(--sap-shadow);
+    }
+    .ft-sap-hero {
+      padding: 2.1rem;
+      background:
+        radial-gradient(circle at top right, rgba(6, 182, 212, 0.12), transparent 26%),
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 32%),
+        linear-gradient(180deg, #f4f9ff 0%, #ffffff 100%);
+    }
+    .ft-sap-hero-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(320px,.9fr); gap:2rem; align-items:start; }
+    .ft-sap-kicker, .ft-sap-chip, .ft-sap-pill, .ft-sap-badge {
+      display:inline-flex; align-items:center; gap:.45rem; border-radius:999px; font-weight:700;
+    }
+    .ft-sap-kicker { padding:.55rem .95rem; font-size:.8rem; color:var(--sap-blue); background:rgba(37,99,235,.09); text-transform:uppercase; letter-spacing:.04em; }
+    .ft-sap-hero h1 { font-size:clamp(2rem, 4vw, 3rem); font-weight:800; line-height:1.05; margin:1rem 0 .75rem; letter-spacing:-.04em; }
+    .ft-sap-hero p { color:var(--sap-muted); font-size:1.02rem; line-height:1.8; margin:0; }
+    .ft-sap-hero-panel { padding:1.35rem; border-radius:24px; background:linear-gradient(180deg, rgba(15,23,42,.98), rgba(30,64,175,.94)); color:#fff; box-shadow:0 24px 60px rgba(29,78,216,.24); }
+    .ft-sap-hero-label { display:block; color:rgba(255,255,255,.72); font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; margin-bottom:.5rem; }
+    .ft-sap-hero-panel strong { font-size:2rem; }
+    .ft-sap-hero-metrics { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:.8rem; margin:1rem 0; }
+    .ft-sap-hero-metrics div { padding:.9rem; border-radius:18px; background:rgba(255,255,255,.08); }
+    .ft-sap-hero-metrics span { display:block; color:rgba(255,255,255,.68); font-size:.75rem; text-transform:uppercase; margin-bottom:.3rem; }
+    .ft-sap-hero-metrics strong { font-size:1rem; }
+    .ft-sap-hero-note { padding:.95rem 1rem; border-radius:18px; background:linear-gradient(135deg, rgba(6,182,212,.16), rgba(59,130,246,.16)); color:#dbeafe; line-height:1.7; }
+    .ft-sap-kpi { padding:1.25rem; height:100%; position:relative; overflow:hidden; }
+    .ft-sap-kpi-top { display:flex; gap:1rem; align-items:center; margin-bottom:.8rem; }
+    .ft-sap-kpi-icon, .ft-sap-segment-icon, .ft-sap-reco-icon {
+      width:54px; height:54px; border-radius:18px; display:inline-flex; align-items:center; justify-content:center; color:#fff; font-size:1.3rem;
+    }
+    .ft-sap-kpi.is-blue .ft-sap-kpi-icon { background:linear-gradient(135deg, #2563eb, #1749c6); }
+    .ft-sap-kpi.is-cyan .ft-sap-kpi-icon { background:linear-gradient(135deg, #06b6d4, #0f9ec0); }
+    .ft-sap-kpi.is-green .ft-sap-kpi-icon { background:linear-gradient(135deg, #10b981, #059669); }
+    .ft-sap-kpi.is-amber .ft-sap-kpi-icon { background:linear-gradient(135deg, #f59e0b, #f97316); }
+    .ft-sap-kpi.is-violet .ft-sap-kpi-icon { background:linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .ft-sap-kpi-label { color:#46556f; font-weight:700; }
+    .ft-sap-kpi-value { font-size:1.8rem; font-weight:800; color:#0f172a; }
+    .ft-sap-kpi-meta { color:var(--sap-muted); margin-top:.5rem; line-height:1.6; }
+    .ft-sap-kpi-accent { margin-top:1rem; height:6px; border-radius:999px; background:linear-gradient(90deg, rgba(37,99,235,.9), rgba(96,165,250,.7)); }
+    .ft-sap-kpi.is-cyan .ft-sap-kpi-accent { background:linear-gradient(90deg, rgba(6,182,212,.9), rgba(103,232,249,.7)); }
+    .ft-sap-kpi.is-green .ft-sap-kpi-accent { background:linear-gradient(90deg, rgba(16,185,129,.9), rgba(110,231,183,.7)); }
+    .ft-sap-kpi.is-amber .ft-sap-kpi-accent { background:linear-gradient(90deg, rgba(245,158,11,.9), rgba(252,211,77,.7)); }
+    .ft-sap-kpi.is-violet .ft-sap-kpi-accent { background:linear-gradient(90deg, rgba(124,58,237,.9), rgba(196,181,253,.7)); }
+    .ft-sap-card { padding:1.5rem; }
+    .ft-sap-card-head { display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; margin-bottom:1.2rem; }
+    .ft-sap-section-kicker { color:var(--sap-blue); font-size:.8rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+    .ft-sap-card h2 { font-size:1.15rem; margin:.35rem 0 0; font-weight:800; color:#12203f; }
+    .ft-sap-gauge-grid { display:grid; grid-template-columns:200px minmax(0,1fr); gap:1.2rem; align-items:center; }
+    .ft-sap-gauge { --size:185px; width:var(--size); height:var(--size); border-radius:50%; background:conic-gradient(var(--sap-blue) calc(var(--score) * 1%), rgba(226,233,247,.9) 0); display:grid; place-items:center; position:relative; margin:auto; }
+    .ft-sap-gauge::after { content:""; position:absolute; inset:16px; border-radius:50%; background:#fff; }
+    .ft-sap-gauge-core { position:relative; z-index:1; text-align:center; }
+    .ft-sap-gauge-core strong { display:block; font-size:2rem; font-weight:800; line-height:1; }
+    .ft-sap-gauge-core span { color:var(--sap-muted); font-weight:700; }
+    .ft-sap-chip-row { display:flex; flex-wrap:wrap; gap:.7rem; margin-bottom:.9rem; }
+    .ft-sap-chip { padding:.48rem .82rem; font-size:.82rem; }
+    .ft-sap-chip.is-green { background:rgba(16,185,129,.12); color:#0f9f74; }
+    .ft-sap-chip.is-blue { background:rgba(37,99,235,.1); color:var(--sap-blue); }
+    .ft-sap-priority { margin-top:1rem; display:grid; grid-template-columns:40px 1fr; gap:.9rem; padding:1rem; border-radius:20px; background:linear-gradient(135deg, rgba(37,99,235,.08), rgba(6,182,212,.09)); }
+    .ft-sap-priority i { color:var(--sap-blue); font-size:1.25rem; }
+    .ft-sap-priority strong { display:block; margin-bottom:.25rem; }
+    .ft-sap-priority span, .ft-sap-gauge-copy p, .ft-sap-reco-card p { color:var(--sap-muted); }
+    .ft-sap-segment-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:1rem; }
+    .ft-sap-segment-card { padding:1rem; border-radius:22px; border:1px solid rgba(186,202,229,.3); background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,251,255,.92)); }
+    .ft-sap-segment-card.is-blue .ft-sap-segment-icon { background:linear-gradient(135deg, #2563eb, #1749c6); }
+    .ft-sap-segment-card.is-green .ft-sap-segment-icon { background:linear-gradient(135deg, #10b981, #059669); }
+    .ft-sap-segment-card.is-red .ft-sap-segment-icon { background:linear-gradient(135deg, #ef4444, #fb7185); }
+    .ft-sap-segment-card.is-violet .ft-sap-segment-icon { background:linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    .ft-sap-segment-label { margin:.8rem 0 .35rem; color:#4b5b77; font-weight:700; }
+    .ft-sap-segment-card strong { display:block; font-size:1.5rem; }
+    .ft-sap-segment-sub { color:var(--sap-muted); }
+    .ft-sap-reco-list { display:flex; flex-direction:column; gap:1rem; }
+    .ft-sap-reco-card { display:grid; grid-template-columns:54px minmax(0,1fr) 20px; gap:.9rem; align-items:center; padding:1rem; border-radius:22px; border:1px solid rgba(186,202,229,.3); background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,251,255,.92)); }
+    .ft-sap-reco-card.is-blue .ft-sap-reco-icon { background:linear-gradient(135deg, #2563eb, #1749c6); }
+    .ft-sap-reco-card.is-green .ft-sap-reco-icon { background:linear-gradient(135deg, #10b981, #059669); }
+    .ft-sap-reco-card.is-amber .ft-sap-reco-icon { background:linear-gradient(135deg, #f59e0b, #f97316); }
+    .ft-sap-reco-card strong { display:block; margin-bottom:.25rem; }
+    .ft-sap-pill { padding:.5rem .85rem; background:rgba(37,99,235,.08); color:var(--sap-blue); }
+    .ft-sap-table th { color:#61708f; font-size:.8rem; text-transform:uppercase; letter-spacing:.05em; border-bottom-color:#e2e8f0; }
+    .ft-sap-table td { border-bottom-color:#edf2f7; padding-top:1rem; padding-bottom:1rem; }
+    .ft-sap-user { display:flex; align-items:center; gap:.9rem; }
+    .ft-sap-avatar { width:46px; height:46px; border-radius:16px; background:linear-gradient(135deg, #2563eb, #60a5fa); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:800; }
+    .ft-sap-user strong { display:block; }
+    .ft-sap-user small { color:var(--sap-muted); }
+    .ft-sap-score strong { display:block; margin-bottom:.45rem; }
+    .ft-sap-score-bar { height:8px; border-radius:999px; background:rgba(214,226,244,.72); overflow:hidden; }
+    .ft-sap-score-bar span { display:block; height:100%; background:linear-gradient(90deg, #2563eb, #60a5fa); }
+    .ft-sap-badge { padding:.45rem .78rem; font-size:.8rem; }
+    .ft-sap-badge.is-green { background:rgba(16,185,129,.12); color:#0f9f74; }
+    .ft-sap-badge.is-amber { background:rgba(245,158,11,.12); color:#d97706; }
+    .ft-sap-badge.is-red { background:rgba(239,68,68,.12); color:#dc2626; }
+    .ft-sap-badge.is-blue { background:rgba(37,99,235,.10); color:var(--sap-blue); }
+    .ft-sap-badge.is-violet { background:rgba(124,58,237,.10); color:var(--sap-violet); }
+    @media (max-width: 1199.98px) { .ft-sap-hero-grid, .ft-sap-gauge-grid { grid-template-columns:1fr; } }
+    @media (max-width: 767.98px) { .ft-sap-segment-grid { grid-template-columns:1fr; } }
+  </style>
+{% endblock %}

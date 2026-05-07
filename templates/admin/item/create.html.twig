@@ -1,302 +1,268 @@
 {% extends 'admin/back.html.twig' %}
 
-{% block title %}Créer un Nouvel Item{% endblock %}
+{% block title %}Creer un Nouvel Item{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid mt-5">
-    <!-- Header avec navigation -->
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-2">
-                    <li class="breadcrumb-item">
-                        <a href="{{ path('admin_dashboard') }}" class="text-decoration-none">
-                            <i class="fas fa-home me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="{{ path('admin_item_list') }}" class="text-decoration-none">Items</a>
-                    </li>
-                    <li class="breadcrumb-item active">Créer</li>
+<div class="container-fluid ft-item-create-page">
+    <section class="ft-item-create-hero mb-4">
+        <div class="ft-item-create-hero-main">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb ft-item-create-breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('admin_item_list') }}">Items</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Creer</li>
                 </ol>
             </nav>
-            <h1 class="h2 fw-bold text-dark mb-2">
-                <i class="fas fa-plus-circle text-success me-3"></i>
-                Créer un Nouvel Item
-            </h1>
-            <p class="text-muted">Ajoutez un nouvel article budgétaire à votre gestion financière</p>
+
+            <span class="ft-item-create-kicker">
+                <i class="bi bi-plus-circle"></i>
+                Creation budgetaire
+            </span>
+            <h1>Creer un Nouvel Item</h1>
+            <p>Ajoutez un nouvel article budgetaire dans une interface plus claire, plus guidee et plus premium pour votre pilotage admin.</p>
         </div>
-        <div class="d-flex gap-3">
-            <a href="{{ path('admin_item_list') }}" class="btn btn-secondary btn-lg">
-                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+
+        <div class="ft-item-create-hero-actions">
+            <a href="{{ path('admin_item_list') }}" class="btn ft-item-create-btn-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Retour a la liste
             </a>
         </div>
-    </div>
+    </section>
 
-    <div class="row justify-content-center">
-        <div class="col-xl-8 col-lg-10">
-            <div class="form-card">
-                <div class="card-header-custom">
-                    <div class="card-icon">
-                        <i class="fas fa-tag"></i>
-                    </div>
-                    <div>
-                        <h5 class="mb-0">Informations de l'Item</h5>
-                        <small class="text-muted">Renseignez les détails de votre nouvel article budgétaire</small>
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-12 col-xl-8">
+            <section class="ft-item-create-card">
+                <div class="ft-item-create-card-head">
+                    <div class="ft-item-create-card-title">
+                        <span class="ft-item-create-card-icon"><i class="bi bi-journal-plus"></i></span>
+                        <div>
+                            <h2>Informations de l'Item</h2>
+                            <p>Renseignez les details de votre nouvel article budgetaire</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card-body-custom">
-                    {% for message in app.flashes('error') %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>{{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="ft-item-create-card-body">
+                    <div class="ft-item-create-ocr-shell mb-4" id="ocrZone">
+                        <div class="ft-item-create-section-head">
+                            <h3><i class="bi bi-magic me-2"></i>Remplissage automatique par OCR</h3>
+                            <p>Importez une facture image ou PDF pour pre-remplir les champs en quelques secondes.</p>
                         </div>
-                    {% endfor %}
 
-                    {# ── ZONE OCR ─────────────────────────────────────────────────── #}
-                    <div class="ocr-zone mb-4" id="ocrZone">
-                        <div class="ocr-zone-header">
-                            <div class="ocr-zone-icon"><i class="fas fa-magic"></i></div>
-                            <div>
-                                <div class="ocr-zone-title">Remplissage automatique par OCR</div>
-                                <div class="ocr-zone-sub">Importez une facture (image ou PDF) — les champs se remplissent automatiquement</div>
-                            </div>
-                        </div>
-                        <div class="ocr-drop-area" id="ocrDropArea">
-                            <input type="file" id="ocrFileInput" accept="image/*,.pdf" style="display:none"/>
-                            <div class="ocr-drop-content" id="ocrDropContent">
-                                <i class="fas fa-cloud-upload-alt ocr-drop-icon"></i>
-                                <div class="ocr-drop-text">Glissez votre facture ici</div>
-                                <div class="ocr-drop-sub">ou</div>
-                                <button type="button" class="btn ocr-btn-upload" onclick="document.getElementById('ocrFileInput').click()">
-                                    <i class="fas fa-folder-open me-2"></i>Choisir un fichier
+                        <div class="ft-item-create-drop-area" id="ocrDropArea">
+                            <input type="file" id="ocrFileInput" accept="image/*,.pdf" hidden>
+                            <div class="ft-item-create-drop-content" id="ocrDropContent">
+                                <span class="ft-item-create-drop-icon"><i class="bi bi-cloud-arrow-up"></i></span>
+                                <strong>Glissez votre facture ici</strong>
+                                <span class="ft-item-create-drop-separator">ou</span>
+                                <button type="button" class="btn ft-item-create-upload-btn" onclick="document.getElementById('ocrFileInput').click()">
+                                    <i class="bi bi-folder2-open me-2"></i>Choisir un fichier
                                 </button>
-                                <div class="ocr-drop-hint">PDF, JPG, PNG, BMP, GIF, TIF, TIFF, WEBP · Max 5 Mo</div>
+                                <small>PDF, JPG, PNG, BMP, GIF, TIF, TIFF, WEBP · Max 5 Mo</small>
                             </div>
                         </div>
-                        <div class="ocr-loading d-none" id="ocrLoading">
-                            <div class="ocr-spinner"></div>
-                            <span>Analyse en cours...</span>
+
+                        <div class="ft-item-create-ocr-loading d-none" id="ocrLoading">
+                            <div class="ft-item-create-spinner"></div>
+                            <span>Analyse OCR en cours...</span>
                         </div>
-                        <div class="ocr-result d-none" id="ocrResult">
-                            <div class="ocr-result-header">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <strong>Données détectées — vérifiez et confirmez</strong>
+
+                        <div class="ft-item-create-ocr-result d-none" id="ocrResult">
+                            <div class="ft-item-create-ocr-result-head">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                <strong>Donnees detectees, verifiez puis appliquez</strong>
                             </div>
-                            <div class="ocr-result-fields" id="ocrResultFields"></div>
-                            <div class="ocr-result-actions">
-                                <button type="button" class="btn ocr-btn-apply" id="ocrApplyBtn">
-                                    <i class="fas fa-check me-2"></i>Appliquer au formulaire
+                            <div class="ft-item-create-ocr-fields" id="ocrResultFields"></div>
+                            <div class="ft-item-create-ocr-actions">
+                                <button type="button" class="btn ft-item-create-apply-btn" id="ocrApplyBtn">
+                                    <i class="bi bi-check2 me-2"></i>Appliquer au formulaire
                                 </button>
-                                <button type="button" class="btn ocr-btn-reset" id="ocrResetBtn">
-                                    <i class="fas fa-redo me-2"></i>Réessayer
+                                <button type="button" class="btn ft-item-create-reset-btn" id="ocrResetBtn">
+                                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reessayer
                                 </button>
                             </div>
                         </div>
-                        <div class="ocr-error d-none" id="ocrError">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
+
+                        <div class="ft-item-create-ocr-error d-none" id="ocrError">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             <span id="ocrErrorMsg"></span>
-                            <button type="button" class="btn btn-sm ocr-btn-reset ms-3" id="ocrErrorReset">Réessayer</button>
+                            <button type="button" class="btn btn-sm ft-item-create-reset-btn ms-3" id="ocrErrorReset">Reessayer</button>
                         </div>
                     </div>
-                    {# ── FIN ZONE OCR ─────────────────────────────────────────────── #}
 
                     {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
 
-                    <div class="form-section">
-                        <div class="form-group">
-                            <label for="{{ form.libelle.vars.id }}" class="form-label">
-                                <i class="fas fa-tag text-primary me-2"></i>
-                                Libellé de l'Item
-                                <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-pencil-alt"></i>
-                                </span>
+                    <div class="ft-item-create-form-grid">
+                        <div class="ft-item-create-field">
+                            <label for="{{ form.libelle.vars.id }}" class="ft-item-create-label">Libelle de l'item <span>*</span></label>
+                            <div class="ft-item-create-input-wrap">
+                                <span class="ft-item-create-input-icon"><i class="bi bi-type"></i></span>
                                 {{ form_widget(form.libelle, {
                                     'attr': {
-                                        'class': 'form-control form-control-lg',
-                                        'placeholder': 'Entrez le nom de l\'article budgétaire'
+                                        'class': 'form-control ft-item-create-control',
+                                        'placeholder': 'Entrez le nom de l article budgetaire'
                                     }
                                 }) }}
                             </div>
                             {% if form.libelle.vars.errors|length > 0 %}
-                                <div class="invalid-feedback d-block">
+                                <div class="ft-item-create-error">
                                     {% for error in form.libelle.vars.errors %}
-                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error.message }}
+                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error.message }}</div>
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <small class="form-text text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Description claire et précise de l'article (3-100 caractères)
-                            </small>
+                            <small class="ft-item-create-help">Description claire et precise de l article (3-100 caracteres)</small>
                         </div>
 
-                        <div class="form-group">
-                            <label for="{{ form.montant.vars.id }}" class="form-label">
-                                <i class="fas fa-coins text-success me-2"></i>
-                                Montant (DT)
-                                <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-calculator"></i>
-                                </span>
+                        <div class="ft-item-create-field">
+                            <label for="{{ form.montant.vars.id }}" class="ft-item-create-label">Montant (DT) <span>*</span></label>
+                            <div class="ft-item-create-input-wrap">
+                                <span class="ft-item-create-input-icon"><i class="bi bi-cash-stack"></i></span>
                                 {{ form_widget(form.montant, {
                                     'attr': {
-                                        'class': 'form-control form-control-lg',
+                                        'class': 'form-control ft-item-create-control',
                                         'placeholder': '0.00',
                                         'step': '0.01'
                                     }
                                 }) }}
-                                <span class="input-group-text">€</span>
+                                <span class="ft-item-create-suffix">DT</span>
                             </div>
                             {% if form.montant.vars.errors|length > 0 %}
-                                <div class="invalid-feedback d-block">
+                                <div class="ft-item-create-error">
                                     {% for error in form.montant.vars.errors %}
-                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error.message }}
+                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error.message }}</div>
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <small class="form-text text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Montant positif avec maximum 2 décimales
-                            </small>
+                            <small class="ft-item-create-help">Montant positif avec maximum 2 decimales</small>
                         </div>
 
-                        <div class="form-group">
-                            <label for="{{ form.categorieRel.vars.id }}" class="form-label">
-                                <i class="fas fa-folder text-warning me-2"></i>
-                                Catégorie Budgétaire
-                                <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-list"></i></span>
-                                {{ form_widget(form.categorieRel, {'attr': {'class': 'form-select form-select-lg'}}) }}
+                        <div class="ft-item-create-field">
+                            <label for="{{ form.categorieRel.vars.id }}" class="ft-item-create-label">Categorie budgetaire <span>*</span></label>
+                            <div class="ft-item-create-input-wrap">
+                                <span class="ft-item-create-input-icon"><i class="bi bi-folder2-open"></i></span>
+                                {{ form_widget(form.categorieRel, {
+                                    'attr': {
+                                        'class': 'form-select ft-item-create-control ft-item-create-select'
+                                    }
+                                }) }}
                             </div>
                             {% if form.categorieRel.vars.errors|length > 0 %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.categorieRel.vars.errors %}<i class="fas fa-exclamation-circle me-1"></i>{{ error.message }}{% endfor %}
+                                <div class="ft-item-create-error">
+                                    {% for error in form.categorieRel.vars.errors %}
+                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error.message }}</div>
+                                    {% endfor %}
                                 </div>
                             {% endif %}
+                            <small class="ft-item-create-help">Choisissez la categorie budgetaire appropriee</small>
                         </div>
 
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="{{ form.quantite.vars.id }}" class="form-label">
-                                        <i class="fas fa-sort-numeric-up text-info me-2"></i>Quantité
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
-                                        {{ form_widget(form.quantite, {'attr': {'class': 'form-control form-control-lg', 'placeholder': '1', 'id': 'field_quantite'}}) }}
+                                <div class="ft-item-create-field">
+                                    <label for="{{ form.quantite.vars.id }}" class="ft-item-create-label">Quantite</label>
+                                    <div class="ft-item-create-input-wrap">
+                                        <span class="ft-item-create-input-icon"><i class="bi bi-123"></i></span>
+                                        {{ form_widget(form.quantite, {'attr': {'class': 'form-control ft-item-create-control', 'placeholder': '1', 'id': 'field_quantite'}}) }}
                                     </div>
                                     {% if form.quantite.vars.errors|length > 0 %}
-                                        <div class="invalid-feedback d-block">{% for e in form.quantite.vars.errors %}{{ e.message }}{% endfor %}</div>
+                                        <div class="ft-item-create-error">{% for e in form.quantite.vars.errors %}<div>{{ e.message }}</div>{% endfor %}</div>
                                     {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="{{ form.prixUnitaire.vars.id }}" class="form-label">
-                                        <i class="fas fa-tag text-warning me-2"></i>Prix Unitaire (TND)
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-coins"></i></span>
-                                        {{ form_widget(form.prixUnitaire, {'attr': {'class': 'form-control form-control-lg', 'placeholder': '0.000', 'id': 'field_prix_unitaire'}}) }}
+                                <div class="ft-item-create-field">
+                                    <label for="{{ form.prixUnitaire.vars.id }}" class="ft-item-create-label">Prix unitaire (TND)</label>
+                                    <div class="ft-item-create-input-wrap">
+                                        <span class="ft-item-create-input-icon"><i class="bi bi-tag"></i></span>
+                                        {{ form_widget(form.prixUnitaire, {'attr': {'class': 'form-control ft-item-create-control', 'placeholder': '0.000', 'id': 'field_prix_unitaire'}}) }}
                                     </div>
                                     {% if form.prixUnitaire.vars.errors|length > 0 %}
-                                        <div class="invalid-feedback d-block">{% for e in form.prixUnitaire.vars.errors %}{{ e.message }}{% endfor %}</div>
+                                        <div class="ft-item-create-error">{% for e in form.prixUnitaire.vars.errors %}<div>{{ e.message }}</div>{% endfor %}</div>
                                     {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="{{ form.tva.vars.id }}" class="form-label">
-                                        <i class="fas fa-percent text-secondary me-2"></i>TVA (%)
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-percent"></i></span>
-                                        {{ form_widget(form.tva, {'attr': {'class': 'form-control form-control-lg', 'placeholder': '0'}}) }}
-                                        <span class="input-group-text">%</span>
+                                <div class="ft-item-create-field">
+                                    <label for="{{ form.tva.vars.id }}" class="ft-item-create-label">TVA (%)</label>
+                                    <div class="ft-item-create-input-wrap">
+                                        <span class="ft-item-create-input-icon"><i class="bi bi-percent"></i></span>
+                                        {{ form_widget(form.tva, {'attr': {'class': 'form-control ft-item-create-control', 'placeholder': '0'}}) }}
+                                        <span class="ft-item-create-suffix">%</span>
                                     </div>
                                     {% if form.tva.vars.errors|length > 0 %}
-                                        <div class="invalid-feedback d-block">{% for e in form.tva.vars.errors %}{{ e.message }}{% endfor %}</div>
+                                        <div class="ft-item-create-error">{% for e in form.tva.vars.errors %}<div>{{ e.message }}</div>{% endfor %}</div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Aperçu budgétaire dynamique -->
-                    <div class="budget-preview" id="budgetPreview" style="display: none;">
-                        <div class="preview-header">
-                            <i class="fas fa-eye me-2"></i>
-                            Aperçu Budgétaire
+                    <div class="ft-item-create-preview-box" id="budgetPreview" style="display:none;">
+                        <div class="ft-item-create-section-head">
+                            <h3><i class="bi bi-bar-chart-line me-2"></i>Apercu budgetaire</h3>
                         </div>
-                        <div class="preview-content">
-                            <div class="preview-item">
-                                <span class="preview-label">Catégorie sélectionnée :</span>
-                                <span class="preview-value" id="selectedCategory">-</span>
+                        <div class="ft-item-create-preview-grid">
+                            <div class="ft-item-create-preview-card">
+                                <span>Categorie selectionnee</span>
+                                <strong id="selectedCategory">-</strong>
                             </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Budget prévu :</span>
-                                <span class="preview-value" id="categoryBudget">-</span>
+                            <div class="ft-item-create-preview-card">
+                                <span>Budget prevu</span>
+                                <strong id="categoryBudget">-</strong>
                             </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Total actuel :</span>
-                                <span class="preview-value" id="currentTotal">-</span>
+                            <div class="ft-item-create-preview-card">
+                                <span>Total actuel</span>
+                                <strong id="currentTotal">-</strong>
                             </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Après ajout :</span>
-                                <span class="preview-value text-primary" id="newTotal">-</span>
+                            <div class="ft-item-create-preview-card is-highlight">
+                                <span>Apres ajout</span>
+                                <strong id="newTotal">-</strong>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-success btn-lg">
-                            <i class="fas fa-save me-2"></i>Créer l'Item
+                    <div class="ft-item-create-actions">
+                        <button type="submit" class="btn ft-item-create-submit">
+                            <i class="bi bi-check2-circle me-2"></i>Creer l'Item
                         </button>
-                        <a href="{{ path('admin_item_list') }}" class="btn btn-secondary btn-lg">
-                            <i class="fas fa-times me-2"></i>Annuler
+                        <a href="{{ path('admin_item_list') }}" class="btn ft-item-create-cancel">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
                         </a>
                     </div>
 
                     {{ form_end(form) }}
                 </div>
-            </div>
+            </section>
+        </div>
 
-            <!-- Informations complémentaires -->
-            <div class="info-card mt-4">
-                <div class="card-header-custom">
-                    <div class="card-icon">
-                        <i class="fas fa-info-circle"></i>
+        <div class="col-12 col-xl-4">
+            <section class="ft-item-create-side-card">
+                <div class="ft-item-create-section-head">
+                    <h3><i class="bi bi-lightbulb me-2"></i>Lecture budgetaire</h3>
+                </div>
+                <div class="ft-item-create-side-stack">
+                    <div class="ft-item-create-insight-card is-blue">
+                        <span class="ft-item-create-insight-label">Assistance OCR</span>
+                        <strong>Importez une facture pour gagner du temps sur le libelle, le montant et les champs financiers.</strong>
                     </div>
-                    <div>
-                        <h6 class="mb-0">Informations Importantes</h6>
+                    <div class="ft-item-create-insight-card is-amber">
+                        <span class="ft-item-create-insight-label">Vigilance</span>
+                        <strong>Le montant saisi peut influencer les alertes de categorie et la lecture budgetaire globale.</strong>
+                    </div>
+                    <div class="ft-item-create-insight-card is-green">
+                        <span class="ft-item-create-insight-label">Application</span>
+                        <strong>Une fois enregistre, l item sera immediatement pris en compte dans vos statistiques budgetaires.</strong>
                     </div>
                 </div>
-                <div class="card-body-custom">
-                    <div class="info-list">
-                        <div class="info-item">
-                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                            <span>Le montant ne peut pas dépasser le budget restant de la catégorie</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="fas fa-bell text-info me-2"></i>
-                            <span>Une alerte sera automatiquement créée si le seuil d'alerte est atteint</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="fas fa-undo text-secondary me-2"></i>
-                            <span>Vous pourrez modifier ces informations ultérieurement</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </section>
         </div>
     </div>
 </div>
@@ -307,7 +273,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const montantInput = document.querySelector('#{{ form.montant.vars.id }}');
     const budgetPreview = document.getElementById('budgetPreview');
 
-    // Données des catégories (injectées depuis Twig)
     const categoriesData = {
         {% for categorie in form.categorieRel.vars.choices %}
             {{ categorie.data.idCategorie }}: {
@@ -325,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (selectedCategoryId && categoriesData[selectedCategoryId]) {
             const category = categoriesData[selectedCategoryId];
-            const currentTotal = category.budget - (category.budget * 0.1); // Simulation du total actuel
+            const currentTotal = category.budget - (category.budget * 0.1);
             const newTotal = currentTotal + montant;
 
             document.getElementById('selectedCategory').textContent = category.nom;
@@ -345,265 +310,479 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-.form-card,
-.info-card {
-    background: white;
-    border: 1px solid rgba(167, 180, 248, 0.35);
+.ft-item-create-page {
+    background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 24%),
+        radial-gradient(circle at top right, rgba(34, 211, 238, 0.10), transparent 26%);
+}
+
+.ft-item-create-hero,
+.ft-item-create-card,
+.ft-item-create-side-card {
+    border-radius: 28px;
+    border: 1px solid rgba(191, 219, 254, 0.88);
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,250,255,.96));
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.ft-item-create-hero {
+    padding: 1.55rem 1.7rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+}
+
+.ft-item-create-breadcrumb a {
+    color: #59739e;
+    text-decoration: none;
+}
+
+.ft-item-create-breadcrumb .active {
+    color: #10224f;
+    font-weight: 700;
+}
+
+.ft-item-create-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .5rem .9rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.10);
+    color: #2563eb;
+    font-size: .82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.ft-item-create-hero h1 {
+    margin: .95rem 0 .45rem;
+    font-size: clamp(2rem, 3vw, 3.1rem);
+    font-weight: 800;
+    letter-spacing: -.04em;
+    color: #0f172a;
+}
+
+.ft-item-create-hero p {
+    margin: 0;
+    color: #667a9d;
+    line-height: 1.7;
+    max-width: 43rem;
+}
+
+.ft-item-create-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem;
+    justify-content: flex-end;
+}
+
+.ft-item-create-btn-secondary,
+.ft-item-create-submit,
+.ft-item-create-cancel,
+.ft-item-create-upload-btn,
+.ft-item-create-apply-btn,
+.ft-item-create-reset-btn {
+    min-height: 52px;
     border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    margin-bottom: 1.5rem;
+    padding: .9rem 1.3rem;
+    font-weight: 700;
+    border: none;
 }
 
-.form-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.12);
+.ft-item-create-submit,
+.ft-item-create-upload-btn,
+.ft-item-create-apply-btn {
+    background: linear-gradient(135deg, #1d4ed8, #2563eb 46%, #4f46e5 100%);
+    color: #fff;
 }
 
-.card-header-custom {
-    display: flex;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    background: rgba(248, 250, 252, 0.8);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+.ft-item-create-btn-secondary,
+.ft-item-create-cancel {
+    background: linear-gradient(135deg, #64748b, #475569);
+    color: #fff;
 }
 
-.card-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #3b82f6, #1f6feb);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1rem;
-    margin-right: 1rem;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+.ft-item-create-reset-btn {
+    background: #fff;
+    color: #2563eb;
+    border: 1px solid rgba(147, 197, 253, 0.95);
 }
 
-.card-body-custom {
-    padding: 2rem;
+.ft-item-create-card,
+.ft-item-create-side-card {
+    overflow: hidden;
 }
 
-.form-section {
-    margin-bottom: 2rem;
-}
-
-.form-group {
-    margin-bottom: 2rem;
-}
-
-.form-label {
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.75rem;
-    font-size: 1rem;
-}
-
-.input-group-text {
-    background: rgba(248, 250, 252, 0.8);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    color: #64748b;
-}
-
-.form-control,
-.form-select {
-    border: 2px solid rgba(226, 232, 240, 0.8);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-}
-
-.form-control:focus,
-.form-select:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    outline: none;
-}
-
-.form-control-lg {
-    padding: 1rem 1.25rem;
-    font-size: 1.1rem;
-}
-
-.form-select-lg {
-    padding: 1rem 1.25rem;
-    font-size: 1.1rem;
-}
-
-.form-text {
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-}
-
-.invalid-feedback {
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-}
-
-.budget-preview {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.1));
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.preview-header {
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-}
-
-.preview-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.preview-item {
+.ft-item-create-card-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 8px;
-}
-
-.preview-label {
-    font-weight: 600;
-    color: #64748b;
-    font-size: 0.875rem;
-}
-
-.preview-value {
-    font-weight: 700;
-    color: #1e293b;
-}
-
-.form-actions {
-    display: flex;
     gap: 1rem;
+    padding: 1.35rem 1.45rem;
+    background: linear-gradient(135deg, #1d4ed8, #2563eb 46%, #4f46e5 100%);
+    color: #fff;
+}
+
+.ft-item-create-card-title {
+    display: flex;
+    align-items: center;
+    gap: .95rem;
+}
+
+.ft-item-create-card-title h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.ft-item-create-card-title p {
+    margin: .2rem 0 0;
+    color: rgba(255,255,255,.86);
+}
+
+.ft-item-create-card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(226, 232, 240, 0.5);
+    background: rgba(255,255,255,.22);
+    font-size: 1.05rem;
 }
 
-.btn {
-    border-radius: 10px;
+.ft-item-create-card-body,
+.ft-item-create-side-card {
+    padding: 1.5rem;
+}
+
+.ft-item-create-section-head h3 {
+    margin: 0;
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.ft-item-create-section-head p {
+    margin: .35rem 0 0;
+    color: #7184aa;
+    line-height: 1.6;
+}
+
+.ft-item-create-ocr-shell {
+    border-radius: 24px;
+    border: 1px solid rgba(147, 197, 253, 0.78);
+    background: linear-gradient(135deg, rgba(239, 246, 255, 0.92), rgba(248, 250, 255, 0.98));
+    padding: 1.2rem;
+}
+
+.ft-item-create-drop-area {
+    margin-top: 1rem;
+    border: 2px dashed #bfdbfe;
+    border-radius: 20px;
+    background: #fff;
+    padding: 2rem 1.2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.ft-item-create-drop-area.drag-over {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.ft-item-create-drop-content {
+    display: grid;
+    gap: .65rem;
+    justify-items: center;
+}
+
+.ft-item-create-drop-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.10), rgba(96, 165, 250, 0.18));
+    color: #2563eb;
+    font-size: 1.55rem;
+}
+
+.ft-item-create-drop-content strong {
+    color: #0f172a;
+    font-size: 1.15rem;
+}
+
+.ft-item-create-drop-separator,
+.ft-item-create-drop-content small {
+    color: #8aa0c2;
+}
+
+.ft-item-create-ocr-loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    color: #1560BD;
     font-weight: 600;
-    padding: 0.75rem 2rem;
-    transition: all 0.2s ease;
 }
 
-.btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.ft-item-create-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #bfdbfe;
+    border-top-color: #1560BD;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
 }
 
-.btn-success {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border: none;
-    color: white;
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.ft-item-create-ocr-result {
+    margin-top: 1rem;
+    background: #fff;
+    border: 1px solid #bbf7d0;
+    border-radius: 18px;
+    padding: 1rem;
 }
 
-.btn-secondary {
-    background: linear-gradient(135deg, #64748b, #475569);
-    border: none;
-    color: white;
-}
-
-.info-list {
+.ft-item-create-ocr-result-head {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.info-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: rgba(248, 250, 252, 0.5);
-    border-radius: 8px;
-    border-left: 3px solid;
-}
-
-.info-item:nth-child(1) {
-    border-left-color: #f59e0b;
-}
-
-.info-item:nth-child(2) {
-    border-left-color: #06b6d4;
-}
-
-.info-item:nth-child(3) {
-    border-left-color: #64748b;
-}
-
-.breadcrumb {
-    background: transparent;
-    padding: 0;
+    align-items: center;
     margin-bottom: 1rem;
 }
 
-.breadcrumb-item a {
-    color: #64748b;
+.ft-item-create-ocr-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
 }
 
-.breadcrumb-item.active {
+.ocr-field {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px 14px;
+}
+
+.ocr-field-label {
+    font-size: .72rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.ocr-field-value {
+    font-size: .9rem;
+    font-weight: 600;
     color: #1e293b;
+}
+
+.ocr-field-value.empty {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.ft-item-create-ocr-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.ft-item-create-ocr-error {
+    margin-top: 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    padding: 14px;
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+}
+
+.ft-item-create-form-grid {
+    display: grid;
+    gap: 1.4rem;
+}
+
+.ft-item-create-field {
+    display: grid;
+    gap: .55rem;
+}
+
+.ft-item-create-label {
+    color: #0f172a;
+    font-weight: 800;
+}
+
+.ft-item-create-label span {
+    color: #ef4444;
+}
+
+.ft-item-create-input-wrap {
+    position: relative;
+}
+
+.ft-item-create-input-icon,
+.ft-item-create-suffix {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    color: #6b7ea3;
+    font-weight: 700;
+}
+
+.ft-item-create-input-icon { left: 1rem; }
+.ft-item-create-suffix { right: 1rem; }
+
+.ft-item-create-control {
+    min-height: 58px;
+    border-radius: 18px;
+    border: 1px solid rgba(191, 219, 254, 0.94);
+    box-shadow: none;
+    padding-left: 3rem;
+    color: #0f172a;
+}
+
+.ft-item-create-select {
+    padding-right: 2.7rem;
+}
+
+.ft-item-create-control:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 .22rem rgba(96, 165, 250, 0.16);
+}
+
+.ft-item-create-help {
+    color: #7184aa;
+    font-size: .88rem;
+}
+
+.ft-item-create-error {
+    color: #dc2626;
+    font-size: .9rem;
     font-weight: 600;
 }
 
-@media (max-width: 768px) {
-    .form-actions {
+.ft-item-create-preview-box {
+    margin-top: 1.5rem;
+    margin-bottom: 1.65rem;
+    border-radius: 22px;
+    border: 1px solid rgba(191, 219, 254, 0.74);
+    background: linear-gradient(135deg, rgba(239, 246, 255, 0.96), rgba(248, 250, 255, 0.98));
+    padding: 1.2rem;
+}
+
+.ft-item-create-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .9rem;
+    margin-top: .95rem;
+}
+
+.ft-item-create-preview-card {
+    padding: 1rem;
+    border-radius: 18px;
+    background: rgba(255,255,255,.88);
+    border: 1px solid rgba(191, 219, 254, 0.72);
+}
+
+.ft-item-create-preview-card.is-highlight {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(125, 211, 252, 0.14));
+}
+
+.ft-item-create-preview-card span {
+    display: block;
+    color: #64748b;
+    font-size: .82rem;
+    font-weight: 700;
+    margin-bottom: .35rem;
+}
+
+.ft-item-create-preview-card strong {
+    color: #0f172a;
+    font-size: 1rem;
+}
+
+.ft-item-create-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .85rem;
+    padding-top: 1.35rem;
+}
+
+.ft-item-create-side-stack {
+    display: grid;
+    gap: .95rem;
+}
+
+.ft-item-create-insight-card {
+    border-radius: 20px;
+    padding: 1rem 1.05rem;
+    border: 1px solid rgba(214, 226, 255, 0.88);
+    background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,249,255,.94));
+}
+
+.ft-item-create-insight-card.is-blue {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(255,255,255,.96));
+}
+
+.ft-item-create-insight-card.is-amber {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(255,255,255,.96));
+}
+
+.ft-item-create-insight-card.is-green {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(255,255,255,.96));
+}
+
+.ft-item-create-insight-label {
+    display: block;
+    color: #64748b;
+    font-size: .8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: .45rem;
+}
+
+.ft-item-create-insight-card strong {
+    color: #0f172a;
+    line-height: 1.55;
+}
+
+@media (max-width: 1199.98px) {
+    .ft-item-create-hero {
         flex-direction: column;
     }
 
-    .btn {
-        width: 100%;
-    }
-
-    .preview-content {
-        grid-template-columns: 1fr;
+    .ft-item-create-hero-actions {
+        justify-content: flex-start;
     }
 }
 
-/* ── OCR STYLES ─────────────────────────────────────────────────────────── */
-.ocr-zone { background:#f0f7ff; border:2px dashed #93c5fd; border-radius:14px; padding:20px; }
-.ocr-zone-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-.ocr-zone-icon { width:40px;height:40px;background:linear-gradient(135deg,#1560BD,#3b82f6);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem; }
-.ocr-zone-title { font-weight:700;color:#1e293b;font-size:.95rem; }
-.ocr-zone-sub { color:#64748b;font-size:.8rem; }
-.ocr-drop-area { border:2px dashed #bfdbfe;border-radius:10px;background:#fff;padding:28px;text-align:center;cursor:pointer;transition:all .2s; }
-.ocr-drop-area.drag-over { border-color:#1560BD;background:#eff6ff; }
-.ocr-drop-icon { font-size:2.5rem;color:#93c5fd;margin-bottom:10px; }
-.ocr-drop-text { font-weight:600;color:#1e293b;margin-bottom:4px; }
-.ocr-drop-sub { color:#94a3b8;font-size:.82rem;margin-bottom:10px; }
-.ocr-drop-hint { color:#94a3b8;font-size:.75rem;margin-top:8px; }
-.ocr-btn-upload { background:#1560BD;color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:.85rem;font-weight:600; }
-.ocr-btn-upload:hover { background:#0f4a9c;color:#fff; }
-.ocr-loading { display:flex;align-items:center;gap:12px;padding:16px;color:#1560BD;font-weight:600; }
-.ocr-spinner { width:24px;height:24px;border:3px solid #bfdbfe;border-top-color:#1560BD;border-radius:50%;animation:spin .8s linear infinite; }
-@keyframes spin{to{transform:rotate(360deg)}}
-.ocr-result { background:#fff;border:1px solid #bbf7d0;border-radius:10px;padding:16px; }
-.ocr-result-header { display:flex;align-items:center;margin-bottom:14px;font-size:.9rem; }
-.ocr-result-fields { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px; }
-.ocr-field { background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px; }
-.ocr-field-label { font-size:.72rem;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:4px; }
-.ocr-field-value { font-size:.9rem;font-weight:600;color:#1e293b; }
-.ocr-field-value.empty { color:#94a3b8;font-style:italic; }
-.ocr-result-actions { display:flex;gap:10px; }
-.ocr-btn-apply { background:#16a34a;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:.85rem;font-weight:600; }
-.ocr-btn-apply:hover { background:#15803d;color:#fff; }
-.ocr-btn-reset { background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:8px 18px;font-size:.85rem;font-weight:600; }
-.ocr-btn-reset:hover { background:#e2e8f0;color:#1e293b; }
-.ocr-error { background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;color:#dc2626;display:flex;align-items:center; }
+@media (max-width: 767.98px) {
+    .ft-item-create-preview-grid,
+    .ft-item-create-ocr-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .ft-item-create-actions,
+    .ft-item-create-ocr-actions {
+        flex-direction: column;
+    }
+
+    .ft-item-create-card-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
 </style>
 
 <script>
@@ -617,7 +796,6 @@ const result      = document.getElementById('ocrResult');
 const errorBox    = document.getElementById('ocrError');
 const dropContent = document.getElementById('ocrDropContent');
 
-// Drag & drop
 dropArea.addEventListener('dragover',  e => { e.preventDefault(); dropArea.classList.add('drag-over'); });
 dropArea.addEventListener('dragleave', () => dropArea.classList.remove('drag-over'));
 dropArea.addEventListener('drop', e => {
@@ -638,13 +816,11 @@ function showState(state) {
 async function processFile(file) {
     showState('loading');
 
-    // Compression cote client si image > 900 KB
     let fileToSend = file;
     if (file.type.startsWith('image/') && file.size > 900 * 1024) {
         try {
             fileToSend = await compressImage(file, 900 * 1024);
         } catch(e) {
-            // Si compression echoue, on envoie l original
             fileToSend = file;
         }
     }
@@ -663,12 +839,11 @@ async function processFile(file) {
         renderResult(data);
         showState('result');
     } catch(e) {
-        document.getElementById('ocrErrorMsg').textContent = 'Erreur réseau. Vérifiez votre connexion.';
+        document.getElementById('ocrErrorMsg').textContent = 'Erreur reseau. Verifiez votre connexion.';
         showState('error');
     }
 }
 
-// Compression image cote client via Canvas
 function compressImage(file, maxBytes) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -677,7 +852,6 @@ function compressImage(file, maxBytes) {
             img.onload = function() {
                 let w = img.width;
                 let h = img.height;
-                // Reduire si trop grand
                 const maxW = 1200;
                 if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
 
@@ -688,7 +862,6 @@ function compressImage(file, maxBytes) {
                 ctx.fillRect(0, 0, w, h);
                 ctx.drawImage(img, 0, 0, w, h);
 
-                // Reduire la qualite progressivement
                 let quality = 0.8;
                 const tryCompress = () => {
                     canvas.toBlob(blob => {
@@ -713,29 +886,28 @@ function compressImage(file, maxBytes) {
 
 function renderResult(data) {
     const fields = [
-        { label: 'Libellé détecté',   value: data.libelle,   key: 'libelle' },
-        { label: 'Montant détecté',   value: data.montant,   key: 'montant' },
-        { label: 'Date détectée',     value: data.date,      key: 'date' },
-        { label: 'Catégorie suggérée',value: data.categorie, key: 'categorie' },
-        { label: 'Quantité',          value: data.quantite,     key: 'quantite' },
-        { label: 'Prix Unitaire',     value: data.prixUnitaire, key: 'prixUnitaire' },
-        { label: 'TVA (%)',           value: data.tva,          key: 'tva' },
+        { label: 'Libelle detecte', value: data.libelle },
+        { label: 'Montant detecte', value: data.montant },
+        { label: 'Date detectee', value: data.date },
+        { label: 'Categorie suggeree', value: data.categorie },
+        { label: 'Quantite', value: data.quantite },
+        { label: 'Prix unitaire', value: data.prixUnitaire },
+        { label: 'TVA (%)', value: data.tva },
     ];
     document.getElementById('ocrResultFields').innerHTML = fields.map(f =>
         `<div class="ocr-field">
             <div class="ocr-field-label">${f.label}</div>
-            <div class="ocr-field-value ${f.value ? '' : 'empty'}">${f.value || 'Non détecté'}</div>
+            <div class="ocr-field-value ${f.value ? '' : 'empty'}">${f.value || 'Non detecte'}</div>
         </div>`
     ).join('') +
     `<div class="ocr-field" style="grid-column:1/-1">
-        <div class="ocr-field-label">Texte brut OCR (pour vérification)</div>
+        <div class="ocr-field-label">Texte brut OCR</div>
         <details><summary style="cursor:pointer;color:#1560BD;font-size:.75rem">Voir le texte extrait</summary>
         <pre style="font-size:.7rem;max-height:120px;overflow:auto;background:#f8fafc;padding:8px;border-radius:6px;margin-top:4px">${(data.rawText||'').replace(/</g,'&lt;')}</pre>
         </details>
     </div>`;
 }
 
-// Appliquer au formulaire
 const libelleId   = '{{ form.libelle.vars.id }}';
 const montantId   = '{{ form.montant.vars.id }}';
 const categorieId = '{{ form.categorieRel.vars.id }}';
@@ -765,17 +937,13 @@ document.getElementById('ocrApplyBtn').addEventListener('click', () => {
         if (el) el.value = ocrData.prixUnitaire;
     }
     if (ocrData.date) {
-        // Convertir la date detectee en format HTML date (YYYY-MM-DD)
         const raw = ocrData.date.trim();
         let formatted = '';
-        // Format DD/MM/YYYY ou DD-MM-YYYY ou DD.MM.YYYY
         const m1 = raw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
-        // Format YYYY/MM/DD ou YYYY-MM-DD
         const m2 = raw.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
         if (m1) formatted = `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
         else if (m2) formatted = `${m2[1]}-${m2[2].padStart(2,'0')}-${m2[3].padStart(2,'0')}`;
         if (formatted) {
-            // Cherche le champ date (type=date ou type=datetime-local)
             const dateEl = document.querySelector('input[type="date"], input[type="datetime-local"]');
             if (dateEl) dateEl.value = formatted;
         }
@@ -788,18 +956,15 @@ document.getElementById('ocrApplyBtn').addEventListener('click', () => {
             if (match) catSelect.value = match.value;
         }
     }
-    // Flash visuel
     document.querySelectorAll('.form-control, .form-select').forEach(el => {
         el.style.transition = 'background .4s';
         el.style.background = '#f0fdf4';
         setTimeout(() => el.style.background = '', 1200);
     });
-    // Scroll vers le formulaire
-    document.querySelector('.form-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelector('.ft-item-create-form-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
-// Reset
-document.getElementById('ocrResetBtn').addEventListener('click',      () => { fileInput.value=''; ocrData={}; showState('drop'); });
-document.getElementById('ocrErrorReset').addEventListener('click',    () => { fileInput.value=''; showState('drop'); });
+document.getElementById('ocrResetBtn').addEventListener('click', () => { fileInput.value=''; ocrData={}; showState('drop'); });
+document.getElementById('ocrErrorReset').addEventListener('click', () => { fileInput.value=''; showState('drop'); });
 </script>
 {% endblock %}

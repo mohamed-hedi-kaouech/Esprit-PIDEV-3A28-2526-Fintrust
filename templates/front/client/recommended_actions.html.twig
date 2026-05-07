@@ -232,11 +232,214 @@
       background: linear-gradient(135deg, rgba(37,99,235,.08), rgba(125,211,252,.10));
       border: 1px solid rgba(191,219,254,.84);
     }
+    .ft-user-insights-shell {
+      border-radius: 1.9rem;
+      padding: 1.35rem;
+      border: 1px solid rgba(191, 219, 254, .88);
+      background:
+        radial-gradient(circle at top right, rgba(34,197,94,.10), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(59,130,246,.10), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(243,248,255,.96));
+      box-shadow: 0 26px 56px rgba(15,23,42,.07);
+    }
+    .ft-user-insights-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+    .ft-user-insights-title {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      font-weight: 800;
+      color: #1f4076;
+      font-size: 1.15rem;
+    }
+    .ft-user-insights-subtitle {
+      color: #64748b;
+      margin: .35rem 0 0;
+      line-height: 1.65;
+    }
+    .ft-user-insights-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
+      gap: 1rem;
+    }
+    .ft-user-insight-card {
+      border-radius: 1.4rem;
+      border: 1px solid rgba(219,234,254,.92);
+      background: rgba(255,255,255,.92);
+      padding: 1.15rem 1.2rem;
+      box-shadow: 0 14px 28px rgba(15,23,42,.05);
+    }
+    .ft-user-insight-card--hero {
+      background:
+        radial-gradient(circle at top right, rgba(16,185,129,.10), transparent 26%),
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,250,255,.96));
+    }
+    .ft-user-score-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 108px;
+      gap: 1rem;
+      align-items: center;
+    }
+    .ft-user-score-value {
+      font-size: 3rem;
+      line-height: .95;
+      font-weight: 900;
+      letter-spacing: -.05em;
+      color: #16a34a;
+    }
+    .ft-user-score-tone {
+      display: inline-flex;
+      margin-top: .4rem;
+      padding: .3rem .6rem;
+      border-radius: 999px;
+      background: rgba(220,252,231,.94);
+      color: #15803d;
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+    .ft-user-ring {
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      background:
+        conic-gradient(#34d399 0 calc(var(--score) * 1%), rgba(226,232,240,.92) 0 100%);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 16px 28px rgba(52,211,153,.16);
+    }
+    .ft-user-ring::before {
+      content: "";
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .ft-user-ring-inner {
+      position: absolute;
+      text-align: center;
+      color: #1e3a8a;
+      font-weight: 800;
+    }
+    .ft-user-insight-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .9rem;
+    }
+    .ft-user-mini-card {
+      border-radius: 1.15rem;
+      padding: 1rem 1.05rem;
+      border: 1px solid rgba(226,232,240,.9);
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,255,.95));
+    }
+    .ft-user-mini-card--green { background: linear-gradient(180deg, rgba(240,253,244,.98), rgba(220,252,231,.94)); }
+    .ft-user-mini-card--amber { background: linear-gradient(180deg, rgba(255,251,235,.98), rgba(254,243,199,.94)); }
+    .ft-user-mini-card--blue { background: linear-gradient(180deg, rgba(239,246,255,.98), rgba(219,234,254,.95)); }
+    .ft-user-mini-card--violet { background: linear-gradient(180deg, rgba(245,243,255,.98), rgba(233,213,255,.92)); }
+    .ft-user-mini-kicker {
+      display: block;
+      font-size: .77rem;
+      color: #64748b;
+      margin-bottom: .35rem;
+    }
+    .ft-user-mini-value {
+      color: #0f172a;
+      font-size: 1.55rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: .2rem;
+    }
+    .ft-user-mini-copy {
+      color: #64748b;
+      font-size: .82rem;
+      line-height: 1.55;
+    }
+    .ft-user-actions-panel {
+      display: grid;
+      gap: .8rem;
+    }
+    .ft-user-action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: .95rem 1rem;
+      border-radius: 1.1rem;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(226,232,240,.92);
+    }
+    .ft-user-action-row strong {
+      display: block;
+      color: #0f172a;
+      margin-bottom: .2rem;
+    }
+    .ft-user-action-row span {
+      color: #64748b;
+      font-size: .84rem;
+    }
+    .ft-user-arrow {
+      color: #2563eb;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .ft-user-wellbeing-card {
+      height: 100%;
+      border-radius: 1.4rem;
+      padding: 1.15rem 1.2rem;
+      background:
+        radial-gradient(circle at top right, rgba(16,185,129,.12), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(240,253,250,.95));
+      border: 1px solid rgba(187,247,208,.84);
+      box-shadow: 0 16px 30px rgba(16,185,129,.08);
+    }
+    .ft-user-wellbeing-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .ft-user-wellbeing-level {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+      color: #0f172a;
+    }
+    .ft-user-wellbeing-score {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 7rem;
+      padding: .8rem 1rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #1560BD, #2aa0f5);
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 12px 24px rgba(21,96,189,.18);
+    }
+    .ft-user-note {
+      margin-top: .9rem;
+      padding-top: .85rem;
+      border-top: 1px dashed rgba(148,163,184,.4);
+      color: #64748b;
+      font-size: .84rem;
+    }
     @media (max-width: 991.98px) {
       .ft-action-score-value {
         font-size: 2.5rem;
       }
       .ft-action-mini-stats {
+        grid-template-columns: 1fr;
+      }
+      .ft-user-insights-grid,
+      .ft-user-insight-mini-grid,
+      .ft-user-score-wrap {
         grid-template-columns: 1fr;
       }
     }
@@ -345,6 +548,115 @@
           </div>
         </div>
       </div>
+
+      <section class="ft-user-insights-shell mt-4">
+        <div class="ft-user-insights-head">
+          <div>
+            <div class="ft-user-insights-title"><i class="bi bi-shield-check"></i>Sante du compte utilisateur</div>
+            <p class="ft-user-insights-subtitle">Vue globale de la complétude, de la sécurité, du niveau de confiance et de la stabilité du profil.</p>
+          </div>
+        </div>
+
+        <div class="ft-user-insights-grid">
+          <div class="d-grid gap-3">
+            <div class="ft-user-insight-card ft-user-insight-card--hero">
+              <div class="ft-user-score-wrap">
+                <div>
+                  <div class="small text-muted mb-2">Score global utilisateur</div>
+                  <div class="ft-user-score-value">{{ userInsights.globalUserScore }}/100</div>
+                  <span class="ft-user-score-tone">{{ userInsights.accountTone }}</span>
+                  <p class="text-muted mt-3 mb-0">{{ userInsights.profileEnrichment.generatedSummary }}</p>
+                </div>
+                <div class="position-relative d-flex justify-content-center">
+                  <div class="ft-user-ring" style="--score: {{ userInsights.globalUserScore }};">
+                    <div class="ft-user-ring-inner"><i class="bi bi-shield-lock"></i></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ft-user-insight-mini-grid">
+              <div class="ft-user-mini-card ft-user-mini-card--blue">
+                <span class="ft-user-mini-kicker">Profil complete</span>
+                <div class="ft-user-mini-value">{{ userInsights.profileCompletion }}%</div>
+                <div class="ft-user-mini-copy">Informations principales complètes.</div>
+              </div>
+              <div class="ft-user-mini-card ft-user-mini-card--green">
+                <span class="ft-user-mini-kicker">Verification KYC</span>
+                <div class="ft-user-mini-value">{{ userInsights.identityStatus }}</div>
+                <div class="ft-user-mini-copy">Dossier conforme et niveau d’identité.</div>
+              </div>
+              <div class="ft-user-mini-card ft-user-mini-card--amber">
+                <span class="ft-user-mini-kicker">Securite du compte</span>
+                <div class="ft-user-mini-value">{{ userInsights.securityLevel }}</div>
+                <div class="ft-user-mini-copy">Score sécurité {{ userInsights.securityScore }}/100.</div>
+              </div>
+              <div class="ft-user-mini-card ft-user-mini-card--violet">
+                <span class="ft-user-mini-kicker">Role et acces</span>
+                <div class="ft-user-mini-value">{{ userInsights.accessLabel }}</div>
+                <div class="ft-user-mini-copy">Accès standard cohérent avec le profil.</div>
+              </div>
+            </div>
+
+            <div class="ft-user-insight-card">
+              <div class="ft-action-panel-title mb-3"><i class="bi bi-lightning-charge"></i>Actions utiles</div>
+              <div class="ft-user-actions-panel">
+                {% for action in userInsights.recommendedActions %}
+                  <div class="ft-user-action-row">
+                    <div>
+                      <strong>{{ action.title }}</strong>
+                      <span>{{ action.actionType }} · {{ action.priorityLevel }}</span>
+                    </div>
+                    <i class="bi bi-chevron-right ft-user-arrow"></i>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid gap-3">
+            <div class="ft-user-wellbeing-card">
+              <div class="ft-action-panel-title mb-3"><i class="bi bi-leaf"></i>Bien-etre financier</div>
+              <div class="ft-user-wellbeing-top">
+                <div>
+                  <div class="small text-muted mb-2">Niveau de confiance</div>
+                  <div class="ft-user-wellbeing-level">{{ userInsights.trustLevel }}</div>
+                </div>
+                <span class="ft-user-wellbeing-score">{{ userInsights.trustScore }}/100</span>
+              </div>
+              <p class="mb-3 text-muted">{{ userInsights.behaviorSummary.summary }}</p>
+              <ul class="ft-signal-list mb-0">
+                {% for flag in userInsights.profileEnrichment.monitoringFlags|slice(0, 3) %}
+                  <li><i class="bi bi-dot"></i><span>{{ flag }}</span></li>
+                {% else %}
+                  <li><i class="bi bi-dot"></i><span>Parcours globalement stable et régulier.</span></li>
+                {% endfor %}
+              </ul>
+              <div class="ft-user-note">Continuez ainsi pour maintenir un bon niveau de confiance.</div>
+            </div>
+
+            <div class="ft-user-insight-card">
+              <div class="ft-action-panel-title mb-3"><i class="bi bi-activity"></i>Risque et monitoring</div>
+              <div class="ft-user-insight-mini-grid">
+                <div class="ft-user-mini-card">
+                  <span class="ft-user-mini-kicker">Risque global</span>
+                  <div class="ft-user-mini-value">{{ userInsights.riskProfile.riskLevel }}</div>
+                  <div class="ft-user-mini-copy">{{ userInsights.riskProfile.globalRiskScore|number_format(1, ',', ' ') }}/100</div>
+                </div>
+                <div class="ft-user-mini-card">
+                  <span class="ft-user-mini-kicker">Activite recente</span>
+                  <div class="ft-user-mini-value">{{ userInsights.profileEnrichment.activityStatus }}</div>
+                  <div class="ft-user-mini-copy">{{ userInsights.behaviorSummary.recentActivity }}</div>
+                </div>
+              </div>
+              <div class="ft-dropoff-intervention mt-3">
+                <div class="small text-muted mb-2">Station recommandee</div>
+                <div class="fw-semibold">{{ userInsights.riskProfile.monitoringRecommendation }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 {% endblock %}

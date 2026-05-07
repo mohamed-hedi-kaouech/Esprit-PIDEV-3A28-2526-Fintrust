@@ -1,0 +1,1150 @@
+{% extends 'admin/back.html.twig' %}
+
+{% block title %}Insights utilisateurs{% endblock %}
+
+{% block breadcrumb %}
+  <i class="bi bi-graph-up-arrow me-1 text-primary"></i>
+  <span class="fw-semibold">Gestion intelligente des utilisateurs</span>
+{% endblock %}
+
+{% block admin_content %}
+<div class="ft-user-insights-page">
+  <section class="ft-ui-hero mb-4">
+    <div class="ft-ui-hero-grid">
+      <div class="ft-ui-hero-copy">
+        <span class="ft-ui-hero-badge"><i class="bi bi-stars"></i> Insights utilisateurs</span>
+        <h1>Gestion intelligente des utilisateurs</h1>
+        <p>Enrichissez la gestion classique avec des indicateurs de confiance, de securite, d activite et de risque pour prioriser chaque action admin.</p>
+
+        <div class="ft-ui-hero-signals">
+          {% for signal in advancedOverview.prioritySignals|slice(0, 3) %}
+            <span><i class="bi bi-dot"></i>{{ signal }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="ft-ui-hero-panel">
+        <div class="ft-ui-hero-panel-top">
+          <span class="ft-ui-hero-panel-kicker">Message prioritaire</span>
+          <strong>Chaque action securise la confiance. Chaque utilisateur compte.</strong>
+        </div>
+        <div class="ft-ui-hero-panel-stats">
+          <div>
+            <span>Clients analyses</span>
+            <strong>{{ totalClients }}</strong>
+          </div>
+          <div>
+            <span>Focus admin</span>
+            <strong>{{ accountsToVerify }} a verifier</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ft-ui-toolbar mb-4">
+    <div class="ft-ui-toolbar-search">
+      <i class="bi bi-search"></i>
+      <input type="text" value="" placeholder="Rechercher un utilisateur, un segment ou un signal..." readonly>
+    </div>
+    <div class="ft-ui-toolbar-chips">
+      <span class="ft-ui-filter-chip is-blue">Tous</span>
+      <span class="ft-ui-filter-chip">Premium</span>
+      <span class="ft-ui-filter-chip">A verifier</span>
+      <span class="ft-ui-filter-chip">KYC valide</span>
+    </div>
+    <div class="ft-ui-toolbar-actions">
+      <a href="{{ path('admin_user_export_csv') }}" class="btn ft-ui-toolbar-btn">
+        <i class="bi bi-filetype-csv me-2"></i>Export CSV
+      </a>
+      <a href="{{ path('admin_user_export_pdf') }}" class="btn ft-ui-toolbar-btn is-primary">
+        <i class="bi bi-file-earmark-pdf me-2"></i>Export PDF
+      </a>
+    </div>
+  </section>
+
+  <section class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl">
+      <article class="ft-ui-kpi is-blue">
+        <div class="ft-ui-kpi-top">
+          <span class="ft-ui-kpi-icon"><i class="bi bi-shield-check"></i></span>
+          <svg viewBox="0 0 90 34" class="ft-ui-kpi-spark">
+            <path d="M4 26 C16 28, 22 18, 34 20 S54 6, 66 10 S80 18, 86 8" />
+          </svg>
+        </div>
+        <div class="ft-ui-kpi-label">Score moyen de confiance</div>
+        <div class="ft-ui-kpi-value">{{ averageTrust }}<small>/100</small></div>
+        <div class="ft-ui-kpi-meta">Niveau global de fiabilite du parc utilisateur.</div>
+        <div class="ft-ui-kpi-accent"></div>
+      </article>
+    </div>
+    <div class="col-12 col-md-6 col-xl">
+      <article class="ft-ui-kpi is-green">
+        <div class="ft-ui-kpi-top">
+          <span class="ft-ui-kpi-icon"><i class="bi bi-person-check"></i></span>
+          <svg viewBox="0 0 90 34" class="ft-ui-kpi-spark">
+            <path d="M4 24 C16 22, 24 24, 34 18 S54 10, 66 11 S80 8, 86 6" />
+          </svg>
+        </div>
+        <div class="ft-ui-kpi-label">KYC valides</div>
+        <div class="ft-ui-kpi-value">{{ kycValidated }}</div>
+        <div class="ft-ui-kpi-meta">Comptes conformes et exploitables sans friction.</div>
+        <div class="ft-ui-kpi-accent"></div>
+      </article>
+    </div>
+    <div class="col-12 col-md-6 col-xl">
+      <article class="ft-ui-kpi is-orange">
+        <div class="ft-ui-kpi-top">
+          <span class="ft-ui-kpi-icon"><i class="bi bi-person-exclamation"></i></span>
+          <svg viewBox="0 0 90 34" class="ft-ui-kpi-spark">
+            <path d="M4 10 C15 12, 22 14, 34 16 S54 20, 66 22 S80 22, 86 26" />
+          </svg>
+        </div>
+        <div class="ft-ui-kpi-label">Profils incomplets</div>
+        <div class="ft-ui-kpi-value">{{ incompleteProfiles }}</div>
+        <div class="ft-ui-kpi-meta">Informations a enrichir pour une meilleure qualite de suivi.</div>
+        <div class="ft-ui-kpi-accent"></div>
+      </article>
+    </div>
+    <div class="col-12 col-md-6 col-xl">
+      <article class="ft-ui-kpi is-red">
+        <div class="ft-ui-kpi-top">
+          <span class="ft-ui-kpi-icon"><i class="bi bi-shield-exclamation"></i></span>
+          <svg viewBox="0 0 90 34" class="ft-ui-kpi-spark">
+            <path d="M4 28 C16 24, 23 18, 34 19 S54 17, 66 10 S80 6, 86 4" />
+          </svg>
+        </div>
+        <div class="ft-ui-kpi-label">Alertes securite</div>
+        <div class="ft-ui-kpi-value">{{ securityAlerts }}</div>
+        <div class="ft-ui-kpi-meta">Comptes sensibles a encadrer par une vigilance renforcee.</div>
+        <div class="ft-ui-kpi-accent"></div>
+      </article>
+    </div>
+    <div class="col-12 col-md-6 col-xl">
+      <article class="ft-ui-kpi is-violet">
+        <div class="ft-ui-kpi-top">
+          <span class="ft-ui-kpi-icon"><i class="bi bi-search"></i></span>
+          <svg viewBox="0 0 90 34" class="ft-ui-kpi-spark">
+            <path d="M4 18 C16 18, 23 22, 34 16 S54 10, 66 14 S80 18, 86 10" />
+          </svg>
+        </div>
+        <div class="ft-ui-kpi-label">Comptes a verifier</div>
+        <div class="ft-ui-kpi-value">{{ accountsToVerify }}</div>
+        <div class="ft-ui-kpi-meta">Utilisateurs a relire selon KYC, risque ou activation.</div>
+        <div class="ft-ui-kpi-accent"></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="row g-4 mb-4">
+    <div class="col-12 col-xl-6">
+      <article class="ft-ui-card h-100">
+        <div class="ft-ui-card-head">
+          <div>
+            <h2>Vue avancee des utilisateurs</h2>
+            <p>Centralisez la confiance, la securite, le KYC, l activite et les recommandations administratives.</p>
+          </div>
+        </div>
+        <div class="ft-ui-overview">
+          <div class="ft-ui-overview-gauge">
+            <div class="ft-ui-gauge-ring" style="--score: {{ averageTrust }};">
+              <div class="ft-ui-gauge-core">
+                <strong>{{ averageTrust }}/100</strong>
+                <span>Score global utilisateurs</span>
+              </div>
+            </div>
+          </div>
+          <div class="ft-ui-overview-side">
+            <div class="ft-ui-chip-row">
+              <span class="ft-ui-chip is-green">Stable</span>
+              <span class="ft-ui-chip is-blue">Surveillance active</span>
+            </div>
+            <p>{{ advancedOverview.headline }}</p>
+            <div class="ft-ui-priority-banner">
+              <span class="ft-ui-priority-icon"><i class="bi bi-lightning-charge"></i></span>
+              <div>
+                <strong>Action prioritaire</strong>
+                <span>
+                  {% if accountsToVerify > 0 %}
+                    relancer les profils incomplets et renforcer la securite des comptes sensibles.
+                  {% else %}
+                    maintenir la cadence de verification et l accompagnement des comptes a surveiller.
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-3">
+      <article class="ft-ui-card h-100">
+        <div class="ft-ui-card-head">
+          <div>
+            <h2>Segmentation intelligente</h2>
+          </div>
+        </div>
+        <div class="ft-ui-segment-grid">
+          {% for segment in segmentation %}
+            <div class="ft-ui-segment-card is-{{ segment.tone }}">
+              <div class="ft-ui-segment-icon"><i class="bi {{ segment.icon }}"></i></div>
+              <div class="ft-ui-segment-label">{{ segment.label }}</div>
+              <strong>{{ segment.value }}</strong>
+              <span>{{ segment.share }}%</span>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-3">
+      <article class="ft-ui-card h-100">
+        <div class="ft-ui-card-head">
+          <div>
+            <h2>Securite du parc utilisateur</h2>
+          </div>
+        </div>
+        <div class="ft-ui-security-stack">
+          {% for security in securityOverview %}
+            <div class="ft-ui-security-row is-{{ security.tone }}">
+              <div class="ft-ui-security-left">
+                <span class="ft-ui-security-icon is-{{ security.tone }}"><i class="bi {{ security.icon }}"></i></span>
+                <div>
+                  <strong>{{ security.label }}</strong>
+                  <span>{{ security.detail }}</span>
+                </div>
+              </div>
+              <div class="ft-ui-security-meter is-{{ security.tone }}">
+                <span>{{ security.value }}%</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="row g-4 mb-4">
+    <div class="col-12 col-xl-4">
+      <article class="ft-ui-card h-100">
+        <div class="ft-ui-card-head">
+          <div>
+            <h2>Sante du compte utilisateur</h2>
+          </div>
+        </div>
+        <div class="ft-ui-health-grid">
+          {% for card in healthCards %}
+            <div class="ft-ui-health-card">
+              <span class="ft-ui-health-icon is-{{ card.tone }}"><i class="bi {{ card.icon }}"></i></span>
+              <div class="ft-ui-health-label">{{ card.label }}</div>
+              <strong>{{ card.value }}</strong>
+              <p>{{ card.detail }}</p>
+              <span class="ft-ui-chip is-{{ card.tone }}">{{ card.badge }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <article class="ft-ui-card h-100">
+        <div class="ft-ui-card-head">
+          <div>
+            <h2>Historique intelligent du compte</h2>
+            <p>{% if highlightUser %}Lecture detaillee de {{ highlightUser.user.fullName }}.{% else %}Aucun compte prioritaire pour le moment.{% endif %}</p>
+          </div>
+        </div>
+        {% if highlightUser %}
+          <div class="ft-ui-highlight-user">
+            <div>
+              <strong>{{ highlightUser.user.fullName }}</strong>
+              <span>{{ highlightUser.user.email }}</span>
+            </div>
+            <span class="ft-ui-chip is-{{ highlightUser.accountState.tone }}">{{ highlightUser.accountState.label }}</span>
+          </div>
+          <div class="ft-ui-journey">
+            {% for step in highlightJourney %}
+              <div class="ft-ui-journey-step {{ step.done ? 'is-done' : 'is-pending' }}">
+                <span class="ft-ui-journey-icon is-{{ step.tone }}"><i class="bi {{ step.icon }}"></i></span>
+                <strong>{{ step.label }}</strong>
+                <small>{{ step.date }}</small>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="ft-ui-empty">Aucun historique n est encore disponible.</div>
+        {% endif %}
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <article class="ft-ui-card h-100">
+        <div class="ft-ui-card-head">
+          <div>
+            <h2>Actions recommandees pour l administrateur</h2>
+          </div>
+        </div>
+        <div class="ft-ui-actions-list">
+          {% for action in recommendedActions %}
+            <div class="ft-ui-action-row">
+              <div class="ft-ui-action-left">
+                <span class="ft-ui-action-icon is-{{ action.tone }}"><i class="bi {{ action.icon }}"></i></span>
+                <div>
+                  <strong>{{ action.title }}</strong>
+                  <span>{{ action.description }}</span>
+                </div>
+              </div>
+              <i class="bi bi-chevron-right"></i>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="row g-4">
+    <div class="col-12 col-xl-8">
+      <article class="ft-ui-card h-100">
+        <div class="ft-ui-card-head">
+          <div>
+            <h2>Utilisateurs prioritaires</h2>
+          </div>
+          <span class="ft-ui-chip is-blue">{{ priorityUsers|length }} utilisateurs</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table ft-ui-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Score</th>
+                <th>KYC</th>
+                <th>Securite</th>
+                <th>Activite</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in priorityUsers %}
+                <tr>
+                  <td>
+                    <a href="{{ path('admin_user_edit', {id: row.user.id}) }}" class="ft-ui-user-cell text-decoration-none">
+                      <span class="ft-ui-avatar">{{ row.user.prenom|first|upper }}{{ row.user.nom|first|upper }}</span>
+                      <div>
+                        <strong>{{ row.user.fullName }}</strong>
+                        <span>{{ row.user.email }}</span>
+                      </div>
+                    </a>
+                  </td>
+                  <td>
+                    <div class="ft-ui-score-cell">
+                      <strong>{{ row.trustScore }}/100</strong>
+                      <div class="ft-ui-score-bar"><span style="width: {{ row.trustScore }}%"></span></div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="ft-ui-pill is-{{ row.user.kycApproved ? 'green' : (row.user.kycStatus == 'EN_ATTENTE' ? 'amber' : 'red') }}">
+                      {{ row.user.kycApproved ? 'Valide' : (row.user.kycStatus == 'EN_ATTENTE' ? 'En attente' : 'A verifier') }}
+                    </span>
+                  </td>
+                  <td><span class="ft-ui-pill is-{{ row.securityTone }}">{{ row.securityLabel }}</span></td>
+                  <td><span class="ft-ui-pill is-{{ row.activityTone }}">{{ row.activityLabel }}</span></td>
+                  <td><span class="ft-ui-pill is-{{ row.accountState.tone }}">{{ row.accountState.label }}</span></td>
+                  <td>
+                    <div class="ft-ui-table-actions">
+                      <a href="{{ path('admin_user_list', {search: row.user.email}) }}" class="ft-ui-icon-btn" title="Voir">
+                        <i class="bi bi-eye"></i>
+                      </a>
+                      <a href="{{ path('admin_user_edit', {id: row.user.id}) }}" class="ft-ui-icon-btn" title="Message">
+                        <i class="bi bi-envelope"></i>
+                      </a>
+                      <a href="{{ path('admin_user_edit', {id: row.user.id}) }}" class="ft-ui-icon-btn" title="Menu">
+                        <i class="bi bi-three-dots"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <article class="ft-ui-card h-100">
+        <div class="ft-ui-card-head">
+          <div>
+            <h2>Notifications personnalisees</h2>
+          </div>
+          <a href="{{ path('admin_notifications_index') }}" class="ft-ui-link">Voir tout</a>
+        </div>
+        <div class="ft-ui-notification-list">
+          {% for notification in personalizedNotifications %}
+            <div class="ft-ui-notification-card">
+              <div class="ft-ui-notification-left">
+                <span class="ft-ui-notification-icon is-{{ notification.tone }}"><i class="bi {{ notification.icon }}"></i></span>
+                <div>
+                  <strong>{{ notification.title }}</strong>
+                  <p>{{ notification.description }}</p>
+                </div>
+              </div>
+              <small>{{ notification.time }}</small>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="ft-ui-notification-footer">
+          <a href="{{ path('admin_notifications_index') }}" class="ft-ui-inline-footer-link">Gerer mes preferences</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+
+<style>
+  .ft-user-insights-page {
+    --ft-bg: #f5f9ff;
+    --ft-border: rgba(204, 221, 255, 0.92);
+    --ft-shadow: 0 24px 60px rgba(17, 35, 91, 0.08);
+    --ft-text-soft: #7184aa;
+    color: #10224f;
+    background:
+      radial-gradient(circle at top left, rgba(59, 130, 246, 0.10), transparent 24%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.10), transparent 26%);
+  }
+
+  .ft-ui-hero,
+  .ft-ui-toolbar,
+  .ft-ui-card,
+  .ft-ui-kpi {
+    border-radius: 28px;
+    border: 1px solid var(--ft-border);
+    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,250,255,0.96));
+    box-shadow: var(--ft-shadow);
+  }
+
+  .ft-ui-hero {
+    overflow: hidden;
+    position: relative;
+    padding: 2rem;
+    background:
+      radial-gradient(circle at top right, rgba(125, 211, 252, 0.20), transparent 24%),
+      radial-gradient(circle at 12% 30%, rgba(37, 99, 235, 0.09), transparent 24%),
+      linear-gradient(135deg, #ffffff 0%, #f7fbff 42%, #edf6ff 100%);
+  }
+
+  .ft-ui-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, .8fr);
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .ft-ui-hero-badge,
+  .ft-ui-chip,
+  .ft-ui-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .55rem .92rem;
+    border-radius: 999px;
+    font-size: .82rem;
+    font-weight: 800;
+  }
+
+  .ft-ui-hero-badge {
+    background: rgba(37, 99, 235, 0.11);
+    color: #2563eb;
+  }
+
+  .ft-ui-hero h1 {
+    margin: 1rem 0 .45rem;
+    font-size: clamp(2.1rem, 3vw, 3.35rem);
+    line-height: 1.02;
+    letter-spacing: -.04em;
+    font-weight: 800;
+  }
+
+  .ft-ui-hero p {
+    margin: 0;
+    color: var(--ft-text-soft);
+    max-width: 50rem;
+    line-height: 1.8;
+  }
+
+  .ft-ui-hero-signals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .7rem;
+    margin-top: 1.1rem;
+  }
+
+  .ft-ui-hero-signals span {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .48rem .8rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.88);
+    border: 1px solid rgba(191, 219, 254, .9);
+    color: #536b96;
+    font-size: .82rem;
+    font-weight: 700;
+  }
+
+  .ft-ui-hero-panel {
+    align-self: stretch;
+    border-radius: 24px;
+    padding: 1.2rem;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.10), rgba(125, 211, 252, 0.18));
+    border: 1px solid rgba(147, 197, 253, 0.72);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .ft-ui-hero-panel-kicker {
+    display: block;
+    color: #2563eb;
+    font-size: .8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: .45rem;
+  }
+
+  .ft-ui-hero-panel strong {
+    color: #10224f;
+    font-size: 1.1rem;
+    line-height: 1.55;
+  }
+
+  .ft-ui-hero-panel-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+  }
+
+  .ft-ui-hero-panel-stats div {
+    padding: .85rem .95rem;
+    border-radius: 18px;
+    background: rgba(255,255,255,.78);
+    border: 1px solid rgba(191, 219, 254, 0.75);
+  }
+
+  .ft-ui-hero-panel-stats span {
+    display: block;
+    color: #6b7ea3;
+    font-size: .8rem;
+    margin-bottom: .2rem;
+  }
+
+  .ft-ui-toolbar {
+    padding: 1rem 1.15rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) auto auto;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .ft-ui-toolbar-search {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    min-height: 54px;
+    border-radius: 18px;
+    padding: 0 1rem;
+    background: #fff;
+    border: 1px solid rgba(191, 219, 254, .92);
+  }
+
+  .ft-ui-toolbar-search i {
+    color: #2563eb;
+  }
+
+  .ft-ui-toolbar-search input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #10224f;
+  }
+
+  .ft-ui-toolbar-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem;
+  }
+
+  .ft-ui-filter-chip {
+    background: rgba(37, 99, 235, 0.06);
+    color: #627799;
+  }
+
+  .ft-ui-filter-chip.is-blue {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+  }
+
+  .ft-ui-toolbar-actions {
+    display: flex;
+    gap: .65rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .ft-ui-toolbar-btn {
+    min-height: 50px;
+    padding: .8rem 1.15rem;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid rgba(191, 219, 254, .9);
+    color: #2563eb;
+    font-weight: 700;
+  }
+
+  .ft-ui-toolbar-btn.is-primary {
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    color: #fff;
+    border: none;
+  }
+
+  .ft-ui-kpi {
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    padding: 1.2rem;
+  }
+
+  .ft-ui-kpi-top {
+    display: flex;
+    justify-content: space-between;
+    gap: .8rem;
+    align-items: flex-start;
+  }
+
+  .ft-ui-kpi-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.2rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 14px 26px rgba(15, 23, 42, 0.10);
+  }
+
+  .ft-ui-kpi-spark {
+    width: 88px;
+    height: 34px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    opacity: .75;
+    flex-shrink: 0;
+  }
+
+  .ft-ui-kpi-label {
+    margin-top: .9rem;
+    font-size: .9rem;
+    color: var(--ft-text-soft);
+    font-weight: 700;
+  }
+
+  .ft-ui-kpi-value {
+    margin-top: .45rem;
+    font-size: 2.35rem;
+    line-height: 1;
+    font-weight: 800;
+    color: #10224f;
+    letter-spacing: -.04em;
+  }
+
+  .ft-ui-kpi-value small {
+    font-size: 1rem;
+    color: #6d7ea3;
+    margin-left: .2rem;
+  }
+
+  .ft-ui-kpi-meta {
+    margin-top: .6rem;
+    color: #6f84a7;
+    line-height: 1.55;
+    font-size: .9rem;
+  }
+
+  .ft-ui-kpi-accent {
+    width: 4.2rem;
+    height: 4px;
+    margin-top: .95rem;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .ft-ui-kpi.is-blue { color: #2563eb; }
+  .ft-ui-kpi.is-blue .ft-ui-kpi-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+  .ft-ui-kpi.is-green { color: #22c55e; }
+  .ft-ui-kpi.is-green .ft-ui-kpi-icon { background: linear-gradient(135deg, #4ade80, #22c55e); }
+  .ft-ui-kpi.is-orange { color: #f97316; }
+  .ft-ui-kpi.is-orange .ft-ui-kpi-icon { background: linear-gradient(135deg, #fb923c, #f97316); }
+  .ft-ui-kpi.is-red { color: #ef4444; }
+  .ft-ui-kpi.is-red .ft-ui-kpi-icon { background: linear-gradient(135deg, #fb7185, #ef4444); }
+  .ft-ui-kpi.is-violet { color: #8b5cf6; }
+  .ft-ui-kpi.is-violet .ft-ui-kpi-icon { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+
+  .ft-ui-card {
+    padding: 1.35rem;
+    height: 100%;
+  }
+
+  .ft-ui-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.15rem;
+  }
+
+  .ft-ui-card-head h2 {
+    margin: 0;
+    font-size: 1.22rem;
+    font-weight: 800;
+  }
+
+  .ft-ui-card-head p {
+    margin: .24rem 0 0;
+    color: var(--ft-text-soft);
+    line-height: 1.6;
+  }
+
+  .ft-ui-overview {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    gap: 1.35rem;
+    align-items: center;
+  }
+
+  .ft-ui-overview-gauge {
+    display: flex;
+    justify-content: center;
+  }
+
+  .ft-ui-gauge-ring {
+    --score-angle: calc(var(--score) * 3.6deg);
+    width: 192px;
+    height: 192px;
+    padding: 14px;
+    border-radius: 50%;
+    background: conic-gradient(#4f7cff var(--score-angle), #e6efff 0);
+  }
+
+  .ft-ui-gauge-core {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .ft-ui-gauge-core strong {
+    font-size: 2.1rem;
+    line-height: 1;
+    font-weight: 800;
+  }
+
+  .ft-ui-gauge-core span,
+  .ft-ui-health-card p,
+  .ft-ui-segment-card span,
+  .ft-ui-notification-card p,
+  .ft-ui-user-cell span,
+  .ft-ui-highlight-user span,
+  .ft-ui-action-row span {
+    color: var(--ft-text-soft);
+  }
+
+  .ft-ui-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin-bottom: .9rem;
+  }
+
+  .ft-ui-chip.is-blue,
+  .ft-ui-pill.is-blue,
+  .ft-ui-health-icon.is-blue,
+  .ft-ui-action-icon.is-blue,
+  .ft-ui-notification-icon.is-blue,
+  .ft-ui-security-icon.is-blue,
+  .ft-ui-journey-icon.is-blue {
+    background: rgba(37, 99, 235, 0.10);
+    color: #2563eb;
+  }
+
+  .ft-ui-chip.is-green,
+  .ft-ui-pill.is-green,
+  .ft-ui-health-icon.is-green,
+  .ft-ui-action-icon.is-green,
+  .ft-ui-notification-icon.is-green,
+  .ft-ui-security-icon.is-green,
+  .ft-ui-journey-icon.is-green {
+    background: rgba(34, 197, 94, 0.10);
+    color: #16a34a;
+  }
+
+  .ft-ui-chip.is-amber,
+  .ft-ui-pill.is-amber,
+  .ft-ui-health-icon.is-amber,
+  .ft-ui-action-icon.is-amber,
+  .ft-ui-notification-icon.is-amber,
+  .ft-ui-security-icon.is-amber,
+  .ft-ui-journey-icon.is-amber {
+    background: rgba(249, 115, 22, 0.10);
+    color: #ea580c;
+  }
+
+  .ft-ui-chip.is-red,
+  .ft-ui-pill.is-red,
+  .ft-ui-health-icon.is-red,
+  .ft-ui-action-icon.is-red,
+  .ft-ui-notification-icon.is-red,
+  .ft-ui-security-icon.is-red {
+    background: rgba(239, 68, 68, 0.10);
+    color: #dc2626;
+  }
+
+  .ft-ui-chip.is-violet,
+  .ft-ui-pill.is-violet,
+  .ft-ui-health-icon.is-violet,
+  .ft-ui-action-icon.is-violet,
+  .ft-ui-notification-icon.is-violet,
+  .ft-ui-journey-icon.is-violet {
+    background: rgba(139, 92, 246, 0.10);
+    color: #7c3aed;
+  }
+
+  .ft-ui-priority-banner {
+    margin-top: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .8rem;
+    padding: 1rem 1.05rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(125, 211, 252, 0.15));
+    color: #2346ad;
+  }
+
+  .ft-ui-priority-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,.75);
+    flex-shrink: 0;
+  }
+
+  .ft-ui-priority-banner strong {
+    display: block;
+    margin-bottom: .2rem;
+  }
+
+  .ft-ui-segment-grid,
+  .ft-ui-health-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .9rem;
+  }
+
+  .ft-ui-segment-card,
+  .ft-ui-health-card {
+    padding: 1rem;
+    border-radius: 20px;
+    border: 1px solid rgba(214, 226, 255, 0.88);
+    background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,249,255,.94));
+  }
+
+  .ft-ui-segment-card strong,
+  .ft-ui-health-card strong {
+    display: block;
+    font-size: 1.85rem;
+    line-height: 1.08;
+    font-weight: 800;
+    color: #10224f;
+  }
+
+  .ft-ui-segment-card.is-blue { background: linear-gradient(135deg, rgba(59, 130, 246, 0.07), rgba(255,255,255,.96)); }
+  .ft-ui-segment-card.is-green { background: linear-gradient(135deg, rgba(34, 197, 94, 0.07), rgba(255,255,255,.96)); }
+  .ft-ui-segment-card.is-amber { background: linear-gradient(135deg, rgba(249, 115, 22, 0.07), rgba(255,255,255,.96)); }
+  .ft-ui-segment-card.is-violet { background: linear-gradient(135deg, rgba(139, 92, 246, 0.07), rgba(255,255,255,.96)); }
+
+  .ft-ui-segment-icon,
+  .ft-ui-health-icon,
+  .ft-ui-action-icon,
+  .ft-ui-notification-icon,
+  .ft-ui-security-icon,
+  .ft-ui-journey-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    margin-bottom: .7rem;
+    flex-shrink: 0;
+  }
+
+  .ft-ui-security-stack,
+  .ft-ui-actions-list,
+  .ft-ui-notification-list {
+    display: grid;
+    gap: .9rem;
+  }
+
+  .ft-ui-security-row,
+  .ft-ui-action-row,
+  .ft-ui-notification-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-radius: 18px;
+    border: 1px solid rgba(220, 230, 255, 0.85);
+    padding: .95rem 1rem;
+    background: rgba(255,255,255,0.92);
+  }
+
+  .ft-ui-security-row.is-red {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.06), rgba(255,255,255,.96));
+  }
+
+  .ft-ui-security-left,
+  .ft-ui-action-left,
+  .ft-ui-notification-left,
+  .ft-ui-user-cell {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+  }
+
+  .ft-ui-security-left strong,
+  .ft-ui-action-left strong,
+  .ft-ui-notification-left strong,
+  .ft-ui-user-cell strong,
+  .ft-ui-highlight-user strong {
+    display: block;
+  }
+
+  .ft-ui-security-meter {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .9rem;
+    font-weight: 800;
+    border: 4px solid currentColor;
+    flex-shrink: 0;
+  }
+
+  .ft-ui-security-meter.is-blue { color: #2563eb; }
+  .ft-ui-security-meter.is-green { color: #16a34a; }
+  .ft-ui-security-meter.is-red { color: #dc2626; }
+
+  .ft-ui-highlight-user {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
+  }
+
+  .ft-ui-journey {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: .8rem;
+    position: relative;
+  }
+
+  .ft-ui-journey::before {
+    content: "";
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, #93c5fd, #c4b5fd);
+    z-index: 0;
+  }
+
+  .ft-ui-journey-step {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: .4rem;
+  }
+
+  .ft-ui-journey-step strong {
+    font-size: .92rem;
+  }
+
+  .ft-ui-journey-step small {
+    color: #8295b8;
+  }
+
+  .ft-ui-journey-step.is-pending {
+    opacity: .8;
+  }
+
+  .ft-ui-table thead th {
+    font-size: .78rem;
+    color: #6d7ea3;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-bottom-color: rgba(212, 224, 255, 0.92);
+  }
+
+  .ft-ui-table tbody td {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    border-bottom-color: rgba(232, 238, 255, 0.88);
+  }
+
+  .ft-ui-table tbody tr:hover {
+    background: rgba(240, 247, 255, 0.72);
+  }
+
+  .ft-ui-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #fff !important;
+    font-size: .88rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .ft-ui-score-cell strong {
+    display: block;
+    margin-bottom: .35rem;
+  }
+
+  .ft-ui-score-bar {
+    width: 92px;
+    height: 4px;
+    border-radius: 999px;
+    background: #e4ecff;
+    overflow: hidden;
+  }
+
+  .ft-ui-score-bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #34d399, #3b82f6);
+  }
+
+  .ft-ui-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: .45rem .8rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 800;
+  }
+
+  .ft-ui-table-actions {
+    display: flex;
+    gap: .55rem;
+  }
+
+  .ft-ui-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(37, 99, 235, 0.10);
+    color: #2563eb;
+    text-decoration: none;
+  }
+
+  .ft-ui-link,
+  .ft-ui-inline-footer-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .ft-ui-notification-footer {
+    margin-top: 1rem;
+    padding-top: .9rem;
+    border-top: 1px solid rgba(221, 232, 255, 0.82);
+    text-align: right;
+  }
+
+  .ft-ui-empty {
+    color: var(--ft-text-soft);
+    padding: 1rem 0;
+  }
+
+  @media (max-width: 1399.98px) {
+    .ft-ui-toolbar {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 1199.98px) {
+    .ft-ui-hero-grid,
+    .ft-ui-overview {
+      grid-template-columns: 1fr;
+    }
+
+    .ft-ui-journey {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .ft-ui-journey::before {
+      display: none;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .ft-ui-segment-grid,
+    .ft-ui-health-grid,
+    .ft-ui-journey {
+      grid-template-columns: 1fr;
+    }
+
+    .ft-ui-card-head,
+    .ft-ui-highlight-user,
+    .ft-ui-security-row,
+    .ft-ui-action-row,
+    .ft-ui-notification-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+{% endblock %}

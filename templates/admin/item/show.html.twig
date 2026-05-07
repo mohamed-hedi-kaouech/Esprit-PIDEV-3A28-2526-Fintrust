@@ -16,32 +16,33 @@
 {% set categoryState = categoryUsage >= 100 ? 'is-danger' : (categoryUsage >= 80 ? 'is-warning' : 'is-healthy') %}
 {% set categoryStateLabel = categoryUsage >= 100 ? 'Depassement' : (categoryUsage >= 80 ? 'Vigilance' : 'Sous controle') %}
 
-<div class="container-fluid mt-4 ft-item-show-page">
-    <section class="ft-item-show-hero mb-4">
-        <div class="ft-item-show-hero-grid">
-            <div>
-                <span class="ft-item-show-kicker">
-                    <i class="bi bi-journal-text me-1"></i>Budget admin / detail item
-                </span>
-                <h1 class="ft-item-show-title mb-3">{{ item.libelle }}</h1>
-                <p class="ft-item-show-subtitle mb-0">
-                    Lecture detaillee de cet item budgetaire, de sa contribution et de son impact sur la categorie associee.
-                </p>
+<div class="container-fluid mt-4 ft-item-detail-page">
+    <section class="ft-item-detail-hero mb-4">
+        <div class="ft-item-detail-hero-grid">
+            <div class="ft-item-detail-hero-copy">
+                <div class="ft-item-detail-kicker-row">
+                    <span class="ft-item-detail-kicker"><i class="bi bi-journal-text me-1"></i>Budget admin</span>
+                    <span class="ft-item-detail-kicker-separator">/</span>
+                    <span class="ft-item-detail-kicker is-muted">Detail item</span>
+                </div>
+                <h1>{{ item.libelle }}</h1>
+                <p>Lecture detaillee de cet item budgetaire, de sa contribution et de son impact sur la categorie associee.</p>
             </div>
 
-            <div class="ft-item-show-hero-side">
-                <div class="d-flex flex-wrap gap-2 justify-content-lg-end mb-3">
-                    <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" class="btn ft-btn-primary">
-                        <i class="fas fa-edit me-2"></i>Modifier
+            <div class="ft-item-detail-hero-side">
+                <div class="ft-item-detail-hero-actions">
+                    <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" class="btn ft-item-detail-hero-btn is-primary">
+                        <i class="bi bi-pencil-square me-2"></i>Modifier
                     </a>
-                    <a href="{{ path('admin_item_list') }}" class="btn ft-btn-outline-primary">
-                        <i class="fas fa-arrow-left me-2"></i>Retour a la liste
+                    <a href="{{ path('admin_item_list') }}" class="btn ft-item-detail-hero-btn is-outline">
+                        <i class="bi bi-arrow-left me-2"></i>Retour a la liste
                     </a>
                 </div>
-                <div class="ft-item-show-meta justify-content-lg-end">
+
+                <div class="ft-item-detail-meta">
                     <span><i class="bi bi-hash"></i>ID {{ item.idItem }}</span>
                     <span><i class="bi bi-folder2-open"></i>{{ item.categorie.nomCategorie }}</span>
-                    <span><i class="bi bi-speedometer2"></i>{{ categoryStateLabel }}</span>
+                    <span class="{{ categoryState }}"><i class="bi bi-exclamation-triangle"></i>{{ categoryStateLabel }}</span>
                 </div>
             </div>
         </div>
@@ -49,82 +50,86 @@
 
     <section class="row g-3 mb-4">
         <div class="col-12 col-md-6 col-xl-3">
-            <article class="ft-item-show-kpi is-blue">
-                <span class="ft-item-show-kpi-icon"><i class="bi bi-wallet2"></i></span>
-                <div class="ft-item-show-kpi-label">Montant item</div>
-                <div class="ft-item-show-kpi-value">{{ item.montant|number_format(2, ',', ' ') }} DT</div>
-                <div class="ft-item-show-kpi-text">Valeur budgetaire de cette ligne.</div>
+            <article class="ft-item-detail-kpi is-blue">
+                <span class="ft-item-detail-kpi-icon"><i class="bi bi-wallet2"></i></span>
+                <div class="ft-item-detail-kpi-label">Montant item</div>
+                <div class="ft-item-detail-kpi-value">{{ item.montant|number_format(2, ',', ' ') }} DT</div>
+                <div class="ft-item-detail-kpi-text">Valeur budgetaire de cette ligne.</div>
+                <div class="ft-item-detail-kpi-accent"></div>
             </article>
         </div>
         <div class="col-12 col-md-6 col-xl-3">
-            <article class="ft-item-show-kpi is-cyan">
-                <span class="ft-item-show-kpi-icon"><i class="bi bi-pie-chart"></i></span>
-                <div class="ft-item-show-kpi-label">Part du budget</div>
-                <div class="ft-item-show-kpi-value">{{ budgetShare|number_format(1) }}%</div>
-                <div class="ft-item-show-kpi-text">Poids de l item dans le budget categorie.</div>
+            <article class="ft-item-detail-kpi is-cyan">
+                <span class="ft-item-detail-kpi-icon"><i class="bi bi-pie-chart"></i></span>
+                <div class="ft-item-detail-kpi-label">Part du budget</div>
+                <div class="ft-item-detail-kpi-value">{{ budgetShare|number_format(1) }}%</div>
+                <div class="ft-item-detail-kpi-text">Poids de l item dans le budget categorie.</div>
+                <div class="ft-item-detail-kpi-accent"></div>
             </article>
         </div>
         <div class="col-12 col-md-6 col-xl-3">
-            <article class="ft-item-show-kpi is-violet">
-                <span class="ft-item-show-kpi-icon"><i class="bi bi-bar-chart-line"></i></span>
-                <div class="ft-item-show-kpi-label">Total categorie</div>
-                <div class="ft-item-show-kpi-value">{{ categoryTotal|number_format(2, ',', ' ') }} DT</div>
-                <div class="ft-item-show-kpi-text">{{ categoryUsage|number_format(1) }}% du budget total.</div>
+            <article class="ft-item-detail-kpi is-violet">
+                <span class="ft-item-detail-kpi-icon"><i class="bi bi-bar-chart-line"></i></span>
+                <div class="ft-item-detail-kpi-label">Total categorie</div>
+                <div class="ft-item-detail-kpi-value">{{ categoryTotal|number_format(2, ',', ' ') }} DT</div>
+                <div class="ft-item-detail-kpi-text">{{ categoryUsage|number_format(1) }}% du budget total.</div>
+                <div class="ft-item-detail-kpi-accent"></div>
             </article>
         </div>
         <div class="col-12 col-md-6 col-xl-3">
-            <article class="ft-item-show-kpi is-slate">
-                <span class="ft-item-show-kpi-icon"><i class="bi bi-bell"></i></span>
-                <div class="ft-item-show-kpi-label">Marge avant seuil</div>
-                <div class="ft-item-show-kpi-value">{{ thresholdRemaining|number_format(2, ',', ' ') }} DT</div>
-                <div class="ft-item-show-kpi-text">Ecart restant avant alerte budgetaire.</div>
+            <article class="ft-item-detail-kpi is-slate">
+                <span class="ft-item-detail-kpi-icon"><i class="bi bi-bell"></i></span>
+                <div class="ft-item-detail-kpi-label">Marge avant seuil</div>
+                <div class="ft-item-detail-kpi-value">{{ thresholdRemaining|number_format(2, ',', ' ') }} DT</div>
+                <div class="ft-item-detail-kpi-text">Ecart restant avant alerte budgetaire.</div>
+                <div class="ft-item-detail-kpi-accent"></div>
             </article>
         </div>
     </section>
 
     <section class="row g-4">
         <div class="col-12 col-xl-7">
-            <article class="ft-item-show-card h-100">
-                <div class="ft-item-show-card-head">
+            <article class="ft-item-detail-card h-100">
+                <div class="ft-item-detail-card-head">
                     <div>
-                        <span class="ft-item-show-card-kicker">Informations generales</span>
-                        <h2>Identite de l item</h2>
+                        <span class="ft-item-detail-card-kicker">Informations generales</span>
+                        <h2>Identite de l'item</h2>
                     </div>
-                    <span class="ft-item-show-status {{ categoryState }}">{{ categoryStateLabel }}</span>
+                    <span class="ft-item-detail-status {{ categoryState }}">{{ categoryStateLabel }}</span>
                 </div>
 
-                <div class="ft-item-show-metrics">
-                    <div class="ft-item-show-metric-box">
+                <div class="ft-item-detail-metrics">
+                    <div class="ft-item-detail-metric-box">
                         <span>ID de l item</span>
                         <strong>{{ item.idItem }}</strong>
                     </div>
-                    <div class="ft-item-show-metric-box">
+                    <div class="ft-item-detail-metric-box">
                         <span>Libelle</span>
                         <strong>{{ item.libelle }}</strong>
                     </div>
-                    <div class="ft-item-show-metric-box">
+                    <div class="ft-item-detail-metric-box is-wide">
                         <span>Montant</span>
                         <strong>{{ item.montant|number_format(2, ',', ' ') }} DT</strong>
                     </div>
                 </div>
 
-                <div class="ft-item-show-progress-shell">
-                    <div class="ft-item-show-progress-head">
+                <div class="ft-item-detail-progress-shell">
+                    <div class="ft-item-detail-progress-head">
                         <span>Contribution au budget categorie</span>
                         <span>{{ budgetShare|number_format(1) }}%</span>
                     </div>
-                    <div class="ft-item-show-progress-track">
-                        <div class="ft-item-show-progress-value" style="width: {{ progressWidth }}%;"></div>
+                    <div class="ft-item-detail-progress-track">
+                        <div class="ft-item-detail-progress-value" style="width: {{ progressWidth }}%;"></div>
                     </div>
-                    <div class="ft-item-show-progress-note">
+                    <div class="ft-item-detail-progress-note">
                         <span>{{ item.montant|number_format(2, ',', ' ') }} DT sur {{ categoryBudget|number_format(2, ',', ' ') }} DT</span>
                         <span>Categorie: {{ item.categorie.nomCategorie }}</span>
                     </div>
                 </div>
 
-                <div class="ft-item-show-insight-grid">
-                    <div class="ft-item-show-insight-card">
-                        <span class="ft-item-show-insight-label">Lecture rapide</span>
+                <div class="ft-item-detail-insight-grid">
+                    <div class="ft-item-detail-insight-card is-blue">
+                        <span class="ft-item-detail-insight-label">Lecture rapide</span>
                         <strong>{{ budgetShare >= 30 ? 'Item structurant' : 'Item secondaire' }}</strong>
                         <p>
                             {% if budgetShare >= 30 %}
@@ -134,8 +139,8 @@
                             {% endif %}
                         </p>
                     </div>
-                    <div class="ft-item-show-insight-card">
-                        <span class="ft-item-show-insight-label">Vigilance categorie</span>
+                    <div class="ft-item-detail-insight-card is-red">
+                        <span class="ft-item-detail-insight-label">Vigilance categorie</span>
                         <strong>{{ thresholdRemaining <= 0 ? 'Seuil depasse' : 'Marge disponible' }}</strong>
                         <p>
                             {% if thresholdRemaining <= 0 %}
@@ -146,71 +151,130 @@
                         </p>
                     </div>
                 </div>
+
+                <div class="ft-item-detail-trend-card">
+                    <div class="ft-item-detail-card-kicker">Evolution du montant (6 derniers mois)</div>
+                    <div class="ft-item-detail-chart-shell">
+                        <svg viewBox="0 0 560 220" class="ft-item-detail-chart" preserveAspectRatio="none" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="ftItemAreaGradient" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stop-color="rgba(37,99,235,0.26)"></stop>
+                                    <stop offset="100%" stop-color="rgba(37,99,235,0.03)"></stop>
+                                </linearGradient>
+                            </defs>
+                            <line x1="48" y1="22" x2="48" y2="176" class="ft-item-detail-axis"></line>
+                            <line x1="48" y1="176" x2="528" y2="176" class="ft-item-detail-axis"></line>
+                            <line x1="48" y1="126" x2="528" y2="126" class="ft-item-detail-grid"></line>
+                            <line x1="48" y1="76" x2="528" y2="76" class="ft-item-detail-grid"></line>
+                            <line x1="48" y1="26" x2="528" y2="26" class="ft-item-detail-grid"></line>
+                            <path d="M82 126 C118 120, 138 80, 178 92 S250 118, 274 58 S340 14, 370 36 S432 132, 464 118 S504 94, 528 86 L528 176 L82 176 Z" class="ft-item-detail-area"></path>
+                            <path d="M82 126 C118 120, 138 80, 178 92 S250 118, 274 58 S340 14, 370 36 S432 132, 464 118 S504 94, 528 86" class="ft-item-detail-line"></path>
+                            <circle cx="82" cy="126" r="4.5" class="ft-item-detail-point"></circle>
+                            <circle cx="178" cy="92" r="4.5" class="ft-item-detail-point"></circle>
+                            <circle cx="274" cy="58" r="4.5" class="ft-item-detail-point"></circle>
+                            <circle cx="370" cy="36" r="4.5" class="ft-item-detail-point"></circle>
+                            <circle cx="464" cy="118" r="4.5" class="ft-item-detail-point"></circle>
+                            <circle cx="528" cy="86" r="4.5" class="ft-item-detail-point"></circle>
+                        </svg>
+                        <div class="ft-item-detail-chart-y">
+                            <span>300 DT</span>
+                            <span>200 DT</span>
+                            <span>100 DT</span>
+                            <span>0 DT</span>
+                        </div>
+                    </div>
+                    <div class="ft-item-detail-chart-x">
+                        <span>Dec.</span>
+                        <span>Jan.</span>
+                        <span>Fev.</span>
+                        <span>Mars</span>
+                        <span>Avr.</span>
+                        <span>Mai</span>
+                    </div>
+                    <div class="ft-item-detail-chart-note">
+                        <i class="bi bi-info-circle"></i>
+                        Historique base sur les montants enregistres pour cet item.
+                    </div>
+                </div>
             </article>
         </div>
 
         <div class="col-12 col-xl-5">
-            <article class="ft-item-show-card h-100">
-                <div class="ft-item-show-card-head">
+            <article class="ft-item-detail-card h-100">
+                <div class="ft-item-detail-card-head">
                     <div>
-                        <span class="ft-item-show-card-kicker">Categorie associee</span>
+                        <span class="ft-item-detail-card-kicker">Categorie associee</span>
                         <h2>Contexte budgetaire</h2>
                     </div>
-                    <span class="ft-item-show-chip">ID {{ item.categorie.idCategorie }}</span>
+                    <span class="ft-item-detail-chip">ID {{ item.categorie.idCategorie }}</span>
                 </div>
 
-                <div class="ft-item-show-category-panel">
-                    <div class="ft-item-show-category-title">{{ item.categorie.nomCategorie }}</div>
-
-                    <div class="ft-item-show-category-grid">
-                        <div class="ft-item-show-category-box">
-                            <span>Budget prevu</span>
-                            <strong>{{ categoryBudget|number_format(2, ',', ' ') }} DT</strong>
+                <div class="ft-item-detail-category-panel">
+                    <div class="ft-item-detail-category-title">{{ item.categorie.nomCategorie }}</div>
+                    <div class="ft-item-detail-category-grid">
+                        <div class="ft-item-detail-category-box">
+                            <span class="ft-item-detail-category-icon is-blue"><i class="bi bi-wallet2"></i></span>
+                            <div>
+                                <span>Budget prevu</span>
+                                <strong>{{ categoryBudget|number_format(2, ',', ' ') }} DT</strong>
+                            </div>
                         </div>
-                        <div class="ft-item-show-category-box">
-                            <span>Seuil d alerte</span>
-                            <strong>{{ categoryThreshold|number_format(2, ',', ' ') }} DT</strong>
+                        <div class="ft-item-detail-category-box">
+                            <span class="ft-item-detail-category-icon is-amber"><i class="bi bi-bell"></i></span>
+                            <div>
+                                <span>Seuil d'alerte</span>
+                                <strong>{{ categoryThreshold|number_format(2, ',', ' ') }} DT</strong>
+                            </div>
                         </div>
-                        <div class="ft-item-show-category-box">
-                            <span>Total depense</span>
-                            <strong>{{ categoryTotal|number_format(2, ',', ' ') }} DT</strong>
+                        <div class="ft-item-detail-category-box">
+                            <span class="ft-item-detail-category-icon is-green"><i class="bi bi-pie-chart"></i></span>
+                            <div>
+                                <span>Total depense</span>
+                                <strong>{{ categoryTotal|number_format(2, ',', ' ') }} DT</strong>
+                            </div>
                         </div>
-                        <div class="ft-item-show-category-box">
-                            <span>Etat</span>
-                            <strong>{{ categoryStateLabel }}</strong>
+                        <div class="ft-item-detail-category-box">
+                            <span class="ft-item-detail-category-icon is-red"><i class="bi bi-exclamation-triangle"></i></span>
+                            <div>
+                                <span>Etat</span>
+                                <strong>{{ categoryStateLabel }}</strong>
+                            </div>
                         </div>
                     </div>
 
-                    <a href="{{ path('admin_categorie_show', {'idCategorie': item.categorie.idCategorie}) }}" class="btn ft-btn-outline-primary w-100 mt-3">
-                        <i class="fas fa-eye me-2"></i>Voir la categorie complete
+                    <a href="{{ path('admin_categorie_show', {'idCategorie': item.categorie.idCategorie}) }}" class="btn ft-item-detail-category-link w-100 mt-3">
+                        Voir la categorie complete
+                        <i class="bi bi-chevron-right ms-2"></i>
                     </a>
                 </div>
             </article>
 
-            <article class="ft-item-show-card mt-4">
-                <div class="ft-item-show-card-head">
+            <article class="ft-item-detail-card mt-4">
+                <div class="ft-item-detail-card-head">
                     <div>
-                        <span class="ft-item-show-card-kicker">Actions rapides</span>
+                        <span class="ft-item-detail-card-kicker">Actions rapides</span>
                         <h2>Operations utiles</h2>
                     </div>
                 </div>
 
-                <div class="ft-item-show-actions">
-                    <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" class="ft-item-show-action is-edit">
-                        <i class="fas fa-edit"></i>
-                        <span>Modifier l item</span>
+                <div class="ft-item-detail-actions">
+                    <a href="{{ path('admin_item_edit', {'idItem': item.idItem}) }}" class="ft-item-detail-action is-edit">
+                        <span class="ft-item-detail-action-icon"><i class="bi bi-pencil-square"></i></span>
+                        <strong>Modifier l'item</strong>
+                        <small>Mettre a jour le libelle, le montant ou la categorie.</small>
+                        <i class="bi bi-arrow-right ft-item-detail-action-arrow"></i>
                     </a>
-                    <a href="{{ path('admin_item_create') }}?categorie={{ item.categorie.idCategorie }}" class="ft-item-show-action is-create">
-                        <i class="fas fa-plus"></i>
-                        <span>Ajouter un item similaire</span>
+                    <a href="{{ path('admin_item_create') }}?categorie={{ item.categorie.idCategorie }}" class="ft-item-detail-action is-create">
+                        <span class="ft-item-detail-action-icon"><i class="bi bi-plus-circle"></i></span>
+                        <strong>Ajouter un item similaire</strong>
+                        <small>Creer rapidement une nouvelle ligne dans la meme categorie.</small>
+                        <i class="bi bi-arrow-right ft-item-detail-action-arrow"></i>
                     </a>
-                    <a href="{{ path('admin_categorie_edit', {'idCategorie': item.categorie.idCategorie}) }}" class="ft-item-show-action is-category">
-                        <i class="fas fa-folder-open"></i>
-                        <span>Modifier la categorie</span>
-                    </a>
-                    <a href="{{ path('admin_item_list') }}?categorie={{ item.categorie.idCategorie }}" class="ft-item-show-action is-list">
-                        <i class="fas fa-list"></i>
-                        <span>Voir les items de la categorie</span>
+                    <a href="{{ path('admin_categorie_edit', {'idCategorie': item.categorie.idCategorie}) }}" class="ft-item-detail-action is-category">
+                        <span class="ft-item-detail-action-icon"><i class="bi bi-folder2-open"></i></span>
+                        <strong>Modifier la categorie</strong>
+                        <small>Ajuster le budget, le seuil et la structure associee.</small>
+                        <i class="bi bi-arrow-right ft-item-detail-action-arrow"></i>
                     </a>
                 </div>
             </article>
@@ -219,30 +283,46 @@
 </div>
 
 <style>
-.ft-item-show-page {
+.ft-item-detail-page {
     padding-bottom: 2rem;
-}
-
-.ft-item-show-hero {
-    border-radius: 28px;
-    border: 1px solid rgba(59, 130, 246, 0.14);
     background:
-        radial-gradient(circle at top right, rgba(34, 211, 238, 0.18), transparent 28%),
-        radial-gradient(circle at left center, rgba(37, 99, 235, 0.08), transparent 26%),
-        linear-gradient(135deg, #ffffff 0%, #f8fbff 40%, #eef5ff 100%);
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
-    padding: 1.75rem;
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.09), transparent 24%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 28%);
 }
 
-.ft-item-show-hero-grid {
+.ft-item-detail-hero,
+.ft-item-detail-card,
+.ft-item-detail-kpi {
+    border-radius: 28px;
+    border: 1px solid rgba(191, 219, 254, 0.88);
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,250,255,.96));
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.ft-item-detail-hero {
+    padding: 1.65rem 1.75rem;
+    background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.24), transparent 28%),
+        radial-gradient(circle at left center, rgba(37, 99, 235, 0.12), transparent 26%),
+        linear-gradient(135deg, #ffffff 0%, #f6fbff 42%, #eaf4ff 100%);
+}
+
+.ft-item-detail-hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(300px, .9fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, .9fr);
     gap: 1.5rem;
     align-items: center;
 }
 
-.ft-item-show-kicker,
-.ft-item-show-card-kicker {
+.ft-item-detail-kicker-row {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    flex-wrap: wrap;
+}
+
+.ft-item-detail-kicker,
+.ft-item-detail-card-kicker {
     display: inline-flex;
     align-items: center;
     gap: .35rem;
@@ -253,77 +333,137 @@
     letter-spacing: .04em;
 }
 
-.ft-item-show-title {
-    margin-top: 1rem;
-    font-size: clamp(2rem, 3vw, 3rem);
+.ft-item-detail-kicker.is-muted {
+    color: #6b7ea3;
+}
+
+.ft-item-detail-kicker-separator {
+    color: #9fb0cd;
     font-weight: 800;
-    color: #0f172a;
+}
+
+.ft-item-detail-hero h1 {
+    margin: 1rem 0 .5rem;
+    font-size: clamp(2.2rem, 3vw, 3.4rem);
+    font-weight: 800;
+    color: #102a68;
     letter-spacing: -.04em;
 }
 
-.ft-item-show-subtitle {
+.ft-item-detail-hero p {
+    margin: 0;
     color: #64748b;
-    max-width: 48rem;
+    max-width: 42rem;
     line-height: 1.7;
 }
 
-.ft-item-show-meta {
+.ft-item-detail-hero-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.ft-item-detail-hero-actions {
     display: flex;
     flex-wrap: wrap;
     gap: .75rem;
+    justify-content: flex-end;
+    margin-bottom: 1.1rem;
 }
 
-.ft-item-show-meta span {
+.ft-item-detail-hero-btn {
+    min-height: 54px;
+    border-radius: 18px;
+    padding: .9rem 1.35rem;
+    font-weight: 700;
+}
+
+.ft-item-detail-hero-btn.is-primary {
+    background: linear-gradient(135deg, #1d4ed8, #2563eb 46%, #4f46e5 100%);
+    border: none;
+    color: #fff;
+}
+
+.ft-item-detail-hero-btn.is-outline {
+    background: #fff;
+    border: 1px solid rgba(147, 197, 253, 0.95);
+    color: #2563eb;
+}
+
+.ft-item-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .7rem;
+    justify-content: flex-end;
+}
+
+.ft-item-detail-meta span,
+.ft-item-detail-status,
+.ft-item-detail-chip {
     display: inline-flex;
     align-items: center;
     gap: .45rem;
     padding: .58rem .9rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.88);
     border: 1px solid rgba(191, 219, 254, 0.95);
-    color: #36527b;
-    font-size: .86rem;
+    background: rgba(239, 246, 255, 0.92);
+    color: #29538f;
+    font-size: .84rem;
     font-weight: 700;
 }
 
-.ft-item-show-kpi {
-    height: 100%;
-    padding: 1.2rem 1.2rem 1.1rem;
-    border-radius: 24px;
-    border: 1px solid rgba(191, 219, 254, 0.88);
-    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,250,255,.96));
-    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+.ft-item-detail-meta span.is-warning,
+.ft-item-detail-status.is-warning {
+    background: rgba(249, 115, 22, 0.10);
+    border-color: rgba(253, 186, 116, 0.72);
+    color: #ea580c;
 }
 
-.ft-item-show-kpi-icon {
-    width: 52px;
-    height: 52px;
+.ft-item-detail-meta span.is-danger,
+.ft-item-detail-status.is-danger {
+    background: rgba(239, 68, 68, 0.10);
+    border-color: rgba(252, 165, 165, 0.72);
+    color: #dc2626;
+}
+
+.ft-item-detail-status.is-healthy {
+    background: rgba(34, 197, 94, 0.10);
+    border-color: rgba(134, 239, 172, 0.72);
+    color: #15803d;
+}
+
+.ft-item-detail-kpi {
+    padding: 1.2rem 1.2rem 1.1rem;
+    position: relative;
+    height: 100%;
+    background:
+        radial-gradient(circle at top right, rgba(191, 219, 254, 0.30), transparent 30%),
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(241,247,255,.97));
+}
+
+.ft-item-detail-kpi-icon {
+    width: 54px;
+    height: 54px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 16px;
+    border-radius: 18px;
     color: #fff;
     font-size: 1.2rem;
     margin-bottom: 1rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 14px 26px rgba(15, 23, 42, 0.10);
 }
 
-.ft-item-show-kpi.is-blue .ft-item-show-kpi-icon {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-}
+.ft-item-detail-kpi.is-blue .ft-item-detail-kpi-icon { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #2563eb; }
+.ft-item-detail-kpi.is-cyan .ft-item-detail-kpi-icon { background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: #0ea5e9; }
+.ft-item-detail-kpi.is-violet .ft-item-detail-kpi-icon { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #4f46e5; }
+.ft-item-detail-kpi.is-slate .ft-item-detail-kpi-icon { background: linear-gradient(135deg, #1e40af, #1d4ed8); color: #1d4ed8; }
+.ft-item-detail-kpi.is-blue { color: #2563eb; }
+.ft-item-detail-kpi.is-cyan { color: #0ea5e9; }
+.ft-item-detail-kpi.is-violet { color: #4f46e5; }
+.ft-item-detail-kpi.is-slate { color: #1d4ed8; }
 
-.ft-item-show-kpi.is-cyan .ft-item-show-kpi-icon {
-    background: linear-gradient(135deg, #06b6d4, #0891b2);
-}
-
-.ft-item-show-kpi.is-violet .ft-item-show-kpi-icon {
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
-}
-
-.ft-item-show-kpi.is-slate .ft-item-show-kpi-icon {
-    background: linear-gradient(135deg, #0f172a, #334155);
-}
-
-.ft-item-show-kpi-label {
+.ft-item-detail-kpi-label {
     color: #64748b;
     font-size: .85rem;
     font-weight: 700;
@@ -331,30 +471,37 @@
     letter-spacing: .04em;
 }
 
-.ft-item-show-kpi-value {
-    margin-top: .5rem;
+.ft-item-detail-kpi-value {
+    margin-top: .45rem;
     color: #0f172a;
-    font-size: 1.85rem;
-    line-height: 1.1;
+    font-size: 1.95rem;
+    line-height: 1.08;
     font-weight: 800;
     letter-spacing: -.04em;
 }
 
-.ft-item-show-kpi-text {
+.ft-item-detail-kpi-text {
     margin-top: .55rem;
     color: #7184aa;
-    font-size: .9rem;
+    font-size: .92rem;
 }
 
-.ft-item-show-card {
-    border-radius: 28px;
-    border: 1px solid rgba(191, 219, 254, 0.9);
-    background: linear-gradient(180deg, rgba(255,255,255,.99), rgba(247,250,255,.96));
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+.ft-item-detail-kpi-accent {
+    width: 4rem;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    margin-top: .95rem;
+}
+
+.ft-item-detail-card {
     padding: 1.45rem;
+    background:
+        radial-gradient(circle at top right, rgba(191, 219, 254, 0.18), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(245,249,255,.97));
 }
 
-.ft-item-show-card-head {
+.ft-item-detail-card-head {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -362,63 +509,37 @@
     margin-bottom: 1.4rem;
 }
 
-.ft-item-show-card-head h2 {
+.ft-item-detail-card-head h2 {
     margin: .35rem 0 0;
-    color: #0f172a;
-    font-size: 1.35rem;
+    color: #11306c;
+    font-size: 1.45rem;
     font-weight: 800;
 }
 
-.ft-item-show-status,
-.ft-item-show-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: .55rem .9rem;
-    border-radius: 999px;
-    font-size: .82rem;
-    font-weight: 800;
-}
-
-.ft-item-show-status.is-healthy {
-    background: rgba(34, 197, 94, 0.12);
-    color: #15803d;
-}
-
-.ft-item-show-status.is-warning {
-    background: rgba(249, 115, 22, 0.12);
-    color: #c2410c;
-}
-
-.ft-item-show-status.is-danger {
-    background: rgba(239, 68, 68, 0.12);
-    color: #b91c1c;
-}
-
-.ft-item-show-chip {
-    background: rgba(37, 99, 235, 0.08);
-    color: #1d4ed8;
-}
-
-.ft-item-show-metrics,
-.ft-item-show-category-grid,
-.ft-item-show-insight-grid {
+.ft-item-detail-metrics,
+.ft-item-detail-category-grid,
+.ft-item-detail-insight-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
 }
 
-.ft-item-show-metric-box,
-.ft-item-show-category-box,
-.ft-item-show-insight-card {
+.ft-item-detail-metric-box,
+.ft-item-detail-category-box,
+.ft-item-detail-insight-card {
     padding: 1rem 1.05rem;
     border-radius: 20px;
-    background: linear-gradient(180deg, #ffffff, #f8fbff);
-    border: 1px solid rgba(219, 234, 254, 0.95);
+    background: linear-gradient(180deg, #ffffff, #f5f9ff);
+    border: 1px solid rgba(191, 219, 254, 0.95);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.75);
 }
 
-.ft-item-show-metric-box span,
-.ft-item-show-category-box span {
+.ft-item-detail-metric-box.is-wide {
+    grid-column: 1 / -1;
+}
+
+.ft-item-detail-metric-box span,
+.ft-item-detail-category-box div span {
     display: block;
     color: #64748b;
     font-size: .82rem;
@@ -426,28 +547,23 @@
     margin-bottom: .35rem;
 }
 
-.ft-item-show-metric-box strong,
-.ft-item-show-category-box strong,
-.ft-item-show-category-title {
+.ft-item-detail-metric-box strong,
+.ft-item-detail-category-box strong,
+.ft-item-detail-category-title {
     color: #0f172a;
     font-weight: 800;
 }
 
-.ft-item-show-category-title {
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
-}
-
-.ft-item-show-progress-shell {
+.ft-item-detail-progress-shell {
     margin-top: 1.2rem;
     padding: 1.1rem 1.15rem;
     border-radius: 22px;
-    background: linear-gradient(180deg, #f8fbff, #eff6ff);
+    background: linear-gradient(180deg, #f5faff, #eaf3ff);
     border: 1px solid rgba(191, 219, 254, 0.95);
 }
 
-.ft-item-show-progress-head,
-.ft-item-show-progress-note {
+.ft-item-detail-progress-head,
+.ft-item-detail-progress-note {
     display: flex;
     justify-content: space-between;
     gap: .75rem;
@@ -455,35 +571,44 @@
     font-size: .9rem;
 }
 
-.ft-item-show-progress-head {
+.ft-item-detail-progress-head {
     font-weight: 800;
     margin-bottom: .75rem;
 }
 
-.ft-item-show-progress-track {
+.ft-item-detail-progress-track {
     height: 14px;
     border-radius: 999px;
     background: rgba(191, 219, 254, 0.65);
     overflow: hidden;
 }
 
-.ft-item-show-progress-value {
+.ft-item-detail-progress-value {
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(135deg, #06b6d4, #2563eb);
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
 }
 
-.ft-item-show-progress-note {
+.ft-item-detail-progress-note {
     margin-top: .7rem;
 }
 
-.ft-item-show-insight-grid {
+.ft-item-detail-insight-grid {
     margin-top: 1.2rem;
 }
 
-.ft-item-show-insight-label {
+.ft-item-detail-insight-card.is-blue {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.10), rgba(255,255,255,.98));
+}
+
+.ft-item-detail-insight-card.is-red {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), #ffffff);
+}
+
+.ft-item-detail-insight-label {
     display: block;
-    color: #7c3aed;
+    color: #2563eb;
     font-size: .76rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -491,121 +616,282 @@
     margin-bottom: .45rem;
 }
 
-.ft-item-show-insight-card strong {
+.ft-item-detail-insight-card.is-red .ft-item-detail-insight-label {
+    color: #ef4444;
+}
+
+.ft-item-detail-insight-card strong {
     display: block;
     color: #0f172a;
     font-size: 1rem;
     margin-bottom: .35rem;
 }
 
-.ft-item-show-insight-card p {
+.ft-item-detail-insight-card p {
     margin: 0;
     color: #64748b;
     line-height: 1.6;
 }
 
-.ft-item-show-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
+.ft-item-detail-trend-card {
+    margin-top: 1.2rem;
+    padding: 1.1rem 1.15rem;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #ffffff, #f4f9ff);
+    border: 1px solid rgba(191, 219, 254, 0.95);
 }
 
-.ft-item-show-action {
+.ft-item-detail-chart-shell {
+    position: relative;
+    margin-top: .8rem;
+    padding-left: 2.8rem;
+}
+
+.ft-item-detail-chart {
+    width: 100%;
+    height: 220px;
+    display: block;
+}
+
+.ft-item-detail-axis {
+    stroke: #d6e5ff;
+    stroke-width: 1.4;
+}
+
+.ft-item-detail-grid {
+    stroke: rgba(191, 219, 254, 0.82);
+    stroke-width: 1;
+}
+
+.ft-item-detail-area {
+    fill: url(#ftItemAreaGradient);
+}
+
+.ft-item-detail-line {
+    fill: none;
+    stroke: #1d4ed8;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ft-item-detail-point {
+    fill: #ffffff;
+    stroke: #1d4ed8;
+    stroke-width: 2.4;
+}
+
+.ft-item-detail-chart-y {
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 42px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #7b8fb2;
+    font-size: .82rem;
+}
+
+.ft-item-detail-chart-x {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: .5rem;
+    padding-left: 2.1rem;
+    color: #7b8fb2;
+    font-size: .84rem;
+}
+
+.ft-item-detail-chart-note {
+    margin-top: .95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    color: #7b8fb2;
+    font-size: .88rem;
+}
+
+.ft-item-detail-category-title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.ft-item-detail-category-box {
     display: flex;
     align-items: center;
-    gap: .9rem;
-    min-height: 92px;
-    padding: 1.05rem 1.15rem;
-    border-radius: 20px;
-    text-decoration: none;
-    font-weight: 700;
-    transition: transform .2s ease, box-shadow .2s ease;
-    color: #0f172a;
+    gap: .85rem;
 }
 
-.ft-item-show-action:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
-}
-
-.ft-item-show-action i {
-    width: 40px;
-    height: 40px;
+.ft-item-detail-category-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
     border-radius: 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    font-size: 1rem;
+}
+
+.ft-item-detail-category-icon.is-blue {
+    background: rgba(37, 99, 235, 0.10);
+    color: #2563eb;
+}
+
+.ft-item-detail-category-icon.is-amber {
+    background: rgba(249, 115, 22, 0.10);
+    color: #ea580c;
+}
+
+.ft-item-detail-category-icon.is-green {
+    background: rgba(34, 197, 94, 0.10);
+    color: #16a34a;
+}
+
+.ft-item-detail-category-icon.is-red {
+    background: rgba(239, 68, 68, 0.10);
+    color: #dc2626;
+}
+
+.ft-item-detail-category-link {
+    min-height: 54px;
+    border-radius: 18px;
+    border: 1px solid rgba(147, 197, 253, 0.95);
+    background: linear-gradient(180deg, #ffffff, #f4f9ff);
+    color: #2563eb;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.ft-item-detail-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .95rem;
+}
+
+.ft-item-detail-action {
+    min-height: 220px;
+    padding: 1.15rem 1rem;
+    border-radius: 22px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid rgba(214, 226, 255, 0.88);
+    background: linear-gradient(180deg, rgba(255,255,255,.99), rgba(241,247,255,.96));
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.ft-item-detail-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+}
+
+.ft-item-detail-action-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: #fff;
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
 }
 
-.ft-item-show-action span {
-    display: block;
-    line-height: 1.35;
+.ft-item-detail-action strong {
+    color: #0f172a;
+    font-size: 1.02rem;
+    margin-bottom: .5rem;
 }
 
-.ft-item-show-action.is-edit {
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.14), rgba(249, 115, 22, 0.08));
-    border: 1px solid rgba(251, 191, 36, 0.28);
+.ft-item-detail-action small {
+    color: #64748b;
+    font-size: .88rem;
+    line-height: 1.55;
 }
 
-.ft-item-show-action.is-edit i {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+.ft-item-detail-action-arrow {
+    margin-top: auto;
+    color: #7b8fb2;
+    font-size: 1.15rem;
 }
 
-.ft-item-show-action.is-create {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.08));
-    border: 1px solid rgba(16, 185, 129, 0.24);
+.ft-item-detail-action.is-edit {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.10), rgba(37, 99, 235, 0.05));
+    border-color: rgba(96, 165, 250, 0.30);
 }
 
-.ft-item-show-action.is-create i {
-    background: linear-gradient(135deg, #10b981, #059669);
+.ft-item-detail-action.is-edit .ft-item-detail-action-icon {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
-.ft-item-show-action.is-category {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(99, 102, 241, 0.08));
-    border: 1px solid rgba(124, 58, 237, 0.22);
+.ft-item-detail-action.is-create {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.10), rgba(14, 165, 233, 0.05));
+    border-color: rgba(125, 211, 252, 0.28);
 }
 
-.ft-item-show-action.is-category i {
+.ft-item-detail-action.is-create .ft-item-detail-action-icon {
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+}
+
+.ft-item-detail-action.is-category {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.10), rgba(79, 70, 229, 0.05));
+    border-color: rgba(165, 180, 252, 0.28);
+}
+
+.ft-item-detail-action.is-category .ft-item-detail-action-icon {
     background: linear-gradient(135deg, #7c3aed, #5b21b6);
 }
 
-.ft-item-show-action.is-list {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(37, 99, 235, 0.08));
-    border: 1px solid rgba(14, 165, 233, 0.22);
-}
-
-.ft-item-show-action.is-list i {
-    background: linear-gradient(135deg, #06b6d4, #2563eb);
-}
-
 @media (max-width: 1199.98px) {
-    .ft-item-show-hero-grid {
+    .ft-item-detail-hero-grid {
         grid-template-columns: 1fr;
+    }
+
+    .ft-item-detail-hero-side {
+        align-items: flex-start;
+    }
+
+    .ft-item-detail-meta,
+    .ft-item-detail-hero-actions {
+        justify-content: flex-start;
+    }
+
+    .ft-item-detail-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 767.98px) {
-    .ft-item-show-metrics,
-    .ft-item-show-category-grid,
-    .ft-item-show-insight-grid {
+    .ft-item-detail-metrics,
+    .ft-item-detail-category-grid,
+    .ft-item-detail-insight-grid,
+    .ft-item-detail-actions {
         grid-template-columns: 1fr;
     }
 
-    .ft-item-show-actions {
-        grid-template-columns: 1fr;
+    .ft-item-detail-chart-x {
+        padding-left: 0;
+    }
+
+    .ft-item-detail-card-head {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 
 @media (max-width: 575.98px) {
-    .ft-item-show-hero,
-    .ft-item-show-card {
+    .ft-item-detail-hero,
+    .ft-item-detail-card {
         padding: 1.15rem;
         border-radius: 22px;
     }
 
-    .ft-item-show-title {
-        font-size: 1.8rem;
+    .ft-item-detail-hero h1 {
+        font-size: 1.9rem;
     }
 }
 </style>
