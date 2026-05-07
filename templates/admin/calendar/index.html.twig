@@ -18,15 +18,56 @@
       --ft-cal-border: rgba(205, 222, 252, .96);
       --ft-cal-shadow: 0 24px 60px rgba(15, 40, 98, .08);
       --ft-cal-text-soft: #7589b0;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .ft-calendar-page::before {
+      content: "";
+      position: absolute;
+      inset: -2rem -1rem auto;
+      height: 340px;
+      border-radius: 0 0 40px 40px;
+      background:
+        radial-gradient(circle at top left, rgba(34, 211, 238, .18), transparent 32%),
+        radial-gradient(circle at top right, rgba(79, 70, 229, .15), transparent 28%),
+        linear-gradient(180deg, rgba(239, 246, 255, .95), rgba(248, 251, 255, 0));
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .ft-calendar-page::after {
+      content: "";
+      position: absolute;
+      inset: 5rem auto auto -3rem;
+      width: 180px;
+      height: 180px;
+      border-radius: 999px;
+      background: rgba(33, 102, 243, .08);
+      filter: blur(10px);
+      z-index: -1;
+      pointer-events: none;
     }
 
     .ft-calendar-kpi {
+      position: relative;
+      overflow: hidden;
       border-radius: 22px;
       border: 1px solid var(--ft-cal-border);
       background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,255,.96));
       box-shadow: var(--ft-cal-shadow);
       padding: 1.1rem 1.15rem;
       transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .ft-calendar-kpi::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #2166f3, #22c7ee, #4f46e5);
+      opacity: .95;
     }
 
     .ft-calendar-kpi:hover,
@@ -97,6 +138,8 @@
     .ft-calendar-main-card,
     .ft-calendar-todo-card,
     .ft-calendar-quick-card {
+      position: relative;
+      overflow: hidden;
       border-radius: 24px;
       border: 1px solid var(--ft-cal-border);
       background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,251,255,.96));
@@ -104,12 +147,29 @@
       transition: transform .2s ease, box-shadow .2s ease;
     }
 
+    .ft-calendar-main-card::before,
+    .ft-calendar-todo-card::before,
+    .ft-calendar-quick-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 5px;
+      background: linear-gradient(90deg, #2166f3, #4f46e5, #22c7ee);
+      opacity: .92;
+    }
+
     .ft-calendar-main-card {
-      padding: 1.25rem;
+      padding: 1.35rem;
+      background:
+        radial-gradient(circle at top right, rgba(34, 211, 238, .09), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,.985), rgba(248,251,255,.97));
     }
 
     .ft-calendar-todo-card {
-      padding: 1.15rem;
+      padding: 1.2rem;
+      background:
+        radial-gradient(circle at top right, rgba(79, 70, 229, .08), transparent 26%),
+        linear-gradient(180deg, rgba(255,255,255,.985), rgba(248,251,255,.97));
     }
 
     .ft-calendar-topline {
@@ -168,7 +228,8 @@
     .ft-calendar-shell {
       border-radius: 20px;
       border: 1px solid rgba(216,228,255,.96);
-      background: #fff;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(248,251,255,.98));
       padding: 1rem;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
     }
@@ -232,7 +293,9 @@
       border-radius: 24px;
       padding: 1.25rem 1.3rem;
       color: #fff;
-      background: linear-gradient(135deg, #294ee8, #6a36e8);
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.18), transparent 24%),
+        linear-gradient(135deg, #163ea7, #2459e8 46%, #4f46e5 100%);
       box-shadow: 0 24px 60px rgba(42, 78, 232, .25);
       margin-bottom: 1rem;
     }
@@ -371,6 +434,7 @@
       justify-content: space-between;
       gap: 1rem;
       margin-bottom: 1rem;
+      padding-bottom: .15rem;
     }
 
     .ft-calendar-todo-head {
@@ -408,26 +472,31 @@
       display: inline-flex;
       align-items: center;
       gap: .45rem;
-      padding: .45rem .8rem;
+      padding: .55rem .95rem;
       border-radius: 999px;
       border: 1px solid rgba(214,225,255,.96);
-      background: #fff;
-      color: #5f7399;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(241,246,255,.96));
+      color: #46628f;
       font-size: .82rem;
       font-weight: 800;
+      box-shadow: 0 10px 24px rgba(15, 40, 98, .06);
     }
 
     .ft-calendar-todo-tabs {
       display: flex;
-      gap: .9rem;
-      padding-bottom: .65rem;
-      border-bottom: 1px solid rgba(226,236,255,.95);
-      margin-bottom: .8rem;
+      gap: .7rem;
+      padding: .35rem;
+      border: 1px solid rgba(226,236,255,.92);
+      background: linear-gradient(180deg, rgba(248,251,255,.95), rgba(255,255,255,.98));
+      border-radius: 18px;
+      margin-bottom: 1rem;
       font-size: .86rem;
       flex-wrap: wrap;
     }
 
     .ft-calendar-todo-tab {
+      padding: .55rem .8rem;
+      border-radius: 14px;
       color: #7187b0;
       font-weight: 700;
     }
@@ -435,14 +504,16 @@
     .ft-calendar-todo-tab.active {
       color: #215ff1;
       position: relative;
+      background: rgba(255,255,255,.95);
+      box-shadow: 0 10px 24px rgba(15, 40, 98, .06);
     }
 
     .ft-calendar-todo-tab.active::after {
       content: "";
       position: absolute;
-      left: 0;
-      right: 0;
-      bottom: -.75rem;
+      left: .8rem;
+      right: .8rem;
+      bottom: .18rem;
       height: 3px;
       border-radius: 999px;
       background: linear-gradient(90deg, #2166f3, #4e46e5);
@@ -459,12 +530,17 @@
       grid-template-columns: 20px minmax(0, 1fr) auto auto 14px;
       align-items: center;
       gap: .8rem;
-      padding: .65rem 0;
-      border-bottom: 1px solid rgba(236,242,255,.96);
+      padding: .8rem .75rem;
+      border: 1px solid rgba(236,242,255,.96);
+      border-radius: 18px;
+      background: rgba(255,255,255,.82);
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
     }
 
-    .ft-calendar-task-row:last-child {
-      border-bottom: 0;
+    .ft-calendar-task-row:hover {
+      transform: translateY(-1px);
+      border-color: rgba(201, 219, 255, .96);
+      box-shadow: 0 12px 24px rgba(15, 40, 98, .05);
     }
 
     .ft-calendar-task-check {
@@ -501,6 +577,10 @@
     .ft-calendar-task-row.is-complete .ft-calendar-task-title {
       color: #6f83a9;
       text-decoration: line-through;
+    }
+
+    .ft-calendar-task-row.is-complete {
+      background: linear-gradient(180deg, rgba(245, 252, 248, .92), rgba(255,255,255,.9));
     }
 
     .ft-calendar-task-meta {
@@ -556,6 +636,13 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.92);
     }
 
+    .ft-calendar-field:focus,
+    .ft-calendar-select:focus {
+      outline: none;
+      border-color: rgba(76, 120, 246, .9);
+      box-shadow: 0 0 0 4px rgba(33, 102, 243, .10);
+    }
+
     .ft-calendar-field::placeholder {
       color: #98a8c6;
     }
@@ -581,7 +668,7 @@
     .ft-calendar-quick-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: .7rem;
+      gap: .85rem;
     }
 
     .ft-calendar-form-grid {
@@ -641,19 +728,22 @@
       align-items: center;
       justify-content: center;
       gap: .55rem;
-      min-height: 54px;
-      border-radius: 16px;
+      min-height: 58px;
+      border-radius: 18px;
       border: 1px solid rgba(216,228,255,.96);
       background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,250,255,.95));
       color: #215ff1;
       font-weight: 700;
       text-decoration: none;
       box-shadow: 0 14px 30px rgba(15, 40, 98, .05);
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
     }
 
     .ft-calendar-quick-btn:hover {
       color: #184ec9;
       transform: translateY(-2px);
+      border-color: rgba(172, 199, 255, .98);
+      box-shadow: 0 20px 36px rgba(15, 40, 98, .08);
     }
 
     .ft-calendar-selected-row {
@@ -669,6 +759,7 @@
       background: linear-gradient(180deg, rgba(255,255,255,.99), rgba(248,251,255,.96));
       padding: 1rem 1.1rem;
       box-shadow: 0 14px 30px rgba(15, 40, 98, .05);
+      min-height: 100%;
     }
 
     .ft-calendar-selected-card strong {
@@ -1002,7 +1093,7 @@
 
       function loadTasks() {
         try {
-          return JSON.parse(localStorage.getItem(storageKey) || '{}');
+          return normalizeTaskStore(JSON.parse(localStorage.getItem(storageKey) || '{}'));
         } catch (e) {
           return {};
         }
@@ -1012,14 +1103,50 @@
         localStorage.setItem(storageKey, JSON.stringify(tasks));
       }
 
+      function normalizeTaskStatus(status) {
+        const normalized = String(status || '').trim().toLowerCase();
+
+        if (['done', 'terminee', 'termine', 'completed'].includes(normalized)) {
+          return 'done';
+        }
+
+        if (['progress', 'in_progress', 'en cours', 'encours', 'processing'].includes(normalized)) {
+          return 'progress';
+        }
+
+        return 'todo';
+      }
+
+      function normalizeTask(task, fallbackDate = selectedDate) {
+        return {
+          ...task,
+          status: normalizeTaskStatus(task?.status),
+          date: String(task?.date || fallbackDate),
+          reminded: Boolean(task?.reminded)
+        };
+      }
+
+      function normalizeTaskStore(store) {
+        if (!store || typeof store !== 'object') {
+          return {};
+        }
+
+        return Object.fromEntries(
+          Object.entries(store).map(([dateKey, tasks]) => [
+            dateKey,
+            Array.isArray(tasks) ? tasks.map((task) => normalizeTask(task, dateKey)) : []
+          ])
+        );
+      }
+
       function getTasksForDate(dateKey) {
         const store = loadTasks();
-        return Array.isArray(store[dateKey]) ? store[dateKey] : [];
+        return Array.isArray(store[dateKey]) ? store[dateKey].map((task) => normalizeTask(task, dateKey)) : [];
       }
 
       function setTasksForDate(dateKey, tasks) {
         const store = loadTasks();
-        store[dateKey] = tasks;
+        store[dateKey] = tasks.map((task) => normalizeTask(task, dateKey));
         saveTasks(store);
       }
 
@@ -1263,7 +1390,7 @@
           title: label,
           priority: 'medium',
           tag: 'Admin',
-          status: taskStatus.value,
+          status: normalizeTaskStatus(taskStatus.value),
           auto: false,
           date: chosenDate,
           reminder: reminderValue,

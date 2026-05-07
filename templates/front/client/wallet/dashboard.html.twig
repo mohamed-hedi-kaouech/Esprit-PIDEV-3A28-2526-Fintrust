@@ -327,40 +327,68 @@
     .ft-wallet-output-box strong {
       color: #0f172a;
     }
+    .ft-wallet-qr-preview {
+      display: flex;
+      flex-direction: column;
+      gap: .9rem;
+    }
+    .ft-wallet-qr-canvas {
+      width: 168px;
+      min-width: 168px;
+      height: 168px;
+      border-radius: 1rem;
+      border: 1px solid rgba(191, 219, 254, .55);
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: .6rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.95);
+    }
+    .ft-wallet-qr-decoded {
+      border-radius: 1rem;
+      border: 1px solid rgba(191, 219, 254, .45);
+      background: rgba(255,255,255,.92);
+      padding: .9rem 1rem;
+      color: #334155;
+      font-size: .88rem;
+      line-height: 1.6;
+    }
     .ft-cheque-preview-list {
       display: grid;
-      gap: .9rem;
-      padding: 1rem;
+      gap: 1rem;
+      padding: 1.15rem 1rem 1.25rem;
     }
     .ft-cheque-preview-item {
       border: 1px solid rgba(191, 219, 254, .45);
-      border-radius: 1.15rem;
+      border-radius: 1.35rem;
       background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
-      padding: 1rem 1.1rem;
-      box-shadow: 0 10px 26px rgba(15, 23, 42, .05);
+      padding: 1.2rem 1.35rem;
+      box-shadow: 0 14px 30px rgba(15, 23, 42, .06);
     }
     .ft-cheque-preview-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1.1fr) auto auto;
-      gap: 1rem 1.25rem;
-      align-items: start;
+      grid-template-columns: minmax(220px, 1.55fr) minmax(200px, 1.2fr) minmax(120px, auto) minmax(170px, auto);
+      gap: 1rem 1.5rem;
+      align-items: center;
     }
     .ft-cheque-preview-field {
       min-width: 0;
     }
     .ft-cheque-preview-label {
       display: block;
-      font-size: .74rem;
+      font-size: .72rem;
       text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: .08em;
       color: #64748b;
-      margin-bottom: .3rem;
+      margin-bottom: .42rem;
       font-weight: 700;
     }
     .ft-cheque-preview-value {
       color: #0f172a;
       font-weight: 700;
-      line-height: 1.45;
+      line-height: 1.5;
+      font-size: 1.02rem;
     }
     .ft-cheque-preview-value.soft {
       font-weight: 600;
@@ -373,6 +401,9 @@
     @media (max-width: 1199.98px) {
       .ft-wallet-studio-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .ft-wallet-qr-preview {
+        align-items: flex-start;
       }
       .ft-cheque-preview-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -388,11 +419,16 @@
       .ft-wallet-studio-grid {
         grid-template-columns: 1fr;
       }
+      .ft-wallet-qr-canvas {
+        width: 100%;
+        min-width: 0;
+        max-width: 220px;
+      }
       .ft-cheque-preview-list {
-        padding: .9rem;
+        padding: 1rem .9rem 1.05rem;
       }
       .ft-cheque-preview-item {
-        padding: .95rem 1rem;
+        padding: 1rem 1rem 1.05rem;
       }
       .ft-cheque-preview-grid {
         grid-template-columns: 1fr;
@@ -987,6 +1023,12 @@
                 </div>
                 <div class="col-md-5">
                   <div class="ft-wallet-side-glass">
+                    <div class="ft-wallet-qr-preview mb-3">
+                      <div id="merchantQrCanvas" class="ft-wallet-qr-canvas">
+                        <span class="text-muted small text-center">QR en attente</span>
+                      </div>
+                      <div id="merchantQrDecoded" class="ft-wallet-qr-decoded">Les donnees du QR apparaitront ici.</div>
+                    </div>
                     <label for="merchantQrAmount" class="form-label fw-semibold">Montant libre</label>
                     <input id="merchantQrAmount" type="number" step="0.01" min="0" class="form-control ft-input mb-3" placeholder="Optionnel">
                     <span class="ft-wallet-side-kicker">Wallet source</span>
@@ -1104,6 +1146,7 @@
 {% block javascripts %}
   {{ parent() }}
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     const walletFlowCanvas = document.getElementById('walletFlowChart');
     if (walletFlowCanvas) {
@@ -1195,6 +1238,8 @@
 
     const qrData = document.getElementById('merchantQrData');
     const qrAmount = document.getElementById('merchantQrAmount');
+    const qrCanvas = document.getElementById('merchantQrCanvas');
+    const qrDecoded = document.getElementById('merchantQrDecoded');
     const previewButton = document.getElementById('merchantPreviewButton');
     const payButton = document.getElementById('merchantPayButton');
     const statusBox = document.getElementById('merchantQrStatus');
@@ -1205,6 +1250,7 @@
     const merchantSourceWallet = document.getElementById('merchantSourceWallet');
     const resultBox = document.getElementById('merchantQrResult');
     let lastMerchantPayload = null;
+    let qrCode = null;
 
     if (previewButton) {
       previewButton.addEventListener('click', () => sendMerchantQr('{{ path('api_v1_merchant_qr_preview') }}', false));
@@ -1217,6 +1263,8 @@
         if (payButton) {
           payButton.disabled = true;
         }
+        renderVisualQr();
+        renderDecodedQrData();
       });
     }
     if (qrAmount) {
@@ -1224,8 +1272,13 @@
         if (payButton) {
           payButton.disabled = true;
         }
+        renderDecodedQrData();
       });
     }
+    document.addEventListener('DOMContentLoaded', () => {
+      renderVisualQr();
+      renderDecodedQrData();
+    });
 
     function buildMerchantPayload() {
       const payload = {qr_data: qrData.value.trim()};
@@ -1246,7 +1299,8 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(payload)
       })
-        .then((response) => response.json().then((body) => ({ok: response.ok, body})))
+        .then(parseJsonResponse)
+        .then((body) => ({ok: true, body}))
         .then(({ok, body}) => {
           if (!ok) {
             throw body;
@@ -1260,6 +1314,7 @@
           }
           statusBox.className = 'alert alert-danger py-2 small';
           statusBox.textContent = error?.error || error?.message || 'Operation QR impossible pour le moment.';
+          renderDecodedQrData();
         });
     }
 
@@ -1281,6 +1336,7 @@
       merchantSourceWallet.textContent = payload.source_wallet
         ? `#${payload.source_wallet.wallet_id} | solde ${Number(payload.source_wallet.balance).toFixed(2)} ${payload.source_wallet.currency}`
         : '#{{ wallet.idWallet }} | {{ wallet.devise }}';
+      renderDecodedQrData(payload);
 
       renderMerchantRows([
         `Wallet commercant: #${payload.merchant?.wallet_id || '-'}`,
@@ -1314,6 +1370,72 @@
         row.innerHTML = '<i class="bi bi-check2-circle text-primary me-2"></i>' + escapeHtml(item);
         resultBox.appendChild(row);
       });
+    }
+
+    function renderVisualQr() {
+      if (!qrCanvas) {
+        return;
+      }
+
+      const value = qrData ? qrData.value.trim() : '';
+      qrCanvas.innerHTML = '';
+
+      if (!value) {
+        qrCanvas.innerHTML = '<span class="text-muted small text-center">Aucune donnee QR</span>';
+        return;
+      }
+
+      if (typeof QRCode === 'undefined') {
+        qrCanvas.innerHTML = '<span class="text-muted small text-center">Apercu QR indisponible</span>';
+        return;
+      }
+
+      qrCode = new QRCode(qrCanvas, {
+        text: value,
+        width: 148,
+        height: 148,
+        colorDark: '#0f172a',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+
+    function renderDecodedQrData(previewPayload = null) {
+      if (!qrDecoded) {
+        return;
+      }
+
+      const decoded = decodeQrData(qrData ? qrData.value.trim() : '');
+      const amount = previewPayload?.payment?.amount || decoded.amount || (qrAmount ? qrAmount.value.trim() : '') || '-';
+      const reference = previewPayload?.payment?.reference || decoded.reference || decoded.ref || '-';
+      const merchant = previewPayload?.merchant?.name || decoded.merchant_name || decoded.merchantName || decoded.merchant || '-';
+      const wallet = previewPayload?.merchant?.wallet_id || decoded.merchant_wallet_id || decoded.wallet_id || decoded.merchantWalletId || '-';
+      const type = previewPayload?.payment?.qr_type || decoded.type || decoded.qr_type || (decoded.amount ? 'dynamic' : 'static');
+      const transaction = previewPayload?.payment?.transaction_id || decoded.transaction_id || decoded.transactionId || '-';
+
+      qrDecoded.innerHTML = [
+        `<span class="d-block"><strong>Type :</strong> ${escapeHtml(String(type))}</span>`,
+        `<span class="d-block"><strong>Commercant :</strong> ${escapeHtml(String(merchant))}</span>`,
+        `<span class="d-block"><strong>Wallet :</strong> ${escapeHtml(String(wallet))}</span>`,
+        `<span class="d-block"><strong>Montant :</strong> ${escapeHtml(String(amount))}</span>`,
+        `<span class="d-block"><strong>Reference :</strong> ${escapeHtml(String(reference))}</span>`,
+        `<span class="d-block"><strong>Transaction :</strong> ${escapeHtml(String(transaction))}</span>`
+      ].join('');
+    }
+
+    function decodeQrData(value) {
+      if (!value) {
+        return {};
+      }
+
+      try {
+        const decoded = JSON.parse(value);
+        return decoded && typeof decoded === 'object' ? decoded : {};
+      } catch (error) {
+        const params = new URLSearchParams(value);
+        const entries = Object.fromEntries(params.entries());
+        return entries && Object.keys(entries).length > 0 ? entries : {};
+      }
     }
 
     const voiceInput = document.getElementById('voiceCommandInput');

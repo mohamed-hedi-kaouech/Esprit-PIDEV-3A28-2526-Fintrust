@@ -1,12 +1,13 @@
-{% extends 'admin/back.html.twig' %}
+ï»¿{% extends 'admin/back.html.twig' %}
 
 {% block title %}Gestion des Publications{% endblock %}
 
 {% block admin_content %}
 <div class="admin-publications-container">
     <!-- En-tete avec bouton d'ajout -->
-    <div class="publications-header">
+    <div class="publications-header publications-header--hero">
         <div class="header-info">
+            <span class="publications-kicker">FinTrust Content Studio</span>
             <h1 class="page-title">
                 <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 19.5h16a2.5 2.5 0 0 0 2.5-2.5V6.5H1.5v10.5a2.5 2.5 0 0 0 2.5 2.5z"/>
@@ -15,6 +16,11 @@
                 Publications Bancaires
             </h1>
             <p class="header-subtitle">G&eacute;rez vos publications, offres et contenus financiers dans une interface plus claire, plus fluide et plus premium.</p>
+            <div class="publications-hero-chips">
+                <span class="publications-hero-chip publications-hero-chip--blue">Vue admin</span>
+                <span class="publications-hero-chip publications-hero-chip--green">Feedback en direct</span>
+                <span class="publications-hero-chip publications-hero-chip--amber">Pilotage &eacute;ditorial</span>
+            </div>
         </div>
         <div class="publication-actions">
             <a href="{{ path('admin_publications_create') }}" class="btn btn-primary btn-lg">
@@ -63,7 +69,7 @@
     </div>
 
     <!-- Filtres et recherche -->
-    <div class="filters-section">
+    <div class="filters-section filters-section--vivid">
         <form method="GET" class="filters-form">
             <div class="filter-group">
                 <label for="search" class="filter-label">&#128269; Rechercher</label>
@@ -104,7 +110,7 @@
     </div>
 
     <!-- Tableau des publications -->
-    <div class="publications-table-shell">
+    <div class="publications-table-shell publications-table-shell--vivid">
         <div class="publications-table-shell__head">
             <div>
                 <h2 class="publications-table-shell__title">Liste des publications</h2>
@@ -359,7 +365,7 @@
                     <div class="engagement-overview-card__legend">
                         <div class="engagement-overview-card__legend-head">
                             <h4>Composition du score</h4>
-                            <p>Le cercle montre l’impact de chaque type d’interaction sur le score global.</p>
+                            <p>Le cercle montre lâ€™impact de chaque type dâ€™interaction sur le score global.</p>
                         </div>
 
                         <div class="engagement-overview-card__legend-list">
@@ -367,7 +373,7 @@
                                 <span class="engagement-legend-item__dot"></span>
                                 <div>
                                     <strong>Commentaires x3</strong>
-                                    <small>{{ feedback_insights.totals.comments }} commentaire{{ feedback_insights.totals.comments > 1 ? 's' : '' }} • impact {{ commentImpact }}</small>
+                                    <small>{{ feedback_insights.totals.comments }} commentaire{{ feedback_insights.totals.comments > 1 ? 's' : '' }} â€¢ impact {{ commentImpact }}</small>
                                 </div>
                                 <span class="engagement-legend-item__value">{{ commentShare|round(0, 'common') }}%</span>
                             </div>
@@ -376,7 +382,7 @@
                                 <span class="engagement-legend-item__dot"></span>
                                 <div>
                                     <strong>Likes x2</strong>
-                                    <small>{{ feedback_insights.totals.likes }} like{{ feedback_insights.totals.likes > 1 ? 's' : '' }} • impact {{ likeImpact }}</small>
+                                    <small>{{ feedback_insights.totals.likes }} like{{ feedback_insights.totals.likes > 1 ? 's' : '' }} â€¢ impact {{ likeImpact }}</small>
                                 </div>
                                 <span class="engagement-legend-item__value">{{ likeShare|round(0, 'common') }}%</span>
                             </div>
@@ -385,7 +391,7 @@
                                 <span class="engagement-legend-item__dot"></span>
                                 <div>
                                     <strong>Dislikes</strong>
-                                    <small>{{ feedback_insights.totals.dislikes }} dislike{{ feedback_insights.totals.dislikes > 1 ? 's' : '' }} • pression -{{ dislikeImpact }}</small>
+                                    <small>{{ feedback_insights.totals.dislikes }} dislike{{ feedback_insights.totals.dislikes > 1 ? 's' : '' }} â€¢ pression -{{ dislikeImpact }}</small>
                                 </div>
                                 <span class="engagement-legend-item__value">{{ dislikeShare|round(0, 'common') }}%</span>
                             </div>
@@ -518,9 +524,45 @@
 
 <style>
 .admin-publications-container {
+    --ft-pub-navy: #10285f;
+    --ft-pub-blue: #2563eb;
+    --ft-pub-sky: #22c7ee;
+    --ft-pub-green: #12b981;
+    --ft-pub-amber: #f59e0b;
+    --ft-pub-rose: #f43f5e;
     padding: 2rem;
     max-width: 100%;
     overflow-x: hidden;
+    position: relative;
+    isolation: isolate;
+}
+
+.admin-publications-container::before {
+    content: "";
+    position: absolute;
+    inset: -1rem -1rem auto;
+    height: 340px;
+    border-radius: 0 0 36px 36px;
+    background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 30%),
+        radial-gradient(circle at top right, rgba(34, 199, 238, 0.14), transparent 24%),
+        linear-gradient(180deg, rgba(239, 246, 255, 0.95), rgba(255, 255, 255, 0));
+    z-index: -1;
+    pointer-events: none;
+}
+
+.admin-publications-container::after {
+    content: "";
+    position: absolute;
+    right: 6%;
+    top: 7rem;
+    width: 180px;
+    height: 180px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.08);
+    filter: blur(12px);
+    z-index: -1;
+    pointer-events: none;
 }
 
 .publications-header {
@@ -530,19 +572,94 @@
     margin-bottom: 2rem;
 }
 
+.publications-header--hero {
+    position: relative;
+    overflow: hidden;
+    padding: 1.8rem 1.9rem;
+    border-radius: 30px;
+    border: 1px solid rgba(191, 219, 254, 0.9);
+    background:
+        radial-gradient(circle at top right, rgba(34, 199, 238, 0.14), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(37, 99, 235, 0.12), transparent 30%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(239, 246, 255, 0.96));
+    box-shadow: 0 28px 60px rgba(15, 23, 42, 0.08);
+}
+
+.publications-header--hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--ft-pub-blue), var(--ft-pub-sky), var(--ft-pub-green));
+}
+
+.publications-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    margin-bottom: .85rem;
+    padding: .42rem .78rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(34, 199, 238, 0.14));
+    color: var(--ft-pub-blue);
+    font-size: .8rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+}
+
+.publications-hero-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+    margin-top: 1rem;
+}
+
+.publications-hero-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: .48rem .82rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 800;
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.86);
+}
+
+.publications-hero-chip--blue {
+    background: rgba(219, 234, 254, 0.9);
+    color: #1d4ed8;
+    border-color: rgba(147, 197, 253, 0.65);
+}
+
+.publications-hero-chip--green {
+    background: rgba(220, 252, 231, 0.92);
+    color: #047857;
+    border-color: rgba(134, 239, 172, 0.7);
+}
+
+.publications-hero-chip--amber {
+    background: rgba(254, 243, 199, 0.94);
+    color: #b45309;
+    border-color: rgba(252, 211, 77, 0.65);
+}
+
 .page-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #0f172a;
+    font-size: 2.35rem;
+    font-weight: 800;
+    color: var(--ft-pub-navy);
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.9rem;
     margin: 0;
+    letter-spacing: -0.04em;
 }
 
 .header-subtitle {
-    color: #64748b;
-    margin: 0.5rem 0 0;
+    color: #5d749c;
+    margin: 0.65rem 0 0;
+    max-width: 52rem;
+    font-size: 1.05rem;
+    line-height: 1.7;
 }
 
 .icon-lg { width: 2rem; height: 2rem; }
@@ -565,6 +682,12 @@
     align-items: center;
     border: 1px solid rgba(226, 232, 240, 0.95);
     box-shadow: 0 22px 44px rgba(15, 23, 42, 0.06);
+    transition: transform .22s ease, box-shadow .22s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 58px rgba(15, 23, 42, 0.10);
 }
 
 .stat-card::after {
@@ -578,10 +701,22 @@
     background: rgba(255, 255, 255, 0.22);
 }
 
-.stat-card-primary { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
-.stat-card-success { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
-.stat-card-info { background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%); }
-.stat-card-warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+.stat-card-primary {
+    background: linear-gradient(135deg, rgba(219, 234, 254, 0.98) 0%, rgba(191, 219, 254, 0.95) 100%);
+    border-color: rgba(147, 197, 253, 0.75);
+}
+.stat-card-success {
+    background: linear-gradient(135deg, rgba(220, 252, 231, 0.98) 0%, rgba(167, 243, 208, 0.95) 100%);
+    border-color: rgba(110, 231, 183, 0.72);
+}
+.stat-card-info {
+    background: linear-gradient(135deg, rgba(224, 242, 254, 0.98) 0%, rgba(165, 243, 252, 0.95) 100%);
+    border-color: rgba(103, 232, 249, 0.7);
+}
+.stat-card-warning {
+    background: linear-gradient(135deg, rgba(255, 247, 237, 0.98) 0%, rgba(254, 215, 170, 0.95) 100%);
+    border-color: rgba(253, 186, 116, 0.72);
+}
 
 .stat-icon {
     position: relative;
@@ -599,9 +734,10 @@
 .stat-value {
     position: relative;
     z-index: 1;
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 800;
     margin: 0;
+    color: var(--ft-pub-navy);
 }
 
 .stat-label {
@@ -624,6 +760,19 @@
     max-width: 100%;
 }
 
+.filters-section--vivid {
+    position: relative;
+    overflow: hidden;
+}
+
+.filters-section--vivid::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--ft-pub-blue), var(--ft-pub-sky), var(--ft-pub-green));
+}
+
 .filters-form {
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(180px, 0.8fr) minmax(180px, 0.8fr) auto;
@@ -638,8 +787,8 @@
 
 .filter-label {
     font-size: 0.875rem;
-    font-weight: 600;
-    color: #334155;
+    font-weight: 700;
+    color: #36527d;
     margin-bottom: 0.5rem;
 }
 
@@ -657,13 +806,25 @@
 .filter-input:focus,
 .filter-select:focus {
     outline: none;
-    border-color: #93c5fd;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
     transform: translateY(-1px);
 }
 
 .publications-table-shell {
     margin-top: 1.4rem;
+}
+
+.publications-table-shell--vivid {
+    position: relative;
+    overflow: hidden;
+    padding: 1.2rem;
+    border-radius: 30px;
+    border: 1px solid rgba(191, 219, 254, 0.82);
+    background:
+        radial-gradient(circle at top right, rgba(34, 199, 238, 0.10), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(239,246,255,.94));
+    box-shadow: 0 26px 62px rgba(15, 23, 42, 0.07);
 }
 
 .publications-table-shell__head {
@@ -904,7 +1065,7 @@
 
 .publication-row:hover {
     background: linear-gradient(90deg, rgba(239, 246, 255, 0.64), rgba(248, 250, 252, 0.92));
-    box-shadow: inset 4px 0 0 #60a5fa;
+    box-shadow: inset 5px 0 0 #22c7ee;
 }
 
 .date-pill {
@@ -937,6 +1098,9 @@
 
 .badge-category--soft {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+    background: linear-gradient(135deg, rgba(219, 234, 254, 0.94), rgba(199, 210, 254, 0.92));
+    color: #1e3a8a;
+    border: 1px solid rgba(165, 180, 252, 0.6);
 }
 
 .badge-status {
@@ -974,10 +1138,14 @@
 
 .metric-pill--success {
     color: #16a34a;
+    border-color: rgba(110, 231, 183, 0.55);
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(236, 253, 245, .95));
 }
 
 .metric-pill--danger {
     color: #dc2626;
+    border-color: rgba(252, 165, 165, 0.55);
+    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(254, 242, 242, .95));
 }
 
 .rating-pill {
@@ -1027,6 +1195,12 @@
     border: 1px solid transparent;
     box-shadow: 0 14px 24px rgba(15, 23, 42, 0.08);
     position: relative;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.btn-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 30px rgba(15, 23, 42, 0.12);
 }
 
 .btn-icon__glyph {
@@ -2326,4 +2500,5 @@
   }
 </script>
 {% endblock %}
+
 
