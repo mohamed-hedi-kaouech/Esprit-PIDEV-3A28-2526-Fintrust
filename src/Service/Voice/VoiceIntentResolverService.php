@@ -6,6 +6,7 @@ class VoiceIntentResolverService
 {
     public const CHECK_BALANCE = 'CHECK_BALANCE';
     public const LIST_TRANSACTIONS = 'LIST_TRANSACTIONS';
+    public const OPEN_TRANSACTION_FORM = 'OPEN_TRANSACTION_FORM';
     public const WALLET_STATUS = 'WALLET_STATUS';
     public const LOAN_ADVICE = 'LOAN_ADVICE';
     public const MARKET_INSIGHTS = 'MARKET_INSIGHTS';
@@ -30,6 +31,20 @@ class VoiceIntentResolverService
         $scores = [
             self::CHECK_BALANCE => $this->score($text, ['solde', 'balance', 'xaalis', 'argent disponible', 'combien j ai']),
             self::LIST_TRANSACTIONS => $this->score($text, ['transactions', 'operations', 'dernieres', 'historique', 'recentes', 'history']),
+            self::OPEN_TRANSACTION_FORM => $this->score($text, [
+                'faire une transaction',
+                'nouvelle transaction',
+                'creer une transaction',
+                'effectuer une transaction',
+                'je veux faire une transaction',
+                'faire un depot',
+                'faire un retrait',
+                'ouvrir transaction',
+                'go to transaction',
+                'make a transaction',
+                'new transaction',
+                'start transaction',
+            ]),
             self::WALLET_STATUS => $this->score($text, ['wallet stable', 'etat du wallet', 'statut wallet', 'operationnel', 'stable', 'bloque', 'status']),
             self::LOAN_ADVICE => $this->score($text, ['pret', 'credit', 'loan', 'emprunt', 'demander un pret', 'boroom']),
             self::MARKET_INSIGHTS => $this->score($text, ['marche', 'market', 'prediction', 'change', 'usd', 'eur', 'bitcoin', 'gold', 'or']),

@@ -41,6 +41,12 @@
             <div class="mb-3">
               <label class="form-label small fw-semibold" for="voiceCommandInput">Commande vocale ou texte</label>
               <textarea id="voiceCommandInput" class="form-control" rows="4" placeholder="Ex: Voir mon solde"></textarea>
+              <div class="form-text mt-2">La saisie se remplit automatiquement pendant que vous parlez.</div>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" role="switch" id="voiceAutoSend" checked>
+              <label class="form-check-label small fw-semibold" for="voiceAutoSend">Analyser automatiquement apres la dictee</label>
             </div>
 
             <div class="d-flex flex-wrap gap-2 mb-3">
@@ -113,6 +119,7 @@
   const voiceSendButton = document.getElementById('voiceSendButton');
   const voiceMicButton = document.getElementById('voiceMicButton');
   const voiceSpeakButton = document.getElementById('voiceSpeakButton');
+  const voiceAutoSend = document.getElementById('voiceAutoSend');
   const voiceStatus = document.getElementById('voiceStatus');
   const voiceResponse = document.getElementById('voiceResponse');
   const voiceTranscript = document.getElementById('voiceTranscript');
@@ -131,7 +138,9 @@
   let shouldRestartRecognition = false;
   const maxNoSpeechRetries = 2;
   let silenceTimer = null;
-  const silenceDelayMs = 2400;
+  const silenceDelayMs = 4200;
+  let lastInterimTranscript = '';
+  let pendingRedirectTimer = null;
 
   document.querySelectorAll('.voice-suggestion').forEach((button) => {
     button.addEventListener('click', () => {
@@ -141,6 +150,12 @@
   });
 
   voiceSendButton.addEventListener('click', sendVoiceCommand);
+  voiceInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      sendVoiceCommand();
+    }
+  });
 
   if (!Recognition) {
     voiceStatus.className = 'alert alert-warning py-2 small';
@@ -218,10 +233,11 @@
 
     recognition = new Recognition();
     recognition.lang = getRecognitionLang();
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 3;
     finalTranscript = '';
+    lastInterimTranscript = '';
     dictationBaseText = voiceInput.value.trim();
     hasCapturedSpeech = false;
     heardSpeechSignal = false;
@@ -246,6 +262,17 @@
       voiceStatus.textContent = 'Voix detectee. Transcription en direct...';
     };
 
+    recognition.onspeechend = () => {
+      voiceStatus.className = 'alert alert-info py-2 small';
+      voiceStatus.textContent = 'Pause detectee. Je finalise la transcription...';
+      scheduleRecognitionStop(1200);
+    };
+
+    recognition.onsoundstart = () => {
+      voiceStatus.className = 'alert alert-info py-2 small';
+      voiceStatus.textContent = 'Son detecte. Continuez a parler normalement.';
+    };
+
     recognition.onresult = (event) => {
       let interimTranscript = '';
 
@@ -259,6 +286,7 @@
       }
 
       const currentTranscript = (finalTranscript + interimTranscript).trim();
+      lastInterimTranscript = currentTranscript;
       hasCapturedSpeech = currentTranscript.length > 0;
       heardSpeechSignal = heardSpeechSignal || hasCapturedSpeech;
       noSpeechRetryCount = 0;
@@ -295,7 +323,7 @@
     };
 
     recognition.onend = () => {
-      const transcript = voiceInput.value.trim();
+      const transcript = voiceInput.value.trim() || mergeDictationText(dictationBaseText, lastInterimTranscript);
       isListening = false;
       updateMicButton(false);
       clearSilenceTimer();
@@ -312,9 +340,15 @@
 
       if (heardSpeechSignal && transcript && transcript !== dictationBaseText) {
         noSpeechRetryCount = 0;
-        voiceStatus.className = 'alert alert-success py-2 small';
-        voiceStatus.textContent = 'Texte dicte ajoute automatiquement. Analyse en cours...';
-        sendVoiceCommand();
+        applyVoiceText(transcript);
+        if (voiceAutoSend.checked) {
+          voiceStatus.className = 'alert alert-success py-2 small';
+          voiceStatus.textContent = 'Texte dicte ajoute automatiquement. Analyse en cours...';
+          sendVoiceCommand();
+        } else {
+          voiceStatus.className = 'alert alert-success py-2 small';
+          voiceStatus.textContent = 'Texte dicte ajoute automatiquement. Vous pouvez maintenant envoyer la commande.';
+        }
         return;
       }
 
@@ -326,9 +360,15 @@
       }
 
       noSpeechRetryCount = 0;
-      voiceStatus.className = 'alert alert-success py-2 small';
-      voiceStatus.textContent = 'Texte dicte ajoute automatiquement. Analyse en cours...';
-      sendVoiceCommand();
+      applyVoiceText(transcript);
+      if (voiceAutoSend.checked) {
+        voiceStatus.className = 'alert alert-success py-2 small';
+        voiceStatus.textContent = 'Texte dicte ajoute automatiquement. Analyse en cours...';
+        sendVoiceCommand();
+      } else {
+        voiceStatus.className = 'alert alert-success py-2 small';
+        voiceStatus.textContent = 'Texte dicte ajoute automatiquement. Vous pouvez maintenant envoyer la commande.';
+      }
     };
 
     try {
@@ -356,6 +396,10 @@
     voiceInput.dispatchEvent(new Event('input', {bubbles: true}));
     voiceInput.dispatchEvent(new Event('change', {bubbles: true}));
     voiceTranscript.textContent = value || '-';
+    if (value) {
+      voiceInput.focus();
+      voiceInput.setSelectionRange(value.length, value.length);
+    }
   }
 
   function getRecognitionLang() {
@@ -466,13 +510,13 @@
     });
   }
 
-  function scheduleRecognitionStop() {
+  function scheduleRecognitionStop(delay = silenceDelayMs) {
     clearSilenceTimer();
     silenceTimer = window.setTimeout(() => {
       if (recognition && isListening) {
         recognition.stop();
       }
-    }, silenceDelayMs);
+    }, delay);
   }
 
   function clearSilenceTimer() {
@@ -483,8 +527,9 @@
   }
 
   function renderVoiceResult(payload) {
+    clearPendingRedirect();
     lastVoiceText = payload.response_text || '';
-    voiceTranscript.textContent = payload.transcript || '-';
+    applyVoiceText(payload.transcript || voiceInput.value || '');
     voiceIntent.textContent = payload.intent || '-';
     voiceConfidence.textContent = payload.confidence ? Math.round(Number(payload.confidence) * 100) + '%' : '-';
     voiceResponse.textContent = lastVoiceText || 'Aucune reponse.';
@@ -500,6 +545,21 @@
       row.innerHTML = '<i class="bi bi-check2-circle text-primary me-2"></i>' + escapeHtml(typeof item === 'string' ? item : JSON.stringify(item));
       voiceDetails.appendChild(row);
     });
+
+    if (payload.redirect_url) {
+      voiceStatus.className = 'alert alert-success py-2 small';
+      voiceStatus.textContent = 'Commande comprise. Redirection automatique vers l action demandee...';
+      pendingRedirectTimer = window.setTimeout(() => {
+        window.location.href = payload.redirect_url;
+      }, 900);
+    }
+  }
+
+  function clearPendingRedirect() {
+    if (pendingRedirectTimer !== null) {
+      window.clearTimeout(pendingRedirectTimer);
+      pendingRedirectTimer = null;
+    }
   }
 
   function escapeHtml(value) {

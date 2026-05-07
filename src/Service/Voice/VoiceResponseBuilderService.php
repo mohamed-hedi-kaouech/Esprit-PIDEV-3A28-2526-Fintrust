@@ -6,24 +6,33 @@ use App\Entity\Wallet\Cheque;
 use App\Entity\Wallet\Wallet;
 use App\Service\WalletAssistantService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class VoiceResponseBuilderService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly WalletAssistantService $walletAssistantService,
+        private readonly UrlGeneratorInterface $urlGenerator,
     ) {
     }
 
     /**
      * @param array<string, mixed> $entities
-     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>}
+     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>,redirect_url:string|null}
      */
     public function build(Wallet $wallet, string $intent, array $entities, string $language): array
     {
         return match ($intent) {
             VoiceIntentResolverService::CHECK_BALANCE => $this->fromAssistant($wallet, 'balance', 'wallet.balance.read', $language),
             VoiceIntentResolverService::LIST_TRANSACTIONS => $this->fromAssistant($wallet, 'transactions', 'wallet.transactions.list', $language),
+            VoiceIntentResolverService::OPEN_TRANSACTION_FORM => $this->buildNavigationResponse(
+                'wallet.transaction.open_form',
+                'Je vous dirige vers la page de creation de transaction.',
+                'front_wallet_transaction_new',
+                $language,
+                ['Vous pourrez ensuite choisir depot ou retrait et confirmer votre operation.']
+            ),
             VoiceIntentResolverService::WALLET_STATUS => $this->fromAssistant($wallet, 'status', 'wallet.status.read', $language),
             VoiceIntentResolverService::LOAN_ADVICE => $this->fromAssistant($wallet, 'loan', 'wallet.loan.advice', $language),
             VoiceIntentResolverService::MARKET_INSIGHTS => $this->fromAssistant($wallet, 'market', 'wallet.market.insights', $language),
@@ -34,7 +43,7 @@ class VoiceResponseBuilderService
     }
 
     /**
-     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>}
+     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>,redirect_url:string|null}
      */
     private function fromAssistant(Wallet $wallet, string $assistantIntent, string $action, string $language): array
     {
@@ -52,12 +61,13 @@ class VoiceResponseBuilderService
             ],
             'audio_response' => $this->buildAudioPlaceholder($text, $language),
             'suggestions' => $this->buildSuggestions($language),
+            'redirect_url' => null,
         ];
     }
 
     /**
      * @param array<string, mixed> $entities
-     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>}
+     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>,redirect_url:string|null}
      */
     private function buildTransferPreview(Wallet $wallet, array $entities, string $language): array
     {
@@ -87,12 +97,13 @@ class VoiceResponseBuilderService
             ],
             'audio_response' => $this->buildAudioPlaceholder($text, $language),
             'suggestions' => $this->buildSuggestions($language),
+            'redirect_url' => null,
         ];
     }
 
     /**
      * @param array<string, mixed> $entities
-     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>}
+     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>,redirect_url:string|null}
      */
     private function buildChequeStatus(Wallet $wallet, array $entities, string $language): array
     {
@@ -139,11 +150,12 @@ class VoiceResponseBuilderService
             ],
             'audio_response' => $this->buildAudioPlaceholder($text, $language),
             'suggestions' => $this->buildSuggestions($language),
+            'redirect_url' => null,
         ];
     }
 
     /**
-     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>}
+     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>,redirect_url:string|null}
      */
     private function buildFallback(string $language): array
     {
@@ -155,6 +167,32 @@ class VoiceResponseBuilderService
             'details' => ['supported_intents' => $this->buildSuggestions($language)],
             'audio_response' => $this->buildAudioPlaceholder($text, $language),
             'suggestions' => $this->buildSuggestions($language),
+            'redirect_url' => null,
+        ];
+    }
+
+    /**
+     * @param list<string> $details
+     *
+     * @return array{action:string,response_text:string,details:array<string, mixed>,audio_response:array<string, mixed>|null,suggestions:array<int, string>,redirect_url:string|null}
+     */
+    private function buildNavigationResponse(
+        string $action,
+        string $text,
+        string $routeName,
+        string $language,
+        array $details = [],
+    ): array {
+        return [
+            'action' => $action,
+            'response_text' => $this->translateIfNeeded($text, $language),
+            'details' => [
+                'title' => 'Navigation assistee',
+                'items' => $details,
+            ],
+            'audio_response' => $this->buildAudioPlaceholder($text, $language),
+            'suggestions' => $this->buildSuggestions($language),
+            'redirect_url' => $this->urlGenerator->generate($routeName),
         ];
     }
 
