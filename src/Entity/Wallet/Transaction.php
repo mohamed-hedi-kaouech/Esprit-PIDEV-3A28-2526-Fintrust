@@ -78,6 +78,11 @@ class Transaction
         return $this;
     }
 
+    public function setDateTransaction(\DateTimeInterface $dateTransaction): static
+    {
+        return $this->markOccurredAt($dateTransaction);
+    }
+
     public function getIdWallet(): int
     {
         return $this->wallet->getIdWallet();

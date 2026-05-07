@@ -215,6 +215,73 @@
       background: rgba(255, 255, 255, 0.9);
     }
 
+    .ft-budget-reward-card {
+      padding: 1.35rem;
+      border-radius: 24px;
+      border: 1px solid #dbeafe;
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.14), transparent 32%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.97), rgba(239, 246, 255, 0.95));
+      box-shadow: 0 20px 48px rgba(37, 99, 235, 0.12);
+    }
+
+    .ft-budget-reward-card.is-locked {
+      border-color: #fde68a;
+      background:
+        radial-gradient(circle at top right, rgba(245, 158, 11, 0.14), transparent 32%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.97), rgba(255, 251, 235, 0.96));
+    }
+
+    .ft-budget-reward-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .ft-budget-reward-card.is-locked .ft-budget-reward-badge {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .ft-budget-reward-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+      margin-top: 1rem;
+    }
+
+    .ft-budget-reward-metric {
+      padding: 0.9rem 1rem;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid #dbeafe;
+    }
+
+    .ft-budget-reward-card.is-locked .ft-budget-reward-metric {
+      border-color: #fde68a;
+    }
+
+    .ft-budget-reward-metric span {
+      display: block;
+      color: #64748b;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.3rem;
+      font-weight: 700;
+    }
+
+    .ft-budget-reward-metric strong {
+      color: #0f172a;
+      font-size: 1.15rem;
+    }
+
     .ft-budget-category-actions {
       display: flex;
       flex-wrap: wrap;
@@ -238,6 +305,7 @@
     }
 
     @media (max-width: 767px) {
+      .ft-budget-reward-metrics,
       .ft-budget-hero-grid {
         grid-template-columns: 1fr;
       }
@@ -356,6 +424,52 @@
         <span class="ft-budget-hero-panel-label">Vue globale</span>
         <strong>{{ totalBudget|number_format(2, ',', ' ') }} TND</strong>
         <span>{{ trackedCategories }} categorie(s) suivie(s) • {{ activeAlerts }} alerte(s) active(s)</span>
+      </div>
+    </section>
+
+    <section class="ft-budget-reward-card {{ rewardSnapshot.isEligible ? 'is-open' : 'is-locked' }} mb-4">
+      <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div>
+          <span class="ft-budget-reward-badge">
+            <i class="bi {{ rewardSnapshot.isEligible ? 'bi-award-fill' : 'bi-lock-fill' }}"></i>
+            {{ rewardSnapshot.statusLabel }}
+          </span>
+          <h2 class="h4 mt-3 mb-2">Recompense budget client</h2>
+          <p class="text-muted mb-0">{{ rewardSnapshot.lockReason }}</p>
+        </div>
+
+        {% if rewardSnapshot.isEligible %}
+          <div class="d-flex flex-column align-items-start gap-2">
+            <form method="post" action="{{ path('front_budget_reward_sms') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('front_budget_reward_sms') }}">
+            <button type="submit" class="btn ft-btn-primary" {% if not rewardSnapshot.smsReady %}disabled{% endif %}>
+              <i class="bi bi-chat-dots me-2"></i>Recevoir ma recompense par SMS
+            </button>
+            </form>
+            {% if not rewardSnapshot.smsReady %}
+              <small class="text-muted">Ajoutez un numero de telephone valide pour recevoir la recompense via Twilio.</small>
+            {% endif %}
+          </div>
+        {% else %}
+          <span class="btn ft-btn-outline-primary disabled">
+            <i class="bi bi-hourglass-split me-2"></i>Non encore debloquee
+          </span>
+        {% endif %}
+      </div>
+
+      <div class="ft-budget-reward-metrics">
+        <div class="ft-budget-reward-metric">
+          <span>Categories conformes</span>
+          <strong>{{ rewardSnapshot.safeCount }}/{{ rewardSnapshot.categoriesChecked }}</strong>
+        </div>
+        <div class="ft-budget-reward-metric">
+          <span>Blocages</span>
+          <strong>{{ rewardSnapshot.blockedCount }}</strong>
+        </div>
+        <div class="ft-budget-reward-metric">
+          <span>Progression</span>
+          <strong>{{ rewardSnapshot.completionRate|number_format(0) }}%</strong>
+        </div>
       </div>
     </section>
 

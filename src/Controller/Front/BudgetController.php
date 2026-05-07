@@ -5,10 +5,12 @@ namespace App\Controller\Front;
 use App\Entity\Categorie\Alerte;
 use App\Entity\Categorie\Categorie;
 use App\Entity\Categorie\Item;
+use App\Entity\User\User;
 use App\Form\Admin\CategorieType;
 use App\Form\Admin\ItemType;
 use App\Repository\CategorieRepository;
 use App\Repository\ItemRepository;
+use App\Service\RewardService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -77,16 +79,20 @@ class BudgetController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly CategorieRepository $categorieRepository,
         private readonly ItemRepository $itemRepository,
+        private readonly RewardService $rewardService,
     ) {
     }
 
     #[Route('', name: 'home', methods: ['GET'])]
     public function home(): Response
     {
-        $categories = $this->categorieRepository->searchByFilters('', null, null, null, 'usage');
-        $alertRepository = $this->entityManager->getRepository(Alerte::class);
-        $latestAlerts = $alertRepository->findBy([], ['createdAt' => 'DESC'], 5);
-        $allAlerts = $alertRepository->findBy([], ['createdAt' => 'ASC']);
+        $user = $this->getBudgetUser();
+        $categories = $this->getVisibleCategories($user, '', 'usage');
+        $allAlerts = $this->getVisibleAlerts($categories);
+        usort($allAlerts, static fn (Alerte $left, Alerte $right): int => $left->getCreatedAt() <=> $right->getCreatedAt());
+        $latestAlerts = $allAlerts;
+        usort($latestAlerts, static fn (Alerte $left, Alerte $right): int => $right->getCreatedAt() <=> $left->getCreatedAt());
+        $latestAlerts = array_slice($latestAlerts, 0, 5);
 
         $budgetStats = [];
         $totalBudget = 0.0;
@@ -167,6 +173,8 @@ class BudgetController extends AbstractController
             );
         }
 
+        $rewardSnapshot = $this->rewardService->buildRewardSnapshot($user);
+
         return $this->render('front/client/budget.html.twig', [
             'budgetStats' => $budgetStats,
             'topCategories' => $topCategories,
@@ -180,13 +188,14 @@ class BudgetController extends AbstractController
             'activeAlerts' => $activeAlerts,
             'globalUsage' => $globalUsage,
             'insight' => $insight,
+            'rewardSnapshot' => $rewardSnapshot,
         ]);
     }
 
     #[Route('/intelligence', name: 'intelligence', methods: ['GET'])]
     public function intelligence(): Response
     {
-        $categories = $this->categorieRepository->searchByFilters('', null, null, null, 'usage');
+        $categories = $this->getVisibleCategories($this->getBudgetUser(), '', 'usage');
         $savingCategory = null;
         $totalBudget = 0.0;
         $totalSpent = 0.0;
@@ -292,7 +301,7 @@ class BudgetController extends AbstractController
     public function categories(Request $request): Response
     {
         $search = trim((string) $request->query->get('search', ''));
-        $entities = $this->categorieRepository->searchByFilters($search, null, null, null, 'nom');
+        $entities = $this->getVisibleCategories($this->getBudgetUser(), $search, 'nom');
         $categories = array_map(
             fn (Categorie $categorie): array => $this->buildCategoryCardData($categorie),
             $entities
@@ -316,6 +325,7 @@ class BudgetController extends AbstractController
     #[Route('/categories/create', name: 'category_create', methods: ['GET', 'POST'])]
     public function createCategory(Request $request): Response
     {
+        $user = $this->getBudgetUser();
         $categorie = new Categorie();
         $presetSlug = trim((string) $request->query->get('preset', ''));
         if ($presetSlug !== '') {
@@ -336,6 +346,7 @@ class BudgetController extends AbstractController
             } elseif ($this->categoryNameExists($categorie->getNomCategorie())) {
                 $this->addFlash('error', 'Une categorie avec ce nom existe deja.');
             } else {
+                $categorie->setUser($user);
                 $this->entityManager->persist($categorie);
                 $this->entityManager->flush();
                 $this->addFlash('success', 'Categorie creee avec succes.');
@@ -356,6 +367,7 @@ class BudgetController extends AbstractController
     #[Route('/categories/preset/{slug}/create', name: 'category_create_preset', methods: ['POST'])]
     public function createPresetCategory(string $slug, Request $request): Response
     {
+        $user = $this->getBudgetUser();
         if (!$this->isCsrfTokenValid('front_budget_create_preset_' . $slug, (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Action invalide.');
 
@@ -378,7 +390,8 @@ class BudgetController extends AbstractController
         $categorie = (new Categorie())
             ->setNomCategorie($preset['name'])
             ->setBudgetPrevu($preset['budget'])
-            ->setSeuilAlerte($preset['threshold']);
+            ->setSeuilAlerte($preset['threshold'])
+            ->setUser($user);
 
         $this->entityManager->persist($categorie);
         $this->entityManager->flush();
@@ -392,6 +405,7 @@ class BudgetController extends AbstractController
     #[Route('/categories/{idCategorie}', name: 'category_show', methods: ['GET'])]
     public function showCategory(Categorie $categorie): Response
     {
+        $this->assertBudgetCategoryAccess($categorie, $this->getBudgetUser());
         $spent = $this->itemRepository->getTotalMontantByCategorie($categorie->getIdCategorie());
         $usage = $categorie->getBudgetPrevu() > 0 ? ($spent / $categorie->getBudgetPrevu()) * 100 : 0;
         $alerts = array_values(array_filter(
@@ -431,6 +445,7 @@ class BudgetController extends AbstractController
     #[Route('/categories/{idCategorie}/edit', name: 'category_edit', methods: ['GET', 'POST'])]
     public function editCategory(Request $request, Categorie $categorie): Response
     {
+        $this->assertBudgetCategoryAccess($categorie, $this->getBudgetUser());
         $form = $this->createForm(CategorieType::class, $categorie);
         $form->handleRequest($request);
 
@@ -457,6 +472,7 @@ class BudgetController extends AbstractController
     #[Route('/categories/{idCategorie}/delete', name: 'category_delete', methods: ['POST'])]
     public function deleteCategory(Request $request, Categorie $categorie): Response
     {
+        $this->assertBudgetCategoryAccess($categorie, $this->getBudgetUser());
         if (!$this->isCsrfTokenValid('front_budget_delete_category_' . $categorie->getIdCategorie(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Action invalide.');
 
@@ -481,11 +497,12 @@ class BudgetController extends AbstractController
     #[Route('/items/create', name: 'item_create', methods: ['GET', 'POST'])]
     public function createItem(Request $request): Response
     {
+        $user = $this->getBudgetUser();
         $item = new Item();
         $preselectedCategoryId = $request->query->getInt('categorie', 0);
         if ($preselectedCategoryId > 0) {
             $categorie = $this->categorieRepository->find($preselectedCategoryId);
-            if ($categorie instanceof Categorie) {
+            if ($categorie instanceof Categorie && $this->canAccessBudgetCategory($categorie, $user)) {
                 $item->setCategorie($categorie);
                 $item->setIdCategorie($categorie->getIdCategorie());
                 $item->setCategorieLabel($categorie->getNomCategorie());
@@ -525,6 +542,7 @@ class BudgetController extends AbstractController
     #[Route('/items/{idItem}', name: 'item_show', methods: ['GET'])]
     public function showItem(Item $item): Response
     {
+        $this->assertBudgetItemAccess($item, $this->getBudgetUser());
         $categoryTotal = $this->itemRepository->getTotalMontantByCategorie($item->getCategorie()->getIdCategorie());
         $percentage = $categoryTotal > 0 ? ($item->getMontant() / $categoryTotal) * 100 : 0;
 
@@ -538,6 +556,7 @@ class BudgetController extends AbstractController
     #[Route('/items/{idItem}/edit', name: 'item_edit', methods: ['GET', 'POST'])]
     public function editItem(Request $request, Item $item): Response
     {
+        $this->assertBudgetItemAccess($item, $this->getBudgetUser());
         $form = $this->createForm(ItemType::class, $item);
         $form->handleRequest($request);
 
@@ -570,6 +589,7 @@ class BudgetController extends AbstractController
     #[Route('/items/{idItem}/delete', name: 'item_delete', methods: ['POST'])]
     public function deleteItem(Request $request, Item $item): Response
     {
+        $this->assertBudgetItemAccess($item, $this->getBudgetUser());
         $categoryId = $item->getCategorie()->getIdCategorie();
 
         if (!$this->isCsrfTokenValid('front_budget_delete_item_' . $item->getIdItem(), (string) $request->request->get('_token'))) {
@@ -587,6 +607,40 @@ class BudgetController extends AbstractController
         return $this->redirectToRoute('front_budget_category_show', [
             'idCategorie' => $categoryId,
         ]);
+    }
+
+    #[Route('/reward/sms', name: 'reward_sms', methods: ['POST'])]
+    public function sendRewardSms(Request $request): Response
+    {
+        $user = $this->getBudgetUser();
+
+        if (!$this->isCsrfTokenValid('front_budget_reward_sms', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Requete invalide.');
+
+            return $this->redirectToRoute('front_budget_home');
+        }
+
+        $rewardSnapshot = $this->rewardService->buildRewardSnapshot($user);
+
+        if (!$rewardSnapshot['isEligible']) {
+            $this->addFlash('info', 'La recompense est non encore debloquee car au moins une categorie est alertee ou a atteint son seuil.');
+
+            return $this->redirectToRoute('front_budget_home');
+        }
+
+        if (!$user->getNumTel()) {
+            $this->addFlash('warning', 'Ajoutez un numero de telephone pour recevoir votre recompense par SMS.');
+
+            return $this->redirectToRoute('front_budget_home');
+        }
+
+        if ($this->rewardService->grantReward($user)) {
+            $this->addFlash('success', 'Votre recompense a ete envoyee par SMS via Twilio au ' . $user->getNumTel() . '.');
+        } else {
+            $this->addFlash('error', 'Impossible d envoyer le SMS Twilio pour le moment. Verifiez la configuration ou votre numero.');
+        }
+
+        return $this->redirectToRoute('front_budget_home');
     }
 
     private function synchronizeItemCategory(Item $item): void
@@ -732,7 +786,7 @@ class BudgetController extends AbstractController
     {
         $normalized = mb_strtolower(trim($name));
 
-        foreach ($this->categorieRepository->findAll() as $existing) {
+        foreach ($this->getVisibleCategories($this->getBudgetUser(), '', 'nom') as $existing) {
             if (mb_strtolower(trim($existing->getNomCategorie())) === $normalized) {
                 return true;
             }
@@ -755,5 +809,72 @@ class BudgetController extends AbstractController
         }
 
         return ['success', 'Stable'];
+    }
+
+    private function getBudgetUser(): User
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException('Utilisateur introuvable.');
+        }
+
+        return $user;
+    }
+
+    private function assertBudgetCategoryAccess(Categorie $category, User $user): void
+    {
+        if (!$this->canAccessBudgetCategory($category, $user)) {
+            throw $this->createAccessDeniedException('Categorie inaccessible.');
+        }
+    }
+
+    private function assertBudgetItemAccess(Item $item, User $user): void
+    {
+        $this->assertBudgetCategoryAccess($item->getCategorie(), $user);
+    }
+
+    private function canAccessBudgetCategory(Categorie $category, User $user): bool
+    {
+        $owner = $category->getUser();
+
+        return $owner === null || $owner->getId() === $user->getId();
+    }
+
+    /**
+     * @return Categorie[]
+     */
+    private function getVisibleCategories(User $user, string $search, string $sort): array
+    {
+        $categories = $this->categorieRepository->searchByFilters($search, null, null, null, $sort);
+        $visibleCategories = [];
+
+        foreach ($categories as $category) {
+            $owner = $category->getUser();
+
+            if ($owner === null || $owner->getId() === $user->getId()) {
+                $visibleCategories[$category->getIdCategorie()] = $category;
+            }
+        }
+
+        return array_values($visibleCategories);
+    }
+
+    /**
+     * @param Categorie[] $categories
+     *
+     * @return Alerte[]
+     */
+    private function getVisibleAlerts(array $categories): array
+    {
+        $alerts = [];
+
+        foreach ($categories as $category) {
+            foreach ($category->getAlertes() as $alert) {
+                $alerts[] = $alert;
+            }
+        }
+
+        return $alerts;
     }
 }

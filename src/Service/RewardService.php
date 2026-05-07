@@ -30,7 +30,7 @@ class RewardService
      */
     public function isEligibleForReward(User $user): bool
     {
-        return $this->buildRewardSnapshot()['isEligible'];
+        return $this->buildRewardSnapshot($user)['isEligible'];
     }
 
     public function getCategorySpentAmount(Categorie $category): float
@@ -51,6 +51,15 @@ class RewardService
 
     public function grantReward(User $user): bool
     {
+        if (!$this->isEligibleForReward($user)) {
+            $this->logger->info('Reward SMS skipped because reward is still locked.', [
+                'user_id' => $user->getId(),
+                'email' => $user->getEmail(),
+            ]);
+
+            return false;
+        }
+
         $phone = $user->getNumTel();
 
         if (!$phone) {
@@ -72,6 +81,10 @@ class RewardService
     /**
      * @return array{
      *     isEligible: bool,
+     *     status: string,
+     *     statusLabel: string,
+     *     lockReason: string,
+     *     smsReady: bool,
      *     categoriesChecked: int,
      *     blockedCount: int,
      *     safeCount: int,
@@ -83,13 +96,17 @@ class RewardService
      *     safeCategories: list<string>
      * }
      */
-    public function buildRewardSnapshot(): array
+    public function buildRewardSnapshot(?User $user = null): array
     {
-        $categories = $this->em->getRepository(Categorie::class)->findAll();
+        $categories = $this->getTrackedCategories($user);
 
         if ($categories === []) {
             return [
                 'isEligible' => false,
+                'status' => 'pending',
+                'statusLabel' => 'Non encore debloquee',
+                'lockReason' => 'Ajoutez au moins une categorie budgetaire pour activer votre recompense.',
+                'smsReady' => false,
                 'categoriesChecked' => 0,
                 'blockedCount' => 0,
                 'safeCount' => 0,
@@ -142,6 +159,12 @@ class RewardService
 
         return [
             'isEligible' => $categoriesChecked > 0 && $blockedCount === 0,
+            'status' => $blockedCount === 0 ? 'unlocked' : 'pending',
+            'statusLabel' => $blockedCount === 0 ? 'Recompense debloquee' : 'Recompense non encore debloquee',
+            'lockReason' => $blockedCount === 0
+                ? 'Toutes vos categories sont conformes et aucune alerte active ne bloque votre recompense.'
+                : 'Une ou plusieurs categories sont alertees ou proches du seuil. La recompense reste verrouillee.',
+            'smsReady' => $blockedCount === 0 && $user instanceof User && (string) $user->getNumTel() !== '',
             'categoriesChecked' => $categoriesChecked,
             'blockedCount' => $blockedCount,
             'safeCount' => $safeCount,
@@ -165,5 +188,28 @@ class RewardService
         ]);
 
         return array_values(array_filter($users, fn (User $user): bool => $this->isEligibleForReward($user)));
+    }
+
+    /**
+     * @return Categorie[]
+     */
+    private function getTrackedCategories(?User $user = null): array
+    {
+        $repository = $this->em->getRepository(Categorie::class);
+
+        if (!$user instanceof User) {
+            return $repository->findAll();
+        }
+
+        $ownedCategories = $repository->findBy(['user' => $user], ['idCategorie' => 'ASC']);
+        $legacyCategories = $repository->findBy(['user' => null], ['idCategorie' => 'ASC']);
+
+        $categoriesById = [];
+
+        foreach (array_merge($ownedCategories, $legacyCategories) as $category) {
+            $categoriesById[$category->getIdCategorie()] = $category;
+        }
+
+        return array_values($categoriesById);
     }
 }
